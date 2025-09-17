@@ -3,6 +3,7 @@ package backend.service;
 import backend.dto.*;
 import backend.model.Category;
 import backend.repository.CategoryRepository;
+import backend.repository.TourRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +22,9 @@ public class CategoryService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+    
+    @Autowired
+    private TourRepository tourRepository;
 
     // Lấy tất cả categories với phân trang
     public Page<CategoryDto> getAllCategories(int page, int size, String sortBy, String sortDir) {
@@ -34,9 +38,9 @@ public class CategoryService {
         return categories.map(this::convertToDto);
     }
 
-    // Lấy tất cả categories không phân trang, sắp xếp theo display_order
+    // Lấy tất cả categories không phân trang
     public List<CategoryDto> getAllCategoriesOrderByDisplay() {
-        List<Category> categories = categoryRepository.findAllByOrderByDisplayOrder();
+        List<Category> categories = categoryRepository.findAll();
         return categories.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -44,7 +48,7 @@ public class CategoryService {
 
     // Lấy categories đang active
     public List<CategoryDto> getActiveCategories() {
-        List<Category> categories = categoryRepository.findByIsActiveTrueOrderByDisplayOrder();
+        List<Category> categories = categoryRepository.findByIsActiveTrue();
         return categories.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -77,14 +81,6 @@ public class CategoryService {
 
         // Removed slug handling logic
 
-        // Xử lý display_order
-        if (request.getDisplayOrder() != null) {
-            category.setDisplayOrder(request.getDisplayOrder());
-        } else {
-            // Tự động đặt thứ tự cuối cùng
-            Integer maxOrder = categoryRepository.findMaxDisplayOrder().orElse(0);
-            category.setDisplayOrder(maxOrder + 1);
-        }
 
         Category savedCategory = categoryRepository.save(category);
         return convertToDto(savedCategory);
@@ -103,10 +99,6 @@ public class CategoryService {
 
         // Removed slug handling logic in update
 
-        // Xử lý display_order
-        if (request.getDisplayOrder() != null) {
-            category.setDisplayOrder(request.getDisplayOrder());
-        }
 
         Category savedCategory = categoryRepository.save(category);
         return convertToDto(savedCategory);
@@ -120,17 +112,6 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
 
-    // Sắp xếp lại thứ tự categories
-    @Transactional
-    public void reorderCategories(CategoryReorderRequest request) {
-        for (CategoryReorderRequest.CategoryOrderItem item : request.getCategoryOrders()) {
-            Category category = categoryRepository.findById(item.getId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với ID: " + item.getId()));
-            
-            category.setDisplayOrder(item.getDisplayOrder());
-            categoryRepository.save(category);
-        }
-    }
 
     // Thống kê categories
     public CategoryStatsDto getCategoryStats() {
@@ -153,12 +134,16 @@ public class CategoryService {
         dto.setName(category.getName());
         // Removed slug mapping
         dto.setDescription(category.getDescription());
-        dto.setDisplayOrder(category.getDisplayOrder());
         dto.setImageUrl(category.getImageUrl());
         dto.setGalleryImages(category.getGalleryImages());
         dto.setIsActive(category.getIsActive());
         dto.setCreatedAt(category.getCreatedAt());
         dto.setUpdatedAt(category.getUpdatedAt());
+        
+        // Tính số lượng tour trong danh mục này
+        long tourCount = tourRepository.countByCategoryId(category.getId());
+        dto.setTourCount((int) tourCount);
+        
         return dto;
     }
 

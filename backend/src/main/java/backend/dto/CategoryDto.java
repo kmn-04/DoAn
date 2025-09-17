@@ -18,7 +18,6 @@ public class CategoryDto {
     
     private String description;
     
-    private Integer displayOrder;
     
     private String imageUrl;
     
@@ -29,6 +28,8 @@ public class CategoryDto {
     private LocalDateTime createdAt;
     
     private LocalDateTime updatedAt;
+    
+    private Integer tourCount;
 
     // Constructors
     public CategoryDto() {}
@@ -37,7 +38,6 @@ public class CategoryDto {
         this.name = name;
         this.description = description;
         this.isActive = true;
-        this.displayOrder = 0;
     }
 
     // Getters and Setters
@@ -67,13 +67,6 @@ public class CategoryDto {
         this.description = description;
     }
 
-    public Integer getDisplayOrder() {
-        return displayOrder;
-    }
-
-    public void setDisplayOrder(Integer displayOrder) {
-        this.displayOrder = displayOrder;
-    }
 
     public String getImageUrl() {
         return imageUrl;
@@ -116,16 +109,24 @@ public class CategoryDto {
         this.updatedAt = updatedAt;
     }
 
+    public Integer getTourCount() {
+        return tourCount;
+    }
+
+    public void setTourCount(Integer tourCount) {
+        this.tourCount = tourCount;
+    }
+
     @Override
     public String toString() {
         return "CategoryDto{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", displayOrder=" + displayOrder +
                 ", imageUrl='" + imageUrl + '\'' +
                 ", galleryImages=" + galleryImages +
                 ", isActive=" + isActive +
+                ", tourCount=" + tourCount +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

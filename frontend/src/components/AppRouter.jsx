@@ -7,6 +7,8 @@ import Dashboard from './Dashboard'
 import UserManagement from './UserManagement'
 import UserDetail from './UserDetail'
 import CategoryManagement from './CategoryManagement'
+import PartnerManagement from './PartnerManagement'
+import TourManagement from './TourManagement'
 import Layout from './Layout'
 import authService from '../services/authService'
 
@@ -140,6 +142,30 @@ const AppRouter = () => {
           isAuthenticated ? (
             <Layout onLogout={handleLogout}>
               <CategoryManagement />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
+      <Route 
+        path="/partners" 
+        element={
+          isAuthenticated ? (
+            <Layout onLogout={handleLogout}>
+              <PartnerManagement />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
+      <Route 
+        path="/tours" 
+        element={
+          isAuthenticated ? (
+            <Layout onLogout={handleLogout}>
+              <TourManagement />
             </Layout>
           ) : (
             <Navigate to="/login" replace />

@@ -23,19 +23,32 @@ public class CategoryController {
     private CategoryService categoryService;
 
     // Lấy tất cả categories với phân trang (Admin)
-    @GetMapping("/admin")
+    @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<CategoryDto>> getAllCategoriesAdmin(
+    public ResponseEntity<Page<CategoryDto>> getAllCategories(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "displayOrder") String sortBy,
+            @RequestParam(defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir) {
         
         Page<CategoryDto> categories = categoryService.getAllCategories(page, size, sortBy, sortDir);
         return ResponseEntity.ok(categories);
     }
 
-    // Lấy tất cả categories sắp xếp theo display_order (Admin)
+    // Lấy tất cả categories với phân trang (Admin)
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<CategoryDto>> getAllCategoriesAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        
+        Page<CategoryDto> categories = categoryService.getAllCategories(page, size, sortBy, sortDir);
+        return ResponseEntity.ok(categories);
+    }
+
+    // Lấy tất cả categories (Admin)
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CategoryDto>> getAllCategoriesOrderByDisplay() {
@@ -117,22 +130,6 @@ public class CategoryController {
         }
     }
 
-    // Sắp xếp lại thứ tự categories (Admin)
-    @PutMapping("/admin/reorder")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> reorderCategories(@Valid @RequestBody CategoryReorderRequest request) {
-        try {
-            categoryService.reorderCategories(request);
-            return ResponseEntity.ok(Map.of(
-                "message", "Sắp xếp thứ tự danh mục thành công"
-            ));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "Sắp xếp thứ tự thất bại",
-                "message", e.getMessage()
-            ));
-        }
-    }
 
     // Lấy thống kê categories (Admin)
     @GetMapping("/admin/stats")
@@ -156,7 +153,6 @@ public class CategoryController {
             CategoryUpdateRequest updateRequest = new CategoryUpdateRequest();
             updateRequest.setName(category.getName());
             updateRequest.setDescription(category.getDescription());
-            updateRequest.setDisplayOrder(category.getDisplayOrder());
             updateRequest.setImageUrl(category.getImageUrl());
             updateRequest.setGalleryImages(category.getGalleryImages());
             updateRequest.setIsActive(!category.getIsActive()); // Toggle status

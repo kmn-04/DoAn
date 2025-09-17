@@ -17,7 +17,7 @@ public class JwtUtils {
     
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
     
-    @Value("${app.jwtSecret:mySecretKey}")
+    @Value("${app.jwtSecret:bXlTZWNyZXRLZXlGb3JKV1RUb2tlbkdlbmVyYXRpb25BbmRWYWxpZGF0aW9u}")
     private String jwtSecret;
     
     @Value("${app.jwtExpirationMs:86400000}")
@@ -44,7 +44,12 @@ public class JwtUtils {
     }
     
     private Key key() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+        try {
+            return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+        } catch (Exception e) {
+            // Fallback for simple string secrets
+            return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        }
     }
     
     public String getUserNameFromJwtToken(String token) {

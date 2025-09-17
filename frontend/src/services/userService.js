@@ -1,19 +1,8 @@
-import authService from './authService';
+import axiosInstance from './axiosConfig';
 
-const API_URL = 'http://localhost:8080/api/users';
+const API_URL = '/api/users';
 
 class UserService {
-  // Get authorization header
-  getAuthHeader() {
-    const user = authService.getCurrentUser();
-    if (user && user.accessToken) {
-      return { Authorization: 'Bearer ' + user.accessToken };
-    } else {
-      return {};
-    }
-  }
-
-  // Get all users with pagination and filters
   async getUsers(params = {}) {
     const {
       page = 0,
@@ -41,274 +30,95 @@ class UserService {
     if (toDate) queryParams.append('toDate', toDate);
 
     try {
-      const response = await fetch(`${API_URL}?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Có lỗi xảy ra khi lấy danh sách người dùng');
-      }
-
-      return await response.json();
+      const response = await axiosInstance.get(`${API_URL}?${queryParams}`);
+      return response.data;
     } catch (error) {
-      console.error('Error fetching users:', error);
+      this.handleApiError(error);
       throw error;
     }
   }
 
-  // Get user by ID
   async getUserById(id) {
     try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Không tìm thấy người dùng');
-      }
-
-      return await response.json();
+      const response = await axiosInstance.get(`${API_URL}/${id}`);
+      return response.data;
     } catch (error) {
-      console.error('Error fetching user:', error);
+      this.handleApiError(error);
       throw error;
     }
   }
 
-  // Create new user
   async createUser(userData) {
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        },
-        body: JSON.stringify(userData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Có lỗi xảy ra khi tạo người dùng');
-      }
-
-      return await response.json();
+      const response = await axiosInstance.post(API_URL, userData);
+      return response.data;
     } catch (error) {
-      console.error('Error creating user:', error);
+      this.handleApiError(error);
       throw error;
     }
   }
 
-  // Update user
   async updateUser(id, userData) {
     try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        },
-        body: JSON.stringify(userData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Có lỗi xảy ra khi cập nhật người dùng');
-      }
-
-      return await response.json();
+      const response = await axiosInstance.put(`${API_URL}/${id}`, userData);
+      return response.data;
     } catch (error) {
-      console.error('Error updating user:', error);
+      this.handleApiError(error);
       throw error;
     }
   }
 
-  // Delete user
   async deleteUser(id) {
     try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Có lỗi xảy ra khi xóa người dùng');
-      }
-
-      return await response.json();
+      const response = await axiosInstance.delete(`${API_URL}/${id}`);
+      return response.data;
     } catch (error) {
-      console.error('Error deleting user:', error);
+      this.handleApiError(error);
       throw error;
     }
   }
 
-  // Delete multiple users
-  async deleteUsers(userIds) {
-    try {
-      const response = await fetch(`${API_URL}/bulk`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        },
-        body: JSON.stringify(userIds)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Có lỗi xảy ra khi xóa người dùng');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error deleting users:', error);
-      throw error;
-    }
-  }
-
-  // Update single user status
-  async updateUserStatus(id, isActive) {
-    try {
-      const response = await fetch(`${API_URL}/${id}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        },
-        body: JSON.stringify({ isActive })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Có lỗi xảy ra khi cập nhật trạng thái');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating user status:', error);
-      throw error;
-    }
-  }
-
-  // Update users status
-  async updateUsersStatus(userIds, isActive) {
-    try {
-      const response = await fetch(`${API_URL}/bulk/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        },
-        body: JSON.stringify({ userIds, isActive })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Có lỗi xảy ra khi cập nhật trạng thái');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating users status:', error);
-      throw error;
-    }
-  }
-
-  // Update users role
   async updateUsersRole(userIds, role) {
     try {
-      const response = await fetch(`${API_URL}/bulk/role`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        },
-        body: JSON.stringify({ userIds, role })
+      const response = await axiosInstance.put(`${API_URL}/role`, {
+        userIds,
+        role
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Có lỗi xảy ra khi cập nhật vai trò');
-      }
-
-      return await response.json();
+      return response.data;
     } catch (error) {
-      console.error('Error updating users role:', error);
+      this.handleApiError(error);
       throw error;
     }
   }
 
-  // Get current user profile
   async getCurrentUserProfile() {
     try {
-      const response = await fetch(`${API_URL}/profile`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Có lỗi xảy ra khi lấy thông tin profile');
-      }
-
-      return await response.json();
+      const response = await axiosInstance.get(`${API_URL}/profile`);
+      return response.data;
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      this.handleApiError(error);
       throw error;
     }
   }
 
-  // Get user statistics (for dashboard cards)
   async getUserStats() {
     try {
-      const response = await fetch(`${API_URL}/stats`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...this.getAuthHeader()
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Có lỗi xảy ra khi lấy thống kê người dùng');
-      }
-
-      return await response.json();
+      const response = await axiosInstance.get(`${API_URL}/stats`);
+      return response.data;
     } catch (error) {
-      console.error('Error fetching user stats:', error);
+      this.handleApiError(error);
       throw error;
     }
   }
 
-  // Handle API errors
   handleApiError(error) {
-    if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-      // Token expired, logout user
-      authService.logout();
+    console.error('API Error:', error);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/login';
-      return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
     }
-    
-    return error.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
   }
 }
 
 export default new UserService();
-

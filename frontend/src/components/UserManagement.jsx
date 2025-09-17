@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import userService from '../services/userService';
 import Icons from './Icons';
 import '../styles/components/UserManagement.css';
+import '../styles/shared/ManagementCommon.css';
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -130,6 +131,7 @@ const UserManagement = () => {
     }
   };
 
+  // Load users khi pagination thay đổi
   useEffect(() => {
     loadUsers();
   }, [currentPage, itemsPerPage]);
@@ -139,6 +141,16 @@ const UserManagement = () => {
     loadStats();
     loadCurrentUser();
   }, []);
+
+  // Auto-trigger search khi filter thay đổi
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(1); // Reset về trang đầu khi filter
+      loadUsers();
+    }, 300); // Debounce 300ms để tránh gọi API quá nhiều
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, roleFilter, statusFilter, dateRange.from, dateRange.to]);
 
   // Since filtering is now done on the server side, we use users directly
   const currentUsers = users;
@@ -307,19 +319,13 @@ const UserManagement = () => {
     }
   };
 
-  // Filter handlers
-  const applyFilters = () => {
-    setCurrentPage(1);
-    loadUsers(); // Reload with new filters
-  };
-
+  // Clear filters function (giữ lại để có thể dùng cho button clear nếu cần)
   const clearFilters = () => {
     setSearchTerm('');
     setRoleFilter('all');
     setStatusFilter('all');
     setDateRange({ from: '', to: '' });
     setCurrentPage(1);
-    // Reload will be triggered by useEffect when currentPage changes
   };
 
   // Role và status styling
@@ -430,75 +436,71 @@ const UserManagement = () => {
         )}
       </div>
 
-      {/* Filters */}
-      <div className="filters-section">
-        <div className="filters-row">
-          <div className="filter-group search-group">
-            <label className="filter-label">Tìm kiếm</label>
-            <div className="search-box">
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Tên, email, số điện thoại..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+      {/* Search and Filter Combined */}
+      <div className="search-filter-section">
+        <div className="search-filter-box">
+          <div className="search-section">
+            {Icons.Search && Icons.Search()}
+            <input
+              type="text"
+              placeholder="Tìm kiếm tên, email, số điện thoại..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
           </div>
 
-          <div className="filter-group">
-            <label className="filter-label">Vai trò</label>
+          <div className="filter-divider"></div>
+
+          <div className="filter-section">
             <select
-              className="filter-select"
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
+              className="filter-dropdown"
             >
-              <option value="all">Tất cả</option>
+              <option value="all">Tất cả vai trò</option>
               <option value="ADMIN">Admin</option>
               <option value="STAFF">Staff</option>
               <option value="USER">User</option>
             </select>
           </div>
 
-          <div className="filter-group">
-            <label className="filter-label">Trạng thái</label>
+          <div className="filter-divider"></div>
+
+          <div className="filter-section">
             <select
-              className="filter-select"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-dropdown"
             >
-              <option value="all">Tất cả</option>
+              <option value="all">Tất cả trạng thái</option>
               <option value="active">Đang hoạt động</option>
               <option value="inactive">Không hoạt động</option>
             </select>
           </div>
 
-          <div className="filter-group">
-            <label className="filter-label">Ngày tạo</label>
-            <div className="date-range">
-              <input
-                type="date"
-                className="filter-date"
-                value={dateRange.from}
-                onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-              />
-              <span className="date-separator">đến</span>
-              <input
-                type="date"
-                className="filter-date"
-                value={dateRange.to}
-                onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-              />
-            </div>
+          <div className="filter-divider"></div>
+
+          <div className="filter-section">
+            <input
+              type="date"
+              value={dateRange.from}
+              onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+              className="filter-dropdown"
+              placeholder="Từ ngày"
+            />
           </div>
 
-          <div className="filter-actions">
-            <button className="btn btn-secondary" onClick={applyFilters}>
-              Áp dụng bộ lọc
-            </button>
-            <button className="btn btn-outline" onClick={clearFilters}>
-              Xóa bộ lọc
-            </button>
+          <div className="filter-divider"></div>
+
+          <div className="filter-section">
+            <input
+              type="date"
+              value={dateRange.to}
+              onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+              className="filter-dropdown"
+              placeholder="Đến ngày"
+            />
           </div>
         </div>
       </div>

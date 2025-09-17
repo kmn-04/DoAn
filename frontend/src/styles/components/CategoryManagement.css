@@ -187,7 +187,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: all 0.2s ease;
-  max-width: 600px;
+  max-width: 700px;
 }
 
 .combined-box:hover {
@@ -276,7 +276,6 @@
 
 .search-input {
   flex: 1;
-  border: none;
   outline: none;
   font-size: 16px;
   background: transparent;
@@ -353,10 +352,6 @@
 }
 
 /* Table Columns */
-.order-header {
-  width: 80px;
-}
-
 .image-header {
   width: 80px;
 }
@@ -373,7 +368,7 @@
   width: 120px;
 }
 
-.date-header {
+.tour-count-header {
   width: 140px;
 }
 
@@ -383,23 +378,6 @@
 
 /* Removed drag handle styles */
 
-/* Order Cell */
-.order-cell {
-  text-align: center;
-}
-
-.display-order {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: #f1f5f9;
-  border-radius: 6px;
-  font-weight: 600;
-  color: #475569;
-  font-size: 12px;
-}
 
 /* Image Cell */
 .image-cell {
@@ -513,10 +491,33 @@
   border-color: #facc15;
 }
 
-/* Date Cell */
-.date-cell {
-  color: #64748b;
+/* Tour Count Cell */
+.tour-count-cell {
+  text-align: center;
+}
+
+.tour-count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border-radius: 6px;
   font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #bae6fd;
+}
+
+.tour-count-info {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #bae6fd;
 }
 
 /* Actions Cell */
@@ -548,14 +549,24 @@
   color: #374151;
 }
 
+.btn-view {
+  background: #f0f9ff;
+  color: #0369a1;
+}
+
+.btn-view:hover {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
 .btn-edit {
-  background: #dbeafe;
-  color: #2563eb;
+  background: #fff7ed;
+  color: #ea580c;
 }
 
 .btn-edit:hover {
-  background: #bfdbfe;
-  color: #1d4ed8;
+  background: #ffedd5;
+  color: #ea580c;
 }
 
 .btn-delete {
@@ -812,9 +823,136 @@
   .image-cell {
     display: none;
   }
+}
 
-  .categories-table th,
-  .categories-table td {
-    padding: 8px 4px;
-  }
+/* View Modal Styles */
+.view-modal {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.view-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.view-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.view-modal .modal-body {
+  padding: 1.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.view-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.view-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.view-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.view-field label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.view-field span {
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.status-badge.active {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status-badge.inactive {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.view-image {
+  width: 100%;
+  max-width: 200px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.view-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.description-text {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  color: #6b7280;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.view-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
 }

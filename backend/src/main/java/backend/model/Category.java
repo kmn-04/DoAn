@@ -27,8 +27,6 @@ public class Category {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "display_order")
-    private Integer displayOrder = 0;
 
     @Column(name = "image_url")
     private String imageUrl;
@@ -47,6 +45,9 @@ public class Category {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "tour_count")
+    private Integer tourCount = 0;
+
     // Constructors
     public Category() {}
 
@@ -54,7 +55,6 @@ public class Category {
         this.name = name;
         this.description = description;
         this.isActive = true;
-        this.displayOrder = 0;
     }
 
     // Getters and Setters
@@ -84,13 +84,6 @@ public class Category {
         this.description = description;
     }
 
-    public Integer getDisplayOrder() {
-        return displayOrder;
-    }
-
-    public void setDisplayOrder(Integer displayOrder) {
-        this.displayOrder = displayOrder;
-    }
 
     public String getImageUrl() {
         return imageUrl;
@@ -167,6 +160,14 @@ public class Category {
         this.updatedAt = updatedAt;
     }
 
+    public Integer getTourCount() {
+        return tourCount;
+    }
+
+    public void setTourCount(Integer tourCount) {
+        this.tourCount = tourCount;
+    }
+
     // Removed slug generation methods
 
     @Override
@@ -175,9 +176,9 @@ public class Category {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", displayOrder=" + displayOrder +
                 ", imageUrl='" + imageUrl + '\'' +
                 ", isActive=" + isActive +
+                ", tourCount=" + tourCount +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

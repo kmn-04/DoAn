@@ -14,9 +14,10 @@ import authService from '../services/authService';
 import CategoryFormModal from './CategoryFormModal';
 import Icons from './Icons';
 import '../styles/components/CategoryManagement.css';
+import '../styles/shared/ManagementCommon.css';
 
 // Component cho từng row trong bảng
-const CategoryRow = ({ category, onEdit, onDelete, onToggleStatus }) => {
+const CategoryRow = ({ category, onEdit, onDelete, onToggleStatus, onView }) => {
 
   const handleStatusChange = (e) => {
     const newStatus = e.target.value === 'true';
@@ -37,9 +38,6 @@ const CategoryRow = ({ category, onEdit, onDelete, onToggleStatus }) => {
 
   return (
     <tr className="category-row">
-      <td className="order-cell">
-        <span className="display-order">{category.displayOrder}</span>
-      </td>
       <td className="image-cell">
         <div className="category-image">
           {category.imageUrl ? (
@@ -74,11 +72,20 @@ const CategoryRow = ({ category, onEdit, onDelete, onToggleStatus }) => {
           <option value={false}>Không hoạt động</option>
         </select>
       </td>
-      <td className="date-cell">
-        <small>{formatDate(category.createdAt)}</small>
+      <td className="tour-count-cell">
+        <div className="tour-count-badge">
+          {category.tourCount || 0} tour
+        </div>
       </td>
       <td className="actions-cell">
         <div className="action-buttons">
+          <button
+            className="btn-action btn-view"
+            onClick={() => onView(category)}
+            title="Xem chi tiết"
+          >
+            <Eye size={16} />
+          </button>
           <button
             className="btn-action btn-edit"
             onClick={() => onEdit(category)}
@@ -110,6 +117,7 @@ const CategoryManagement = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [stats, setStats] = useState(null);
+  const [viewingCategory, setViewingCategory] = useState(null);
 
   // Removed drag and drop sensors
 
@@ -196,6 +204,11 @@ const CategoryManagement = () => {
   const handleAdd = () => {
     setEditingCategory(null);
     setShowModal(true);
+  };
+
+  // Xử lý xem chi tiết
+  const handleView = (category) => {
+    setViewingCategory(category);
   };
 
   // Xử lý chỉnh sửa
@@ -317,8 +330,8 @@ const CategoryManagement = () => {
       )}
 
       {/* Search and Filter Combined */}
-      <div className="search-filter-combined">
-        <div className="combined-box">
+      <div className="search-filter-section">
+        <div className="search-filter-box">
           <div className="search-section">
             <Search size={20} />
             <input
@@ -330,7 +343,7 @@ const CategoryManagement = () => {
             />
           </div>
           
-          <div className="divider"></div>
+          <div className="filter-divider"></div>
           
           <div className="filter-section">
             <select
@@ -359,19 +372,18 @@ const CategoryManagement = () => {
         <table className="categories-table">
           <thead>
             <tr>
-              <th className="order-header">Thứ tự</th>
               <th className="image-header">Ảnh</th>
               <th className="name-header">Tên danh mục</th>
               <th className="description-header">Mô tả</th>
               <th className="status-header">Trạng thái</th>
-              <th className="date-header">Ngày tạo</th>
+              <th className="tour-count-header">Số lượng tour</th>
               <th className="actions-header">Hành động</th>
             </tr>
           </thead>
           <tbody>
             {filteredCategories.length === 0 ? (
               <tr>
-                <td colSpan="7" className="empty-state">
+                <td colSpan="6" className="empty-state">
                   {searchTerm || statusFilter !== 'all' ? 'Không tìm thấy danh mục nào phù hợp' : 'Chưa có danh mục nào'}
                 </td>
               </tr>
@@ -380,6 +392,7 @@ const CategoryManagement = () => {
                 <CategoryRow
                   key={category.id}
                   category={category}
+                  onView={handleView}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onToggleStatus={handleToggleStatus}
@@ -397,6 +410,93 @@ const CategoryManagement = () => {
           onClose={() => setShowModal(false)}
           onComplete={handleFormComplete}
         />
+      )}
+
+      {/* Category View Modal */}
+      {viewingCategory && (
+        <div className="modal-overlay">
+          <div className="view-modal">
+            <div className="modal-header">
+              <h3>Chi tiết danh mục</h3>
+              <button
+                className="close-button"
+                onClick={() => setViewingCategory(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="view-content">
+                <div className="view-section">
+                  <div className="view-field">
+                    <label>Tên danh mục:</label>
+                    <span>{viewingCategory.name}</span>
+                  </div>
+                  
+                  
+                  <div className="view-field">
+                    <label>Trạng thái:</label>
+                    <span className={`status-badge ${viewingCategory.isActive ? 'active' : 'inactive'}`}>
+                      {viewingCategory.isActive ? 'Hoạt động' : 'Không hoạt động'}
+                    </span>
+                  </div>
+                  
+                  <div className="view-field">
+                    <label>Số lượng tour:</label>
+                    <span className="tour-count-info">
+                      {viewingCategory.tourCount || 0} tour
+                    </span>
+                  </div>
+                  
+                  {viewingCategory.imageUrl && (
+                    <div className="view-field">
+                      <label>Ảnh danh mục:</label>
+                      <div className="view-image">
+                        <img src={viewingCategory.imageUrl} alt={viewingCategory.name} />
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="view-field">
+                    <label>Mô tả:</label>
+                    <div className="description-text">
+                      {viewingCategory.description || 'Không có mô tả'}
+                    </div>
+                  </div>
+                  
+                  <div className="view-field">
+                    <label>Ngày tạo:</label>
+                    <span>{new Date(viewingCategory.createdAt).toLocaleString('vi-VN')}</span>
+                  </div>
+                  
+                  {viewingCategory.updatedAt && (
+                    <div className="view-field">
+                      <label>Cập nhật lần cuối:</label>
+                      <span>{new Date(viewingCategory.updatedAt).toLocaleString('vi-VN')}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setViewingCategory(null)}
+              >
+                Đóng
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  setViewingCategory(null);
+                  handleEdit(viewingCategory);
+                }}
+              >
+                Chỉnh sửa
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Delete Confirmation Dialog */}

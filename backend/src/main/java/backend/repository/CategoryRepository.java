@@ -14,11 +14,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     
     // Removed slug-related methods
     
-    // Tìm tất cả categories đang active, sắp xếp theo display_order
-    List<Category> findByIsActiveTrueOrderByDisplayOrder();
+    // Tìm tất cả categories đang active
+    List<Category> findByIsActiveTrue();
     
-    // Tìm tất cả categories sắp xếp theo display_order
-    List<Category> findAllByOrderByDisplayOrder();
     
     // Tìm theo trạng thái active
     List<Category> findByIsActive(Boolean isActive);
@@ -26,17 +24,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     // Tìm theo tên (tìm kiếm không phân biệt hoa thường)
     List<Category> findByNameContainingIgnoreCase(String name);
     
-    // Lấy display_order lớn nhất hiện tại
-    @Query("SELECT MAX(c.displayOrder) FROM Category c")
-    Optional<Integer> findMaxDisplayOrder();
-    
-    // Cập nhật display_order cho category
-    @Query("UPDATE Category c SET c.displayOrder = :displayOrder WHERE c.id = :id")
-    void updateDisplayOrder(@Param("id") Long id, @Param("displayOrder") Integer displayOrder);
-    
-    // Tìm categories có display_order lớn hơn hoặc bằng
-    @Query("SELECT c FROM Category c WHERE c.displayOrder >= :displayOrder ORDER BY c.displayOrder")
-    List<Category> findByDisplayOrderGreaterThanEqual(@Param("displayOrder") Integer displayOrder);
     
     // Đếm số lượng categories đang active
     long countByIsActiveTrue();

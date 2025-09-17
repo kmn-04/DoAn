@@ -15,7 +15,6 @@ const CategoryFormModal = ({ category, onClose, onComplete }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    displayOrder: '',
     imageUrl: '',
     galleryImages: [],
     isActive: true
@@ -34,7 +33,6 @@ const CategoryFormModal = ({ category, onClose, onComplete }) => {
       setFormData({
         name: category.name || '',
         description: category.description || '',
-        displayOrder: category.displayOrder?.toString() || '',
         imageUrl: category.imageUrl || '',
         galleryImages: category.galleryImages || [],
         isActive: category.isActive !== undefined ? category.isActive : true
@@ -43,6 +41,32 @@ const CategoryFormModal = ({ category, onClose, onComplete }) => {
       setGalleryPreviews(category.galleryImages || []);
     }
   }, [category]);
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      // Store current values in closure to avoid stale closures
+      const currentImagePreview = imagePreview;
+      const currentGalleryPreviews = galleryPreviews;
+      
+      if (currentImagePreview && currentImagePreview.startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(currentImagePreview);
+        } catch (e) {
+          console.warn('Failed to revoke blob URL:', e);
+        }
+      }
+      currentGalleryPreviews.forEach(url => {
+        if (url && url.startsWith('blob:')) {
+          try {
+            URL.revokeObjectURL(url);
+          } catch (e) {
+            console.warn('Failed to revoke blob URL:', e);
+          }
+        }
+      });
+    };
+  }, []);
 
   // Removed auto generate slug logic
 
@@ -66,6 +90,11 @@ const CategoryFormModal = ({ category, onClose, onComplete }) => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Clean up previous blob URL if it exists
+      if (imagePreview && imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview);
+      }
+      
       // In a real app, you would upload to a file server
       // For now, we'll use URL.createObjectURL for preview
       const imageUrl = URL.createObjectURL(file);
@@ -99,6 +128,10 @@ const CategoryFormModal = ({ category, onClose, onComplete }) => {
 
   // Remove main image
   const removeMainImage = () => {
+    // Clean up blob URL if it exists
+    if (imagePreview && imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview);
+    }
     setFormData(prev => ({ ...prev, imageUrl: '' }));
     setImagePreview(null);
   };
@@ -121,8 +154,7 @@ const CategoryFormModal = ({ category, onClose, onComplete }) => {
     setLoading(true);
     try {
       const submitData = {
-        ...formData,
-        displayOrder: formData.displayOrder ? parseInt(formData.displayOrder) : null
+        ...formData
       };
 
       let result;
@@ -206,24 +238,6 @@ const CategoryFormModal = ({ category, onClose, onComplete }) => {
                 {errors.description && <span className="error-text">{errors.description}</span>}
               </div>
 
-              {/* Display Order */}
-              <div className="form-group">
-                <label htmlFor="displayOrder">Thứ tự hiển thị</label>
-                <input
-                  type="number"
-                  id="displayOrder"
-                  name="displayOrder"
-                  value={formData.displayOrder}
-                  onChange={handleInputChange}
-                  className={errors.displayOrder ? 'error' : ''}
-                  placeholder="Số nhỏ hơn sẽ được ưu tiên hiển thị trước"
-                  min="0"
-                />
-                <small className="help-text">
-                  Để trống sẽ tự động đặt ở cuối danh sách.
-                </small>
-                {errors.displayOrder && <span className="error-text">{errors.displayOrder}</span>}
-              </div>
 
               {/* Status */}
               <div className="form-group">

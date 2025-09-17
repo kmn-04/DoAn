@@ -15,7 +15,6 @@ public class CategoryCreateRequest {
     
     private String description;
     
-    private Integer displayOrder;
     
     private String imageUrl;
     
@@ -51,13 +50,6 @@ public class CategoryCreateRequest {
         this.description = description;
     }
 
-    public Integer getDisplayOrder() {
-        return displayOrder;
-    }
-
-    public void setDisplayOrder(Integer displayOrder) {
-        this.displayOrder = displayOrder;
-    }
 
     public String getImageUrl() {
         return imageUrl;
@@ -88,7 +80,6 @@ public class CategoryCreateRequest {
         return "CategoryCreateRequest{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", displayOrder=" + displayOrder +
                 ", imageUrl='" + imageUrl + '\'' +
                 ", galleryImages=" + galleryImages +
                 ", isActive=" + isActive +

@@ -1,27 +1,12 @@
-import axios from 'axios';
+import axiosInstance from './axiosConfig';
 
-const API_URL = 'http://localhost:8080/api/auth';
-
-// Cấu hình axios interceptor để tự động thêm token
-axios.defaults.baseURL = 'http://localhost:8080';
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+const API_URL = '/api/auth';
 
 const authService = {
   // Đăng nhập
   login: async (emailOrPhone, password) => {
     try {
-      const response = await axios.post(`${API_URL}/login`, {
+      const response = await axiosInstance.post(`${API_URL}/login`, {
         emailOrPhone,
         password
       });
@@ -40,7 +25,7 @@ const authService = {
   // Social Login
   socialLogin: async (socialData) => {
     try {
-      const response = await axios.post(`${API_URL}/social-login`, {
+      const response = await axiosInstance.post(`${API_URL}/social-login`, {
         provider: socialData.provider,
         providerId: socialData.id,
         email: socialData.email,
@@ -62,7 +47,7 @@ const authService = {
   // Đăng ký
   register: async (userData) => {
     try {
-      const response = await axios.post(`${API_URL}/register`, userData);
+      const response = await axiosInstance.post(`${API_URL}/register`, userData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
@@ -101,7 +86,7 @@ const authService = {
   // Xác minh email
   verifyEmail: async (email, verificationCode) => {
     try {
-      const response = await axios.post(`${API_URL}/verify-email`, {
+      const response = await axiosInstance.post(`${API_URL}/verify-email`, {
         email,
         verificationCode
       });
@@ -114,7 +99,7 @@ const authService = {
   // Gửi lại mã xác minh
   resendVerification: async (email) => {
     try {
-      const response = await axios.post(`${API_URL}/resend-verification`, {
+      const response = await axiosInstance.post(`${API_URL}/resend-verification`, {
         email
       });
       return response.data;
@@ -125,3 +110,4 @@ const authService = {
 };
 
 export default authService;
+export { axiosInstance };
