@@ -39,8 +39,8 @@ public class Tour {
     @Column(columnDefinition = "TEXT")
     private String description;
     
-    @Column(name = "departure_location", length = 100)
-    private String departureLocation;
+    @Column(name = "location", length = 100)
+    private String location;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -78,13 +78,9 @@ public class Tour {
     @Column(name = "included_services", columnDefinition = "TEXT")
     private String includedServices;
     
-    @Column(name = "excluded_services", columnDefinition = "TEXT")
-    private String excludedServices;
-    
-    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TourStatus status = TourStatus.DRAFT;
+    private TourStatus status = TourStatus.ACTIVE;
     
     @Column(name = "is_featured")
     private Boolean isFeatured = false;
@@ -104,7 +100,6 @@ public class Tour {
     private List<TourItinerary> itinerary;
     
     public enum TourStatus {
-        DRAFT("Nháp"),
         ACTIVE("Hoạt động"),
         INACTIVE("Không hoạt động");
         

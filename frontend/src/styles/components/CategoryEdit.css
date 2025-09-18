@@ -1,0 +1,32 @@
+/* Category Edit Page - Import base styles from CategoryAdd */
+@import 'CategoryAdd.css';
+
+/* Override specific styles for edit page */
+.category-edit-page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+/* Loading container */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

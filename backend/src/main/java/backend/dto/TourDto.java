@@ -14,7 +14,7 @@ public class TourDto {
     private String title;
     private String shortDescription;
     private String description;
-    private String departureLocation;
+    private String location;
     private CategoryDto category;
     private TargetAudience targetAudience;
     private Integer durationDays;
@@ -24,7 +24,6 @@ public class TourDto {
     private Integer maxParticipants;
     private List<String> galleryImages;
     private String includedServices;
-    private String excludedServices;
     private TourStatus status;
     private Boolean isFeatured;
     private LocalDateTime createdAt;

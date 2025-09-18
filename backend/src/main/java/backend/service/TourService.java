@@ -139,7 +139,7 @@ public class TourService {
         tour.setTitle(request.getTitle());
         tour.setShortDescription(request.getShortDescription());
         tour.setDescription(request.getDescription());
-        tour.setDepartureLocation(request.getDepartureLocation());
+        tour.setLocation(request.getLocation());
         tour.setTargetAudience(request.getTargetAudience());
         tour.setDurationDays(request.getDurationDays());
         tour.setDurationNights(request.getDurationNights());
@@ -148,7 +148,6 @@ public class TourService {
         tour.setMaxParticipants(request.getMaxParticipants());
         tour.setGalleryImages(request.getGalleryImages());
         tour.setIncludedServices(request.getIncludedServices());
-        tour.setExcludedServices(request.getExcludedServices());
         tour.setStatus(request.getStatus());
         tour.setIsFeatured(request.getIsFeatured());
     }
@@ -157,7 +156,7 @@ public class TourService {
         if (request.getTitle() != null) tour.setTitle(request.getTitle());
         if (request.getShortDescription() != null) tour.setShortDescription(request.getShortDescription());
         if (request.getDescription() != null) tour.setDescription(request.getDescription());
-        if (request.getDepartureLocation() != null) tour.setDepartureLocation(request.getDepartureLocation());
+        if (request.getLocation() != null) tour.setLocation(request.getLocation());
         if (request.getTargetAudience() != null) tour.setTargetAudience(request.getTargetAudience());
         if (request.getDurationDays() != null) tour.setDurationDays(request.getDurationDays());
         if (request.getDurationNights() != null) tour.setDurationNights(request.getDurationNights());
@@ -166,7 +165,6 @@ public class TourService {
         if (request.getMaxParticipants() != null) tour.setMaxParticipants(request.getMaxParticipants());
         if (request.getGalleryImages() != null) tour.setGalleryImages(request.getGalleryImages());
         if (request.getIncludedServices() != null) tour.setIncludedServices(request.getIncludedServices());
-        if (request.getExcludedServices() != null) tour.setExcludedServices(request.getExcludedServices());
         if (request.getStatus() != null) tour.setStatus(request.getStatus());
         if (request.getIsFeatured() != null) tour.setIsFeatured(request.getIsFeatured());
     }
@@ -177,7 +175,7 @@ public class TourService {
         dto.setTitle(tour.getTitle());
         dto.setShortDescription(tour.getShortDescription());
         dto.setDescription(tour.getDescription());
-        dto.setDepartureLocation(tour.getDepartureLocation());
+        dto.setLocation(tour.getLocation());
         
         if (tour.getCategory() != null) {
             CategoryDto categoryDto = new CategoryDto();
@@ -194,7 +192,6 @@ public class TourService {
         dto.setMaxParticipants(tour.getMaxParticipants());
         dto.setGalleryImages(tour.getGalleryImages());
         dto.setIncludedServices(tour.getIncludedServices());
-        dto.setExcludedServices(tour.getExcludedServices());
         dto.setStatus(tour.getStatus());
         dto.setIsFeatured(tour.getIsFeatured());
         dto.setCreatedAt(tour.getCreatedAt());
@@ -251,25 +248,21 @@ public class TourService {
         
         // Basic counts
         long totalTours = tourRepository.count();
-        long draftTours = tourRepository.countByStatus(Tour.TourStatus.DRAFT);
         long activeTours = tourRepository.countByStatus(Tour.TourStatus.ACTIVE);
         long inactiveTours = tourRepository.countByStatus(Tour.TourStatus.INACTIVE);
         long featuredTours = tourRepository.countByIsFeaturedTrue();
         
         stats.put("totalTours", totalTours);
-        stats.put("draftTours", draftTours);
         stats.put("activeTours", activeTours);
         stats.put("inactiveTours", inactiveTours);
         stats.put("featuredTours", featuredTours);
         
         // Percentages
         if (totalTours > 0) {
-            stats.put("draftPercentage", Math.round((draftTours * 100.0) / totalTours));
             stats.put("activePercentage", Math.round((activeTours * 100.0) / totalTours));
             stats.put("inactivePercentage", Math.round((inactiveTours * 100.0) / totalTours));
             stats.put("featuredPercentage", Math.round((featuredTours * 100.0) / totalTours));
         } else {
-            stats.put("draftPercentage", 0);
             stats.put("activePercentage", 0);
             stats.put("inactivePercentage", 0);
             stats.put("featuredPercentage", 0);

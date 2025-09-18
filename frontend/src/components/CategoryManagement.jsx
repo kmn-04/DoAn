@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Plus,
@@ -11,7 +12,6 @@ import {
 } from 'lucide-react';
 import categoryService from '../services/categoryService';
 import authService from '../services/authService';
-import CategoryFormModal from './CategoryFormModal';
 import Icons from './Icons';
 import '../styles/components/CategoryManagement.css';
 import '../styles/shared/ManagementCommon.css';
@@ -26,15 +26,6 @@ const CategoryRow = ({ category, onEdit, onDelete, onToggleStatus, onView }) => 
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   return (
     <tr className="category-row">
@@ -108,16 +99,14 @@ const CategoryRow = ({ category, onEdit, onDelete, onToggleStatus, onView }) => 
 
 // Component chính CategoryManagement
 const CategoryManagement = () => {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'inactive'
-  const [showModal, setShowModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [stats, setStats] = useState(null);
-  const [viewingCategory, setViewingCategory] = useState(null);
 
   // Removed drag and drop sensors
 
@@ -202,19 +191,17 @@ const CategoryManagement = () => {
 
   // Xử lý thêm mới
   const handleAdd = () => {
-    setEditingCategory(null);
-    setShowModal(true);
+    navigate('/categories/add');
   };
 
   // Xử lý xem chi tiết
   const handleView = (category) => {
-    setViewingCategory(category);
+    navigate(`/categories/${category.id}`);
   };
 
   // Xử lý chỉnh sửa
   const handleEdit = (category) => {
-    setEditingCategory(category);
-    setShowModal(true);
+    navigate(`/categories/${category.id}/edit`);
   };
 
   // Xử lý xóa
@@ -234,7 +221,7 @@ const CategoryManagement = () => {
       } else {
         setError(result.error);
       }
-    } catch (err) {
+    } catch {
       setError('Lỗi khi xóa danh mục');
     }
   };
@@ -249,18 +236,11 @@ const CategoryManagement = () => {
       } else {
         setError(result.error);
       }
-    } catch (err) {
+    } catch {
       setError('Lỗi khi thay đổi trạng thái danh mục');
     }
   };
 
-  // Xử lý khi form modal hoàn thành
-  const handleFormComplete = () => {
-    setShowModal(false);
-    setEditingCategory(null);
-    loadCategories();
-    loadStats();
-  };
 
   if (loading) {
     return (
@@ -403,101 +383,7 @@ const CategoryManagement = () => {
         </table>
       </div>
 
-      {/* Category Form Modal */}
-      {showModal && (
-        <CategoryFormModal
-          category={editingCategory}
-          onClose={() => setShowModal(false)}
-          onComplete={handleFormComplete}
-        />
-      )}
 
-      {/* Category View Modal */}
-      {viewingCategory && (
-        <div className="modal-overlay">
-          <div className="view-modal">
-            <div className="modal-header">
-              <h3>Chi tiết danh mục</h3>
-              <button
-                className="close-button"
-                onClick={() => setViewingCategory(null)}
-              >
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="view-content">
-                <div className="view-section">
-                  <div className="view-field">
-                    <label>Tên danh mục:</label>
-                    <span>{viewingCategory.name}</span>
-                  </div>
-                  
-                  
-                  <div className="view-field">
-                    <label>Trạng thái:</label>
-                    <span className={`status-badge ${viewingCategory.isActive ? 'active' : 'inactive'}`}>
-                      {viewingCategory.isActive ? 'Hoạt động' : 'Không hoạt động'}
-                    </span>
-                  </div>
-                  
-                  <div className="view-field">
-                    <label>Số lượng tour:</label>
-                    <span className="tour-count-info">
-                      {viewingCategory.tourCount || 0} tour
-                    </span>
-                  </div>
-                  
-                  {viewingCategory.imageUrl && (
-                    <div className="view-field">
-                      <label>Ảnh danh mục:</label>
-                      <div className="view-image">
-                        <img src={viewingCategory.imageUrl} alt={viewingCategory.name} />
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="view-field">
-                    <label>Mô tả:</label>
-                    <div className="description-text">
-                      {viewingCategory.description || 'Không có mô tả'}
-                    </div>
-                  </div>
-                  
-                  <div className="view-field">
-                    <label>Ngày tạo:</label>
-                    <span>{new Date(viewingCategory.createdAt).toLocaleString('vi-VN')}</span>
-                  </div>
-                  
-                  {viewingCategory.updatedAt && (
-                    <div className="view-field">
-                      <label>Cập nhật lần cuối:</label>
-                      <span>{new Date(viewingCategory.updatedAt).toLocaleString('vi-VN')}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button
-                className="btn btn-secondary"
-                onClick={() => setViewingCategory(null)}
-              >
-                Đóng
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  setViewingCategory(null);
-                  handleEdit(viewingCategory);
-                }}
-              >
-                Chỉnh sửa
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm && (

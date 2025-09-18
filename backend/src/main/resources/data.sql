@@ -102,123 +102,92 @@ INSERT IGNORE INTO partner_amenities (partner_id, amenity) VALUES
 -- TOURS SAMPLE DATA
 -- ===========================
 
--- Insert sample tours
+-- Insert sample tours với format mới
 INSERT IGNORE INTO tours (
-    id, title, short_description, description, price, discounted_price, 
-    duration_days, duration_nights, max_participants, min_participants,
-    difficulty_level, status, is_featured, gallery_images,
-    included_services, excluded_services, terms_and_policies,
-    category_id, created_at, updated_at
+    id, title, short_description, description, location,
+    price, discounted_price, duration_days, duration_nights, max_participants, 
+    min_participants, difficulty_level, status, is_featured, gallery_images,
+    included_services, category_id, target_audience, created_at, updated_at
 ) VALUES 
 -- Tour 1: Hạ Long Bay
 (1, 'Du thuyền Hạ Long Bay 2 ngày 1 đêm', 
 'Khám phá vẻ đẹp kỳ vĩ của vịnh Hạ Long với du thuyền sang trọng',
 'Chuyến du lịch 2 ngày 1 đêm tại vịnh Hạ Long sẽ mang đến cho bạn những trải nghiệm tuyệt vời. Bạn sẽ được ngắm nhìn hàng nghìn hòn đảo đá vôi kỳ vĩ, thăm quan động Thiên Cung, làng chài Cửa Vạn, và thưởng thức hải sản tươi ngon.',
+'Hạ Long, Quảng Ninh',
 2500000, 2200000, 2, 1, 20, 4, 'EASY', 'ACTIVE', true,
 '["https://images.unsplash.com/photo-1528127269322-539801943592?w=400", "https://images.unsplash.com/photo-1509650460351-3c78c0dcfce4?w=400", "https://images.unsplash.com/photo-1580654712603-eb43273aff33?w=400"]',
 'Xe đưa đón, Du thuyền 5 sao, Bữa ăn theo chương trình, Hướng dẫn viên, Bảo hiểm du lịch',
-'Chi phí cá nhân, Đồ uống có cồn, Tip cho HDV và lái xe',
-'Hủy tour trước 7 ngày: hoàn 100% phí. Hủy trước 3-6 ngày: hoàn 50% phí. Hủy trong vòng 2 ngày: không hoàn phí. Khách hàng cần có giấy tờ tùy thân hợp lệ. Trẻ em dưới 2 tuổi miễn phí, từ 2-11 tuổi tính 75% giá người lớn.',
-1, NOW(), NOW()),
+1, 'FAMILY', NOW(), NOW()),
 
 -- Tour 2: Sapa Trekking
 (2, 'Sapa Trekking 3 ngày 2 đêm - Fansipan', 
 'Chinh phục nóc nhà Đông Dương và khám phá văn hóa dân tộc',
 'Hành trình 3 ngày 2 đêm tại Sapa sẽ đưa bạn đến với những thửa ruộng bậc thang tuyệt đẹp, các bản làng dân tộc thiểu số đặc sắc. Bạn sẽ có cơ hội chinh phục đỉnh Fansipan bằng cáp treo hiện đại.',
+'Sapa, Lào Cai',
 1800000, 1500000, 3, 2, 15, 6, 'MEDIUM', 'ACTIVE', true,
 '["https://images.unsplash.com/photo-1539650116574-75c0c6d73469?w=400", "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400", "https://images.unsplash.com/photo-1553150195-8383e3743b87?w=400"]',
 'Xe đưa đón, Khách sạn 3 sao, Vé cáp treo Fansipan, Bữa ăn theo chương trình, Hướng dẫn viên địa phương',
-'Chi phí cá nhân, Đồ uống ngoài chương trình, Các tour tùy chọn',
-'Hủy tour trước 10 ngày: hoàn 90% phí. Hủy trước 5-9 ngày: hoàn 70% phí. Hủy trong vòng 4 ngày: hoàn 30% phí. Tour yêu cầu sức khỏe tốt do có hoạt động trekking. Nên mang theo giày thể thao và áo ấm.',
-2, NOW(), NOW()),
+2, 'FRIENDS', NOW(), NOW()),
 
 -- Tour 3: Phú Quốc Beach
 (3, 'Phú Quốc 4 ngày 3 đêm - Thiên đường biển đảo', 
 'Thư giãn tại bãi biển đẹp nhất Việt Nam với resort 5 sao',
 'Kỳ nghỉ 4 ngày 3 đêm tại đảo ngọc Phú Quốc sẽ mang đến cho bạn những giây phút thư giãn tuyệt vời. Bạn sẽ được tắm biển tại bãi Sao, bãi Kem với làn nước trong xanh, cát trắng mịn.',
+'Phú Quốc, Kiên Giang',
 4200000, 3800000, 4, 3, 25, 2, 'EASY', 'ACTIVE', true,
 '["https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400", "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400", "https://images.unsplash.com/photo-1571801208806-fe5f129e2c4d?w=400"]',
 'Vé máy bay khứ hồi, Resort 5 sao, Xe đưa đón sân bay, Bữa sáng hằng ngày, Tour 4 đảo, Bảo hiểm du lịch',
-'Bữa trưa và tối, Spa và massage, Các hoạt động thể thao biển, Shopping',
-'Hủy tour trước 15 ngày: hoàn 80% phí. Hủy trước 7-14 ngày: hoàn 60% phí. Hủy trong vòng 6 ngày: hoàn 20% phí. Thời gian lý tưởng: tháng 10-4. Nên mang kem chống nắng, kính râm và đồ bơi.',
-3, NOW(), NOW()),
+3, 'COUPLE', NOW(), NOW()),
 
 -- Tour 4: Đà Lạt Romantic
 (4, 'Đà Lạt 3 ngày 2 đêm - Thành phố ngàn hoa', 
 'Lãng mạn tại thành phố mùa xuân với khí hậu mát mẻ',
 'Chuyến du lịch 3 ngày 2 đêm tại Đà Lạt sẽ đưa bạn đến với thành phố ngàn hoa thơ mộng. Thăm quan thác Elephant, hồ Xuân Hương, chùa Linh Phước, làng hoa Vạn Thành.',
+'Đà Lạt, Lâm Đồng',
 1600000, 1400000, 3, 2, 18, 4, 'EASY', 'ACTIVE', false,
 '["https://images.unsplash.com/photo-1578271887552-5ac3a72752d2?w=400", "https://images.unsplash.com/photo-1562179136-4663191ca4bb?w=400", "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=400"]',
 'Xe đưa đón, Khách sạn 3 sao, Bữa ăn theo chương trình, Hướng dẫn viên, Vé tham quan',
-'Chi phí cá nhân, Đồ uống, Mua sắm đặc sản, Các hoạt động không trong chương trình',
-'Hủy tour trước 5 ngày: hoàn 80% phí. Hủy trước 2-4 ngày: hoàn 50% phí. Hủy trong 1 ngày: không hoàn phí. Nên mang theo áo ấm vì thời tiết mát mẻ. Thích hợp cho các cặp đôi và gia đình.',
-1, NOW(), NOW()),
+1, 'COUPLE', NOW(), NOW()),
 
 -- Tour 5: Ninh Bình Adventure
 (5, 'Ninh Bình 2 ngày 1 đêm - Hoa Lư Tam Cốc', 
 'Khám phá vẻ đẹp hùng vĩ của vịnh Hạ Long trên cạn',
 'Tour 2 ngày 1 đêm tại Ninh Bình đưa bạn khám phá cố đô Hoa Lư, du thuyền sông Ngô Đồng qua Tam Cốc - Bích Động, leo núi Mua để ngắm toàn cảnh.',
+'Ninh Bình',
 1200000, 1000000, 2, 1, 20, 6, 'MEDIUM', 'ACTIVE', false,
 '["https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=400", "https://images.unsplash.com/photo-1583919098097-6fa7ac5a7a32?w=400", "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=400"]',
 'Xe đưa đón, Khách sạn 3 sao, Thuyền thăm Tam Cốc, Bữa ăn theo chương trình, Vé tham quan, Hướng dẫn viên',
-'Chi phí cá nhân, Đồ uống ngoài bữa ăn, Tip cho thuyền công, Xe đạp cho thuê',
-'Hủy tour trước 3 ngày: hoàn 80% phí. Hủy trước 1-2 ngày: hoàn 50% phí. Hủy cùng ngày: không hoàn phí. Nên mang nón, kem chống nắng. Tour có hoạt động leo núi nên cần giày thể thao.',
-2, NOW(), NOW()),
+2, 'FAMILY', NOW(), NOW()),
 
 -- Tour 6: Mekong Delta
 (6, 'Miền Tây 2 ngày 1 đêm - Chợ nổi Cái Răng', 
 'Trải nghiệm cuộc sống miệt vườn và chợ nổi sông nước',
 'Hành trình 2 ngày 1 đêm khám phá miền Tây Nam Bộ với chợ nổi Cái Răng, vườn trái cây, làng nghề truyền thống.',
+'Cần Thơ, An Giang',
 1100000, 950000, 2, 1, 16, 8, 'EASY', 'ACTIVE', false,
 '["https://images.unsplash.com/photo-1571057887532-7c2d5e8f2b9d?w=400", "https://images.unsplash.com/photo-1608736869737-8c366cf892c5?w=400", "https://images.unsplash.com/photo-1578321272176-b7bbc0679853?w=400"]',
 'Xe đưa đón, Khách sạn 2 sao, Thuyền thăm chợ nổi, Bữa ăn đặc sản miền Tây, Hướng dẫn viên',
-'Chi phí cá nhân, Đồ uống, Mua trái cây, Tip cho chủ vườn',
-'Hủy tour trước 3 ngày: hoàn 100% phí. Hủy trước 1-2 ngày: hoàn 70% phí. Hủy cùng ngày: hoàn 30% phí. Thời gian tốt nhất: tháng 12-4 (mùa khô). Nên mang nón và kem chống nắng.',
-4, NOW(), NOW()),
+4, 'FAMILY', NOW(), NOW()),
 
 -- Tour 7: Hội An Ancient Town
 (7, 'Hội An 3 ngày 2 đêm - Phố cổ và Mỹ Sơn', 
 'Khám phá di sản văn hóa thế giới và ẩm thực đặc sắc',
 'Tour 3 ngày 2 đêm tại Hội An đưa bạn khám phá phố cổ với kiến trúc độc đáo, đền tháp Mỹ Sơn của người Chăm, làng rau Trà Quế.',
+'Hội An, Quảng Nam',
 2000000, 1750000, 3, 2, 20, 4, 'EASY', 'ACTIVE', true,
 '["https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=400", "https://images.unsplash.com/photo-1582719471009-5a9e4bdd7af3?w=400", "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400"]',
 'Xe đưa đón, Khách sạn 4 sao, Vé tham quan Mỹ Sơn, Xe đạp tham quan phố cổ, Bữa ăn theo chương trình, Hướng dẫn viên',
-'Chi phí cá nhân, Đồ uống, Mua sắm, Massage và spa, Tour thêm',
-'Hủy tour trước 7 ngày: hoàn 90% phí. Hủy trước 3-6 ngày: hoàn 60% phí. Hủy trong 2 ngày: hoàn 20% phí. Thời gian lý tưởng: tháng 2-8. Phố cổ đông đúc vào cuối tuần và lễ hội.',
-5, NOW(), NOW()),
+5, 'FAMILY', NOW(), NOW()),
 
 -- Tour 8: Cao Bang Falls  
 (8, 'Cao Bằng 3 ngày 2 đêm - Thác Bản Giốc', 
 'Chiêm ngưỡng thác nước hùng vĩ biên giới Việt - Trung',
 'Chuyến du lịch 3 ngày 2 đêm tại Cao Bằng đưa bạn đến thác Bản Giốc - thác nước lớn nhất Việt Nam, động Ngườm Ngao kỳ vĩ.',
-1700000, 1500000, 3, 2, 12, 6, 'MEDIUM', 'DRAFT', false,
+'Cao Bằng',
+1700000, 1500000, 3, 2, 12, 6, 'MEDIUM', 'ACTIVE', false,
 '["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400", "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400", "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400"]',
 'Xe đưa đón, Khách sạn 2 sao, Bữa ăn theo chương trình, Vé tham quan, Thuyền tham quan thác, Hướng dẫn viên',
-'Chi phí cá nhân, Đồ uống, Thuê xe máy, Mua đặc sản địa phương',
-'Hủy tour trước 5 ngày: hoàn 80% phí. Hủy trước 2-4 ngày: hoàn 50% phí. Hủy trong 1 ngày: không hoàn phí. Đường đi có nhiều dốc núi, phù hợp cho người có sức khỏe tốt. Mùa đẹp nhất: tháng 9-11.',
-2, NOW(), NOW()),
-
--- Tour 9: Con Dao Island
-(9, 'Côn Đảo 4 ngày 3 đêm - Đảo thiêng liêng', 
-'Khám phá lịch sử bi hùng và thiên nhiên hoang sơ',
-'Tour 4 ngày 3 đêm tại Côn Đảo mang đến trải nghiệm đầy cảm xúc với di tích lịch sử Nhà tù Côn Đảo, mộ cô Võ Thị Sáu.',
-5500000, 5000000, 4, 3, 15, 4, 'MEDIUM', 'INACTIVE', false,
-'["https://images.unsplash.com/photo-1571801208806-fe5f129e2c4d?w=400", "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400", "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400"]',
-'Vé máy bay khứ hồi, Resort 4 sao, Xe đưa đón, Bữa ăn theo chương trình, Tour lặn ngắm san hô, Vé tham quan',
-'Đồ uống có cồn, Spa và massage, Hoạt động thể thao nước, Chi phí cá nhân',
-'Hủy tour trước 20 ngày: hoàn 70% phí. Hủy trước 10-19 ngày: hoàn 50% phí. Hủy trong 9 ngày: hoàn 20% phí. Tour phụ thuộc vào thời tiết bay. Cần giấy tờ tùy thân để đi máy bay. Mùa đẹp: tháng 3-9.',
-3, NOW(), NOW()),
-
--- Tour 10: Ha Giang Loop
-(10, 'Hà Giang 4 ngày 3 đêm - Cung đường hạnh phúc', 
-'Khám phá vẻ đẹp hoang sơ và hùng vĩ của miền núi phía Bắc',
-'Hành trình 4 ngày 3 đêm tại Hà Giang sẽ đưa bạn qua cung đường hạnh phúc với các điểm đến: Quản Bạ, Yên Minh, Đồng Văn, Mèo Vạc.',
-2200000, 2000000, 4, 3, 12, 6, 'HARD', 'DRAFT', false,
-'["https://images.unsplash.com/photo-1539650116574-75c0c6d73469?w=400", "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400", "https://images.unsplash.com/photo-1553150195-8383e3743b87?w=400"]',
-'Xe máy/xe jeep, Nhà nghỉ địa phương, Xăng xe, Bữa ăn theo chương trình, Hướng dẫn viên địa phương, Bảo hiểm',
-'Chi phí cá nhân, Đồ uống có cồn, Đồ ăn ngoài chương trình, Tip HDV',
-'Hủy tour trước 7 ngày: hoàn 80% phí. Hủy trước 3-6 ngày: hoàn 50% phí. Hủy trong 2 ngày: không hoàn phí. Cần bằng lái xe máy A1. Đường đi khó, cần sức khỏe tốt. Mùa hoa tam giác mạch: tháng 10-11.',
-2, NOW(), NOW());
+2, 'FRIENDS', NOW(), NOW());
 
 -- Insert sample tour itineraries
 INSERT IGNORE INTO tour_itinerary (

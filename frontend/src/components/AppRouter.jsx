@@ -6,7 +6,11 @@ import EmailVerificationPage from '../pages/EmailVerificationPage'
 import Dashboard from './Dashboard'
 import UserManagement from './UserManagement'
 import UserDetail from './UserDetail'
+import UserAdd from './UserAdd'
 import CategoryManagement from './CategoryManagement'
+import CategoryAdd from './CategoryAdd'
+import CategoryDetail from './CategoryDetail'
+import CategoryEdit from './CategoryEdit'
 import PartnerManagement from './PartnerManagement'
 import TourManagement from './TourManagement'
 import Layout from './Layout'
@@ -125,11 +129,59 @@ const AppRouter = () => {
         } 
       />
       <Route 
+        path="/users/add" 
+        element={
+          isAuthenticated ? (
+            <Layout onLogout={handleLogout}>
+              <UserAdd />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
+      <Route 
         path="/users/:id" 
         element={
           isAuthenticated ? (
             <Layout onLogout={handleLogout}>
               <UserDetail />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
+      <Route 
+        path="/categories/add" 
+        element={
+          isAuthenticated ? (
+            <Layout onLogout={handleLogout}>
+              <CategoryAdd />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
+      <Route 
+        path="/categories/:id/edit" 
+        element={
+          isAuthenticated ? (
+            <Layout onLogout={handleLogout}>
+              <CategoryEdit />
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
+      <Route 
+        path="/categories/:id" 
+        element={
+          isAuthenticated ? (
+            <Layout onLogout={handleLogout}>
+              <CategoryDetail />
             </Layout>
           ) : (
             <Navigate to="/login" replace />

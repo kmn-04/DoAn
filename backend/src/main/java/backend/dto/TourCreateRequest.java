@@ -18,7 +18,7 @@ public class TourCreateRequest {
     
     private String shortDescription;
     private String description;
-    private String departureLocation;
+    private String location;
     private Long categoryId;
     private TargetAudience targetAudience = TargetAudience.FAMILY;
     
@@ -38,8 +38,7 @@ public class TourCreateRequest {
     private Integer maxParticipants = 50;
     private List<String> galleryImages;
     private String includedServices;
-    private String excludedServices;
-    private TourStatus status = TourStatus.DRAFT;
+    private TourStatus status = TourStatus.ACTIVE;
     private Boolean isFeatured = false;
     private List<TourItineraryCreateRequest> itinerary;
 }

@@ -42,24 +42,12 @@ const UserManagement = () => {
   // State cho current user (to prevent self-delete)
   const [currentUser, setCurrentUser] = useState(null);
   
-  // State cho modal
-  const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState('add'); // only 'add' mode
   
   // State cho confirmation dialogs
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [deletingUser, setDeletingUser] = useState(null);
   
-  // Form data
-  const [formData, setFormData] = useState({
-    avatar: '',
-    fullName: '',
-    email: '',
-    password: '',
-    role: 'USER',
-    status: 'active'
-  });
 
   // Load current user profile
   const loadCurrentUser = async () => {
@@ -175,67 +163,9 @@ const UserManagement = () => {
     }
   };
 
-  // Modal handlers
-  const openAddModal = () => {
-    setModalMode('add');
-    setFormData({
-      avatar: '',
-      fullName: '',
-      email: '',
-      password: '',
-      role: 'USER',
-      status: 'active'
-    });
-    setShowModal(true);
-  };
-
-
-  const closeModal = () => {
-    setShowModal(false);
-  };
-
-  // Form handlers
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      
-      // Transform form data for API
-      const apiData = {
-        username: formData.email.split('@')[0], // Generate username from email
-        email: formData.email,
-        fullName: formData.fullName,
-        role: formData.role,
-        isActive: formData.status === 'active',
-        avatarUrl: formData.avatar
-      };
-      
-      // Only add mode
-      if (!formData.password) {
-        alert('Vui lòng nhập mật khẩu');
-        return;
-      }
-      apiData.password = formData.password;
-      await userService.createUser(apiData);
-      alert('Tạo người dùng thành công!');
-      
-      closeModal();
-      loadUsers(); // Reload the list
-      
-    } catch (error) {
-      console.error('Error saving user:', error);
-      alert('Có lỗi xảy ra: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
+  // Navigate to add user page
+  const handleAddUser = () => {
+    navigate('/users/add');
   };
 
   // Handle status change from dropdown
@@ -371,7 +301,7 @@ const UserManagement = () => {
           <div className="header-left">
             <h1 className="page-title">Quản lý người dùng</h1>
           </div>
-          <button className="btn btn-primary add-user-btn" onClick={openAddModal}>
+          <button className="btn btn-primary add-user-btn" onClick={handleAddUser}>
             {Icons.Plus && Icons.Plus()} Thêm người dùng
           </button>
         </div>
@@ -684,120 +614,6 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* User Form Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">
-                Thêm người dùng mới
-              </h2>
-              <button className="modal-close" onClick={closeModal}>
-                {Icons.Close && Icons.Close()}
-              </button>
-            </div>
-            
-            <form className="user-form" onSubmit={handleFormSubmit}>
-              <div className="form-grid">
-                <div className="avatar-upload">
-                  <label className="avatar-label">Ảnh đại diện</label>
-                  <div className="avatar-input">
-                    <img
-                      src={formData.avatar || 'https://ui-avatars.com/api/?name=User&background=ccc&color=fff'}
-                      alt="Avatar"
-                      className="avatar-preview"
-                    />
-                    <input
-                      type="url"
-                      name="avatar"
-                      placeholder="URL ảnh đại diện"
-                      value={formData.avatar}
-                      onChange={handleFormChange}
-                      className="form-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Họ và tên *</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    required
-                    value={formData.fullName}
-                    onChange={handleFormChange}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Email *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    value={formData.email}
-                    onChange={handleFormChange}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">
-                    Mật khẩu {modalMode === 'edit' && '(Bỏ trống nếu không muốn thay đổi)'}
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    required={modalMode === 'add'}
-                    value={formData.password}
-                    onChange={handleFormChange}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Vai trò *</label>
-                  <select
-                    name="role"
-                    required
-                    value={formData.role}
-                    onChange={handleFormChange}
-                    className="form-select"
-                  >
-                    <option value="ADMIN">Admin</option>
-                    <option value="STAFF">Staff</option>
-                    <option value="USER">User</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Trạng thái *</label>
-                  <select
-                    name="status"
-                    required
-                    value={formData.status}
-                    onChange={handleFormChange}
-                    className="form-select"
-                  >
-                    <option value="active">Đang hoạt động</option>
-                    <option value="inactive">Không hoạt động</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" className="btn btn-outline" onClick={closeModal}>
-                  Hủy
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Lưu thay đổi
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Delete Confirmation Dialog */}
       {showDeleteDialog && (

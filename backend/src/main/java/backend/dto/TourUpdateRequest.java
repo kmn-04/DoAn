@@ -12,7 +12,7 @@ public class TourUpdateRequest {
     private String title;
     private String shortDescription;
     private String description;
-    private String departureLocation;
+    private String location;
     private Long categoryId;
     private TargetAudience targetAudience;
     private Integer durationDays;
@@ -22,7 +22,6 @@ public class TourUpdateRequest {
     private Integer maxParticipants;
     private List<String> galleryImages;
     private String includedServices;
-    private String excludedServices;
     private TourStatus status;
     private Boolean isFeatured;
     private List<TourItineraryCreateRequest> itinerary;
