@@ -1,0 +1,93 @@
+# Backend API Test Script
+# Use with VS Code REST Client extension or any HTTP client
+
+### Root endpoint
+GET http://localhost:8080/
+
+### Status Check
+GET http://localhost:8080/status
+
+### Health Check
+GET http://localhost:8080/api/test/hello
+
+### Health Check detailed
+GET http://localhost:8080/api/test/health
+
+### Swagger UI
+GET http://localhost:8080/swagger-ui.html
+
+### Register new user
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Nguyen Van Test",
+  "email": "test@gmail.com",
+  "password": "password123",
+  "confirmPassword": "password123",
+  "phone": "0901234567",
+  "address": "123 Test Street, Ho Chi Minh City",
+  "dateOfBirth": "1990-01-01"
+}
+
+### Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@gmail.com",
+  "password": "password123"
+}
+
+### Get current user (requires JWT token)
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Check email exists
+GET http://localhost:8080/api/auth/check-email?email=test@gmail.com
+
+### Validate token (requires JWT token)
+GET http://localhost:8080/api/auth/validate-token
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Get user info (requires JWT token)
+GET http://localhost:8080/api/auth/user-info
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Login with admin account (from data.sql)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@gmail.com",
+  "password": "admin123"
+}
+
+### Login with staff account (from data.sql)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "staff@gmail.com",
+  "password": "staff123"
+}
+
+### Test protected user endpoint (requires JWT token)
+GET http://localhost:8080/api/users
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### Test protected tour endpoint (requires JWT token)
+POST http://localhost:8080/api/tours
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Test Tour",
+  "description": "A test tour",
+  "categoryId": 1,
+  "price": 1000000,
+  "duration": 3,
+  "maxParticipants": 20,
+  "location": "Ho Chi Minh City",
+  "status": "Active"
+}

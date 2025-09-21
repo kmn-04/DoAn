@@ -1,0 +1,164 @@
+package backend.controller;
+
+import backend.dto.request.CategoryCreateRequest;
+import backend.dto.response.ApiResponse;
+import backend.dto.response.CategoryResponse;
+import backend.dto.response.PageResponse;
+import backend.entity.Category;
+import backend.entity.Category.CategoryStatus;
+import backend.exception.ResourceNotFoundException;
+import backend.service.CategoryService;
+import backend.util.EntityMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/categories")
+@RequiredArgsConstructor
+@Slf4j
+@Tag(name = "Category Management", description = "APIs for managing categories")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
+public class CategoryController extends BaseController {
+    
+    private final CategoryService categoryService;
+    private final EntityMapper mapper;
+    
+    @GetMapping
+    @Operation(summary = "Get all categories")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
+        
+        List<Category> categories = categoryService.getAllCategories();
+        List<CategoryResponse> categoryResponses = mapper.toCategoryResponseList(categories);
+        
+        return ResponseEntity.ok(success(categoryResponses));
+    }
+    
+    @GetMapping("/active")
+    @Operation(summary = "Get active categories")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getActiveCategories() {
+        
+        List<Category> categories = categoryService.getActiveCategories();
+        List<CategoryResponse> categoryResponses = mapper.toCategoryResponseList(categories);
+        
+        return ResponseEntity.ok(success(categoryResponses));
+    }
+    
+    @GetMapping("/with-tour-count")
+    @Operation(summary = "Get categories with tour count")
+    public ResponseEntity<ApiResponse<List<CategoryService.CategoryWithTourCount>>> getCategoriesWithTourCount() {
+        
+        List<CategoryService.CategoryWithTourCount> categoriesWithCount = categoryService.getCategoriesWithTourCount();
+        
+        return ResponseEntity.ok(success(categoriesWithCount));
+    }
+    
+    @GetMapping("/search")
+    @Operation(summary = "Search categories by keyword")
+    public ResponseEntity<ApiResponse<PageResponse<CategoryResponse>>> searchCategories(
+            @Parameter(description = "Search keyword") @RequestParam String keyword,
+            @Parameter(description = "Page number") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size) {
+        
+        Pageable pageable = createPageable(page, size);
+        Page<Category> categories = categoryService.searchCategories(keyword, pageable);
+        Page<CategoryResponse> categoryResponses = categories.map(mapper::toCategoryResponse);
+        
+        return ResponseEntity.ok(successPage(categoryResponses));
+    }
+    
+    @GetMapping("/{categoryId}")
+    @Operation(summary = "Get category by ID")
+    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById(
+            @Parameter(description = "Category ID") @PathVariable Long categoryId) {
+        
+        Category category = categoryService.getCategoryById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
+        
+        return ResponseEntity.ok(success(mapper.toCategoryResponse(category)));
+    }
+    
+    @GetMapping("/slug/{slug}")
+    @Operation(summary = "Get category by slug")
+    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryBySlug(
+            @Parameter(description = "Category slug") @PathVariable String slug) {
+        
+        Category category = categoryService.getCategoryBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "slug", slug));
+        
+        return ResponseEntity.ok(success(mapper.toCategoryResponse(category)));
+    }
+    
+    @PostMapping
+    @Operation(summary = "Create new category")
+    public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(@Valid @RequestBody CategoryCreateRequest request) {
+        
+        // Convert request to Category entity
+        Category category = new Category();
+        category.setName(request.getName());
+        category.setSlug(request.getSlug());
+        category.setDescription(request.getDescription());
+        category.setImageUrl(request.getImageUrl());
+        
+        Category createdCategory = categoryService.createCategory(category);
+        
+        return ResponseEntity.ok(success("Category created successfully", mapper.toCategoryResponse(createdCategory)));
+    }
+    
+    @PutMapping("/{categoryId}")
+    @Operation(summary = "Update category")
+    public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
+            @Parameter(description = "Category ID") @PathVariable Long categoryId,
+            @Valid @RequestBody CategoryCreateRequest request) {
+        
+        // Convert request to Category entity
+        Category categoryUpdate = new Category();
+        categoryUpdate.setName(request.getName());
+        categoryUpdate.setDescription(request.getDescription());
+        categoryUpdate.setImageUrl(request.getImageUrl());
+        
+        Category updatedCategory = categoryService.updateCategory(categoryId, categoryUpdate);
+        
+        return ResponseEntity.ok(success("Category updated successfully", mapper.toCategoryResponse(updatedCategory)));
+    }
+    
+    @PutMapping("/{categoryId}/status")
+    @Operation(summary = "Change category status")
+    public ResponseEntity<ApiResponse<CategoryResponse>> changeCategoryStatus(
+            @Parameter(description = "Category ID") @PathVariable Long categoryId,
+            @Parameter(description = "New status") @RequestParam CategoryStatus status) {
+        
+        Category updatedCategory = categoryService.changeCategoryStatus(categoryId, status);
+        
+        return ResponseEntity.ok(success("Category status updated", mapper.toCategoryResponse(updatedCategory)));
+    }
+    
+    @DeleteMapping("/{categoryId}")
+    @Operation(summary = "Delete category")
+    public ResponseEntity<ApiResponse<String>> deleteCategory(
+            @Parameter(description = "Category ID") @PathVariable Long categoryId) {
+        
+        categoryService.deleteCategory(categoryId);
+        
+        return ResponseEntity.ok(success("Category deleted successfully"));
+    }
+    
+    @GetMapping("/check-slug/{slug}")
+    @Operation(summary = "Check if slug exists")
+    public ResponseEntity<ApiResponse<Boolean>> checkSlugExists(
+            @Parameter(description = "Slug to check") @PathVariable String slug) {
+        
+        boolean exists = categoryService.slugExists(slug);
+        
+        return ResponseEntity.ok(success("Slug check completed", exists));
+    }
+}
