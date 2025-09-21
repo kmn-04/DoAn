@@ -1,0 +1,105 @@
+package backend.repository;
+
+import backend.entity.Tour;
+import backend.entity.Tour.TourStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface TourRepository extends JpaRepository<Tour, Long> {
+    
+    /**
+     * Find tour by slug
+     */
+    Optional<Tour> findBySlug(String slug);
+    
+    /**
+     * Find tours by category ID
+     */
+    List<Tour> findByCategoryIdAndStatusAndDeletedAtIsNull(Long categoryId, TourStatus status);
+    
+    /**
+     * Find active tours only (not deleted)
+     */
+    @Query("SELECT t FROM Tour t WHERE t.deletedAt IS NULL AND t.status = :status")
+    List<Tour> findActiveTours(@Param("status") TourStatus status);
+    
+    /**
+     * Find featured tours
+     */
+    @Query("SELECT t FROM Tour t WHERE t.isFeatured = true AND t.status = :status AND t.deletedAt IS NULL")
+    List<Tour> findFeaturedTours(@Param("status") TourStatus status);
+    
+    /**
+     * Search tours by name or description
+     */
+    @Query("SELECT t FROM Tour t WHERE " +
+           "(LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "t.status = :status AND t.deletedAt IS NULL")
+    Page<Tour> searchTours(@Param("keyword") String keyword, 
+                          @Param("status") TourStatus status, 
+                          Pageable pageable);
+    
+    /**
+     * Find tours by price range
+     */
+    @Query("SELECT t FROM Tour t WHERE " +
+           "((t.salePrice IS NOT NULL AND t.salePrice BETWEEN :minPrice AND :maxPrice) OR " +
+           "(t.salePrice IS NULL AND t.price BETWEEN :minPrice AND :maxPrice)) AND " +
+           "t.status = :status AND t.deletedAt IS NULL")
+    List<Tour> findByPriceRange(@Param("minPrice") BigDecimal minPrice, 
+                               @Param("maxPrice") BigDecimal maxPrice,
+                               @Param("status") TourStatus status);
+    
+    /**
+     * Find tours by duration range
+     */
+    List<Tour> findByDurationBetweenAndStatusAndDeletedAtIsNull(Integer minDuration, 
+                                                               Integer maxDuration, 
+                                                               TourStatus status);
+    
+    /**
+     * Find tours by category slug
+     */
+    @Query("SELECT t FROM Tour t JOIN t.category c WHERE " +
+           "c.slug = :categorySlug AND t.status = :status AND t.deletedAt IS NULL")
+    List<Tour> findByCategorySlug(@Param("categorySlug") String categorySlug, 
+                                 @Param("status") TourStatus status);
+    
+    /**
+     * Find top rated tours
+     */
+    @Query("SELECT t, AVG(r.rating) as avgRating FROM Tour t " +
+           "LEFT JOIN t.reviews r " +
+           "WHERE t.status = :status AND t.deletedAt IS NULL " +
+           "GROUP BY t " +
+           "ORDER BY avgRating DESC")
+    List<Object[]> findTopRatedTours(@Param("status") TourStatus status, Pageable pageable);
+    
+    /**
+     * Check if slug exists
+     */
+    boolean existsBySlug(String slug);
+    
+    /**
+     * Count tours by category
+     */
+    long countByCategoryIdAndStatusAndDeletedAtIsNull(Long categoryId, TourStatus status);
+    
+    /**
+     * Find tours with target audience
+     */
+    @Query("SELECT DISTINCT t FROM Tour t JOIN t.targetAudiences ta WHERE " +
+           "ta.name = :audienceName AND t.status = :status AND t.deletedAt IS NULL")
+    List<Tour> findByTargetAudience(@Param("audienceName") String audienceName, 
+                                   @Param("status") TourStatus status);
+}

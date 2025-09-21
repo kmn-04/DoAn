@@ -1,0 +1,140 @@
+spring:
+  application:
+    name: backend
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/doan?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+        use_sql_comments: true
+  
+  sql:
+    init:
+      mode: never  # Disable data.sql auto-loading
+      # data-locations: classpath:data.sql
+      # schema-locations: classpath:schema.sql  # Disable manual schema, let JPA create tables
+  
+  # Email configuration (for future use)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-app-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# JWT Configuration
+jwt:
+  secret: dG91ckJvb2tpbmdTZWNyZXRLZXlGb3JEZXZlbG9wbWVudFB1cnBvc2VPbmx5MTIzNDU2Nzg5MA==
+  expiration: 86400000 # 24 hours in milliseconds
+
+# CORS Configuration
+cors:
+  allowed-origins:
+    - http://localhost:3000
+    - http://localhost:3001
+    - http://localhost:5173  # Vite dev server
+    - http://127.0.0.1:3000
+    - http://127.0.0.1:5173   # Vite dev server
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed-headers:
+    - "*"
+  allow-credentials: true
+
+# File Upload Configuration
+file:
+  upload:
+    dir: uploads/
+    max-size: 10MB
+
+# API Documentation
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    backend: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/tour_booking_dev?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: dev_password
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+logging:
+  level:
+    root: DEBUG
+
+---
+# Production Profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/tour_booking_prod}
+    username: ${DATABASE_USERNAME:root}
+    password: ${DATABASE_PASSWORD:prod_password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+jwt:
+  secret: ${JWT_SECRET:your-super-secret-jwt-key-for-production}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+logging:
+  level:
+    root: WARN
+    backend: INFO
