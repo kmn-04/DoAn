@@ -10,7 +10,9 @@ import {
   ChevronRightIcon,
   PlusIcon,
   ExclamationTriangleIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  GlobeAltIcon,
+  PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
 import { Card, Button } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
@@ -30,6 +32,9 @@ interface RecentBooking {
   status: 'confirmed' | 'pending' | 'completed' | 'cancelled';
   totalPrice: number;
   location: string;
+  tourType?: 'domestic' | 'international';
+  country?: string;
+  flightIncluded?: boolean;
 }
 
 interface UpcomingTour {
@@ -39,6 +44,9 @@ interface UpcomingTour {
   startDate: string;
   daysLeft: number;
   location: string;
+  tourType?: 'domestic' | 'international';
+  country?: string;
+  flightIncluded?: boolean;
 }
 
 const DashboardOverviewPage: React.FC = () => {
@@ -70,49 +78,74 @@ const DashboardOverviewPage: React.FC = () => {
         setRecentBookings([
           {
             id: 'BK1234567',
-            tourName: 'Hạ Long Bay - Kỳ Quan Thế Giới',
-            tourImage: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=400',
-            startDate: '2024-02-15',
+            tourName: 'Tokyo - Kyoto - Osaka 7N6Đ',
+            tourImage: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
+            startDate: '2024-03-15',
             status: 'confirmed',
-            totalPrice: 6200000,
-            location: 'Quảng Ninh'
+            totalPrice: 32000000,
+            location: 'Tokyo, Nhật Bản',
+            tourType: 'international',
+            country: 'Nhật Bản',
+            flightIncluded: true
           },
           {
             id: 'BK1234568',
-            tourName: 'Sapa - Thiên Đường Mây Trắng',
-            tourImage: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=400',
-            startDate: '2024-01-20',
-            status: 'completed',
-            totalPrice: 3600000,
-            location: 'Lào Cai'
+            tourName: 'Seoul - Jeju Island 5N4Đ',
+            tourImage: 'https://images.unsplash.com/photo-1549693578-d683be217e58?w=400',
+            startDate: '2024-02-20',
+            status: 'confirmed',
+            totalPrice: 18500000,
+            location: 'Seoul, Hàn Quốc',
+            tourType: 'international',
+            country: 'Hàn Quốc',
+            flightIncluded: true
           },
           {
             id: 'BK1234569',
-            tourName: 'Phú Quốc - Đảo Ngọc Xanh',
-            tourImage: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
-            startDate: '2024-03-10',
-            status: 'pending',
-            totalPrice: 9600000,
-            location: 'Kiên Giang'
+            tourName: 'Hạ Long Bay - Kỳ Quan Thế Giới',
+            tourImage: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=400',
+            startDate: '2024-02-15',
+            status: 'completed',
+            totalPrice: 6200000,
+            location: 'Quảng Ninh',
+            tourType: 'domestic'
+          },
+          {
+            id: 'BK1234570',
+            tourName: 'Bangkok - Pattaya 4N3Đ',
+            tourImage: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400',
+            startDate: '2024-01-10',
+            status: 'completed',
+            totalPrice: 12800000,
+            location: 'Bangkok, Thái Lan',
+            tourType: 'international',
+            country: 'Thái Lan',
+            flightIncluded: true
           }
         ]);
 
         setUpcomingTours([
           {
             id: 'BK1234567',
-            tourName: 'Hạ Long Bay - Kỳ Quan Thế Giới',
-            tourImage: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=400',
-            startDate: '2024-02-15',
+            tourName: 'Tokyo - Kyoto - Osaka 7N6Đ',
+            tourImage: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
+            startDate: '2024-03-15',
             daysLeft: 25,
-            location: 'Quảng Ninh'
+            location: 'Tokyo, Nhật Bản',
+            tourType: 'international',
+            country: 'Nhật Bản',
+            flightIncluded: true
           },
           {
-            id: 'BK1234569',
-            tourName: 'Phú Quốc - Đảo Ngọc Xanh',
-            tourImage: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
-            startDate: '2024-03-10',
-            daysLeft: 49,
-            location: 'Kiên Giang'
+            id: 'BK1234568',
+            tourName: 'Seoul - Jeju Island 5N4Đ',
+            tourImage: 'https://images.unsplash.com/photo-1549693578-d683be217e58?w=400',
+            startDate: '2024-02-20',
+            daysLeft: 10,
+            location: 'Seoul, Hàn Quốc',
+            tourType: 'international',
+            country: 'Hàn Quốc',
+            flightIncluded: true
           }
         ]);
 
@@ -265,6 +298,22 @@ const DashboardOverviewPage: React.FC = () => {
                         <span>{formatDate(booking.startDate)}</span>
                       </div>
                     </div>
+                    
+                    {/* International Tour Badges */}
+                    {booking.tourType === 'international' && (
+                      <div className="flex items-center space-x-2 mt-2">
+                        <div className="flex items-center space-x-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs">
+                          <GlobeAltIcon className="h-3 w-3" />
+                          <span>{booking.country}</span>
+                        </div>
+                        {booking.flightIncluded && (
+                          <div className="flex items-center space-x-1 bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs">
+                            <PaperAirplaneIcon className="h-3 w-3" />
+                            <span>Có vé bay</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <p className="text-sm font-semibold text-blue-600 mt-1">
                       {formatPrice(booking.totalPrice)}
                     </p>
@@ -331,6 +380,22 @@ const DashboardOverviewPage: React.FC = () => {
                       <span>{formatDate(tour.startDate)}</span>
                     </div>
                   </div>
+                  
+                  {/* International Tour Badges */}
+                  {tour.tourType === 'international' && (
+                    <div className="flex items-center space-x-2 mt-2">
+                      <div className="flex items-center space-x-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs">
+                        <GlobeAltIcon className="h-3 w-3" />
+                        <span>{tour.country}</span>
+                      </div>
+                      {tour.flightIncluded && (
+                        <div className="flex items-center space-x-1 bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs">
+                          <PaperAirplaneIcon className="h-3 w-3" />
+                          <span>Có vé bay</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex-shrink-0 text-right">

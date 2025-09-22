@@ -31,6 +31,38 @@ INSERT INTO target_audiences (name) VALUES
 ('Học sinh - Sinh viên')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
+-- Insert countries data
+INSERT INTO countries (name, code, continent, currency, visa_required, flag_url) VALUES
+-- Asia
+('Nhật Bản', 'JP', 'ASIA', 'JPY', false, 'https://flagcdn.com/jp.svg'),
+('Hàn Quốc', 'KR', 'ASIA', 'KRW', false, 'https://flagcdn.com/kr.svg'),
+('Thái Lan', 'TH', 'ASIA', 'THB', false, 'https://flagcdn.com/th.svg'),
+('Singapore', 'SG', 'ASIA', 'SGD', false, 'https://flagcdn.com/sg.svg'),
+('Malaysia', 'MY', 'ASIA', 'MYR', false, 'https://flagcdn.com/my.svg'),
+('Indonesia', 'ID', 'ASIA', 'IDR', false, 'https://flagcdn.com/id.svg'),
+('Trung Quốc', 'CN', 'ASIA', 'CNY', true, 'https://flagcdn.com/cn.svg'),
+('Ấn Độ', 'IN', 'ASIA', 'INR', true, 'https://flagcdn.com/in.svg'),
+-- Europe
+('Pháp', 'FR', 'EUROPE', 'EUR', true, 'https://flagcdn.com/fr.svg'),
+('Đức', 'DE', 'EUROPE', 'EUR', true, 'https://flagcdn.com/de.svg'),
+('Ý', 'IT', 'EUROPE', 'EUR', true, 'https://flagcdn.com/it.svg'),
+('Tây Ban Nha', 'ES', 'EUROPE', 'EUR', true, 'https://flagcdn.com/es.svg'),
+('Anh', 'GB', 'EUROPE', 'GBP', true, 'https://flagcdn.com/gb.svg'),
+('Thụy Sĩ', 'CH', 'EUROPE', 'CHF', true, 'https://flagcdn.com/ch.svg'),
+-- America
+('Mỹ', 'US', 'AMERICA', 'USD', true, 'https://flagcdn.com/us.svg'),
+('Canada', 'CA', 'AMERICA', 'CAD', true, 'https://flagcdn.com/ca.svg'),
+('Brazil', 'BR', 'AMERICA', 'BRL', true, 'https://flagcdn.com/br.svg'),
+-- Oceania
+('Úc', 'AU', 'OCEANIA', 'AUD', true, 'https://flagcdn.com/au.svg'),
+('New Zealand', 'NZ', 'OCEANIA', 'NZD', true, 'https://flagcdn.com/nz.svg')
+ON DUPLICATE KEY UPDATE 
+    name = VALUES(name),
+    continent = VALUES(continent),
+    currency = VALUES(currency),
+    visa_required = VALUES(visa_required),
+    flag_url = VALUES(flag_url);
+
 -- Insert sample partners
 INSERT INTO partners (name, slug, description, type, address, phone, email, website, established_year, rating, total_reviews, specialties, created_at, updated_at) VALUES 
 ('Khách sạn Đại Dương', 'khach-san-dai-duong', 'Khách sạn view biển tuyệt đẹp với dịch vụ 5 sao, vị trí đắc địa ngay trung tâm Nha Trang', 'Hotel', '123 Đường Biển, Nha Trang', '0258-123-4567', 'info@daiduonghotel.com', 'https://daiduonghotel.com', 2010, 4.5, 1250, '["Luxury", "Beach", "Family"]', NOW(), NOW()),
@@ -120,3 +152,37 @@ ON DUPLICATE KEY UPDATE
     image_type = VALUES(image_type),
     display_order = VALUES(display_order),
     alt_text = VALUES(alt_text);
+
+-- Insert sample international tours
+INSERT INTO tours (name, slug, short_description, description, price, duration, max_people, category_id, tour_type, country_id, visa_info, flight_included, is_featured, status, created_at, updated_at) VALUES
+-- Japan Tours
+('Tokyo - Kyoto - Osaka 7N6Đ', 'tokyo-kyoto-osaka-7n6d', 'Khám phá Nhật Bản cổ điển và hiện đại', 'Hành trình khám phá 3 thành phố nổi tiếng nhất Nhật Bản. Từ Tokyo hiện đại, Kyoto cổ kính đến Osaka ẩm thực. Trải nghiệm văn hóa, lịch sử và ẩm thực độc đáo của xứ sở Phù Tang.', 32000000, 7, 20, 3, 'INTERNATIONAL', 1, 'Công dân Việt Nam được miễn visa 15 ngày khi có passport còn hạn trên 6 tháng', true, true, 'Active', NOW(), NOW()),
+
+('Osaka - Mount Fuji - Tokyo 6N5Đ', 'osaka-mount-fuji-tokyo-6n5d', 'Tour Nhật Bản kinh điển với núi Phú Sĩ', 'Chiêm ngưỡng vẻ đẹp hùng vĩ của núi Phú Sĩ, khám phá Tokyo sầm uất và thưởng thức ẩm thực Osaka. Bao gồm trải nghiệm onsen và tham quan đền chùa cổ.', 28500000, 6, 25, 4, 'INTERNATIONAL', 1, 'Miễn visa 15 ngày cho công dân Việt Nam', true, false, 'Active', NOW(), NOW()),
+
+-- South Korea Tours  
+('Seoul - Jeju Island 5N4Đ', 'seoul-jeju-island-5n4d', 'Khám phá Hàn Quốc từ thủ đô đến đảo Jeju', 'Trải nghiệm văn hóa K-pop tại Seoul, tham quan cung điện hoàng gia và mua sắm tại Myeongdong. Sau đó bay đến đảo Jeju thơ mộng với những cảnh quan thiên nhiên tuyệt đẹp.', 18500000, 5, 30, 3, 'INTERNATIONAL', 2, 'Miễn visa 15 ngày cho công dân Việt Nam có passport phổ thông', true, true, 'Active', NOW(), NOW()),
+
+('Seoul - Busan 6N5Đ', 'seoul-busan-6n5d', 'Khám phá hai thành phố lớn nhất Hàn Quốc', 'Từ Seoul hiện đại đến Busan biển xanh. Tham quan làng Bukchon Hanok, cung điện Gyeongbokgung, chợ Jagalchi và bãi biển Haeundae. Trải nghiệm ẩm thực đường phố và K-beauty.', 16800000, 6, 25, 3, 'INTERNATIONAL', 2, 'Không cần visa cho công dân Việt Nam lưu trú dưới 15 ngày', true, false, 'Active', NOW(), NOW()),
+
+-- Thailand Tours
+('Bangkok - Pattaya 4N3Đ', 'bangkok-pattaya-4n3d', 'Thái Lan kinh điển - Thủ đô và biển', 'Khám phá Bangkok sôi động với chợ nổi, cung điện hoàng gia và chùa Wat Arun. Thư giãn tại bãi biển Pattaya với các hoạt động thể thao nước và show diễn cabaret nổi tiếng.', 12800000, 4, 35, 1, 'INTERNATIONAL', 3, 'Không cần visa cho công dân Việt Nam lưu trú dưới 30 ngày', true, true, 'Active', NOW(), NOW()),
+
+('Phuket - Krabi 5N4Đ', 'phuket-krabi-5n4d', 'Thiên đường biển đảo Thái Lan', 'Tận hưởng những bãi biển đẹp nhất Thái Lan tại Phuket và Krabi. Tham gia tour 4 đảo, lặn ngắm san hô, massage Thái cổ truyền và thưởng thức hải sản tươi ngon.', 15200000, 5, 30, 1, 'INTERNATIONAL', 3, 'Miễn visa 30 ngày cho du khách Việt Nam', true, false, 'Active', NOW(), NOW()),
+
+-- Singapore Tours
+('Singapore - Malaysia 4N3Đ', 'singapore-malaysia-4n3d', 'Hai quốc gia ASEAN trong một chuyến đi', 'Khám phá Singapore hiện đại với Gardens by the Bay, Universal Studios và Marina Bay Sands. Sau đó đến Kuala Lumpur tham quan tháp đôi Petronas và thưởng thức ẩm thực đa văn hóa.', 16500000, 4, 28, 3, 'INTERNATIONAL', 4, 'Không cần visa cho công dân Việt Nam lưu trú dưới 30 ngày', true, true, 'Active', NOW(), NOW())
+
+ON DUPLICATE KEY UPDATE 
+    name = VALUES(name),
+    short_description = VALUES(short_description),
+    description = VALUES(description),
+    price = VALUES(price),
+    duration = VALUES(duration),
+    max_people = VALUES(max_people),
+    tour_type = VALUES(tour_type),
+    country_id = VALUES(country_id),
+    visa_info = VALUES(visa_info),
+    flight_included = VALUES(flight_included),
+    is_featured = VALUES(is_featured),
+    status = VALUES(status);

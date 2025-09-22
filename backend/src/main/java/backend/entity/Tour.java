@@ -56,6 +56,17 @@ public class Tour {
     @Column(name = "is_featured", nullable = false)
     private Boolean isFeatured = false;
     
+    // International Tour Fields
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tour_type", nullable = false)
+    private TourType tourType = TourType.DOMESTIC;
+    
+    @Column(name = "visa_info", columnDefinition = "TEXT")
+    private String visaInfo;
+    
+    @Column(name = "flight_included", nullable = false)
+    private Boolean flightIncluded = false;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
@@ -69,6 +80,11 @@ public class Tour {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
+    
+    // Relationship with Country (Many-to-One) - for international tours
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country_id")
+    private Country country;
     
     // Relationship with TourItinerary (One-to-Many)
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -123,5 +139,20 @@ public class Tour {
     
     public enum TourStatus {
         Active, Inactive
+    }
+    
+    public enum TourType {
+        DOMESTIC("Domestic"),
+        INTERNATIONAL("International");
+        
+        private final String displayName;
+        
+        TourType(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 }

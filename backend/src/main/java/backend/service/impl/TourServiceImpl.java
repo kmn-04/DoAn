@@ -272,4 +272,51 @@ public class TourServiceImpl implements TourService {
         
         return new TourStatistics(totalTours, activeTours, featuredTours, toursThisMonth, averagePrice, averageRating);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Tour> searchToursWithFilters(
+            String keyword,
+            Long categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Integer duration,
+            Tour.TourType tourType,
+            Long countryId,
+            String continent,
+            Boolean visaRequired,
+            Boolean flightIncluded,
+            Pageable pageable) {
+        
+        log.info("Searching tours with filters: keyword={}, categoryId={}, tourType={}, countryId={}, continent={}",
+                keyword, categoryId, tourType, countryId, continent);
+        
+        // Use repository method with specifications or custom query
+        return tourRepository.findToursWithFilters(
+            keyword, categoryId, minPrice, maxPrice, duration,
+            tourType, countryId, continent, visaRequired, flightIncluded,
+            pageable
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Tour> getToursByType(Tour.TourType tourType) {
+        log.info("Getting tours by type: {}", tourType);
+        return tourRepository.findByTourTypeAndStatus(tourType, TourStatus.Active);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Tour> getToursByCountry(Long countryId) {
+        log.info("Getting tours by country: {}", countryId);
+        return tourRepository.findByCountryIdAndStatus(countryId, TourStatus.Active);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Tour> getInternationalToursByContinent(String continent) {
+        log.info("Getting international tours by continent: {}", continent);
+        return tourRepository.findInternationalToursByContinent(continent, TourStatus.Active);
+    }
 }

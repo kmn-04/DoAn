@@ -47,6 +47,23 @@ public interface TourService {
     Page<Tour> searchTours(String keyword, Pageable pageable);
     
     /**
+     * Search tours with international filters
+     */
+    Page<Tour> searchToursWithFilters(
+        String keyword,
+        Long categoryId,
+        BigDecimal minPrice,
+        BigDecimal maxPrice,
+        Integer duration,
+        Tour.TourType tourType,
+        Long countryId,
+        String continent,
+        Boolean visaRequired,
+        Boolean flightIncluded,
+        Pageable pageable
+    );
+    
+    /**
      * Get tours by category
      */
     List<Tour> getToursByCategory(Long categoryId);
@@ -55,6 +72,21 @@ public interface TourService {
      * Get tours by category slug
      */
     List<Tour> getToursByCategorySlug(String categorySlug);
+    
+    /**
+     * Get tours by type
+     */
+    List<Tour> getToursByType(Tour.TourType tourType);
+    
+    /**
+     * Get tours by country
+     */
+    List<Tour> getToursByCountry(Long countryId);
+    
+    /**
+     * Get international tours by continent
+     */
+    List<Tour> getInternationalToursByContinent(String continent);
     
     /**
      * Get featured tours

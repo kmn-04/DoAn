@@ -17,6 +17,11 @@ interface FilterState {
   rating: string;
   sortBy: string;
   location: string;
+  tourType: string;
+  continent: string;
+  country: string;
+  visaRequired: boolean;
+  flightIncluded: boolean;
 }
 
 interface TourFiltersProps {
@@ -34,6 +39,39 @@ const categories = [
   { value: 'culture', label: 'Tour Văn Hóa' },
   { value: 'adventure', label: 'Tour Mạo Hiểm' },
   { value: 'food', label: 'Tour Ẩm Thực' }
+];
+
+const continents = [
+  { value: '', label: 'Tất cả châu lục' },
+  { value: 'Asia', label: 'Châu Á' },
+  { value: 'Europe', label: 'Châu Âu' },
+  { value: 'America', label: 'Châu Mỹ' },
+  { value: 'Africa', label: 'Châu Phi' },
+  { value: 'Oceania', label: 'Châu Đại Dương' }
+];
+
+const countries = [
+  // Asia
+  { value: 'japan', label: 'Nhật Bản', continent: 'Asia' },
+  { value: 'south-korea', label: 'Hàn Quốc', continent: 'Asia' },
+  { value: 'thailand', label: 'Thái Lan', continent: 'Asia' },
+  { value: 'singapore', label: 'Singapore', continent: 'Asia' },
+  { value: 'malaysia', label: 'Malaysia', continent: 'Asia' },
+  { value: 'indonesia', label: 'Indonesia', continent: 'Asia' },
+  { value: 'china', label: 'Trung Quốc', continent: 'Asia' },
+  // Europe
+  { value: 'france', label: 'Pháp', continent: 'Europe' },
+  { value: 'germany', label: 'Đức', continent: 'Europe' },
+  { value: 'italy', label: 'Ý', continent: 'Europe' },
+  { value: 'spain', label: 'Tây Ban Nha', continent: 'Europe' },
+  { value: 'uk', label: 'Anh', continent: 'Europe' },
+  // America
+  { value: 'usa', label: 'Mỹ', continent: 'America' },
+  { value: 'canada', label: 'Canada', continent: 'America' },
+  { value: 'brazil', label: 'Brazil', continent: 'America' },
+  // Oceania
+  { value: 'australia', label: 'Úc', continent: 'Oceania' },
+  { value: 'new-zealand', label: 'New Zealand', continent: 'Oceania' }
 ];
 
 const durations = [
@@ -75,10 +113,14 @@ const TourFilters: React.FC<TourFiltersProps> = ({
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     category: true,
+    tourType: true,
+    continent: true,
+    country: true,
     price: true,
     duration: true,
     location: true,
-    rating: true
+    rating: true,
+    services: true
   });
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
@@ -201,6 +243,128 @@ const TourFilters: React.FC<TourFiltersProps> = ({
               </div>
             )}
           </div>
+
+          {/* Tour Type Filter */}
+          <div>
+            <button
+              onClick={() => toggleSection('tourType')}
+              className="flex items-center justify-between w-full text-left"
+            >
+              <h4 className="font-medium text-gray-900">Loại Tour</h4>
+              <ChevronDownIcon 
+                className={`h-4 w-4 transition-transform ${
+                  expandedSections.tourType ? 'rotate-180' : ''
+                }`} 
+              />
+            </button>
+            
+            {expandedSections.tourType && (
+              <div className="mt-3 space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="tourType"
+                    value=""
+                    checked={filters.tourType === ''}
+                    onChange={(e) => handleFilterChange('tourType', e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Tất cả</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="tourType"
+                    value="domestic"
+                    checked={filters.tourType === 'domestic'}
+                    onChange={(e) => handleFilterChange('tourType', e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Tour Trong Nước</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="tourType"
+                    value="international"
+                    checked={filters.tourType === 'international'}
+                    onChange={(e) => handleFilterChange('tourType', e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Tour Quốc Tế</span>
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* Continent Filter - only show for international tours */}
+          {filters.tourType === 'international' && (
+            <div>
+              <button
+                onClick={() => toggleSection('continent')}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <h4 className="font-medium text-gray-900">Châu Lục</h4>
+                <ChevronDownIcon 
+                  className={`h-4 w-4 transition-transform ${
+                    expandedSections.continent ? 'rotate-180' : ''
+                  }`} 
+                />
+              </button>
+              
+              {expandedSections.continent && (
+                <div className="mt-3">
+                  <select
+                    value={filters.continent}
+                    onChange={(e) => handleFilterChange('continent', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {continents.map(continent => (
+                      <option key={continent.value} value={continent.value}>
+                        {continent.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Country Filter - only show for international tours */}
+          {filters.tourType === 'international' && (
+            <div>
+              <button
+                onClick={() => toggleSection('country')}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <h4 className="font-medium text-gray-900">Quốc Gia</h4>
+                <ChevronDownIcon 
+                  className={`h-4 w-4 transition-transform ${
+                    expandedSections.country ? 'rotate-180' : ''
+                  }`} 
+                />
+              </button>
+              
+              {expandedSections.country && (
+                <div className="mt-3">
+                  <select
+                    value={filters.country}
+                    onChange={(e) => handleFilterChange('country', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Tất cả quốc gia</option>
+                    {countries
+                      .filter(country => !filters.continent || country.continent === filters.continent)
+                      .map(country => (
+                        <option key={country.value} value={country.value}>
+                          {country.label}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Price Range Filter */}
           <div>
@@ -340,6 +504,55 @@ const TourFilters: React.FC<TourFiltersProps> = ({
               </div>
             )}
           </div>
+
+          {/* Services Filter - only show for international tours */}
+          {filters.tourType === 'international' && (
+            <div>
+              <button
+                onClick={() => toggleSection('services')}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <h4 className="font-medium text-gray-900">Dịch Vụ Bổ Sung</h4>
+                <ChevronDownIcon 
+                  className={`h-4 w-4 transition-transform ${
+                    expandedSections.services ? 'rotate-180' : ''
+                  }`} 
+                />
+              </button>
+              
+              {expandedSections.services && (
+                <div className="mt-3 space-y-2">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={filters.flightIncluded}
+                      onChange={(e) => onFiltersChange({ ...filters, flightIncluded: e.target.checked })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Bao gồm vé máy bay</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={filters.visaRequired === false}
+                      onChange={(e) => onFiltersChange({ ...filters, visaRequired: e.target.checked ? false : undefined })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Không cần visa</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={filters.visaRequired === true}
+                      onChange={(e) => onFiltersChange({ ...filters, visaRequired: e.target.checked ? true : undefined })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Hỗ trợ làm visa</span>
+                  </label>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
