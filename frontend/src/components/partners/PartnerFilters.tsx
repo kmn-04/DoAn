@@ -2,7 +2,11 @@ import React from 'react';
 import { 
   MagnifyingGlassIcon,
   FunnelIcon,
-  XMarkIcon
+  XMarkIcon,
+  TagIcon,
+  MapPinIcon,
+  BuildingOffice2Icon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 import { Button, Input, Card } from '../ui';
 import type { PartnerFilters as PartnerFiltersType } from '../../types';
@@ -50,10 +54,9 @@ const PartnerFilters: React.FC<PartnerFiltersProps> = ({
   const hasActiveFilters = filters.search || filters.specialty || filters.rating || filters.location;
 
   return (
-    <Card className="p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <FunnelIcon className="h-5 w-5 mr-2" />
+    <>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-gray-900">
           Bộ lọc tìm kiếm
         </h3>
         {hasActiveFilters && (
@@ -61,7 +64,7 @@ const PartnerFilters: React.FC<PartnerFiltersProps> = ({
             variant="outline"
             size="sm"
             onClick={onClearFilters}
-            className="text-red-600 border-red-200 hover:bg-red-50"
+            className="text-red-600 border-red-300 hover:bg-red-50"
           >
             <XMarkIcon className="h-4 w-4 mr-1" />
             Xóa bộ lọc
@@ -69,7 +72,7 @@ const PartnerFilters: React.FC<PartnerFiltersProps> = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="space-y-6">
         {/* Search */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -153,7 +156,7 @@ const PartnerFilters: React.FC<PartnerFiltersProps> = ({
           Đánh giá tối thiểu
         </label>
         <div className="flex items-center space-x-4">
-          {[1, 2, 3, 4, 5].map((rating) => (
+          {[3, 4, 5].map((rating) => (
             <label key={rating} className="flex items-center">
               <input
                 type="radio"
@@ -184,7 +187,7 @@ const PartnerFilters: React.FC<PartnerFiltersProps> = ({
           </label>
         </div>
       </div>
-    </Card>
+    </>
   );
 };
 

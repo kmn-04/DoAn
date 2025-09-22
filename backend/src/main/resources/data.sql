@@ -32,16 +32,24 @@ INSERT INTO target_audiences (name) VALUES
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- Insert sample partners
-INSERT INTO partners (name, type, address, phone) VALUES 
-('Khách sạn Đại Dương', 'Hotel', '123 Đường Biển, Nha Trang', '0258-123-4567'),
-('Nhà hàng Hương Biển', 'Restaurant', '456 Đường Ven Biển, Đà Nẵng', '0236-789-0123'),
-('Công ty vận tải ABC', 'Transport', '789 Đường Chính, TP.HCM', '028-345-6789'),
-('Resort Paradise', 'Hotel', '321 Bãi Biển, Phú Quốc', '0297-111-2222'),
-('Nhà hàng Núi Rừng', 'Restaurant', '654 Đường Cao Nguyên, Đà Lạt', '0263-333-4444')
+INSERT INTO partners (name, slug, description, type, address, phone, email, website, established_year, rating, total_reviews, specialties, created_at, updated_at) VALUES 
+('Khách sạn Đại Dương', 'khach-san-dai-duong', 'Khách sạn view biển tuyệt đẹp với dịch vụ 5 sao, vị trí đắc địa ngay trung tâm Nha Trang', 'Hotel', '123 Đường Biển, Nha Trang', '0258-123-4567', 'info@daiduonghotel.com', 'https://daiduonghotel.com', 2010, 4.5, 1250, '["Luxury", "Beach", "Family"]', NOW(), NOW()),
+('Saigon Tourist', 'saigon-tourist', 'Công ty du lịch hàng đầu với hơn 20 năm kinh nghiệm tổ chức tour trong nước và quốc tế', 'TourOperator', '45 Lê Thánh Tôn, Quận 1, TP.HCM', '028-123-4567', 'info@saigontourist.com', 'https://saigontourist.com', 2000, 4.8, 2500, '["Adventure", "Cultural", "Luxury"]', NOW(), NOW()),
+('Vietravel', 'vietravel', 'Hệ thống du lịch uy tín với mạng lưới toàn quốc, chuyên tổ chức tour cao cấp', 'TourOperator', '190 Pasteur, Quận 3, TP.HCM', '028-987-6543', 'contact@vietravel.com', 'https://vietravel.com', 1995, 4.7, 3200, '["Family", "Adventure", "Eco"]', NOW(), NOW()),
+('Resort Paradise', 'resort-paradise', 'Resort nghỉ dưỡng cao cấp với bãi biển riêng và dịch vụ spa đẳng cấp quốc tế', 'Hotel', '321 Bãi Biển, Phú Quốc', '0297-111-2222', 'booking@paradiseresort.com', 'https://paradiseresort.com', 2015, 4.9, 800, '["Luxury", "Beach", "Spa"]', NOW(), NOW()),
+('TNK Travel', 'tnk-travel', 'Chuyên tổ chức tour phiêu lưu và khám phá cho giới trẻ với giá cả hợp lý', 'TourOperator', '216 Đề Thám, Quận 1, TP.HCM', '028-555-7777', 'hello@tnktravel.com', 'https://tnktravel.com', 2012, 4.6, 1800, '["Adventure", "Budget", "Backpacker"]', NOW(), NOW())
 ON DUPLICATE KEY UPDATE 
     name = VALUES(name),
+    slug = VALUES(slug),
+    description = VALUES(description),
     address = VALUES(address),
-    phone = VALUES(phone);
+    phone = VALUES(phone),
+    email = VALUES(email),
+    website = VALUES(website),
+    established_year = VALUES(established_year),
+    rating = VALUES(rating),
+    total_reviews = VALUES(total_reviews),
+    specialties = VALUES(specialties);
 
 -- Insert sample promotions
 INSERT INTO promotions (code, type, value, usage_limit, start_date, end_date, status) VALUES 
@@ -67,3 +75,48 @@ INSERT IGNORE INTO users (name, email, password, role_id, status, phone, created
 -- Insert test customer user (password: 123456 - BCrypt hash)
 INSERT IGNORE INTO users (name, email, password, role_id, status, phone, created_at) VALUES 
 ('Test User', 'test@test.com', '$2a$10$GRLdGijbbqRWX8iyiO5OKu7csNa7vQDdmVfqzxBLYX5/XdnWer2u.', 3, 'Active', '0123456788', NOW());
+
+-- Insert sample partner images
+INSERT INTO partner_images (partner_id, image_url, image_type, display_order, alt_text) VALUES 
+-- Khách sạn Đại Dương (partner_id = 1)
+(1, 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800', 'cover', 0, 'Khách sạn Đại Dương - View tổng thể'),
+(1, 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400', 'logo', 0, 'Logo Khách sạn Đại Dương'),
+(1, 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600', 'gallery', 1, 'Lobby sang trọng'),
+(1, 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600', 'gallery', 2, 'Phòng Superior view biển'),
+(1, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600', 'gallery', 3, 'Hồ bơi infinity'),
+(1, 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=600', 'gallery', 4, 'Nhà hàng view biển'),
+
+-- Saigon Tourist (partner_id = 2)
+(2, 'https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?w=800', 'cover', 0, 'Saigon Tourist - Văn phòng trung tâm'),
+(2, 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400', 'logo', 0, 'Logo Saigon Tourist'),
+(2, 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600', 'gallery', 1, 'Tour Hạ Long Bay'),
+(2, 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=600', 'gallery', 2, 'Tour Sapa'),
+(2, 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600', 'gallery', 3, 'Tour Phú Quốc'),
+(2, 'https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?w=600', 'gallery', 4, 'Tour Đà Nẵng'),
+
+-- Vietravel (partner_id = 3)
+(3, 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800', 'cover', 0, 'Vietravel - Trụ sở chính'),
+(3, 'https://images.unsplash.com/photo-1520637836862-4d197d17c90a?w=400', 'logo', 0, 'Logo Vietravel'),
+(3, 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600', 'gallery', 1, 'Tour Hội An'),
+(3, 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600', 'gallery', 2, 'Tour Mũi Né'),
+(3, 'https://images.unsplash.com/photo-1580418827493-f2b22c0a76cb?w=600', 'gallery', 3, 'Tour Cần Thơ'),
+
+-- Resort Paradise (partner_id = 4)
+(4, 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800', 'cover', 0, 'Resort Paradise - Tổng quan resort'),
+(4, 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400', 'logo', 0, 'Logo Resort Paradise'),
+(4, 'https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=600', 'gallery', 1, 'Bãi biển riêng'),
+(4, 'https://images.unsplash.com/photo-1566195992011-5f6b21e539aa?w=600', 'gallery', 2, 'Villa view biển'),
+(4, 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600', 'gallery', 3, 'Spa & Wellness'),
+(4, 'https://images.unsplash.com/photo-1544966503-7cc61b31fc34?w=600', 'gallery', 4, 'Watersport activities'),
+
+-- TNK Travel (partner_id = 5)
+(5, 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800', 'cover', 0, 'TNK Travel - Adventure tours'),
+(5, 'https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=400', 'logo', 0, 'Logo TNK Travel'),
+(5, 'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600', 'gallery', 1, 'Trekking Sapa'),
+(5, 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600', 'gallery', 2, 'Motorbiking tours'),
+(5, 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600', 'gallery', 3, 'Kayaking adventures')
+ON DUPLICATE KEY UPDATE 
+    image_url = VALUES(image_url),
+    image_type = VALUES(image_type),
+    display_order = VALUES(display_order),
+    alt_text = VALUES(alt_text);

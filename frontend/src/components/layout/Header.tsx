@@ -9,33 +9,49 @@ import {
   ArrowRightOnRectangleIcon,
   UserCircleIcon,
   Cog6ToothIcon,
-  BellIcon
+  BellIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isTourDropdownOpen, setIsTourDropdownOpen] = useState(false);
   const { user, isAuthenticated, logout, getUserInitials } = useAuth();
   const location = useLocation();
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const tourDropdownRef = useRef<HTMLDivElement>(null);
+  const tourDropdownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Close dropdown when clicking outside (DISABLED for debugging)
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
       }
+      if (tourDropdownRef.current && !tourDropdownRef.current.contains(event.target as Node)) {
+        setIsTourDropdownOpen(false);
+      }
     };
 
-    if (isUserMenuOpen) {
+    if (isUserMenuOpen || isTourDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isUserMenuOpen]);
+  }, [isUserMenuOpen, isTourDropdownOpen]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (tourDropdownTimerRef.current) {
+        clearTimeout(tourDropdownTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleLogout = () => {
     console.log('Header: Logout button clicked');
@@ -43,9 +59,40 @@ const Header: React.FC = () => {
     setIsUserMenuOpen(false);
   };
 
+  const handleTourDropdownEnter = () => {
+    if (tourDropdownTimerRef.current) {
+      clearTimeout(tourDropdownTimerRef.current);
+    }
+    setIsTourDropdownOpen(true);
+  };
+
+  const handleTourDropdownLeave = () => {
+    tourDropdownTimerRef.current = setTimeout(() => {
+      setIsTourDropdownOpen(false);
+    }, 200); // 200ms delay
+  };
+
+  // Tour categories for dropdown
+  const tourCategories = [
+    { name: 'Tour trong nước', href: '/tours?category=domestic' },
+    { name: 'Tour nước ngoài', href: '/tours?category=international' },
+    { name: 'Tour miền Bắc', href: '/tours?region=north' },
+    { name: 'Tour miền Trung', href: '/tours?region=central' },
+    { name: 'Tour miền Nam', href: '/tours?region=south' },
+    { name: 'Tour biển đảo', href: '/tours?type=beach' },
+    { name: 'Tour văn hóa', href: '/tours?type=culture' },
+    { name: 'Tour phiêu lưu', href: '/tours?type=adventure' },
+    { name: 'Tour ẩm thực', href: '/tours?type=food' },
+  ];
+
   const navigation = [
     { name: 'Trang chủ', href: '/', current: location.pathname === '/' },
-    { name: 'Tour du lịch', href: '/tours', current: location.pathname === '/tours' },
+    { 
+      name: 'Tour du lịch', 
+      href: '/tours', 
+      current: location.pathname === '/tours',
+      hasDropdown: true
+    },
     { name: 'Đối tác', href: '/partners', current: location.pathname === '/partners' || location.pathname.startsWith('/partners/') },
     { name: 'Về chúng tôi', href: '/about', current: location.pathname === '/about' },
     { name: 'Liên hệ', href: '/contact', current: location.pathname === '/contact' },
@@ -61,61 +108,142 @@ const Header: React.FC = () => {
 
   return (
     <header className="bg-white shadow-lg relative z-50">
+      {/* Top Row: Logo + Search + Hotline */}
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-3">
+            {/* Logo */}
+            <div className="flex items-center">
+              <Link to="/" className="flex items-center">
+                <div className="bg-blue-600 text-white p-2 rounded-lg mr-3">
+                  <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-blue-700">TourBooking</h1>
+                  <p className="text-xs text-gray-600">Khám phá vẻ đẹp Việt Nam</p>
+                </div>
+              </Link>
+            </div>
+
+            {/* Search Bar */}
+            <div className="hidden md:flex items-center flex-1 max-w-lg mx-8">
+              <div className="relative w-full">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Bạn muốn đi đâu?"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-full leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <div className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors">
+                    <MagnifyingGlassIcon className="h-4 w-4" />
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Hotline */}
+            <div className="hidden lg:flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-full">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M2 3.5A1.5 1.5 0 013.5 2h1.148a1.5 1.5 0 011.465 1.175l.716 3.223a1.5 1.5 0 01-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 006.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 011.767-1.052l3.223.716A1.5 1.5 0 0118 15.352V16.5a1.5 1.5 0 01-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 012.43 8.326 13.019 13.019 0 012 5V3.5z" clipRule="evenodd" />
+              </svg>
+              <div className="text-sm">
+                <div className="font-medium">Hotline</div>
+                <div className="font-bold">(+84) 868.541.104</div>
+              </div>
+            </div>
+
+            {/* Mobile Search Icon */}
+            <button className="md:hidden p-2 text-gray-400 hover:text-gray-500">
+              <MagnifyingGlassIcon className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Row: Navigation + User Menu */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center">
-              <div className="bg-blue-600 text-white p-2 rounded-lg mr-3">
-                <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">TourBooking</h1>
-                <p className="text-xs text-gray-500">Khám phá thế giới</p>
-              </div>
-            </Link>
-          </div>
-
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  item.current
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              if (item.hasDropdown) {
+                return (
+                  <div
+                    key={item.name}
+                    className="relative"
+                    ref={tourDropdownRef}
+                    onMouseEnter={handleTourDropdownEnter}
+                    onMouseLeave={handleTourDropdownLeave}
+                  >
+                    <Link
+                      to={item.href}
+                      className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        item.current
+                          ? 'text-blue-600 bg-blue-50'
+                          : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span>{item.name}</span>
+                      <ChevronDownIcon 
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                          isTourDropdownOpen ? 'rotate-180' : ''
+                        }`} 
+                      />
+                    </Link>
+                    
+                    {/* Tour Categories Dropdown */}
+                    {isTourDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                        <div className="py-2">
+                          {tourCategories.map((category) => (
+                            <Link
+                              key={category.name}
+                              to={category.href}
+                              className="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                              onClick={() => setIsTourDropdownOpen(false)}
+                            >
+                              {category.name}
+                            </Link>
+                          ))}
+                          <div className="border-t mt-2 pt-2">
+                            <Link
+                              to="/tours"
+                              className="block px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                              onClick={() => setIsTourDropdownOpen(false)}
+                            >
+                              Xem tất cả tour
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    item.current
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </nav>
-
-          {/* Search Bar (Desktop) */}
-          {/* <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Tìm kiếm tour..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div> */}
 
           {/* User Menu & Actions */}
           <div className="flex items-center space-x-4">
-            {/* Search Icon (Mobile) */}
-            <button className="lg:hidden p-2 text-gray-400 hover:text-gray-500">
-              <MagnifyingGlassIcon className="h-6 w-6" />
-            </button>
-
             {isAuthenticated ? (
               // Authenticated User Menu
               <div className="relative" ref={userMenuRef}>
@@ -224,27 +352,62 @@ const Header: React.FC = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Tìm kiếm tour..."
+                  placeholder="Bạn muốn đi đâu?"
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
 
             {/* Mobile Navigation */}
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  item.current
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              if (item.hasDropdown) {
+                return (
+                  <div key={item.name}>
+                    <Link
+                      to={item.href}
+                      className={`flex items-center justify-between px-3 py-2 rounded-md text-base font-medium ${
+                        item.current
+                          ? 'text-blue-600 bg-blue-50'
+                          : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <span>{item.name}</span>
+                      <ChevronDownIcon className="h-4 w-4" />
+                    </Link>
+                    
+                    {/* Mobile Tour Categories */}
+                    <div className="ml-4 mt-1 space-y-1">
+                      {tourCategories.map((category) => (
+                        <Link
+                          key={category.name}
+                          to={category.href}
+                          className="block px-3 py-2 text-sm text-gray-600 rounded-md hover:bg-blue-50 hover:text-blue-600"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          {category.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    item.current
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
 
             {/* Mobile Auth Actions */}
             {!isAuthenticated && (

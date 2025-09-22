@@ -1,21 +1,27 @@
 import React from 'react';
 import HeroSection from '../components/sections/HeroSection';
 import FeaturedTours from '../components/sections/FeaturedTours';
+import HotDeals from '../components/sections/HotDeals';
+import BrowseByCategory from '../components/sections/BrowseByCategory';
+import PopularDestinations from '../components/sections/PopularDestinations';
 
 const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
+      {/* Hero Section - Auto-sliding banner */}
       <HeroSection />
       
-      {/* Featured Tours */}
+      {/* Featured Tours - Best tours carousel */}
       <FeaturedTours />
       
-      {/* TODO: Add more sections */}
-      {/* - Popular Categories Grid */}
-      {/* - Customer Testimonials */}
-      {/* - Newsletter Signup */}
-      {/* - CTA Sections */}
+      {/* Hot Deals - Promotions with countdown */}
+      <HotDeals />
+      
+      {/* Browse by Category - Tour categories grid */}
+      <BrowseByCategory />
+      
+      {/* Popular Destinations - Top destinations */}
+      <PopularDestinations />
     </div>
   );
 };

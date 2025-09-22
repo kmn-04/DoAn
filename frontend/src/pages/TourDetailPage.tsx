@@ -10,7 +10,10 @@ import {
   HeartIcon,
   CheckCircleIcon,
   XCircleIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 
@@ -194,6 +197,7 @@ const TourDetailPage: React.FC = () => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'reviews' | 'info'>('overview');
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedDays, setExpandedDays] = useState<number[]>([1]); // Mặc định mở rộng ngày đầu tiên
 
   useEffect(() => {
     // Simulate API call
@@ -235,6 +239,24 @@ const TourDetailPage: React.FC = () => {
     }).format(price);
   };
 
+  const toggleDayExpanded = (dayNumber: number) => {
+    setExpandedDays(prev => 
+      prev.includes(dayNumber) 
+        ? prev.filter(day => day !== dayNumber)
+        : [...prev, dayNumber]
+    );
+  };
+
+  const expandAllDays = () => {
+    if (tour) {
+      setExpandedDays(tour.itinerary.map(day => day.day));
+    }
+  };
+
+  const collapseAllDays = () => {
+    setExpandedDays([]);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -266,18 +288,6 @@ const TourDetailPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumb */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <nav className="flex items-center space-x-2 text-sm">
-            <Link to="/" className="text-gray-500 hover:text-blue-600">Trang chủ</Link>
-            <span className="text-gray-400">/</span>
-            <Link to="/tours" className="text-gray-500 hover:text-blue-600">Tours</Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900">{tour.name}</span>
-          </nav>
-        </div>
-      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -285,13 +295,32 @@ const TourDetailPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-8">
             {/* Tour Header */}
             <div>
+              {/* Back Button */}
+              <div className="mb-4">
+                <button
+                  onClick={() => window.history.back()}
+                  className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  <ArrowLeftIcon className="h-5 w-5" />
+                  <span className="text-sm font-medium">Quay lại</span>
+                </button>
+              </div>
+
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  {tour.badge && (
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-2 inline-block">
-                      {tour.badge}
+                  <div className="flex items-center space-x-2 mb-3">
+                    {tour.badge && (
+                      <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        {tour.badge}
+                      </span>
+                    )}
+                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold capitalize">
+                      {tour.category === 'beach' ? 'Tour biển đảo' : 
+                       tour.category === 'mountain' ? 'Tour miền núi' :
+                       tour.category === 'culture' ? 'Tour văn hóa' :
+                       tour.category === 'city' ? 'Tour thành phố' : 'Tour du lịch'}
                     </span>
-                  )}
+                  </div>
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">{tour.name}</h1>
                 </div>
                 
@@ -419,29 +448,71 @@ const TourDetailPage: React.FC = () => {
 
               {activeTab === 'itinerary' && (
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-6">Lịch trình chi tiết</h3>
-                  <div className="space-y-6">
-                    {tour.itinerary.map((day) => (
-                      <div key={day.day} className="bg-white rounded-lg border p-6">
-                        <div className="flex items-center space-x-4 mb-4">
-                          <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-semibold">
-                            {day.day}
-                          </div>
-                          <h4 className="text-lg font-bold text-gray-900">{day.title}</h4>
-                        </div>
-                        
-                        <p className="text-gray-700 mb-4">{day.description}</p>
-                        
-                        <div className="space-y-2">
-                          {day.activities.map((activity, index) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <CalendarDaysIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm text-gray-700">{activity}</span>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-gray-900">Lịch trình chi tiết</h3>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={expandAllDays}
+                        className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Mở rộng tất cả
+                      </button>
+                      <span className="text-gray-300">|</span>
+                      <button
+                        onClick={collapseAllDays}
+                        className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Thu gọn tất cả
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {tour.itinerary.map((day) => {
+                      const isExpanded = expandedDays.includes(day.day);
+                      return (
+                        <div key={day.day} className="bg-white rounded-lg border overflow-hidden">
+                          {/* Day Header - Always visible */}
+                          <div 
+                            className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            onClick={() => toggleDayExpanded(day.day)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-semibold text-sm">
+                                  {day.day}
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-bold text-gray-900">{day.title}</h4>
+                                  <p className="text-sm text-gray-600 mt-1">{day.description}</p>
+                                </div>
+                              </div>
+                              <div className="flex-shrink-0">
+                                {isExpanded ? (
+                                  <ChevronUpIcon className="h-5 w-5 text-gray-400" />
+                                ) : (
+                                  <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                                )}
+                              </div>
                             </div>
-                          ))}
+                          </div>
+                          
+                          {/* Day Activities - Collapsible */}
+                          {isExpanded && (
+                            <div className="px-4 pb-4 border-t bg-gray-50">
+                              <div className="pt-4 space-y-3">
+                                {day.activities.map((activity, index) => (
+                                  <div key={index} className="flex items-start space-x-3">
+                                    <CalendarDaysIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                                    <span className="text-sm text-gray-700 leading-relaxed">{activity}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

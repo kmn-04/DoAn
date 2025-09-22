@@ -124,10 +124,10 @@ const FeaturedTours: React.FC = () => {
   );
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-12 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Tour Du Lịch Nổi Bật
           </h2>
@@ -156,9 +156,9 @@ const FeaturedTours: React.FC = () => {
           </button>
 
           {/* Tours Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
             {currentTours.map((tour) => (
-              <Card key={tour.id} className="group cursor-pointer overflow-hidden hover:shadow-xl transition-shadow">
+              <Card key={tour.id} className="group cursor-pointer overflow-hidden hover:shadow-xl transition-shadow h-full flex flex-col">
                 <div className="relative">
                   {/* Tour Image */}
                   <img
@@ -185,19 +185,19 @@ const FeaturedTours: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="p-6">
+                <div className="p-6 flex-1 flex flex-col">
                   {/* Tour Name */}
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 min-h-[3.5rem]">
                     {tour.name}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2 min-h-[2.5rem]">
                     {tour.description}
                   </p>
 
                   {/* Tour Details */}
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-4">
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-4 min-h-[3rem]">
                     <div className="flex items-center space-x-1">
                       <MapPinIcon className="h-4 w-4" />
                       <span>{tour.location}</span>
@@ -211,6 +211,9 @@ const FeaturedTours: React.FC = () => {
                       <span>Max {tour.maxPeople}</span>
                     </div>
                   </div>
+
+                  {/* Spacer to push rating & button to bottom */}
+                  <div className="flex-1"></div>
 
                   {/* Rating & Reviews */}
                   <div className="flex items-center justify-between">

@@ -1,19 +1,29 @@
+export interface PartnerImage {
+  id: number;
+  imageUrl: string;
+  imageType: 'cover' | 'logo' | 'gallery';
+  displayOrder: number;
+  altText?: string;
+}
+
 export interface Partner {
   id: number;
   name: string;
   slug: string;
   description: string;
-  logo: string;
-  coverImage: string;
-  website?: string;
+  type: 'Hotel' | 'Restaurant' | 'Transport' | 'TourOperator' | 'Service';
+  address?: string;
   phone?: string;
   email?: string;
-  address?: string;
+  website?: string;
   establishedYear?: number;
+  avatarUrl?: string; // Legacy single image
   rating: number;
+  totalReviews: number;
   totalTours: number;
   totalBookings: number;
   specialties: string[];
+  images: PartnerImage[]; // New multiple images
   tours: Tour[];
   createdAt: string;
   updatedAt: string;
