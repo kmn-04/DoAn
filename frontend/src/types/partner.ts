@@ -64,9 +64,11 @@ export interface Tour {
 
 export interface PartnerFilters {
   search?: string;
-  specialty?: string;
+  specialty?: string; // Deprecated - use specialties array
+  specialties?: string[];
   rating?: number;
-  location?: string;
-  sortBy?: 'name' | 'rating' | 'totalTours' | 'establishedYear';
+  location?: string; // Deprecated - use locations array  
+  locations?: string[];
+  sortBy?: 'name' | 'rating' | 'rating-desc' | 'totalTours' | 'establishedYear';
   sortOrder?: 'asc' | 'desc';
 }

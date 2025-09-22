@@ -74,15 +74,13 @@ const Header: React.FC = () => {
 
   // Tour categories for dropdown
   const tourCategories = [
-    { name: 'Tour trong nước', href: '/tours?category=domestic' },
-    { name: 'Tour nước ngoài', href: '/tours?category=international' },
-    { name: 'Tour miền Bắc', href: '/tours?region=north' },
-    { name: 'Tour miền Trung', href: '/tours?region=central' },
-    { name: 'Tour miền Nam', href: '/tours?region=south' },
-    { name: 'Tour biển đảo', href: '/tours?type=beach' },
-    { name: 'Tour văn hóa', href: '/tours?type=culture' },
-    { name: 'Tour phiêu lưu', href: '/tours?type=adventure' },
-    { name: 'Tour ẩm thực', href: '/tours?type=food' },
+    { name: 'Tour Trong Nước', href: '/tours?tourType=domestic' },
+    { name: 'Tour Quốc Tế', href: '/tours?tourType=international' },
+    { name: 'Tour Châu Á', href: '/tours?continent=Asia' },
+    { name: 'Tour Châu Âu', href: '/tours?continent=Europe' },
+    { name: 'Tour Châu Mỹ', href: '/tours?continent=America' },
+    { name: 'Tour Châu Phi', href: '/tours?continent=Africa' },
+    { name: 'Tour Châu Đại Dương', href: '/tours?continent=Oceania' },
   ];
 
   const navigation = [
@@ -122,7 +120,7 @@ const Header: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-blue-700">TourBooking</h1>
-                  <p className="text-xs text-gray-600">Khám phá vẻ đẹp Việt Nam</p>
+                  <p className="text-xs text-gray-600">Khám phá vẻ đẹp thế giới</p>
                 </div>
               </Link>
             </div>

@@ -20,6 +20,19 @@ export interface PageResponse<T> {
 export * from './auth';
 export * from './partner';
 
+// Country Types
+export interface Country {
+  id: number;
+  name: string;
+  code: string; // VN, JP, KR, etc.
+  continent: 'Asia' | 'Europe' | 'America' | 'Africa' | 'Oceania';
+  currency?: string;
+  visaRequired: boolean;
+  flagUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Tour Types
 export interface Tour {
   id: number;
@@ -32,6 +45,10 @@ export interface Tour {
   duration: number;
   maxParticipants: number;
   location: string;
+  tourType: 'domestic' | 'international';
+  country?: Country;
+  visaInfo?: string;
+  flightIncluded: boolean;
   itinerary?: string;
   includes?: string;
   excludes?: string;
@@ -125,12 +142,35 @@ export interface TourSearchParams {
   maxPrice?: number;
   duration?: number;
   location?: string;
+  tourType?: 'domestic' | 'international';
+  continent?: string;
+  countryId?: number;
+  visaRequired?: boolean;
+  flightIncluded?: boolean;
   startDate?: string;
   endDate?: string;
   participants?: number;
   page?: number;
   size?: number;
   sort?: string;
+}
+
+// Tour Filters for UI Components
+export interface TourFilters {
+  search?: string;
+  category?: string;
+  priceMin?: string;
+  priceMax?: string;
+  duration?: string;
+  location?: string;
+  tourType?: 'domestic' | 'international';
+  continent?: string;
+  country?: string;
+  visaRequired?: boolean;
+  flightIncluded?: boolean;
+  rating?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 // Form Types
@@ -143,6 +183,10 @@ export interface TourCreateRequest {
   duration: number;
   maxParticipants: number;
   location: string;
+  tourType: 'domestic' | 'international';
+  countryId?: number;
+  visaInfo?: string;
+  flightIncluded: boolean;
   itinerary?: string;
   includes?: string;
   excludes?: string;

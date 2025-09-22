@@ -102,4 +102,53 @@ public interface TourRepository extends JpaRepository<Tour, Long> {
            "ta.name = :audienceName AND t.status = :status AND t.deletedAt IS NULL")
     List<Tour> findByTargetAudience(@Param("audienceName") String audienceName, 
                                    @Param("status") TourStatus status);
+    
+    /**
+     * Find tours by tour type
+     */
+    List<Tour> findByTourTypeAndStatus(Tour.TourType tourType, TourStatus status);
+    
+    /**
+     * Find tours by country
+     */
+    List<Tour> findByCountryIdAndStatus(Long countryId, TourStatus status);
+    
+    /**
+     * Find international tours by continent
+     */
+    @Query("SELECT t FROM Tour t JOIN t.country c WHERE " +
+           "t.tourType = 'INTERNATIONAL' AND c.continent = :continent AND t.status = :status AND t.deletedAt IS NULL")
+    List<Tour> findInternationalToursByContinent(@Param("continent") String continent, 
+                                               @Param("status") TourStatus status);
+    
+    /**
+     * Find tours with comprehensive filters for international tours
+     */
+    @Query("SELECT t FROM Tour t LEFT JOIN t.country c WHERE " +
+           "(:keyword IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:categoryId IS NULL OR t.category.id = :categoryId) " +
+           "AND (:minPrice IS NULL OR t.price >= :minPrice) " +
+           "AND (:maxPrice IS NULL OR t.price <= :maxPrice) " +
+           "AND (:duration IS NULL OR t.duration = :duration) " +
+           "AND (:tourType IS NULL OR t.tourType = :tourType) " +
+           "AND (:countryId IS NULL OR t.country.id = :countryId) " +
+           "AND (:continent IS NULL OR c.continent = :continent) " +
+           "AND (:visaRequired IS NULL OR c.visaRequired = :visaRequired) " +
+           "AND (:flightIncluded IS NULL OR t.flightIncluded = :flightIncluded) " +
+           "AND t.status = 'Active' AND t.deletedAt IS NULL " +
+           "ORDER BY t.isFeatured DESC, t.createdAt DESC")
+    Page<Tour> findToursWithFilters(
+        @Param("keyword") String keyword,
+        @Param("categoryId") Long categoryId,
+        @Param("minPrice") BigDecimal minPrice,
+        @Param("maxPrice") BigDecimal maxPrice,
+        @Param("duration") Integer duration,
+        @Param("tourType") Tour.TourType tourType,
+        @Param("countryId") Long countryId,
+        @Param("continent") String continent,
+        @Param("visaRequired") Boolean visaRequired,
+        @Param("flightIncluded") Boolean flightIncluded,
+        Pageable pageable
+    );
 }

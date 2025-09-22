@@ -20,6 +20,7 @@ import ComponentDemo from './pages/ComponentDemo';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import AboutPage from './pages/AboutPage';
 
 // Dashboard pages
 import DashboardLayout from './components/dashboard/DashboardLayout';
@@ -104,16 +105,11 @@ function App() {
               </ProtectedRoute>
             } />
 
-            <Route path="/about" element={
-              <Layout>
-                <div className="min-h-screen bg-gray-50">
-                  <div className="text-center py-20">
-                    <h1 className="text-4xl font-bold text-gray-900">ℹ️ Về Chúng Tôi</h1>
-                    <p className="text-gray-600 mt-4">Đang xây dựng...</p>
-                  </div>
-                </div>
-              </Layout>
-            } />
+          <Route path="/about" element={
+            <Layout>
+              <AboutPage />
+            </Layout>
+          } />
 
             <Route path="/contact" element={
               <Layout>

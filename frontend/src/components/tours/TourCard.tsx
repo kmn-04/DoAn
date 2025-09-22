@@ -5,7 +5,10 @@ import {
   ClockIcon,
   MapPinIcon,
   UsersIcon,
-  HeartIcon
+  HeartIcon,
+  GlobeAltIcon,
+  DocumentTextIcon,
+  PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 
@@ -19,6 +22,15 @@ interface TourCardProps {
     originalPrice?: number;
     duration: string;
     location: string;
+    tourType?: 'domestic' | 'international';
+    country?: {
+      name: string;
+      code: string;
+      flagUrl?: string;
+      visaRequired: boolean;
+    };
+    flightIncluded?: boolean;
+    visaInfo?: string;
     rating: number;
     reviewCount: number;
     maxPeople: number;
@@ -123,6 +135,33 @@ const TourCard: React.FC<TourCardProps> = ({
             <span>Max {tour.maxPeople}</span>
           </div>
         </div>
+
+        {/* International Tour Info */}
+        {tour.tourType === 'international' && tour.country && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex items-center space-x-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs">
+              <GlobeAltIcon className="h-3 w-3" />
+              <span>{tour.country.name}</span>
+            </div>
+            {tour.flightIncluded && (
+              <div className="flex items-center space-x-1 bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs">
+                <PaperAirplaneIcon className="h-3 w-3" />
+                <span>Có vé bay</span>
+              </div>
+            )}
+            {tour.country.visaRequired ? (
+              <div className="flex items-center space-x-1 bg-yellow-50 text-yellow-700 px-2 py-1 rounded-full text-xs">
+                <DocumentTextIcon className="h-3 w-3" />
+                <span>Cần visa</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full text-xs">
+                <DocumentTextIcon className="h-3 w-3" />
+                <span>Miễn visa</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Rating */}
         <div className="flex items-center space-x-2 mb-3 min-h-[1.5rem]">

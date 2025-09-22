@@ -118,10 +118,10 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
         </div>
 
         {/* Location & Website */}
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-3 min-h-[1.5rem]">
+        <div className="flex items-center justify-between text-sm text-gray-500 mb-3 min-h-[2.5rem]">
           {partner.address && (
             <div className="flex items-center">
-              <MapPinIcon className="h-4 w-4 mr-1" />
+              <MapPinIcon className="h-4 w-4 mr-1 flex-shrink-0" />
               <span className="truncate">{partner.address}</span>
             </div>
           )}
@@ -130,7 +130,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
               href={partner.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center hover:text-blue-600 transition-colors"
+              className="flex items-center hover:text-blue-600 transition-colors flex-shrink-0"
               onClick={(e) => e.stopPropagation()}
             >
               <GlobeAltIcon className="h-4 w-4 mr-1" />
@@ -140,7 +140,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
         </div>
 
         {/* Rating */}
-        <div className="flex items-center space-x-2 mb-3 min-h-[1.5rem]">
+        <div className="flex items-center space-x-2 mb-3 min-h-[2.5rem]">
           <div className="flex items-center space-x-1">
             <StarIconSolid className="h-4 w-4 text-yellow-400 fill-current" />
             <span className="font-semibold text-sm text-gray-900">{partner.rating}</span>
@@ -151,19 +151,14 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
         {/* Spacer to push price & action to bottom */}
         <div className="flex-1"></div>
 
-        {/* Price & Action */}
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-lg font-bold text-blue-600">
-              {partner.totalTours} tours
-            </span>
-          </div>
-
+        {/* Action Button */}
+        <div className="pt-4 border-t">
           <Link
             to={`/partners/${partner.slug}`}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+            className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium text-center block"
+            onClick={(e) => e.stopPropagation()}
           >
-            Xem Chi Tiết
+            Xem {partner.totalTours} tours
           </Link>
         </div>
       </div>
