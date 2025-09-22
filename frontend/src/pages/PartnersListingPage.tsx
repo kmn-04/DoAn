@@ -6,6 +6,7 @@ import {
 import type { Partner, PartnerFilters } from '../types';
 import PartnerCard from '../components/partners/PartnerCard';
 import PartnerFiltersComponent from '../components/partners/PartnerFilters';
+import PartnerCTABanner from '../components/partners/PartnerCTABanner';
 import { Loading, Pagination } from '../components/ui';
 
 const PartnersListingPage: React.FC = () => {
@@ -25,17 +26,47 @@ const PartnersListingPage: React.FC = () => {
       name: 'Saigon Tourist',
       slug: 'saigon-tourist',
       description: 'Công ty du lịch hàng đầu Việt Nam với hơn 30 năm kinh nghiệm trong ngành du lịch. Chuyên cung cấp các tour trong nước và quốc tế.',
-      logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center',
-      coverImage: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=400&fit=crop',
+      type: 'TourOperator' as const,
       website: 'https://saigontourist.net',
       phone: '028-3822-4987',
       email: 'info@saigontourist.net',
       address: 'TP. Hồ Chí Minh',
       establishedYear: 1975,
       rating: 4.8,
+      totalReviews: 2500,
       totalTours: 150,
       totalBookings: 25000,
       specialties: ['Du lịch văn hóa', 'Du lịch biển', 'Du lịch luxury'],
+      images: [
+        {
+          id: 1,
+          imageUrl: 'https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?w=800',
+          imageType: 'cover',
+          displayOrder: 0,
+          altText: 'Saigon Tourist - Văn phòng trung tâm'
+        },
+        {
+          id: 2,
+          imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400',
+          imageType: 'logo',
+          displayOrder: 0,
+          altText: 'Logo Saigon Tourist'
+        },
+        {
+          id: 3,
+          imageUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600',
+          imageType: 'gallery',
+          displayOrder: 1,
+          altText: 'Tour Hạ Long Bay'
+        },
+        {
+          id: 4,
+          imageUrl: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=600',
+          imageType: 'gallery',
+          displayOrder: 2,
+          altText: 'Tour Sapa'
+        }
+      ],
       tours: [],
       createdAt: '2024-01-01',
       updatedAt: '2024-01-01'
@@ -45,17 +76,54 @@ const PartnersListingPage: React.FC = () => {
       name: 'Vietravel',
       slug: 'vietravel',
       description: 'Tập đoàn du lịch lớn nhất Việt Nam với mạng lưới chi nhánh trên toàn quốc. Cam kết mang đến những trải nghiệm du lịch tuyệt vời.',
-      logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center',
-      coverImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop',
+      type: 'TourOperator' as const,
       website: 'https://vietravel.com',
       phone: '024-3942-0888',
       email: 'info@vietravel.com',
       address: 'Hà Nội',
       establishedYear: 1995,
       rating: 4.7,
+      totalReviews: 3200,
       totalTours: 200,
       totalBookings: 35000,
       specialties: ['Du lịch gia đình', 'Du lịch phiêu lưu', 'Du lịch sinh thái'],
+      images: [
+        {
+          id: 5,
+          imageUrl: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800',
+          imageType: 'cover',
+          displayOrder: 0,
+          altText: 'Vietravel - Trụ sở chính'
+        },
+        {
+          id: 6,
+          imageUrl: 'https://images.unsplash.com/photo-1520637836862-4d197d17c90a?w=400',
+          imageType: 'logo',
+          displayOrder: 0,
+          altText: 'Logo Vietravel'
+        },
+        {
+          id: 7,
+          imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600',
+          imageType: 'gallery',
+          displayOrder: 1,
+          altText: 'Tour Hội An'
+        },
+        {
+          id: 8,
+          imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600',
+          imageType: 'gallery',
+          displayOrder: 2,
+          altText: 'Tour Mũi Né'
+        },
+        {
+          id: 9,
+          imageUrl: 'https://images.unsplash.com/photo-1580418827493-f2b22c0a76cb?w=600',
+          imageType: 'gallery',
+          displayOrder: 3,
+          altText: 'Tour Cần Thơ'
+        }
+      ],
       tours: [],
       createdAt: '2024-01-01',
       updatedAt: '2024-01-01'
@@ -65,17 +133,47 @@ const PartnersListingPage: React.FC = () => {
       name: 'TST Tourist',
       slug: 'tst-tourist',
       description: 'Công ty du lịch chuyên nghiệp với đội ngũ hướng dẫn viên giàu kinh nghiệm. Tự hào là đối tác tin cậy của hàng nghìn khách hàng.',
-      logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center',
-      coverImage: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&h=400&fit=crop',
+      type: 'TourOperator' as const,
       website: 'https://tsttourist.com',
       phone: '0236-3891-456',
       email: 'info@tsttourist.com',
       address: 'Đà Nẵng',
       establishedYear: 2005,
       rating: 4.6,
+      totalReviews: 1800,
       totalTours: 80,
       totalBookings: 15000,
       specialties: ['Du lịch núi', 'Du lịch budget', 'Du lịch văn hóa'],
+      images: [
+        {
+          id: 10,
+          imageUrl: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800',
+          imageType: 'cover',
+          displayOrder: 0,
+          altText: 'TST Tourist - Văn phòng Đà Nẵng'
+        },
+        {
+          id: 11,
+          imageUrl: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400',
+          imageType: 'logo',
+          displayOrder: 0,
+          altText: 'Logo TST Tourist'
+        },
+        {
+          id: 12,
+          imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600',
+          imageType: 'gallery',
+          displayOrder: 1,
+          altText: 'Tour Phong Nha'
+        },
+        {
+          id: 13,
+          imageUrl: 'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600',
+          imageType: 'gallery',
+          displayOrder: 2,
+          altText: 'Trekking Sapa'
+        }
+      ],
       tours: [],
       createdAt: '2024-01-01',
       updatedAt: '2024-01-01'
@@ -143,35 +241,46 @@ const PartnersListingPage: React.FC = () => {
 
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <BuildingOffice2Icon className="h-16 w-16 mx-auto mb-4 opacity-90" />
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                Đối Tác Du Lịch
-              </h1>
-              <p className="text-xl opacity-90 max-w-2xl mx-auto">
-                Khám phá mạng lưới đối tác uy tín của chúng tôi với đa dạng tour du lịch chất lượng cao
+        <div className="relative h-96 lg:h-[500px] bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
+          {/* Background Image */}
+          <div className="absolute inset-0">
+            <img
+              src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1600&h=800&fit=crop"
+              alt="Đối tác du lịch"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-blue-900/60"></div>
+          </div>
+          
+          {/* Content Overlay */}
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center">
+            <div className="text-white text-center">
+              <div className="flex items-center justify-center mb-6">
+                <BuildingOffice2Icon className="h-16 w-16 mr-4 opacity-90" />
+                <h1 className="text-4xl md:text-6xl font-bold">Đối Tác Du Lịch</h1>
+              </div>
+              <p className="text-xl md:text-2xl mb-12 text-blue-100 max-w-3xl mx-auto">
+                Mạng lưới {totalPartners} đối tác uy tín với {totalTours.toLocaleString()}+ tour chất lượng cao
               </p>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">{totalPartners}+</div>
-                <div className="text-blue-100 text-sm">Đối tác</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">{totalTours.toLocaleString()}+</div>
-                <div className="text-blue-100 text-sm">Tour du lịch</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">{totalBookings.toLocaleString()}+</div>
-                <div className="text-blue-100 text-sm">Lượt đặt tour</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">{averageRating.toFixed(1)}⭐</div>
-                <div className="text-blue-100 text-sm">Đánh giá trung bình</div>
+              
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+                <div className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">{totalPartners}+</div>
+                  <div className="text-base text-blue-100">Đối tác uy tín</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">{totalTours.toLocaleString()}+</div>
+                  <div className="text-base text-blue-100">Tours đa dạng</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">{totalBookings.toLocaleString()}+</div>
+                  <div className="text-base text-blue-100">Lượt đặt tour</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">{averageRating.toFixed(1)}⭐</div>
+                  <div className="text-base text-blue-100">Đánh giá trung bình</div>
+                </div>
               </div>
             </div>
           </div>
@@ -179,55 +288,67 @@ const PartnersListingPage: React.FC = () => {
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Filters */}
-          <PartnerFiltersComponent
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            onClearFilters={handleClearFilters}
-          />
+          <div className="lg:grid lg:grid-cols-4 lg:gap-8">
+            {/* Sidebar Filters */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-4">
+                <PartnerFiltersComponent
+                  filters={filters}
+                  onFiltersChange={handleFiltersChange}
+                  onClearFilters={handleClearFilters}
+                />
+              </div>
+            </div>
 
-          {/* Results Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Tất cả đối tác ({totalPartners})
-              </h2>
-              <p className="text-gray-600 mt-1">
-                Khám phá các đối tác du lịch uy tín của chúng tôi
-              </p>
+            {/* Main Content */}
+            <div className="lg:col-span-3 mt-8 lg:mt-0">
+              {/* Results Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Tất cả đối tác ({totalPartners})
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    Khám phá các đối tác du lịch uy tín của chúng tôi
+                  </p>
+                </div>
+              </div>
+
+              {/* Partners Grid */}
+              {partners.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 items-stretch">
+                  {partners.map((partner) => (
+                    <PartnerCard key={partner.id} partner={partner} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <BuildingOffice2Icon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-medium text-gray-900 mb-2">
+                    Không tìm thấy đối tác nào
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Thử điều chỉnh bộ lọc để tìm kiếm đối tác phù hợp
+                  </p>
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Partners Grid */}
-          {partners.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {partners.map((partner) => (
-                <PartnerCard key={partner.id} partner={partner} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <BuildingOffice2Icon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">
-                Không tìm thấy đối tác nào
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Thử điều chỉnh bộ lọc để tìm kiếm đối tác phù hợp
-              </p>
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          )}
         </div>
+
+        {/* Partner CTA Banner */}
+        <PartnerCTABanner />
       </div>
     </>
   );

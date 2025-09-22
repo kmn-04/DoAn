@@ -10,12 +10,14 @@ import {
   CalendarIcon,
   TicketIcon,
   ChevronLeftIcon,
-  BuildingOffice2Icon
+  BuildingOffice2Icon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import type { Partner } from '../types';
 import { TourCard } from '../components/tours';
-import { Loading, Button, Card } from '../components/ui';
+import { Loading, Button, Card, ImageCarousel } from '../components/ui';
+import ImageGallery from '../components/ui/ImageGallery';
 
 const PartnerDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -29,17 +31,75 @@ const PartnerDetailPage: React.FC = () => {
     name: 'Saigon Tourist',
     slug: 'saigon-tourist',
     description: 'Công ty du lịch hàng đầu Việt Nam với hơn 30 năm kinh nghiệm trong ngành du lịch. Chúng tôi chuyên cung cấp các dịch vụ du lịch chất lượng cao, từ tour trong nước đến quốc tế, đáp ứng mọi nhu cầu của khách hàng từ du lịch gia đình, doanh nghiệp đến du lịch luxury.',
-    logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&h=150&fit=crop&crop=center',
-    coverImage: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=600&fit=crop',
+    type: 'TourOperator' as const,
     website: 'https://saigontourist.net',
     phone: '028-3822-4987',
     email: 'info@saigontourist.net',
     address: 'TP. Hồ Chí Minh, Việt Nam',
     establishedYear: 1975,
     rating: 4.8,
+    totalReviews: 2500,
     totalTours: 150,
     totalBookings: 25000,
     specialties: ['Du lịch văn hóa', 'Du lịch biển', 'Du lịch luxury', 'Du lịch gia đình', 'Du lịch doanh nghiệp'],
+    images: [
+      {
+        id: 1,
+        imageUrl: 'https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?w=800',
+        imageType: 'cover',
+        displayOrder: 0,
+        altText: 'Saigon Tourist - Văn phòng trung tâm'
+      },
+      {
+        id: 2,
+        imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400',
+        imageType: 'logo',
+        displayOrder: 0,
+        altText: 'Logo Saigon Tourist'
+      },
+      {
+        id: 3,
+        imageUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600',
+        imageType: 'gallery',
+        displayOrder: 1,
+        altText: 'Tour Hạ Long Bay'
+      },
+      {
+        id: 4,
+        imageUrl: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=600',
+        imageType: 'gallery',
+        displayOrder: 2,
+        altText: 'Tour Sapa'
+      },
+      {
+        id: 5,
+        imageUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600',
+        imageType: 'gallery',
+        displayOrder: 3,
+        altText: 'Tour Phú Quốc'
+      },
+      {
+        id: 6,
+        imageUrl: 'https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?w=600',
+        imageType: 'gallery',
+        displayOrder: 4,
+        altText: 'Tour Đà Nẵng'
+      },
+      {
+        id: 7,
+        imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600',
+        imageType: 'gallery',
+        displayOrder: 5,
+        altText: 'Tour Hội An'
+      },
+      {
+        id: 8,
+        imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600',
+        imageType: 'gallery',
+        displayOrder: 6,
+        altText: 'Tour Mũi Né'
+      }
+    ],
     tours: [
       {
         id: 1,
@@ -166,12 +226,19 @@ const PartnerDetailPage: React.FC = () => {
 
         {/* Hero Section */}
         <div className="relative">
+          {/* Cover Image */}
           <div className="aspect-[3/1] overflow-hidden">
-            <img
-              src={partner.coverImage}
-              alt={partner.name}
-              className="w-full h-full object-cover"
-            />
+            {partner.images && partner.images.length > 0 ? (
+              <img
+                src={partner.images.find(img => img.imageType === 'cover')?.imageUrl || partner.images[0]?.imageUrl}
+                alt={partner.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+                <BuildingOffice2Icon className="h-24 w-24 text-gray-500" />
+              </div>
+            )}
           </div>
           <div className="absolute inset-0 bg-black bg-opacity-40" />
           
@@ -180,11 +247,17 @@ const PartnerDetailPage: React.FC = () => {
             <div className="max-w-7xl mx-auto">
               <div className="flex items-end space-x-6">
                 <div className="w-24 h-24 rounded-full bg-white p-2 shadow-lg">
-                  <img
-                    src={partner.logo}
-                    alt={`${partner.name} logo`}
-                    className="w-full h-full object-cover rounded-full"
-                  />
+                  {partner.images?.find(img => img.imageType === 'logo') ? (
+                    <img
+                      src={partner.images.find(img => img.imageType === 'logo')?.imageUrl}
+                      alt={`${partner.name} logo`}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center">
+                      <BuildingOffice2Icon className="h-8 w-8 text-gray-500" />
+                    </div>
+                  )}
                 </div>
                 <div className="text-white">
                   <h1 className="text-4xl font-bold mb-2">{partner.name}</h1>
@@ -192,6 +265,7 @@ const PartnerDetailPage: React.FC = () => {
                     <div className="flex items-center space-x-1">
                       {renderStars(partner.rating)}
                       <span className="ml-2 font-medium">{partner.rating}</span>
+                      <span className="text-sm">({partner.totalReviews} đánh giá)</span>
                     </div>
                     <div className="flex items-center">
                       <CalendarIcon className="h-4 w-4 mr-1" />
@@ -237,6 +311,50 @@ const PartnerDetailPage: React.FC = () => {
               {/* Tab Content */}
               {activeTab === 'overview' && (
                 <div className="space-y-8">
+                  {/* Image Gallery with Navigation */}
+                  {partner.images && partner.images.length > 0 && (
+                    <Card className="p-6">
+                      <h3 className="text-lg font-semibold mb-4">Hình ảnh đối tác</h3>
+                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 h-96 lg:h-[500px]">
+                        {/* Main Image with Navigation */}
+                        <div className="lg:col-span-3 relative group cursor-pointer">
+                          <ImageCarousel
+                            images={partner.images}
+                            alt={partner.name}
+                            className="w-full h-full rounded-lg overflow-hidden"
+                            imageClassName="w-full h-full object-cover"
+                            showCounter={true}
+                            showNavigation={true}
+                          />
+                        </div>
+                        
+                        {/* Thumbnail Grid - GIỐNG TOUR */}
+                        <div className="hidden lg:block space-y-2">
+                          {partner.images.filter(img => img.imageType === 'gallery' || img.imageType === 'cover')
+                            .slice(1, 5).map((image, index) => (
+                            <div
+                              key={image.id}
+                              className="relative cursor-pointer group"
+                            >
+                              <img
+                                src={image.imageUrl}
+                                alt={image.altText || `${partner.name} - Thumbnail ${index + 2}`}
+                                className="w-full h-[120px] object-cover rounded-lg"
+                              />
+                              {index === 3 && partner.images.length > 5 && (
+                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
+                                  <span className="text-white font-semibold">
+                                    +{partner.images.length - 5} ảnh
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </Card>
+                  )}
+
                   {/* Description */}
                   <Card className="p-6">
                     <h3 className="text-xl font-semibold text-gray-900 mb-4">Giới thiệu</h3>
@@ -283,7 +401,7 @@ const PartnerDetailPage: React.FC = () => {
               {activeTab === 'tours' && (
                 <div className="space-y-6">
                   {partner.tours.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
                       {partner.tours.map((tour) => (
                         <TourCard 
                           key={tour.id} 

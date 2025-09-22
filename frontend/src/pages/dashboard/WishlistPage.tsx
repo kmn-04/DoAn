@@ -302,9 +302,9 @@ const WishlistPage: React.FC = () => {
       {/* Tours Grid */}
       {currentTours.length > 0 ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-stretch">
             {currentTours.map((tour) => (
-              <Card key={tour.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <Card key={tour.id} className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
                 <div className="relative">
                   <Link to={`/tours/${tour.slug}`}>
                     <img
@@ -331,19 +331,19 @@ const WishlistPage: React.FC = () => {
                   )}
                 </div>
 
-                <div className="p-4">
+                <div className="p-4 flex-1 flex flex-col">
                   <Link to={`/tours/${tour.slug}`}>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors line-clamp-2">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors line-clamp-2 min-h-[3.5rem]">
                       {tour.name}
                     </h3>
                   </Link>
 
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2 min-h-[2.5rem]">
                     {tour.description}
                   </p>
 
                   {/* Tour Details */}
-                  <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-3">
+                  <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-3 min-h-[3rem]">
                     <div className="flex items-center space-x-1">
                       <MapPinIcon className="h-3 w-3" />
                       <span>{tour.location}</span>
@@ -359,13 +359,16 @@ const WishlistPage: React.FC = () => {
                   </div>
 
                   {/* Rating */}
-                  <div className="flex items-center space-x-2 mb-3">
+                  <div className="flex items-center space-x-2 mb-3 min-h-[1.5rem]">
                     <div className="flex items-center space-x-1">
                       <StarIcon className="h-4 w-4 text-yellow-400 fill-current" />
                       <span className="font-semibold text-sm text-gray-900">{tour.rating}</span>
                     </div>
                     <span className="text-xs text-gray-500">({tour.reviewCount} đánh giá)</span>
                   </div>
+
+                  {/* Spacer to push price & action to bottom */}
+                  <div className="flex-1"></div>
 
                   {/* Price & Action */}
                   <div className="flex items-center justify-between">

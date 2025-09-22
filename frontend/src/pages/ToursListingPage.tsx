@@ -290,16 +290,51 @@ const ToursListingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Page Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Tour Du Lịch Việt Nam
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Khám phá những điểm đến tuyệt vời nhất với các tour du lịch đa dạng và hấp dẫn
+      {/* Hero Section */}
+      <div className="relative h-96 lg:h-[500px] bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&h=800&fit=crop"
+            alt="Du lịch Việt Nam"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-blue-900/60"></div>
+        </div>
+        
+        {/* Content Overlay */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center">
+          <div className="text-white text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">Tours Du Lịch</h1>
+            <p className="text-xl md:text-2xl mb-12 text-blue-100 max-w-3xl mx-auto">
+              Khám phá vẻ đẹp Việt Nam với hơn {filteredTours.length} tour đa dạng từ biển đảo đến miền núi
             </p>
+            
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold mb-2">{mockTours.length}+</div>
+                <div className="text-base text-blue-100">Tours available</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold mb-2">
+                  {Math.round(mockTours.reduce((sum, tour) => sum + tour.rating, 0) / mockTours.length * 10) / 10}⭐
+                </div>
+                <div className="text-base text-blue-100">Đánh giá trung bình</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold mb-2">
+                  {mockTours.reduce((sum, tour) => sum + tour.reviewCount, 0).toLocaleString()}+
+                </div>
+                <div className="text-base text-blue-100">Lượt đánh giá</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold mb-2">
+                  {new Set(mockTours.map(tour => tour.location)).size}+
+                </div>
+                <div className="text-base text-blue-100">Điểm đến</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -344,7 +379,7 @@ const ToursListingPage: React.FC = () => {
             ) : (
               <>
                 {/* Tours Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8 items-stretch">
                   {currentTours.map((tour) => (
                     <TourCard
                       key={tour.id}
