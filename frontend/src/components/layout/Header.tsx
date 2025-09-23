@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useResponsive, touchTargets } from '../../utils/responsive';
 import { 
   Bars3Icon, 
   XMarkIcon, 
@@ -9,10 +10,10 @@ import {
   ArrowRightOnRectangleIcon,
   UserCircleIcon,
   Cog6ToothIcon,
-  BellIcon,
   ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
+import { NotificationCenter } from '../notifications';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,6 +21,7 @@ const Header: React.FC = () => {
   const [isTourDropdownOpen, setIsTourDropdownOpen] = useState(false);
   const { user, isAuthenticated, logout, getUserInitials } = useAuth();
   const location = useLocation();
+  const responsive = useResponsive();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const tourDropdownRef = useRef<HTMLDivElement>(null);
   const tourDropdownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -96,11 +98,11 @@ const Header: React.FC = () => {
     { name: 'Liên hệ', href: '/contact', current: location.pathname === '/contact' },
   ];
 
+  // ✅ UPDATED: Clean user navigation - cancellation history is now integrated into booking page
   const userNavigation = [
     { name: 'Hồ sơ cá nhân', href: '/profile', icon: UserCircleIcon },
     { name: 'Booking của tôi', href: '/bookings', icon: ShoppingBagIcon },
     { name: 'Tour yêu thích', href: '/wishlist', icon: HeartIcon },
-    { name: 'Thông báo', href: '/notifications', icon: BellIcon },
     { name: 'Cài đặt', href: '/settings', icon: Cog6ToothIcon },
   ];
 
@@ -108,22 +110,22 @@ const Header: React.FC = () => {
     <header className="bg-white shadow-lg relative z-50">
       {/* Top Row: Logo + Search + Hotline */}
       <div className="bg-gray-50 border-b border-gray-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3">
-            {/* Logo */}
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center">
-                <div className="bg-blue-600 text-white p-2 rounded-lg mr-3">
-                  <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center">
+              <div className="bg-blue-600 text-white p-2 rounded-lg mr-3">
+                <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
                   <h1 className="text-xl font-bold text-blue-700">TourBooking</h1>
                   <p className="text-xs text-gray-600">Khám phá vẻ đẹp thế giới</p>
-                </div>
-              </Link>
-            </div>
+              </div>
+            </Link>
+          </div>
 
             {/* Search Bar */}
             <div className="hidden md:flex items-center flex-1 max-w-lg mx-8">
@@ -156,7 +158,10 @@ const Header: React.FC = () => {
             </div>
 
             {/* Mobile Search Icon */}
-            <button className="md:hidden p-2 text-gray-400 hover:text-gray-500">
+            <button 
+              className={`md:hidden p-3 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-md transition-colors ${touchTargets.button}`}
+              aria-label="Tìm kiếm"
+            >
               <MagnifyingGlassIcon className="h-6 w-6" />
             </button>
           </div>
@@ -225,17 +230,17 @@ const Header: React.FC = () => {
               }
               
               return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    item.current
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {item.name}
-                </Link>
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  item.current
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                }`}
+              >
+                {item.name}
+              </Link>
               );
             })}
           </nav>
@@ -243,8 +248,12 @@ const Header: React.FC = () => {
           {/* User Menu & Actions */}
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
-              // Authenticated User Menu
-              <div className="relative" ref={userMenuRef}>
+              <>
+                {/* ✅ NotificationCenter (kept in header for quick access) */}
+                <NotificationCenter />
+                
+                {/* Authenticated User Menu */}
+                <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => {
                     console.log('Avatar clicked, menu open:', !isUserMenuOpen);
@@ -270,16 +279,17 @@ const Header: React.FC = () => {
                   </span>
                 </button>
 
+                {/* ✅ FIXED: User dropdown positioning - removed inline styles */}
                 {isUserMenuOpen && (
                   <div 
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50"
+                    className="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50"
                     onClick={(e) => e.stopPropagation()}
-                    style={{ position: 'fixed', right: '20px', top: '60px' }}
                   >
                     <div className="px-4 py-2 text-sm text-gray-700 border-b">
                       <p className="font-medium">{user?.name}</p>
                       <p className="text-gray-500">{user?.email}</p>
                     </div>
+                    {/* ✅ Updated userNavigation without "Thông báo" */}
                     {userNavigation.map((item) => (
                       <Link
                         key={item.name}
@@ -305,6 +315,7 @@ const Header: React.FC = () => {
                   </div>
                 )}
               </div>
+              </>
             ) : (
               // Guest Actions
               <div className="flex items-center space-x-3">
@@ -325,8 +336,9 @@ const Header: React.FC = () => {
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              className={`md:hidden inline-flex items-center justify-center p-3 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors ${touchTargets.button}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? 'Đóng menu' : 'Mở menu'}
             >
               {isMenuOpen ? (
                 <XMarkIcon className="block h-6 w-6" />
@@ -351,7 +363,7 @@ const Header: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Bạn muốn đi đâu?"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className={`block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${touchTargets.input}`}
                 />
               </div>
             </div>
@@ -392,18 +404,18 @@ const Header: React.FC = () => {
               }
               
               return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
-                    item.current
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  item.current
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
               );
             })}
 
@@ -447,5 +459,3 @@ const Header: React.FC = () => {
 };
 
 export default Header;
-
-

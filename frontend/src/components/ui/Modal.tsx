@@ -73,54 +73,58 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={handleOverlayClick}
       />
       
-      {/* Modal */}
-      <div 
-        className={cn(
-          'relative bg-white rounded-lg shadow-xl w-full mx-4',
-          sizeClasses[size],
-          'animate-in fade-in-0 zoom-in-95 duration-200',
-          className
-        )}
-      >
-        {/* Header */}
-        {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <div>
-              {title && (
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {title}
-                </h2>
-              )}
-              {description && (
-                <p className="text-sm text-gray-600 mt-1">
-                  {description}
-                </p>
+      {/* Modal Container with Scroll */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        {/* Modal */}
+        <div 
+          className={cn(
+            'relative bg-white rounded-lg shadow-xl w-full',
+            sizeClasses[size],
+            'animate-in fade-in-0 zoom-in-95 duration-200',
+            'max-h-[90vh] flex flex-col', // Added max height and flex layout
+            className
+          )}
+        >
+          {/* Header */}
+          {(title || showCloseButton) && (
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+              <div>
+                {title && (
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {title}
+                  </h2>
+                )}
+                {description && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    {description}
+                  </p>
+                )}
+              </div>
+              
+              {showCloseButton && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </Button>
               )}
             </div>
-            
-            {showCloseButton && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </Button>
-            )}
+          )}
+          
+          {/* Content - Scrollable */}
+          <div className="overflow-y-auto flex-1 min-h-0">
+            {children}
           </div>
-        )}
-        
-        {/* Content */}
-        <div className="p-6">
-          {children}
         </div>
       </div>
     </div>

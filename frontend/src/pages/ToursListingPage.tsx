@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import TourCard from '../components/tours/TourCard';
 import TourFilters from '../components/tours/TourFilters';
-import { Pagination } from '../components/ui';
+import { Pagination, SkeletonTourCard } from '../components/ui';
+import { tourService } from '../services';
+import { useDebounce, useThrottle } from '../hooks/usePerformance';
+import type { TourResponse, TourSearchRequest } from '../services';
 
 interface Tour {
   id: number;
@@ -13,6 +16,15 @@ interface Tour {
   originalPrice?: number;
   duration: string;
   location: string;
+  tourType?: 'domestic' | 'international';
+  country?: {
+    name: string;
+    code: string;
+    flagUrl?: string;
+    visaRequired: boolean;
+  };
+  flightIncluded?: boolean;
+  visaInfo?: string;
   rating: number;
   reviewCount: number;
   maxPeople: number;
@@ -30,6 +42,11 @@ interface FilterState {
   rating: string;
   sortBy: string;
   location: string;
+  tourType: string;
+  continent: string;
+  country: string;
+  visaRequired: boolean;
+  flightIncluded: boolean;
 }
 
 // Extended mock data
@@ -149,18 +166,243 @@ const mockTours: Tour[] = [
     maxPeople: 25,
     image: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800",
     category: "culture"
+  },
+  // INTERNATIONAL TOURS
+  {
+    id: 9,
+    name: "Tokyo - Osaka Kinh Điển",
+    slug: "tokyo-osaka-kinh-dien", 
+    description: "Khám phá hai thành phố biểu tượng của Nhật Bản với văn hóa truyền thống và hiện đại",
+    price: 25000000,
+    originalPrice: 28000000,
+    duration: "7 ngày 6 đêm",
+    location: "Tokyo - Osaka",
+    tourType: "international",
+    country: {
+      name: "Nhật Bản",
+      code: "JP",
+      flagUrl: "https://flagcdn.com/w80/jp.png",
+      visaRequired: false
+    },
+    flightIncluded: true,
+    visaInfo: "Miễn visa 15 ngày cho hộ chiếu phổ thông",
+    rating: 4.9,
+    reviewCount: 342,
+    maxPeople: 16,
+    image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800",
+    badge: "Hot",
+    category: "culture"
+  },
+  {
+    id: 10,
+    name: "Seoul - Jeju Mùa Hoa Anh Đào",
+    slug: "seoul-jeju-mua-hoa-anh-dao",
+    description: "Trải nghiệm mùa hoa anh đào tuyệt đẹp và khám phá văn hóa K-pop hiện đại",
+    price: 22000000,
+    duration: "6 ngày 5 đêm",
+    location: "Seoul - Đảo Jeju",
+    tourType: "international",
+    country: {
+      name: "Hàn Quốc", 
+      code: "KR",
+      flagUrl: "https://flagcdn.com/w80/kr.png",
+      visaRequired: false
+    },
+    flightIncluded: true,
+    visaInfo: "Miễn visa 15 ngày cho hộ chiếu phổ thông",
+    rating: 4.8,
+    reviewCount: 287,
+    maxPeople: 20,
+    image: "https://images.unsplash.com/photo-1549693578-d683be217e58?w=800",
+    badge: "Mới",
+    category: "culture"
+  },
+  {
+    id: 11,
+    name: "Bangkok - Pattaya Thái Lan",
+    slug: "bangkok-pattaya-thai-lan",
+    description: "Tận hưởng cuộc sống sôi động Bangkok và bãi biển tuyệt đẹp Pattaya",
+    price: 12000000,
+    originalPrice: 14000000,
+    duration: "5 ngày 4 đêm",
+    location: "Bangkok - Pattaya",
+    tourType: "international",
+    country: {
+      name: "Thái Lan",
+      code: "TH", 
+      flagUrl: "https://flagcdn.com/w80/th.png",
+      visaRequired: false
+    },
+    flightIncluded: true,
+    visaInfo: "Miễn visa 30 ngày cho hộ chiếu phổ thông",
+    rating: 4.6,
+    reviewCount: 456,
+    maxPeople: 25,
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
+    badge: "Giá tốt",
+    category: "city"
+  },
+  {
+    id: 12,
+    name: "Singapore - Malaysia Liên Tuyến",
+    slug: "singapore-malaysia-lien-tuyen",
+    description: "Khám phá hai quốc gia Đông Nam Á với ẩm thực đa dạng và kiến trúc hiện đại",
+    price: 18000000,
+    duration: "6 ngày 5 đêm",
+    location: "Singapore - Kuala Lumpur",
+    tourType: "international",
+    country: {
+      name: "Singapore",
+      code: "SG",
+      flagUrl: "https://flagcdn.com/w80/sg.png", 
+      visaRequired: false
+    },
+    flightIncluded: true,
+    visaInfo: "Miễn visa 30 ngày cho hộ chiếu phổ thông",
+    rating: 4.7,
+    reviewCount: 198,
+    maxPeople: 18,
+    image: "https://images.unsplash.com/photo-1565967511849-76a60a516170?w=800",
+    category: "city"
+  },
+  {
+    id: 13,
+    name: "Paris - London Châu Âu",
+    slug: "paris-london-chau-au",
+    description: "Trải nghiệm nền văn minh châu Âu qua hai thủ đô lãng mạn và lịch sử",
+    price: 45000000,
+    originalPrice: 50000000,
+    duration: "10 ngày 9 đêm",
+    location: "Paris - London",
+    tourType: "international",
+    country: {
+      name: "Pháp",
+      code: "FR",
+      flagUrl: "https://flagcdn.com/w80/fr.png",
+      visaRequired: true
+    },
+    flightIncluded: true,
+    visaInfo: "Cần visa Schengen. Hỗ trợ làm visa miễn phí",
+    rating: 4.9,
+    reviewCount: 145,
+    maxPeople: 12,
+    image: "https://images.unsplash.com/photo-1502602898536-47ad22581b52?w=800",
+    badge: "Cao cấp",
+    category: "culture"
+  },
+  {
+    id: 14,
+    name: "Sydney - Melbourne Úc",
+    slug: "sydney-melbourne-uc", 
+    description: "Khám phá thiên đường châu Úc với cảnh quan thiên nhiên tuyệt đẹp và văn hóa độc đáo",
+    price: 38000000,
+    duration: "8 ngày 7 đêm",
+    location: "Sydney - Melbourne",
+    tourType: "international",
+    country: {
+      name: "Úc",
+      code: "AU",
+      flagUrl: "https://flagcdn.com/w80/au.png",
+      visaRequired: true
+    },
+    flightIncluded: true,
+    visaInfo: "Cần visa du lịch Úc. Hỗ trợ làm visa",
+    rating: 4.8,
+    reviewCount: 167,
+    maxPeople: 14,
+    image: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800",
+    category: "city"
   }
 ];
 
+// Helper function to convert TourResponse to local Tour interface
+const convertTourResponse = (tourResponse: TourResponse): Tour => {
+  return {
+    id: tourResponse.id,
+    name: tourResponse.name,
+    slug: tourResponse.slug,
+    description: tourResponse.description,
+    price: tourResponse.price,
+    originalPrice: tourResponse.discountPrice,
+    duration: `${tourResponse.duration} ngày`,
+    location: tourResponse.location,
+    tourType: tourResponse.tourType === 'DOMESTIC' ? 'domestic' : 'international',
+    country: tourResponse.country ? {
+      name: tourResponse.country.name,
+      code: tourResponse.country.code,
+      flagUrl: tourResponse.country.flagUrl,
+      visaRequired: tourResponse.country.visaRequired
+    } : undefined,
+    flightIncluded: tourResponse.flightIncluded,
+    visaInfo: tourResponse.visaInfo,
+    rating: tourResponse.averageRating || 4.5,
+    reviewCount: tourResponse.totalReviews || 0,
+    maxPeople: tourResponse.maxParticipants,
+    image: tourResponse.images?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+    badge: tourResponse.isFeatured ? 'Hot' : undefined,
+    category: tourResponse.category.slug
+  };
+};
+
 const ToursListingPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tours, setTours] = useState<Tour[]>(mockTours);
-  const [filteredTours, setFilteredTours] = useState<Tour[]>(mockTours);
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [filteredTours, setFilteredTours] = useState<Tour[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalTours, setTotalTours] = useState(0);
   
   const toursPerPage = 6;
+
+  // Fetch tours from API
+  const fetchTours = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Build search request from filters
+      const searchRequest: TourSearchRequest = {
+        page: currentPage - 1, // API uses 0-based indexing
+        size: toursPerPage,
+        sortBy: filters.sortBy === 'popular' ? 'createdAt' : 
+                filters.sortBy === 'price-low' ? 'price' :
+                filters.sortBy === 'price-high' ? 'price' :
+                filters.sortBy === 'rating' ? 'averageRating' :
+                filters.sortBy === 'duration' ? 'duration' : 'createdAt',
+        sortDirection: filters.sortBy === 'price-high' || filters.sortBy === 'rating' ? 'desc' : 'asc'
+      };
+
+      // Add filters
+      if (filters.search) searchRequest.keyword = filters.search;
+      if (filters.tourType) searchRequest.tourType = filters.tourType === 'domestic' ? 'DOMESTIC' : 'INTERNATIONAL';
+      if (filters.continent) searchRequest.continent = filters.continent;
+      if (filters.priceMin) searchRequest.minPrice = parseInt(filters.priceMin);
+      if (filters.priceMax) searchRequest.maxPrice = parseInt(filters.priceMax);
+      if (filters.rating) searchRequest.minRating = parseFloat(filters.rating);
+      if (filters.visaRequired !== undefined) searchRequest.visaRequired = filters.visaRequired;
+      if (filters.flightIncluded !== undefined) searchRequest.flightIncluded = filters.flightIncluded;
+
+      const response = await tourService.searchTours(searchRequest);
+      
+      // Convert API response to local format
+      const convertedTours = response.content.map(convertTourResponse);
+      setTours(convertedTours);
+      setFilteredTours(convertedTours);
+      setTotalPages(response.totalPages);
+      setTotalTours(response.totalElements);
+      
+    } catch (error) {
+      console.error('Error fetching tours:', error);
+      // Fallback to mock data on error
+      setTours(mockTours);
+      setFilteredTours(mockTours);
+      setTotalPages(Math.ceil(mockTours.length / toursPerPage));
+      setTotalTours(mockTours.length);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Initialize filters from URL params
   const [filters, setFilters] = useState<FilterState>({
@@ -171,15 +413,24 @@ const ToursListingPage: React.FC = () => {
     duration: searchParams.get('duration') || '',
     rating: searchParams.get('rating') || '',
     sortBy: searchParams.get('sortBy') || 'popular',
-    location: searchParams.get('location') || ''
+    location: searchParams.get('location') || '',
+    tourType: searchParams.get('tourType') || '',
+    continent: searchParams.get('continent') || '',
+    country: searchParams.get('country') || '',
+    visaRequired: searchParams.get('visaRequired') === 'true',
+    flightIncluded: searchParams.get('flightIncluded') === 'true'
   });
 
   // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value);
+      // Skip empty values, default sortBy, and false boolean values
+      if (value && 
+          value !== '' && 
+          !(key === 'sortBy' && value === 'popular') &&
+          !(typeof value === 'boolean' && value === false)) {
+        params.set(key, value.toString());
       }
     });
     setSearchParams(params);
@@ -232,6 +483,42 @@ const ToursListingPage: React.FC = () => {
       result = result.filter(tour => tour.rating >= parseFloat(filters.rating));
     }
 
+    // International tour filters
+    if (filters.tourType) {
+      result = result.filter(tour => {
+        if (filters.tourType === 'domestic') {
+          return !tour.tourType || tour.tourType === 'domestic';
+        }
+        return tour.tourType === filters.tourType;
+      });
+    }
+
+    if (filters.continent && filters.tourType === 'international') {
+      result = result.filter(tour => {
+        if (!tour.country) return false;
+        // Map continent to countries (simplified)
+        const continentCountries: Record<string, string[]> = {
+          'Asia': ['Nhật Bản', 'Hàn Quốc', 'Thái Lan', 'Singapore', 'Malaysia', 'Indonesia', 'Trung Quốc'],
+          'Europe': ['Pháp', 'Đức', 'Ý', 'Tây Ban Nha', 'Anh'],
+          'America': ['Mỹ', 'Canada', 'Brazil'],
+          'Oceania': ['Úc', 'New Zealand']
+        };
+        return continentCountries[filters.continent]?.includes(tour.country.name);
+      });
+    }
+
+    if (filters.country) {
+      result = result.filter(tour => tour.country?.name === filters.country);
+    }
+
+    if (filters.visaRequired !== undefined && filters.tourType === 'international') {
+      result = result.filter(tour => tour.country?.visaRequired === filters.visaRequired);
+    }
+
+    if (filters.flightIncluded !== undefined && filters.tourType === 'international') {
+      result = result.filter(tour => tour.flightIncluded === filters.flightIncluded);
+    }
+
     // Apply sorting
     switch (filters.sortBy) {
       case 'price-low':
@@ -257,6 +544,11 @@ const ToursListingPage: React.FC = () => {
     setCurrentPage(1);
   }, [filters, tours]);
 
+  // Fetch tours when filters or page change
+  useEffect(() => {
+    fetchTours();
+  }, [filters, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
   };
@@ -270,7 +562,12 @@ const ToursListingPage: React.FC = () => {
       duration: '',
       rating: '',
       sortBy: 'popular',
-      location: ''
+      location: '',
+      tourType: '',
+      continent: '',
+      country: '',
+      visaRequired: false,
+      flightIncluded: false
     });
   };
 
@@ -282,11 +579,8 @@ const ToursListingPage: React.FC = () => {
     );
   };
 
-  // Pagination
-  const totalPages = Math.ceil(filteredTours.length / toursPerPage);
-  const startIndex = (currentPage - 1) * toursPerPage;
-  const endIndex = startIndex + toursPerPage;
-  const currentTours = filteredTours.slice(startIndex, endIndex);
+  // For display, use filteredTours directly since API handles pagination
+  const currentTours = filteredTours;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -348,7 +642,7 @@ const ToursListingPage: React.FC = () => {
                 filters={filters}
                 onFiltersChange={handleFiltersChange}
                 onClearFilters={handleClearFilters}
-                totalResults={filteredTours.length}
+                totalResults={totalTours}
               />
             </div>
           </div>
@@ -356,9 +650,10 @@ const ToursListingPage: React.FC = () => {
           {/* Tours Content */}
           <div className="lg:w-3/4">
             {isLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Đang tải tours...</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                {Array.from({ length: 9 }).map((_, index) => (
+                  <SkeletonTourCard key={index} />
+                ))}
               </div>
             ) : filteredTours.length === 0 ? (
               <div className="text-center py-12">

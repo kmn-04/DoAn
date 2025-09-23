@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
+import {
   HeartIcon,
   GlobeAltIcon,
   LightBulbIcon,
@@ -173,7 +173,7 @@ const AboutPage: React.FC = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
             Câu Chuyện Của Chúng Tôi
-          </h2>
+              </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Từ những chuyến du lịch nội địa đầu tiên đến việc mở rộng ra thị trường quốc tế, 
             chúng tôi đã trở thành cầu nối đáng tin cậy giữa du khách Việt và thế giới.
@@ -202,8 +202,8 @@ const AboutPage: React.FC = () => {
                 {/* Timeline dot */}
                 <div className="hidden md:flex w-2/12 justify-center">
                   <div className="w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
-                </div>
-                
+            </div>
+            
                 <div className="hidden md:block w-5/12"></div>
               </div>
             ))}
@@ -222,7 +222,7 @@ const AboutPage: React.FC = () => {
               Những giá trị cốt lõi định hướng mọi hoạt động của chúng tôi
             </p>
           </div>
-
+          
           {/* Mission & Vision */}
           <div className="grid md:grid-cols-2 gap-8 mb-16">
             <Card className="p-8 text-center bg-blue-50 border-blue-200">
@@ -246,8 +246,8 @@ const AboutPage: React.FC = () => {
                 về chất lượng dịch vụ và du lịch bền vững.
               </p>
             </Card>
-          </div>
-
+            </div>
+            
           {/* Core Values */}
           <div>
             <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">Giá Trị Cốt Lõi</h3>
@@ -256,7 +256,7 @@ const AboutPage: React.FC = () => {
                 <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
                   <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                     <value.icon className="w-8 h-8 text-blue-600" />
-                  </div>
+              </div>
                   <h4 className="text-xl font-bold text-gray-900 mb-3">{value.title}</h4>
                   <p className="text-gray-600">{value.description}</p>
                 </Card>
@@ -277,21 +277,21 @@ const AboutPage: React.FC = () => {
               Những con người tài năng và đam mê tạo nên sự khác biệt
             </p>
           </div>
-
+          
           <div className="grid md:grid-cols-3 gap-8">
             {teamMembers.map((member, index) => (
               <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
-                <img
-                  src={member.image}
-                  alt={member.name}
+                  <img
+                    src={member.image}
+                    alt={member.name}
                   className="w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-blue-100"
                 />
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{member.name}</h3>
                 <p className="text-blue-600 font-semibold mb-3">{member.position}</p>
                 <p className="text-gray-600 mb-4">{member.experience}</p>
                 <blockquote className="text-gray-700 italic border-l-4 border-blue-200 pl-4">
-                  {member.quote}
-                </blockquote>
+                    {member.quote}
+                  </blockquote>
               </Card>
             ))}
           </div>
@@ -309,7 +309,7 @@ const AboutPage: React.FC = () => {
               Những lý do thuyết phục để bạn tin tưởng và đồng hành cùng chúng tôi
             </p>
           </div>
-
+          
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             {whyChooseUs.map((reason, index) => (
               <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
@@ -320,7 +320,7 @@ const AboutPage: React.FC = () => {
                 <p className="text-gray-600">{reason.description}</p>
               </Card>
             ))}
-          </div>
+                  </div>
 
           {/* Additional Stats */}
           <div className="bg-white rounded-2xl p-8 shadow-lg">
@@ -334,7 +334,7 @@ const AboutPage: React.FC = () => {
                   <div className="text-sm text-gray-600">{stat.description}</div>
                 </div>
               ))}
-            </div>
+              </div>
           </div>
         </div>
       </section>
@@ -366,7 +366,7 @@ const AboutPage: React.FC = () => {
               Liên Hệ Để Được Tư Vấn
             </Link>
           </div>
-
+          
           {/* Contact Info */}
           <div className="mt-12 pt-8 border-t border-blue-500">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-blue-100">

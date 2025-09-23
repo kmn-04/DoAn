@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: backend
+  
+  # Use H2 in-memory database for testing
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+  
+  # Initialize schema
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:test-data.sql
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+logging:
+  level:
+    backend: DEBUG
+    org.springframework: INFO
+    org.hibernate: INFO

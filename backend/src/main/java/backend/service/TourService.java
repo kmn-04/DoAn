@@ -144,6 +144,11 @@ public interface TourService {
     TourStatistics getTourStatistics();
     
     /**
+     * Get unique locations from tours
+     */
+    List<String> getUniqueLocations();
+    
+    /**
      * Inner class for tour statistics
      */
     class TourStatistics {

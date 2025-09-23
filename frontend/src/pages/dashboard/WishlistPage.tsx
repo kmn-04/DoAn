@@ -11,7 +11,10 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
-import { Card, Button, Pagination } from '../../components/ui';
+import { Card, Button, Pagination, SkeletonTourCard } from '../../components/ui';
+import { wishlistService } from '../../services';
+import { useAuth } from '../../hooks/useAuth';
+import type { WishlistItem } from '../../services/wishlistService';
 
 interface WishlistTour {
   id: number;
@@ -110,8 +113,9 @@ const mockWishlistTours: WishlistTour[] = [
 ];
 
 const WishlistPage: React.FC = () => {
-  const [tours, setTours] = useState<WishlistTour[]>([]);
-  const [filteredTours, setFilteredTours] = useState<WishlistTour[]>([]);
+  const { user } = useAuth();
+  const [tours, setTours] = useState<WishlistItem[]>([]);
+  const [filteredTours, setFilteredTours] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -124,17 +128,44 @@ const WishlistPage: React.FC = () => {
   const toursPerPage = 6;
 
   useEffect(() => {
-    // Simulate API call
     const fetchWishlist = async () => {
-      setIsLoading(true);
-      setTimeout(() => {
-        setTours(mockWishlistTours);
+      if (!user?.id) return;
+      
+      try {
+        setIsLoading(true);
+        
+        // Get wishlist from backend
+        const wishlistItems = await wishlistService.getUserWishlist(user.id);
+        setTours(wishlistItems);
+        
+      } catch (error) {
+        console.error('Error fetching wishlist:', error);
+        
+        // Fallback to mock data on error
+        const mockWishlistItems: WishlistItem[] = mockWishlistTours.map(tour => ({
+          ...tour,
+          tourType: 'domestic' as const,
+          addedDate: tour.addedDate
+        }));
+        
+        setTours(mockWishlistItems);
+        
+        const errorEvent = new CustomEvent('show-toast', {
+          detail: {
+            type: 'warning',
+            title: 'Không thể tải dữ liệu',
+            message: 'Đang hiển thị dữ liệu mẫu. Vui lòng thử lại sau.'
+          }
+        });
+        window.dispatchEvent(errorEvent);
+        
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
 
     fetchWishlist();
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     let filtered = [...tours];
@@ -179,8 +210,42 @@ const WishlistPage: React.FC = () => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleRemoveFromWishlist = (tourId: number) => {
-    setTours(prev => prev.filter(tour => tour.id !== tourId));
+  const handleRemoveFromWishlist = async (tourId: number, tourName: string) => {
+    // Show confirmation
+    const confirmed = window.confirm(`Bạn có chắc muốn xóa "${tourName}" khỏi danh sách yêu thích?`);
+    
+    if (confirmed && user?.id) {
+      try {
+        // Remove from backend
+        await wishlistService.removeFromWishlist(user.id, tourId);
+        
+        // Update local state
+        setTours(prev => prev.filter(tour => tour.id !== tourId));
+        
+        // Show success notification
+        const successEvent = new CustomEvent('show-toast', {
+          detail: {
+            type: 'success',
+            title: 'Đã xóa khỏi yêu thích',
+            message: `"${tourName}" đã được xóa khỏi danh sách.`
+          }
+        });
+        window.dispatchEvent(successEvent);
+        
+      } catch (error) {
+        console.error('Error removing from wishlist:', error);
+        
+        // Show error notification
+        const errorEvent = new CustomEvent('show-toast', {
+          detail: {
+            type: 'error',
+            title: 'Xóa thất bại',
+            message: 'Không thể xóa tour khỏi danh sách yêu thích.'
+          }
+        });
+        window.dispatchEvent(errorEvent);
+      }
+    }
   };
 
   const clearFilters = () => {
@@ -211,13 +276,29 @@ const WishlistPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-80 bg-gray-200 rounded-lg"></div>
-            ))}
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-2">
+            <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
           </div>
+          <div className="h-4 bg-gray-200 rounded w-96 animate-pulse"></div>
+        </div>
+        
+        {/* Filters Skeleton */}
+        <Card className="p-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 animate-pulse">
+            <div className="flex-1 h-10 bg-gray-200 rounded"></div>
+            <div className="w-40 h-10 bg-gray-200 rounded"></div>
+            <div className="w-40 h-10 bg-gray-200 rounded"></div>
+          </div>
+        </Card>
+        
+        {/* Tours Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <SkeletonTourCard key={index} />
+          ))}
         </div>
       </div>
     );
@@ -316,7 +397,7 @@ const WishlistPage: React.FC = () => {
                   
                   {/* Remove from wishlist */}
                   <button
-                    onClick={() => handleRemoveFromWishlist(tour.id)}
+                    onClick={() => handleRemoveFromWishlist(tour.id, tour.name)}
                     className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors group"
                     title="Xóa khỏi danh sách yêu thích"
                   >

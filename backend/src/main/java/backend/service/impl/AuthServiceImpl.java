@@ -14,6 +14,8 @@ import backend.security.JwtUtils;
 import backend.security.UserDetailsImpl;
 import backend.service.AuthService;
 import backend.util.EntityMapper;
+
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;

@@ -8,58 +8,47 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 public abstract class BaseController {
-    
-    /**
-     * Create success response with data
-     */
+
     protected <T> ApiResponse<T> success(T data) {
         return ApiResponse.success(data);
     }
-    
-    /**
-     * Create success response with message and data
-     */
+
     protected <T> ApiResponse<T> success(String message, T data) {
         return ApiResponse.success(message, data);
     }
-    
-    /**
-     * Create success response with message only
-     */
+
     protected <T> ApiResponse<T> success(String message) {
         return ApiResponse.success(message);
     }
-    
-    /**
-     * Create error response
-     */
-    protected <T> ApiResponse<T> error(String error) {
-        return ApiResponse.error(error);
+
+    protected <T> ApiResponse<T> error(String message) {
+        return ApiResponse.error(message);
     }
-    
-    /**
-     * Create pageable object with sorting
-     */
-    protected Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
-        Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection) 
-            ? Sort.Direction.DESC 
-            : Sort.Direction.ASC;
-        
-        Sort sort = Sort.by(direction, sortBy);
-        return PageRequest.of(page, size, sort);
+
+    protected <T> ApiResponse<T> error(String message, String details) {
+        return ApiResponse.error(message, details);
     }
-    
-    /**
-     * Create pageable object without sorting
-     */
+
     protected Pageable createPageable(int page, int size) {
         return PageRequest.of(page, size);
     }
-    
-    /**
-     * Convert Page to PageResponse
-     */
+
+    protected Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
+        Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        return PageRequest.of(page, size, Sort.by(direction, sortBy));
+    }
+
     protected <T> ApiResponse<PageResponse<T>> successPage(Page<T> page) {
-        return success(PageResponse.of(page));
+        PageResponse<T> pageResponse = new PageResponse<>();
+        pageResponse.setContent(page.getContent());
+        pageResponse.setPageNumber(page.getNumber());
+        pageResponse.setPageSize(page.getSize());
+        pageResponse.setTotalElements(page.getTotalElements());
+        pageResponse.setTotalPages(page.getTotalPages());
+        pageResponse.setFirst(page.isFirst());
+        pageResponse.setLast(page.isLast());
+        pageResponse.setEmpty(page.isEmpty());
+        
+        return ApiResponse.success(pageResponse);
     }
 }

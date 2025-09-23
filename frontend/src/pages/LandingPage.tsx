@@ -4,6 +4,7 @@ import FeaturedTours from '../components/sections/FeaturedTours';
 import HotDeals from '../components/sections/HotDeals';
 import BrowseByCategory from '../components/sections/BrowseByCategory';
 import PopularDestinations from '../components/sections/PopularDestinations';
+import { PersonalizedRecommendations } from '../components/recommendations';
 
 const LandingPage: React.FC = () => {
   return (
@@ -22,6 +23,9 @@ const LandingPage: React.FC = () => {
       
       {/* Popular Destinations - Top destinations */}
       <PopularDestinations />
+      
+      {/* Personalized Recommendations - AI-powered suggestions */}
+      <PersonalizedRecommendations />
     </div>
   );
 };

@@ -22,45 +22,45 @@ const HeroSection: React.FC = () => {
       id: 1,
       image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&h=1080&fit=crop',
       title: 'Khám Phá Vịnh Hạ Long',
-      subtitle: 'Kỳ quan thiên nhiên thế giới',
-      description: 'Trải nghiệm vẻ đẹp huyền bí của Vịnh Hạ Long với những hang động kỳ thú và cảnh quan thiên nhiên tuyệt đẹp',
-      ctaText: 'Khám phá ngay',
-      ctaLink: '/tours'
+      subtitle: 'Di sản thế giới UNESCO',
+      description: 'Trải nghiệm vẻ đẹp huyền bí của Vịnh Hạ Long với những hang động kỳ thú và cảnh quan thiên nhiên tuyệt vời.',
+      ctaText: 'Đặt Tour Ngay',
+      ctaLink: '/tours?destination=ha-long'
     },
     {
       id: 2,
-      image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=1920&h=1080&fit=crop',
-      title: 'Sapa - Thiên Đường Mù Cang Chải',
-      subtitle: 'Ruộng bậc thang đẹp nhất Việt Nam',
-      description: 'Chinh phục đỉnh Fansipan và khám phá văn hóa độc đáo của các dân tộc thiểu số',
-      ctaText: 'Đặt tour ngay',
-      ctaLink: '/tours'
+      image: 'https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=1920&h=1080&fit=crop',
+      title: 'Sapa Hùng Vĩ',
+      subtitle: 'Núi rừng Tây Bắc',
+      description: 'Chinh phục đỉnh Fansipan, khám phá văn hóa các dân tộc thiểu số và tận hưởng khí hậu mát mẻ.',
+      ctaText: 'Khám Phá Sapa',
+      ctaLink: '/tours?destination=sapa'
     },
     {
       id: 3,
-      image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1920&h=1080&fit=crop',
-      title: 'Phú Quốc - Đảo Ngọc',
-      subtitle: 'Thiên đường biển đảo',
-      description: 'Tận hưởng những bãi biển trong xanh, hải sản tươi ngon và làng chài bình dị',
-      ctaText: 'Xem chi tiết',
-      ctaLink: '/tours'
+      image: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1920&h=1080&fit=crop',
+      title: 'Phố Cổ Hội An',
+      subtitle: 'Thành phố ánh đèn lồng',
+      description: 'Dạo bước trên những con phố cổ kính, thưởng thức ẩm thực đặc sắc và mua sắm tại chợ đêm.',
+      ctaText: 'Tour Hội An',
+      ctaLink: '/tours?destination=hoi-an'
     },
     {
       id: 4,
-      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop',
-      title: 'Hội An - Phố Cổ',
-      subtitle: 'Di sản văn hóa thế giới',
-      description: 'Lạc lối trong những con phố cổ kính với đèn lồng rực rỡ và kiến trúc truyền thống',
-      ctaText: 'Khởi hành ngay',
-      ctaLink: '/tours'
+      image: 'https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?w=1920&h=1080&fit=crop',
+      title: 'Thiên Đường Phú Quốc',
+      subtitle: 'Đảo ngọc miền Nam',
+      description: 'Tắm biển tại bãi cát trắng, lặn ngắm san hô và thưởng thức hải sản tươi ngon.',
+      ctaText: 'Đặt Tour Phú Quốc',
+      ctaLink: '/tours?destination=phu-quoc'
     }
   ];
 
-  // Auto slide every 5 seconds
+  // Auto slide functionality
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    }, 5000); // Change slide every 5 seconds
 
     return () => clearInterval(timer);
   }, [slides.length]);
@@ -109,6 +109,9 @@ const HeroSection: React.FC = () => {
                 <p className="text-lg md:text-xl text-gray-100 mb-8 max-w-2xl mx-auto leading-relaxed">
                   {slide.description}
                 </p>
+                
+                {/* ✅ REMOVED: Smart Search Bar (redundant with header search) */}
+                
                 <Link to={slide.ctaLink}>
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                     {slide.ctaText}
@@ -127,7 +130,7 @@ const HeroSection: React.FC = () => {
       >
         <ChevronLeftIcon className="h-6 w-6" />
       </button>
-      
+
       <button
         onClick={nextSlide}
         className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all duration-300 z-10"
@@ -136,36 +139,26 @@ const HeroSection: React.FC = () => {
       </button>
 
       {/* Slide Indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
             className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              index === currentSlide
-                ? 'bg-white scale-125'
+              index === currentSlide 
+                ? 'bg-white scale-125' 
                 : 'bg-white/50 hover:bg-white/75'
             }`}
           />
         ))}
       </div>
 
-      {/* Quick Stats Overlay */}
-      <div className="absolute bottom-20 left-8 hidden lg:block">
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white">
-          <div className="grid grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-400">500+</div>
-              <div className="text-sm text-gray-200">Tour du lịch</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-400">10K+</div>
-              <div className="text-sm text-gray-200">Khách hàng</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-400">5⭐</div>
-              <div className="text-sm text-gray-200">Đánh giá</div>
-            </div>
+      {/* Optional: Scroll Down Indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <div className="flex flex-col items-center text-white/80">
+          <span className="text-sm mb-2">Khám phá thêm</span>
+          <div className="w-6 h-10 border-2 border-white/80 rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-white/80 rounded-full mt-2 animate-pulse"></div>
           </div>
         </div>
       </div>

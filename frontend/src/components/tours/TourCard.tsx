@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { memo, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { TourImage } from '../ui';
 import { 
   StarIcon,
   ClockIcon,
@@ -42,28 +43,38 @@ interface TourCardProps {
   onToggleWishlist?: (tourId: number) => void;
 }
 
-const TourCard: React.FC<TourCardProps> = ({ 
+const TourCard: React.FC<TourCardProps> = memo(({ 
   tour, 
   isWishlisted = false, 
   onToggleWishlist 
 }) => {
-  const formatPrice = (price: number) => {
+  // Memoize expensive calculations
+  const formatPrice = useCallback((price: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
-  };
+  }, []);
 
-  const discountPercentage = tour.originalPrice 
-    ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100)
-    : 0;
+  const discountPercentage = useMemo(() => {
+    return tour.originalPrice 
+      ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100)
+      : 0;
+  }, [tour.originalPrice, tour.price]);
+
+  // Memoize wishlist toggle handler
+  const handleWishlistToggle = useCallback(() => {
+    if (onToggleWishlist) {
+      onToggleWishlist(tour.id);
+    }
+  }, [onToggleWishlist, tour.id]);
 
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group h-full flex flex-col">
       {/* Image Container */}
       <div className="relative">
         <Link to={`/tours/${tour.slug}`}>
-          <img
+          <TourImage
             src={tour.image}
             alt={tour.name}
             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
@@ -73,7 +84,7 @@ const TourCard: React.FC<TourCardProps> = ({
         {/* Wishlist Button */}
         {onToggleWishlist && (
           <button
-            onClick={() => onToggleWishlist(tour.id)}
+            onClick={handleWishlistToggle}
             className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
           >
             {isWishlisted ? (
@@ -198,6 +209,8 @@ const TourCard: React.FC<TourCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+TourCard.displayName = 'TourCard';
 
 export default TourCard;

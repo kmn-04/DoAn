@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { Loading } from './ui';
+import { setupGlobalErrorHandling } from '../hooks/useErrorHandler';
 
 interface AppInitializerProps {
   children: React.ReactNode;
@@ -12,6 +13,9 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
   useEffect(() => {
     // Initialize auth status on app start
     checkAuthStatus();
+    
+    // Setup global error handling
+    setupGlobalErrorHandling();
   }, [checkAuthStatus]);
 
   // Show loading while initializing
