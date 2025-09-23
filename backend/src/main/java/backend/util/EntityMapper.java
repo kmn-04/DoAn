@@ -1,9 +1,12 @@
 package backend.util;
 
-import backend.dto.response.*;
+import backend.dto.response.UserResponse;
+import backend.dto.response.TourResponse;
+import backend.dto.response.CategoryResponse;
+import backend.dto.response.BookingResponse;
+import backend.dto.response.BookingCancellationResponse;
 import backend.entity.*;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,7 +14,7 @@ import java.util.stream.Collectors;
 public class EntityMapper {
     
     /**
-     * Convert User to UserResponse
+     * Convert User entity to UserResponse
      */
     public UserResponse toUserResponse(User user) {
         if (user == null) return null;
@@ -20,7 +23,7 @@ public class EntityMapper {
         response.setId(user.getId());
         response.setName(user.getName());
         response.setEmail(user.getEmail());
-        response.setStatus(user.getStatus().name());
+        response.setStatus(user.getStatus() != null ? user.getStatus().toString() : null);
         response.setAvatarUrl(user.getAvatarUrl());
         response.setPhone(user.getPhone());
         response.setAddress(user.getAddress());
@@ -29,18 +32,29 @@ public class EntityMapper {
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
         
+        // Convert role
         if (user.getRole() != null) {
-            response.setRole(new UserResponse.RoleResponse(
-                    user.getRole().getId(),
-                    user.getRole().getName()
-            ));
+            UserResponse.RoleResponse roleResponse = new UserResponse.RoleResponse();
+            roleResponse.setId(user.getRole().getId());
+            roleResponse.setName(user.getRole().getName());
+            response.setRole(roleResponse);
         }
         
         return response;
     }
     
     /**
-     * Convert Tour to TourResponse
+     * Convert User entity list to UserResponse list
+     */
+    public List<UserResponse> toUserResponseList(List<User> users) {
+        if (users == null) return null;
+        return users.stream()
+                .map(this::toUserResponse)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Convert Tour entity to TourResponse
      */
     public TourResponse toTourResponse(Tour tour) {
         if (tour == null) return null;
@@ -53,68 +67,67 @@ public class EntityMapper {
         response.setDescription(tour.getDescription());
         response.setPrice(tour.getPrice());
         response.setSalePrice(tour.getSalePrice());
-        response.setEffectivePrice(tour.getEffectivePrice());
         response.setDuration(tour.getDuration());
         response.setMaxPeople(tour.getMaxPeople());
-        response.setStatus(tour.getStatus().name());
         response.setIsFeatured(tour.getIsFeatured());
+        response.setStatus(tour.getStatus() != null ? tour.getStatus().toString() : null);
         response.setCreatedAt(tour.getCreatedAt());
         response.setUpdatedAt(tour.getUpdatedAt());
         
-        // Category
+        // Convert category
         if (tour.getCategory() != null) {
-            response.setCategory(new TourResponse.CategoryResponse(
-                    tour.getCategory().getId(),
-                    tour.getCategory().getName(),
-                    tour.getCategory().getSlug(),
-                    tour.getCategory().getImageUrl()
-            ));
-        }
-        
-        // Images
-        if (tour.getImages() != null) {
-            response.setImages(tour.getImages().stream()
-                    .map(img -> new TourResponse.TourImageResponse(img.getId(), img.getImageUrl()))
-                    .collect(Collectors.toList()));
-        }
-        
-        // Itineraries
-        if (tour.getItineraries() != null) {
-            response.setItineraries(tour.getItineraries().stream()
-                    .map(this::toTourItineraryResponse)
-                    .collect(Collectors.toList()));
-        }
-        
-        // Target Audiences
-        if (tour.getTargetAudiences() != null) {
-            response.setTargetAudiences(tour.getTargetAudiences().stream()
-                    .map(ta -> new TourResponse.TargetAudienceResponse(ta.getId(), ta.getName()))
-                    .collect(Collectors.toList()));
+            TourResponse.CategoryResponse categoryResponse = new TourResponse.CategoryResponse();
+            categoryResponse.setId(tour.getCategory().getId());
+            categoryResponse.setName(tour.getCategory().getName());
+            categoryResponse.setSlug(tour.getCategory().getSlug());
+            categoryResponse.setImageUrl(tour.getCategory().getImageUrl());
+            response.setCategory(categoryResponse);
         }
         
         return response;
     }
     
-    private TourResponse.TourItineraryResponse toTourItineraryResponse(TourItinerary itinerary) {
-        TourResponse.PartnerResponse partner = null;
-        if (itinerary.getPartner() != null) {
-            Partner p = itinerary.getPartner();
-            partner = new TourResponse.PartnerResponse(
-                    p.getId(), p.getName(), p.getType().name(), p.getAddress(), p.getPhone()
-            );
-        }
-        
-        return new TourResponse.TourItineraryResponse(
-                itinerary.getId(),
-                itinerary.getDayNumber(),
-                itinerary.getTitle(),
-                itinerary.getDescription(),
-                partner
-        );
+    /**
+     * Convert Tour entity list to TourResponse list
+     */
+    public List<TourResponse> toTourResponseList(List<Tour> tours) {
+        if (tours == null) return null;
+        return tours.stream()
+                .map(this::toTourResponse)
+                .collect(Collectors.toList());
     }
     
     /**
-     * Convert Booking to BookingResponse
+     * Convert Category entity to CategoryResponse
+     */
+    public CategoryResponse toCategoryResponse(Category category) {
+        if (category == null) return null;
+        
+        CategoryResponse response = new CategoryResponse();
+        response.setId(category.getId());
+        response.setName(category.getName());
+        response.setSlug(category.getSlug());
+        response.setDescription(category.getDescription());
+        response.setImageUrl(category.getImageUrl());
+        response.setStatus(category.getStatus() != null ? category.getStatus().toString() : null);
+        response.setCreatedAt(category.getCreatedAt());
+        response.setUpdatedAt(category.getUpdatedAt());
+        
+        return response;
+    }
+    
+    /**
+     * Convert Category entity list to CategoryResponse list
+     */
+    public List<CategoryResponse> toCategoryResponseList(List<Category> categories) {
+        if (categories == null) return null;
+        return categories.stream()
+                .map(this::toCategoryResponse)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Convert Booking entity to BookingResponse
      */
     public BookingResponse toBookingResponse(Booking booking) {
         if (booking == null) return null;
@@ -129,126 +142,141 @@ public class EntityMapper {
         response.setTotalPrice(booking.getTotalPrice());
         response.setSpecialRequests(booking.getSpecialRequests());
         response.setContactPhone(booking.getContactPhone());
-        response.setStatus(booking.getStatus().name());
+        response.setStatus(booking.getStatus() != null ? booking.getStatus().toString() : null);
         response.setCreatedAt(booking.getCreatedAt());
         response.setUpdatedAt(booking.getUpdatedAt());
         
-        // User summary
+        // Convert user
         if (booking.getUser() != null) {
-            User user = booking.getUser();
-            response.setUser(new BookingResponse.UserSummary(
-                    user.getId(), user.getName(), user.getEmail(), user.getPhone()
-            ));
+            BookingResponse.UserSummary userSummary = new BookingResponse.UserSummary();
+            userSummary.setId(booking.getUser().getId());
+            userSummary.setName(booking.getUser().getName());
+            userSummary.setEmail(booking.getUser().getEmail());
+            response.setUser(userSummary);
         }
         
-        // Tour summary
+        // Convert tour
         if (booking.getTour() != null) {
-            Tour tour = booking.getTour();
-            String mainImage = tour.getImages() != null && !tour.getImages().isEmpty() 
-                    ? tour.getImages().iterator().next().getImageUrl() 
-                    : null;
-            String categoryName = tour.getCategory() != null ? tour.getCategory().getName() : null;
-            
-            response.setTour(new BookingResponse.TourSummary(
-                    tour.getId(), tour.getName(), tour.getSlug(), 
-                    tour.getPrice(), tour.getDuration(), categoryName, mainImage
-            ));
-        }
-        
-        // Promotion
-        if (booking.getPromotion() != null) {
-            Promotion promo = booking.getPromotion();
-            // Calculate discount amount (simplified)
-            response.setPromotion(new BookingResponse.PromotionResponse(
-                    promo.getId(), promo.getCode(), promo.getType().name(), 
-                    promo.getValue(), promo.getValue() // TODO: Calculate actual discount
-            ));
+            BookingResponse.TourSummary tourSummary = new BookingResponse.TourSummary();
+            tourSummary.setId(booking.getTour().getId());
+            tourSummary.setName(booking.getTour().getName());
+            tourSummary.setSlug(booking.getTour().getSlug());
+            tourSummary.setPrice(booking.getTour().getPrice());
+            tourSummary.setDuration(booking.getTour().getDuration());
+            response.setTour(tourSummary);
         }
         
         return response;
     }
     
     /**
-     * Convert Category to CategoryResponse
+     * Convert Booking entity list to BookingResponse list
      */
-    public CategoryResponse toCategoryResponse(Category category) {
-        if (category == null) return null;
-        
-        CategoryResponse response = new CategoryResponse();
-        response.setId(category.getId());
-        response.setName(category.getName());
-        response.setSlug(category.getSlug());
-        response.setDescription(category.getDescription());
-        response.setImageUrl(category.getImageUrl());
-        response.setStatus(category.getStatus().name());
-        response.setCreatedAt(category.getCreatedAt());
-        response.setUpdatedAt(category.getUpdatedAt());
-        
-        // Tour count (if needed)
-        if (category.getTours() != null) {
-            response.setTourCount((long) category.getTours().size());
-        }
-        
-        return response;
-    }
-    
-    /**
-     * Convert Review to ReviewResponse
-     */
-    public ReviewResponse toReviewResponse(Review review) {
-        if (review == null) return null;
-        
-        ReviewResponse response = new ReviewResponse();
-        response.setId(review.getId());
-        response.setRating(review.getRating());
-        response.setComment(review.getComment());
-        response.setStatus(review.getStatus().name());
-        response.setCreatedAt(review.getCreatedAt());
-        response.setUpdatedAt(review.getUpdatedAt());
-        
-        // User summary
-        if (review.getUser() != null) {
-            User user = review.getUser();
-            response.setUser(new ReviewResponse.UserSummary(
-                    user.getId(), user.getName(), user.getAvatarUrl()
-            ));
-        }
-        
-        // Tour summary
-        if (review.getTour() != null) {
-            Tour tour = review.getTour();
-            String mainImage = tour.getImages() != null && !tour.getImages().isEmpty() 
-                    ? tour.getImages().iterator().next().getImageUrl() 
-                    : null;
-            
-            response.setTour(new ReviewResponse.TourSummary(
-                    tour.getId(), tour.getName(), tour.getSlug(), mainImage
-            ));
-        }
-        
-        return response;
-    }
-    
-    /**
-     * Convert lists
-     */
-    public List<UserResponse> toUserResponseList(List<User> users) {
-        return users.stream().map(this::toUserResponse).collect(Collectors.toList());
-    }
-    
-    public List<TourResponse> toTourResponseList(List<Tour> tours) {
-        return tours.stream().map(this::toTourResponse).collect(Collectors.toList());
-    }
-    
     public List<BookingResponse> toBookingResponseList(List<Booking> bookings) {
-        return bookings.stream().map(this::toBookingResponse).collect(Collectors.toList());
+        if (bookings == null) return null;
+        return bookings.stream()
+                .map(this::toBookingResponse)
+                .collect(Collectors.toList());
     }
     
-    public List<CategoryResponse> toCategoryResponseList(List<Category> categories) {
-        return categories.stream().map(this::toCategoryResponse).collect(Collectors.toList());
+    /**
+     * Convert BookingCancellation entity to BookingCancellationResponse
+     */
+    public BookingCancellationResponse toBookingCancellationResponse(BookingCancellation cancellation) {
+        if (cancellation == null) return null;
+        
+        BookingCancellationResponse response = new BookingCancellationResponse();
+        response.setId(cancellation.getId());
+        response.setReason(cancellation.getReason());
+        response.setReasonCategory(cancellation.getReasonCategory());
+        response.setAdditionalNotes(cancellation.getAdditionalNotes());
+        response.setOriginalAmount(cancellation.getOriginalAmount());
+        response.setRefundPercentage(cancellation.getRefundPercentage());
+        response.setRefundAmount(cancellation.getRefundAmount());
+        response.setCancellationFee(cancellation.getCancellationFee());
+        response.setProcessingFee(cancellation.getProcessingFee());
+        response.setFinalRefundAmount(cancellation.getFinalRefundAmount());
+        response.setHoursBeforeDeparture(cancellation.getHoursBeforeDeparture());
+        response.setDepartureDate(cancellation.getDepartureDate());
+        response.setCancelledAt(cancellation.getCancelledAt());
+        response.setStatus(cancellation.getStatus());
+        response.setRefundStatus(cancellation.getRefundStatus());
+        response.setIsMedicalEmergency(cancellation.getIsMedicalEmergency());
+        response.setIsWeatherRelated(cancellation.getIsWeatherRelated());
+        response.setIsForceMajeure(cancellation.getIsForceMajeure());
+        response.setRefundTransactionId(cancellation.getRefundTransactionId());
+        response.setRefundMethod(cancellation.getRefundMethod());
+        response.setRefundProcessedAt(cancellation.getRefundProcessedAt());
+        response.setAdminNotes(cancellation.getAdminNotes());
+        response.setProcessedAt(cancellation.getProcessedAt());
+        response.setCreatedAt(cancellation.getCreatedAt());
+        response.setUpdatedAt(cancellation.getUpdatedAt());
+        
+        // Convert supporting documents from comma-separated string to list
+        if (cancellation.getSupportingDocuments() != null && !cancellation.getSupportingDocuments().trim().isEmpty()) {
+            response.setSupportingDocuments(List.of(cancellation.getSupportingDocuments().split(",")));
+        }
+        
+        // Convert booking summary
+        if (cancellation.getBooking() != null) {
+            BookingCancellationResponse.BookingSummary bookingSummary = new BookingCancellationResponse.BookingSummary();
+            bookingSummary.setId(cancellation.getBooking().getId());
+            bookingSummary.setBookingCode(cancellation.getBooking().getBookingCode());
+            bookingSummary.setStartDate(cancellation.getBooking().getStartDate().atStartOfDay());
+            bookingSummary.setTotalPeople(cancellation.getBooking().getTotalPeople());
+            bookingSummary.setTotalPrice(cancellation.getBooking().getTotalPrice());
+            bookingSummary.setStatus(cancellation.getBooking().getStatus() != null ? cancellation.getBooking().getStatus().toString() : null);
+            
+            if (cancellation.getBooking().getTour() != null) {
+                bookingSummary.setTourName(cancellation.getBooking().getTour().getName());
+            }
+            
+            response.setBooking(bookingSummary);
+        }
+        
+        // Convert cancelled by user
+        if (cancellation.getCancelledBy() != null) {
+            BookingCancellationResponse.UserSummary userSummary = new BookingCancellationResponse.UserSummary();
+            userSummary.setId(cancellation.getCancelledBy().getId());
+            userSummary.setName(cancellation.getCancelledBy().getName());
+            userSummary.setEmail(cancellation.getCancelledBy().getEmail());
+            userSummary.setPhone(cancellation.getCancelledBy().getPhone());
+            response.setCancelledBy(userSummary);
+        }
+        
+        // Convert processed by user
+        if (cancellation.getProcessedBy() != null) {
+            BookingCancellationResponse.UserSummary processedByUser = new BookingCancellationResponse.UserSummary();
+            processedByUser.setId(cancellation.getProcessedBy().getId());
+            processedByUser.setName(cancellation.getProcessedBy().getName());
+            processedByUser.setEmail(cancellation.getProcessedBy().getEmail());
+            processedByUser.setPhone(cancellation.getProcessedBy().getPhone());
+            response.setProcessedBy(processedByUser);
+        }
+        
+        // Convert cancellation policy
+        if (cancellation.getCancellationPolicy() != null) {
+            BookingCancellationResponse.CancellationPolicySummary policySummary = new BookingCancellationResponse.CancellationPolicySummary();
+            policySummary.setId(cancellation.getCancellationPolicy().getId());
+            policySummary.setName(cancellation.getCancellationPolicy().getName());
+            policySummary.setPolicyType(cancellation.getCancellationPolicy().getPolicyType() != null ? 
+                    cancellation.getCancellationPolicy().getPolicyType().toString() : null);
+            policySummary.setHoursBeforeDepartureFullRefund(cancellation.getCancellationPolicy().getHoursBeforeDepartureFullRefund());
+            policySummary.setHoursBeforeDeparturePartialRefund(cancellation.getCancellationPolicy().getHoursBeforeDeparturePartialRefund());
+            policySummary.setFullRefundPercentage(cancellation.getCancellationPolicy().getFullRefundPercentage());
+            policySummary.setPartialRefundPercentage(cancellation.getCancellationPolicy().getPartialRefundPercentage());
+            policySummary.setCancellationFee(cancellation.getCancellationPolicy().getCancellationFee());
+            policySummary.setProcessingFee(cancellation.getCancellationPolicy().getProcessingFee());
+            response.setCancellationPolicy(policySummary);
+        }
+        
+        return response;
     }
     
-    public List<ReviewResponse> toReviewResponseList(List<Review> reviews) {
-        return reviews.stream().map(this::toReviewResponse).collect(Collectors.toList());
+    public List<BookingCancellationResponse> toBookingCancellationResponseList(List<BookingCancellation> cancellations) {
+        if (cancellations == null) return null;
+        return cancellations.stream()
+                .map(this::toBookingCancellationResponse)
+                .collect(Collectors.toList());
     }
 }

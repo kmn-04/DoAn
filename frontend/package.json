@@ -6,8 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:prod": "node scripts/build-production.js",
+    "build:analyze": "npm run build && npx vite-bundle-analyzer dist",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "preview": "vite preview",
+    "preview:prod": "vite preview --mode production",
+    "clean": "rm -rf dist node_modules/.vite",
+    "test:prod": "npm run build:prod && npm run preview:prod"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.8",

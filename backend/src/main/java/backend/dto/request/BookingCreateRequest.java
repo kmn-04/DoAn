@@ -1,6 +1,7 @@
 package backend.dto.request;
 
 import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.FutureOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,7 @@ public class BookingCreateRequest {
     private Long tourId;
     
     @NotNull(message = "Start date is required")
-    @Future(message = "Start date must be in the future")
+    @FutureOrPresent(message = "Start date must be today or in the future")
     private LocalDate startDate;
     
     @NotNull(message = "Number of adults is required")

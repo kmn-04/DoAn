@@ -74,8 +74,20 @@ public class TourController extends BaseController {
     }
     
     @GetMapping("/search")
-    @Operation(summary = "Search tours with filters")
+    @Operation(summary = "Search tours with filters (GET)")
     public ResponseEntity<ApiResponse<PageResponse<TourResponse>>> searchTours(@Valid TourSearchRequest request) {
+        
+        Pageable pageable = createPageable(request.getPage(), request.getSize(), 
+                                         request.getSortBy(), request.getSortDirection());
+        Page<Tour> tours = tourService.searchTours(request.getKeyword(), pageable);
+        Page<TourResponse> tourResponses = tours.map(mapper::toTourResponse);
+        
+        return ResponseEntity.ok(successPage(tourResponses));
+    }
+    
+    @PostMapping("/search")
+    @Operation(summary = "Search tours with filters (POST)")
+    public ResponseEntity<ApiResponse<PageResponse<TourResponse>>> searchToursPost(@Valid @RequestBody TourSearchRequest request) {
         
         Pageable pageable = createPageable(request.getPage(), request.getSize(), 
                                          request.getSortBy(), request.getSortDirection());
@@ -244,5 +256,14 @@ public class TourController extends BaseController {
         boolean exists = tourService.slugExists(slug);
         
         return ResponseEntity.ok(success("Slug check completed", exists));
+    }
+    
+    @GetMapping("/locations")
+    @Operation(summary = "Get unique locations from tours")
+    public ResponseEntity<ApiResponse<List<String>>> getUniqueLocations() {
+        
+        List<String> locations = tourService.getUniqueLocations();
+        
+        return ResponseEntity.ok(success("Locations retrieved successfully", locations));
     }
 }

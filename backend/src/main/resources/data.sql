@@ -108,6 +108,12 @@ INSERT IGNORE INTO users (name, email, password, role_id, status, phone, created
 INSERT IGNORE INTO users (name, email, password, role_id, status, phone, created_at) VALUES 
 ('Test User', 'test@test.com', '$2a$10$GRLdGijbbqRWX8iyiO5OKu7csNa7vQDdmVfqzxBLYX5/XdnWer2u.', 3, 'Active', '0123456788', NOW());
 
+-- Insert additional test users for better testing
+INSERT IGNORE INTO users (name, email, password, role_id, status, phone, created_at) VALUES 
+('User One', 'user1@example.com', '$2a$10$L3LHC.cr1PcrGNhiLFsIgupd29K5EfSBkB4iQ89dAz3RLJnqNriBi', 3, 'Active', '0123456701', NOW()),
+('User Two', 'user2@example.com', '$2a$10$dXJ3sw6G7P1LVUmDLxBdBeMohpOFc.2caTfwQqP/RXSBNKAjbLDrC', 3, 'Active', '0123456702', NOW()),
+('Nguyễn Văn A', 'nguyenvana@gmail.com', '$2a$10$GRLdGijbbqRWX8iyiO5OKu7csNa7vQDdmVfqzxBLYX5/XdnWer2u.', 3, 'Active', '0987654321', NOW());
+
 -- Insert sample partner images
 INSERT INTO partner_images (partner_id, image_url, image_type, display_order, alt_text) VALUES 
 -- Khách sạn Đại Dương (partner_id = 1)
@@ -186,3 +192,75 @@ ON DUPLICATE KEY UPDATE
     flight_included = VALUES(flight_included),
     is_featured = VALUES(is_featured),
     status = VALUES(status);
+
+-- Sample Cancellation Policies
+INSERT IGNORE INTO cancellation_policies (
+    id, tour_id, policy_name, description, policy_type,
+    free_cancellation_hours, partial_refund_hours, no_refund_hours,
+    free_cancellation_refund, partial_refund_percentage, no_refund_percentage,
+    cancellation_fee, processing_fee_percentage,
+    weather_cancellation_allowed, medical_cancellation_allowed, force_majeure_allowed,
+    is_active, effective_from, created_by, priority
+) VALUES 
+-- Default Standard Policy
+(1, NULL, 'Chính sách hủy tiêu chuẩn', 'Chính sách hủy tour tiêu chuẩn áp dụng cho hầu hết các tour', 'STANDARD',
+ 72, 24, 12, 100.00, 50.00, 0.00, 500000, 2.00,
+ TRUE, TRUE, TRUE, TRUE, NOW(), 1, 100),
+
+-- Flexible Policy for Premium Tours
+(2, NULL, 'Chính sách hủy linh hoạt', 'Chính sách hủy linh hoạt cho tour cao cấp', 'FLEXIBLE',
+ 120, 48, 24, 100.00, 75.00, 25.00, 200000, 1.00,
+ TRUE, TRUE, TRUE, TRUE, NOW(), 1, 90),
+
+-- Strict Policy for Peak Season
+(3, NULL, 'Chính sách hủy nghiêm ngặt', 'Chính sách hủy nghiêm ngặt cho mùa cao điểm', 'STRICT',
+ 168, 72, 24, 90.00, 30.00, 0.00, 1000000, 5.00,
+ FALSE, TRUE, TRUE, TRUE, NOW(), 1, 80),
+
+-- Weather-Dependent Policy
+(4, NULL, 'Chính sách hủy do thời tiết', 'Chính sách đặc biệt cho tour phụ thuộc thời tiết', 'WEATHER_DEPENDENT',
+ 48, 24, 12, 100.00, 100.00, 50.00, 0, 0,
+ TRUE, TRUE, TRUE, TRUE, NOW(), 1, 110),
+
+-- Medical-Only Policy
+(5, NULL, 'Chính sách hủy y tế', 'Chỉ cho phép hủy với lý do y tế có giấy tờ chứng minh', 'MEDICAL_ONLY',
+ 24, 12, 6, 100.00, 80.00, 0.00, 300000, 1.50,
+ FALSE, TRUE, FALSE, TRUE, NOW(), 1, 70),
+
+-- No Refund Policy
+(6, NULL, 'Chính sách không hoàn tiền', 'Không hoàn tiền trong mọi trường hợp', 'NO_REFUND',
+ NULL, NULL, NULL, 0.00, 0.00, 0.00, 0, 0,
+ FALSE, FALSE, TRUE, TRUE, NOW(), 1, 60),
+
+-- International Tour Policy
+(7, NULL, 'Chính sách tour quốc tế', 'Chính sách đặc biệt cho tour quốc tế', 'STANDARD',
+ 240, 120, 48, 95.00, 60.00, 10.00, 2000000, 3.00,
+ TRUE, TRUE, TRUE, TRUE, NOW(), 1, 85);
+
+-- ================================
+-- CANCELLATION POLICIES DATA  
+-- ================================
+
+-- Insert sample cancellation policies
+INSERT IGNORE INTO cancellation_policies (
+    id, name, description, policy_type,
+    hours_before_departure_full_refund, hours_before_departure_partial_refund, hours_before_departure_no_refund,
+    full_refund_percentage, partial_refund_percentage, no_refund_percentage,
+    cancellation_fee, processing_fee,
+    allows_medical_emergency_exception, allows_weather_exception, allows_force_majeure_exception,
+    minimum_notice_hours, status, category_id, priority
+) VALUES
+-- Standard Policy (Default)
+(1, 'Chính sách tiêu chuẩn', 'Chính sách hủy tour tiêu chuẩn cho hầu hết các tour', 'STANDARD',
+ 48, 24, 12, 100.00, 50.00, 0.00, 50000, 25000,
+ TRUE, TRUE, TRUE, 1, 'ACTIVE', NULL, 10),
+
+-- Flexible Policy  
+(2, 'Chính sách linh hoạt', 'Chính sách hủy tour linh hoạt với điều kiện dễ dàng hơn', 'FLEXIBLE',
+ 24, 12, 6, 100.00, 75.00, 25.00, 25000, 15000,
+ TRUE, TRUE, TRUE, 1, 'ACTIVE', NULL, 8),
+
+-- Strict Policy
+(3, 'Chính sách nghiêm ngặt', 'Chính sách hủy tour nghiêm ngặt cho các tour cao cấp', 'STRICT',
+ 72, 48, 24, 90.00, 30.00, 0.00, 100000, 50000,
+ FALSE, FALSE, TRUE, 2, 'ACTIVE', NULL, 9);

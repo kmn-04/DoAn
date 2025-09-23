@@ -1,35 +1,37 @@
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// Import layout components
+// Import layout components (keep these as regular imports)
 import { Layout } from './components/layout';
-import { ToastContainer } from './components/ui';
+import { ToastContainer, PageLoader, TourPageLoader, BookingPageLoader, DashboardPageLoader, AuthPageLoader } from './components/ui';
 import { ProtectedRoute } from './components/auth';
+import { ErrorBoundary, PageErrorBoundary } from './components/error';
+import { ResponsiveTestTool, ResponsiveDebugInfo } from './components/dev/ResponsiveTestTool';
+import { EdgeCaseTestTool } from './components/dev/EdgeCaseTestTool';
 import AppInitializer from './components/AppInitializer';
 
-// Import pages
-import LandingPage from './pages/LandingPage';
-import ToursListingPage from './pages/ToursListingPage';
-import TourDetailPage from './pages/TourDetailPage';
-import PartnersListingPage from './pages/PartnersListingPage';
-import PartnerDetailPage from './pages/PartnerDetailPage';
-import PartnershipPage from './pages/PartnershipPage';
-import BookingCheckoutPage from './pages/BookingCheckoutPage';
-import BookingConfirmationPage from './pages/BookingConfirmationPage';
-import ComponentDemo from './pages/ComponentDemo';
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
-import AboutPage from './pages/AboutPage';
+// Lazy import pages for better performance
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
+const ToursListingPage = React.lazy(() => import('./pages/ToursListingPage'));
+const TourDetailPage = React.lazy(() => import('./pages/TourDetailPage'));
+const PartnersListingPage = React.lazy(() => import('./pages/PartnersListingPage'));
+const PartnerDetailPage = React.lazy(() => import('./pages/PartnerDetailPage'));
+const PartnershipPage = React.lazy(() => import('./pages/PartnershipPage'));
+const BookingCheckoutPage = React.lazy(() => import('./pages/BookingCheckoutPage'));
+const BookingConfirmationPage = React.lazy(() => import('./pages/BookingConfirmationPage'));
+const ComponentDemo = React.lazy(() => import('./pages/ComponentDemo'));
+const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
+const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage'));
+const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const AboutPage = React.lazy(() => import('./pages/AboutPage'));
 
-// Dashboard pages
-import DashboardLayout from './components/dashboard/DashboardLayout';
-import DashboardOverviewPage from './pages/dashboard/DashboardOverviewPage';
-import BookingHistoryPage from './pages/dashboard/BookingHistoryPage';
-import ProfilePage from './pages/dashboard/ProfilePage';
-import WishlistPage from './pages/dashboard/WishlistPage';
-import NotificationsPage from './pages/dashboard/NotificationsPage';
-import SettingsPage from './pages/dashboard/SettingsPage';
+// Dashboard pages - lazy loaded
+const BookingHistoryPage = React.lazy(() => import('./pages/dashboard/BookingHistoryPage'));
+const ProfilePage = React.lazy(() => import('./pages/dashboard/ProfilePage'));
+const WishlistPage = React.lazy(() => import('./pages/dashboard/WishlistPage'));
+const NotificationsPage = React.lazy(() => import('./pages/dashboard/NotificationsPage'));
+const SettingsPage = React.lazy(() => import('./pages/dashboard/SettingsPage'));
 
 // Create a client
 const queryClient = new QueryClient({
@@ -43,71 +45,103 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppInitializer>
-        <Router>
-          <Routes>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AppInitializer>
+          <ResponsiveTestTool>
+            <Router>
+            <Routes>
             {/* Public routes with main layout */}
             <Route path="/" element={
               <Layout>
-                <LandingPage />
+                <PageErrorBoundary>
+                  <Suspense fallback={<PageLoader message="Đang tải trang chủ..." />}>
+                    <LandingPage />
+                  </Suspense>
+                </PageErrorBoundary>
               </Layout>
             } />
             
             <Route path="/tours" element={
               <Layout>
-                <ToursListingPage />
+                <PageErrorBoundary>
+                  <Suspense fallback={<TourPageLoader />}>
+                    <ToursListingPage />
+                  </Suspense>
+                </PageErrorBoundary>
               </Layout>
             } />
             
             <Route path="/tours/:slug" element={
               <Layout>
-                <TourDetailPage />
+                <PageErrorBoundary>
+                  <Suspense fallback={<TourPageLoader />}>
+                    <TourDetailPage />
+                  </Suspense>
+                </PageErrorBoundary>
               </Layout>
             } />
 
             <Route path="/partners" element={
               <Layout>
-                <PartnersListingPage />
+                <Suspense fallback={<PageLoader message="Đang tải danh sách đối tác..." />}>
+                  <PartnersListingPage />
+                </Suspense>
               </Layout>
             } />
 
             <Route path="/become-partner" element={
               <Layout>
-                <PartnershipPage />
+                <Suspense fallback={<PageLoader message="Đang tải thông tin đối tác..." />}>
+                  <PartnershipPage />
+                </Suspense>
               </Layout>
             } />
             
             <Route path="/partners/:slug" element={
               <Layout>
-                <PartnerDetailPage />
+                <Suspense fallback={<PageLoader message="Đang tải chi tiết đối tác..." />}>
+                  <PartnerDetailPage />
+                </Suspense>
               </Layout>
             } />
 
             {/* Booking routes - Protected */}
             <Route path="/booking/checkout" element={
               <ProtectedRoute>
-                <BookingCheckoutPage />
+                <PageErrorBoundary>
+                  <Suspense fallback={<BookingPageLoader />}>
+                    <BookingCheckoutPage />
+                  </Suspense>
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
             
             <Route path="/booking/confirmation/:bookingId" element={
               <ProtectedRoute>
-                <BookingConfirmationPage />
+                <PageErrorBoundary>
+                  <Suspense fallback={<BookingPageLoader />}>
+                    <BookingConfirmationPage />
+                  </Suspense>
+                </PageErrorBoundary>
               </ProtectedRoute>
             } />
 
             <Route path="/bookings" element={
               <ProtectedRoute>
                 <Layout>
-                  <BookingHistoryPage />
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <BookingHistoryPage />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             } />
 
           <Route path="/about" element={
             <Layout>
-              <AboutPage />
+              <Suspense fallback={<PageLoader message="Đang tải thông tin về chúng tôi..." />}>
+                <AboutPage />
+              </Suspense>
             </Layout>
           } />
 
@@ -124,7 +158,9 @@ function App() {
 
             <Route path="/demo" element={
               <Layout>
-                <ComponentDemo />
+                <Suspense fallback={<PageLoader message="Đang tải demo..." />}>
+                  <ComponentDemo />
+                </Suspense>
               </Layout>
             } />
 
@@ -132,7 +168,9 @@ function App() {
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Layout>
-                  <ProfilePage />
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <ProfilePage />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             } />
@@ -140,7 +178,9 @@ function App() {
             <Route path="/wishlist" element={
               <ProtectedRoute>
                 <Layout>
-                  <WishlistPage />
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <WishlistPage />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             } />
@@ -148,7 +188,9 @@ function App() {
             <Route path="/notifications" element={
               <ProtectedRoute>
                 <Layout>
-                  <NotificationsPage />
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <NotificationsPage />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             } />
@@ -156,7 +198,9 @@ function App() {
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Layout>
-                  <SettingsPage />
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <SettingsPage />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             } />
@@ -175,9 +219,21 @@ function App() {
             } />
 
             {/* Auth routes without main layout */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/login" element={
+              <Suspense fallback={<AuthPageLoader />}>
+                <LoginPage />
+              </Suspense>
+            } />
+            <Route path="/register" element={
+              <Suspense fallback={<AuthPageLoader />}>
+                <RegisterPage />
+              </Suspense>
+            } />
+            <Route path="/forgot-password" element={
+              <Suspense fallback={<AuthPageLoader />}>
+                <ForgotPasswordPage />
+              </Suspense>
+            } />
 
             {/* 404 fallback */}
             <Route path="*" element={
@@ -186,17 +242,23 @@ function App() {
                   <div className="text-center py-20">
                     <h1 className="text-4xl font-bold text-gray-900">404 - Không tìm thấy trang</h1>
                     <p className="text-gray-600 mt-4">Trang bạn tìm kiếm không tồn tại.</p>
-                  </div>
-                </div>
+      </div>
+      </div>
               </Layout>
             } />
           </Routes>
 
           {/* Toast notifications */}
           <ToastContainer />
+          
+          {/* Responsive debugging tools (development only) */}
+          <EdgeCaseTestTool />
+          <ResponsiveDebugInfo />
         </Router>
-      </AppInitializer>
-    </QueryClientProvider>
+          </ResponsiveTestTool>
+        </AppInitializer>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

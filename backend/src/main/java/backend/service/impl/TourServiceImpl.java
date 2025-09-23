@@ -319,4 +319,11 @@ public class TourServiceImpl implements TourService {
         log.info("Getting international tours by continent: {}", continent);
         return tourRepository.findInternationalToursByContinent(continent, TourStatus.Active);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getUniqueLocations() {
+        log.info("Getting unique locations from tours");
+        return tourRepository.findDistinctLocations(TourStatus.Active);
+    }
 }

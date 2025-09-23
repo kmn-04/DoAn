@@ -154,6 +154,12 @@ public class BookingServiceImpl implements BookingService {
     }
     
     @Override
+    @Transactional(readOnly = true)
+    public List<Booking> getAllBookings() {
+        return bookingRepository.findAll();
+    }
+    
+    @Override
     public Booking confirmBooking(Long bookingId) {
         log.info("Confirming booking with ID: {}", bookingId);
         

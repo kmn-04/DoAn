@@ -58,6 +58,11 @@ public interface BookingService {
     Page<Booking> getAllBookings(Pageable pageable);
     
     /**
+     * Get all bookings without pagination
+     */
+    List<Booking> getAllBookings();
+    
+    /**
      * Confirm booking
      */
     Booking confirmBooking(Long bookingId);

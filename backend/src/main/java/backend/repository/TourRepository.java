@@ -151,4 +151,20 @@ public interface TourRepository extends JpaRepository<Tour, Long> {
         @Param("flightIncluded") Boolean flightIncluded,
         Pageable pageable
     );
+    
+    /**
+     * Find distinct locations from tours
+     * For domestic tours, use category name as location
+     * For international tours, use country name as location
+     */
+    @Query("SELECT DISTINCT " +
+           "CASE WHEN t.tourType = 'DOMESTIC' THEN t.category.name " +
+           "     WHEN t.tourType = 'INTERNATIONAL' THEN t.country.name " +
+           "     ELSE 'Unknown' END " +
+           "FROM Tour t WHERE t.status = :status AND t.deletedAt IS NULL " +
+           "ORDER BY " +
+           "CASE WHEN t.tourType = 'DOMESTIC' THEN t.category.name " +
+           "     WHEN t.tourType = 'INTERNATIONAL' THEN t.country.name " +
+           "     ELSE 'Unknown' END")
+    List<String> findDistinctLocations(@Param("status") TourStatus status);
 }

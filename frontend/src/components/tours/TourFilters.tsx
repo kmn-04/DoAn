@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MagnifyingGlassIcon, 
-  FunnelIcon, 
   XMarkIcon,
   ChevronDownIcon,
   AdjustmentsHorizontalIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '../ui';
+import { categoryService, countryService, tourService } from '../../services';
 
 interface FilterState {
   search: string;
@@ -31,49 +31,7 @@ interface TourFiltersProps {
   totalResults: number;
 }
 
-const categories = [
-  { value: '', label: 'Tất cả danh mục' },
-  { value: 'beach', label: 'Tour Biển' },
-  { value: 'mountain', label: 'Tour Núi' },
-  { value: 'city', label: 'Tour Thành Phố' },
-  { value: 'culture', label: 'Tour Văn Hóa' },
-  { value: 'adventure', label: 'Tour Mạo Hiểm' },
-  { value: 'food', label: 'Tour Ẩm Thực' }
-];
-
-const continents = [
-  { value: '', label: 'Tất cả châu lục' },
-  { value: 'Asia', label: 'Châu Á' },
-  { value: 'Europe', label: 'Châu Âu' },
-  { value: 'America', label: 'Châu Mỹ' },
-  { value: 'Africa', label: 'Châu Phi' },
-  { value: 'Oceania', label: 'Châu Đại Dương' }
-];
-
-const countries = [
-  // Asia
-  { value: 'japan', label: 'Nhật Bản', continent: 'Asia' },
-  { value: 'south-korea', label: 'Hàn Quốc', continent: 'Asia' },
-  { value: 'thailand', label: 'Thái Lan', continent: 'Asia' },
-  { value: 'singapore', label: 'Singapore', continent: 'Asia' },
-  { value: 'malaysia', label: 'Malaysia', continent: 'Asia' },
-  { value: 'indonesia', label: 'Indonesia', continent: 'Asia' },
-  { value: 'china', label: 'Trung Quốc', continent: 'Asia' },
-  // Europe
-  { value: 'france', label: 'Pháp', continent: 'Europe' },
-  { value: 'germany', label: 'Đức', continent: 'Europe' },
-  { value: 'italy', label: 'Ý', continent: 'Europe' },
-  { value: 'spain', label: 'Tây Ban Nha', continent: 'Europe' },
-  { value: 'uk', label: 'Anh', continent: 'Europe' },
-  // America
-  { value: 'usa', label: 'Mỹ', continent: 'America' },
-  { value: 'canada', label: 'Canada', continent: 'America' },
-  { value: 'brazil', label: 'Brazil', continent: 'America' },
-  // Oceania
-  { value: 'australia', label: 'Úc', continent: 'Oceania' },
-  { value: 'new-zealand', label: 'New Zealand', continent: 'Oceania' }
-];
-
+// Static data that doesn't need API
 const durations = [
   { value: '', label: 'Tất cả thời gian' },
   { value: '1', label: '1 ngày' },
@@ -81,18 +39,6 @@ const durations = [
   { value: '4-7', label: '4-7 ngày' },
   { value: '8-14', label: '8-14 ngày' },
   { value: '15+', label: '15+ ngày' }
-];
-
-const locations = [
-  { value: '', label: 'Tất cả địa điểm' },
-  { value: 'ha-noi', label: 'Hà Nội' },
-  { value: 'ho-chi-minh', label: 'TP. Hồ Chí Minh' },
-  { value: 'da-nang', label: 'Đà Nẵng' },
-  { value: 'quang-ninh', label: 'Quảng Ninh' },
-  { value: 'lao-cai', label: 'Lào Cai' },
-  { value: 'kien-giang', label: 'Kiên Giang' },
-  { value: 'quang-nam', label: 'Quảng Nam' },
-  { value: 'lam-dong', label: 'Lâm Đồng' }
 ];
 
 const sortOptions = [
@@ -122,6 +68,121 @@ const TourFilters: React.FC<TourFiltersProps> = ({
     rating: true,
     services: true
   });
+
+  // Dynamic data from API
+  const [categories, setCategories] = useState([
+    { value: '', label: 'Tất cả danh mục' }
+  ]);
+  const [countries, setCountries] = useState<{value: string; label: string; continent?: string}[]>([
+    { value: '', label: 'Tất cả quốc gia' }
+  ]);
+  const [continents, setContinents] = useState([
+    { value: '', label: 'Tất cả châu lục' }
+  ]);
+  const [locations, setLocations] = useState([
+    { value: '', label: 'Tất cả địa điểm' }
+  ]);
+
+  // Fetch filter data from API
+  useEffect(() => {
+    const fetchFilterData = async () => {
+      try {
+
+        // Fetch categories
+        const categoriesData = await categoryService.getActiveCategories();
+        const categoryOptions = [
+          { value: '', label: 'Tất cả danh mục' },
+          ...categoriesData.map(cat => ({
+            value: cat.slug,
+            label: cat.name
+          }))
+        ];
+        setCategories(categoryOptions);
+
+        // Fetch countries for international tours
+        const countriesData = await countryService.getAllCountries();
+        const countryOptions = [
+          { value: '', label: 'Tất cả quốc gia' },
+          ...countriesData.map(country => ({
+            value: country.name,
+            label: country.name,
+            continent: country.continent
+          }))
+        ];
+        setCountries(countryOptions);
+
+        // Get unique continents
+        const uniqueContinents = [...new Set(countriesData.map(c => c.continent))];
+        const continentOptions = [
+          { value: '', label: 'Tất cả châu lục' },
+          ...uniqueContinents.map(continent => ({
+            value: continent,
+            label: continent === 'ASIA' ? 'Châu Á' :
+                   continent === 'EUROPE' ? 'Châu Âu' :
+                   continent === 'AMERICA' ? 'Châu Mỹ' :
+                   continent === 'AFRICA' ? 'Châu Phi' :
+                   continent === 'OCEANIA' ? 'Châu Đại Dương' : continent
+          }))
+        ];
+        setContinents(continentOptions);
+
+        // Fetch unique locations from tours
+        const locationsData = await tourService.getUniqueLocations();
+        const locationOptions = [
+          { value: '', label: 'Tất cả địa điểm' },
+          ...locationsData.map(location => ({
+            value: location.toLowerCase().replace(/\s+/g, '-'),
+            label: location
+          }))
+        ];
+        setLocations(locationOptions);
+
+      } catch (error) {
+        console.error('Error fetching filter data:', error);
+        
+        // Fallback data on error
+        setCategories([
+          { value: '', label: 'Tất cả danh mục' },
+          { value: 'beach', label: 'Tour Biển' },
+          { value: 'mountain', label: 'Tour Núi' },
+          { value: 'city', label: 'Tour Thành Phố' },
+          { value: 'culture', label: 'Tour Văn Hóa' },
+          { value: 'adventure', label: 'Tour Mạo Hiểm' },
+          { value: 'food', label: 'Tour Ẩm Thực' }
+        ]);
+        
+        setCountries([
+          { value: '', label: 'Tất cả quốc gia' },
+          { value: 'Nhật Bản', label: 'Nhật Bản', continent: 'ASIA' },
+          { value: 'Hàn Quốc', label: 'Hàn Quốc', continent: 'ASIA' },
+          { value: 'Thái Lan', label: 'Thái Lan', continent: 'ASIA' },
+          { value: 'Singapore', label: 'Singapore', continent: 'ASIA' },
+          { value: 'Pháp', label: 'Pháp', continent: 'EUROPE' },
+          { value: 'Úc', label: 'Úc', continent: 'OCEANIA' }
+        ]);
+        
+        setContinents([
+          { value: '', label: 'Tất cả châu lục' },
+          { value: 'ASIA', label: 'Châu Á' },
+          { value: 'EUROPE', label: 'Châu Âu' },
+          { value: 'AMERICA', label: 'Châu Mỹ' },
+          { value: 'OCEANIA', label: 'Châu Đại Dương' }
+        ]);
+        
+        setLocations([
+          { value: '', label: 'Tất cả địa điểm' },
+          { value: 'ha-noi', label: 'Hà Nội' },
+          { value: 'ho-chi-minh', label: 'TP. Hồ Chí Minh' },
+          { value: 'da-nang', label: 'Đà Nẵng' },
+          { value: 'quang-ninh', label: 'Quảng Ninh' }
+        ]);
+      } finally {
+        // Cleanup if needed
+      }
+    };
+
+    fetchFilterData();
+  }, []);
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     onFiltersChange({ ...filters, [key]: value });
@@ -525,29 +586,11 @@ const TourFilters: React.FC<TourFiltersProps> = ({
                   <label className="flex items-center">
                     <input
                       type="checkbox"
-                      checked={filters.flightIncluded}
+                      checked={filters.flightIncluded || false}
                       onChange={(e) => onFiltersChange({ ...filters, flightIncluded: e.target.checked })}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <span className="ml-2 text-sm text-gray-700">Bao gồm vé máy bay</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={filters.visaRequired === false}
-                      onChange={(e) => onFiltersChange({ ...filters, visaRequired: e.target.checked ? false : undefined })}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Không cần visa</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={filters.visaRequired === true}
-                      onChange={(e) => onFiltersChange({ ...filters, visaRequired: e.target.checked ? true : undefined })}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Hỗ trợ làm visa</span>
                   </label>
                 </div>
               )}

@@ -89,9 +89,25 @@ const SettingsPage: React.FC = () => {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
-      alert('Cài đặt đã được lưu thành công!');
+      // Success notification
+      const successEvent = new CustomEvent('show-toast', {
+        detail: {
+          type: 'success',
+          title: 'Cài đặt đã lưu!',
+          message: 'Các thay đổi đã được cập nhật thành công.'
+        }
+      });
+      window.dispatchEvent(successEvent);
     } catch (error) {
-      alert('Có lỗi xảy ra khi lưu cài đặt!');
+      // Error notification
+      const errorEvent = new CustomEvent('show-toast', {
+        detail: {
+          type: 'error',
+          title: 'Lưu thất bại',
+          message: 'Có lỗi xảy ra khi lưu cài đặt.'
+        }
+      });
+      window.dispatchEvent(errorEvent);
     } finally {
       setIsLoading(false);
     }

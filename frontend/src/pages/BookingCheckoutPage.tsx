@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Button, Input } from '../components/ui';
 import { useAuth } from '../hooks/useAuth';
+import { bookingService } from '../services';
 
 interface BookingData {
   tourId: number;
@@ -184,23 +185,52 @@ const BookingCheckoutPage: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // In real app, call booking API
-      const bookingResult = {
-        bookingId: 'BK' + Date.now(),
-        status: 'confirmed',
-        paymentStatus: 'pending'
+      // Create booking via API
+      const bookingRequest = {
+        tourId: bookingData.tourId,
+        startDate: bookingData.startDate,
+        numAdults: bookingData.adults,
+        numChildren: bookingData.children,
+        specialRequests: bookingData.specialRequests,
+        contactPhone: customerInfo.phone,
       };
 
+      const bookingResult = await bookingService.createBooking(bookingRequest);
+
+      // Show success notification
+      const event = new CustomEvent('show-toast', {
+        detail: {
+          type: 'success',
+          title: 'Đặt tour thành công!',
+          message: `Booking ${bookingResult.bookingCode} đã được tạo thành công`,
+          duration: 5000
+        }
+      });
+      window.dispatchEvent(event);
+
       // Redirect to confirmation page
-      navigate(`/booking/confirmation/${bookingResult.bookingId}`, {
-        state: { bookingData, customerInfo, paymentMethod: selectedPayment }
+      navigate(`/booking/confirmation/${bookingResult.bookingCode}`, {
+        state: { 
+          bookingData, 
+          customerInfo, 
+          paymentMethod: selectedPayment,
+          bookingResult 
+        }
       });
 
-    } catch (error) {
-      alert('Có lỗi xảy ra khi đặt tour. Vui lòng thử lại!');
+    } catch (error: any) {
+      console.error('Booking creation failed:', error);
+      
+      // Show error notification
+      const event = new CustomEvent('show-toast', {
+        detail: {
+          type: 'error',
+          title: 'Đặt tour thất bại!',
+          message: error?.response?.data?.message || 'Có lỗi xảy ra khi đặt tour. Vui lòng thử lại!',
+          duration: 5000
+        }
+      });
+      window.dispatchEvent(event);
     } finally {
       setIsProcessing(false);
     }

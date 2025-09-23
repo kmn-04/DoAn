@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   UserIcon,
   EnvelopeIcon,
@@ -13,6 +13,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card, Button, Input } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
+import { userService } from '../../services';
+import type { UserUpdateRequest } from '../../services/userService';
 
 interface ProfileData {
   name: string;
@@ -27,24 +29,75 @@ interface ProfileData {
 }
 
 const ProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   
   const [profileData, setProfileData] = useState<ProfileData>({
-    name: user?.name || 'Nguyễn Văn A',
-    email: user?.email || 'user@example.com',
-    phone: '0123456789',
-    address: 'Hà Nội, Việt Nam',
-    dateOfBirth: '1990-01-01',
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    dateOfBirth: '',
     gender: 'male',
-    bio: 'Yêu thích du lịch và khám phá những điểm đến mới.',
-    emergencyContact: 'Nguyễn Thị B',
-    emergencyPhone: '0987654321'
+    bio: '',
+    emergencyContact: '',
+    emergencyPhone: ''
   });
 
   const [editData, setEditData] = useState<ProfileData>(profileData);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Load profile data from backend
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setIsLoadingProfile(true);
+        const userProfile = await userService.getProfile();
+        
+        const profileData: ProfileData = {
+          name: userProfile.name,
+          email: userProfile.email,
+          phone: userProfile.phone || '',
+          address: userProfile.address || '',
+          dateOfBirth: userProfile.dateOfBirth || '',
+          gender: 'male', // Default since not in API
+          bio: '', // Default since not in API
+          emergencyContact: '', // Default since not in API
+          emergencyPhone: '' // Default since not in API
+        };
+        
+        setProfileData(profileData);
+        setEditData(profileData);
+        
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        
+        // Fallback to user from auth store
+        if (user) {
+          const fallbackData: ProfileData = {
+            name: user.name || '',
+            email: user.email || '',
+            phone: '',
+            address: '',
+            dateOfBirth: '',
+            gender: 'male',
+            bio: '',
+            emergencyContact: '',
+            emergencyPhone: ''
+          };
+          
+          setProfileData(fallbackData);
+          setEditData(fallbackData);
+        }
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   const handleInputChange = (field: keyof ProfileData, value: string) => {
     setEditData(prev => ({ ...prev, [field]: value }));
@@ -86,14 +139,49 @@ const ProfilePage: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Prepare update request
+      const updateRequest: UserUpdateRequest = {
+        name: editData.name,
+        phone: editData.phone || undefined,
+        address: editData.address || undefined,
+        dateOfBirth: editData.dateOfBirth || undefined
+      };
+
+      // Call backend API
+      const updatedUser = await userService.updateProfile(updateRequest);
       
+      // Update local state
       setProfileData(editData);
       setIsEditing(false);
-      alert('Cập nhật thông tin thành công!');
+      
+      // Update auth store with new user data
+      if (updateUser) {
+        updateUser({
+          name: updatedUser.name,
+          phone: updatedUser.phone,
+          address: updatedUser.address
+        });
+      }
+      
+      // Success notification
+      const successEvent = new CustomEvent('show-toast', {
+        detail: {
+          type: 'success',
+          title: 'Cập nhật thành công!',
+          message: 'Thông tin cá nhân đã được lưu.'
+        }
+      });
+      window.dispatchEvent(successEvent);
     } catch (error) {
-      alert('Có lỗi xảy ra khi cập nhật thông tin!');
+      // Error notification  
+      const errorEvent = new CustomEvent('show-toast', {
+        detail: {
+          type: 'error',
+          title: 'Cập nhật thất bại',
+          message: 'Có lỗi xảy ra, vui lòng thử lại.'
+        }
+      });
+      window.dispatchEvent(errorEvent);
     } finally {
       setIsLoading(false);
     }
@@ -106,9 +194,104 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleAvatarUpload = () => {
-    // Simulate avatar upload
-    alert('Tính năng upload avatar sẽ được cập nhật sớm!');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          const errorEvent = new CustomEvent('show-toast', {
+            detail: {
+              type: 'error',
+              title: 'File quá lớn',
+              message: 'Vui lòng chọn ảnh có kích thước nhỏ hơn 5MB.'
+            }
+          });
+          window.dispatchEvent(errorEvent);
+          return;
+        }
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          const errorEvent = new CustomEvent('show-toast', {
+            detail: {
+              type: 'error',
+              title: 'File không hợp lệ',
+              message: 'Vui lòng chọn file ảnh (JPG, PNG, GIF).'
+            }
+          });
+          window.dispatchEvent(errorEvent);
+          return;
+        }
+
+        try {
+          setIsLoading(true);
+          
+          // Upload avatar
+          const avatarUrl = await userService.uploadAvatar(file);
+          
+          // Update profile with new avatar
+          const updateRequest: UserUpdateRequest = {
+            name: profileData.name,
+            phone: profileData.phone || undefined,
+            address: profileData.address || undefined,
+            dateOfBirth: profileData.dateOfBirth || undefined,
+            avatarUrl: avatarUrl
+          };
+          
+          await userService.updateProfile(updateRequest);
+          
+          // Update auth store
+          if (updateUser) {
+            updateUser({ avatarUrl: avatarUrl });
+          }
+          
+          const successEvent = new CustomEvent('show-toast', {
+            detail: {
+              type: 'success',
+              title: 'Upload thành công!',
+              message: 'Ảnh đại diện đã được cập nhật.'
+            }
+          });
+          window.dispatchEvent(successEvent);
+          
+        } catch (error) {
+          const errorEvent = new CustomEvent('show-toast', {
+            detail: {
+              type: 'error',
+              title: 'Upload thất bại',
+              message: 'Có lỗi xảy ra khi upload ảnh.'
+            }
+          });
+          window.dispatchEvent(errorEvent);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    input.click();
   };
+
+  // Show loading state while fetching profile
+  if (isLoadingProfile) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1">
+              <div className="bg-gray-200 rounded-lg h-80"></div>
+            </div>
+            <div className="lg:col-span-2">
+              <div className="bg-gray-200 rounded-lg h-96"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
