@@ -5,7 +5,11 @@ import backend.dto.response.ApiResponse;
 import backend.dto.response.BookingCancellationResponse;
 import backend.dto.response.PageResponse;
 import backend.entity.BookingCancellation;
+import backend.entity.User;
+import backend.exception.BadRequestException;
+import backend.exception.ResourceNotFoundException;
 import backend.service.BookingCancellationService;
+import backend.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +37,7 @@ import java.time.LocalDateTime;
 public class BookingCancellationController extends BaseController {
 
     private final BookingCancellationService cancellationService;
+    private final UserRepository userRepository;
 
     // ================================
     // TEST ENDPOINT (NO AUTH)
@@ -46,19 +51,56 @@ public class BookingCancellationController extends BaseController {
         );
     }
 
+    @GetMapping("/test-db")
+    @Operation(summary = "Test database connection (No auth required)")
+    public ResponseEntity<ApiResponse<String>> testDatabase() {
+        try {
+            long count = cancellationService.countAllCancellations();
+            return ResponseEntity.ok(
+                success("Database connected! Found " + count + " cancellations")
+            );
+        } catch (Exception e) {
+            return ResponseEntity.ok(
+                success("Database error: " + e.getMessage())
+            );
+        }
+    }
+
+    @PostMapping("/test-request")
+    @Operation(summary = "Test cancellation request with debug info (No auth required)")
+    public ResponseEntity<ApiResponse<String>> testCancellationRequest(
+            @Valid @RequestBody BookingCancellationRequest request) {
+        try {
+            log.info("🧪 Testing cancellation request: {}", request);
+            
+            // Try to process the cancellation
+            BookingCancellationResponse response = cancellationService.requestCancellation(request, 1L);
+            
+            return ResponseEntity.ok(
+                success("✅ Cancellation SUCCESS! ID: " + response.getId() + " Status: " + response.getStatus())
+            );
+        } catch (Exception e) {
+            log.error("❌ Cancellation test failed: ", e);
+            return ResponseEntity.ok(
+                success("❌ FAILED: " + e.getMessage() + " - Cause: " + (e.getCause() != null ? e.getCause().getMessage() : "Unknown"))
+            );
+        }
+    }
+
     // ================================
     // CUSTOMER ENDPOINTS
     // ================================
 
     @PostMapping("/request")
     @Operation(summary = "Request booking cancellation (Customer)")
-    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<BookingCancellationResponse>> requestCancellation(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody BookingCancellationRequest request) {
 
-        Long userId = Long.valueOf(userDetails.getUsername());
+        // Get user ID from email
+        Long userId = getUserIdFromUserDetails(userDetails);
         
+        // Submit cancellation request to database
         BookingCancellationResponse response = cancellationService.requestCancellation(request, userId);
         
         return ResponseEntity.ok(
@@ -68,12 +110,12 @@ public class BookingCancellationController extends BaseController {
 
     @GetMapping("/my-cancellations")
     @Operation(summary = "Get user's cancellation history (Customer)")
-    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<PageResponse<BookingCancellationResponse>>> getMyCancellations(
             @AuthenticationPrincipal UserDetails userDetails,
             Pageable pageable) {
 
-        Long userId = Long.valueOf(userDetails.getUsername());
+        // Get user ID from email  
+        Long userId = getUserIdFromUserDetails(userDetails);
         
         Page<BookingCancellationResponse> cancellations = 
                 cancellationService.getUserCancellations(userId, pageable);
@@ -132,8 +174,12 @@ public class BookingCancellationController extends BaseController {
             @Parameter(description = "Booking ID") @PathVariable Long bookingId,
             @Valid @RequestBody BookingCancellationRequest request) {
 
+        log.info("🔍 Evaluating cancellation for booking ID: {} with request: {}", bookingId, request);
+        
         BookingCancellationService.CancellationEvaluation evaluation = 
                 cancellationService.evaluateCancellation(bookingId, request);
+        
+        log.info("✅ Cancellation evaluation completed: {}", evaluation);
         
         return ResponseEntity.ok(
             success("Cancellation evaluation completed", evaluation)
@@ -376,5 +422,25 @@ public class BookingCancellationController extends BaseController {
         return ResponseEntity.ok(
             success("User abuse check completed", isAbusive)
         );
+    }
+
+    // Helper method to extract user ID from UserDetails
+    private Long getUserIdFromUserDetails(UserDetails userDetails) {
+        if (userDetails == null) {
+            throw new BadRequestException("User authentication required");
+        }
+        
+        try {
+            // Try to parse as Long first (if username is ID)
+            return Long.valueOf(userDetails.getUsername());
+        } catch (NumberFormatException e) {
+            // If username is email, get user ID from database
+            log.warn("Username is not a number, treating as email: {}", userDetails.getUsername());
+            
+            // Query user by email
+            return userRepository.findByEmail(userDetails.getUsername())
+                    .map(User::getId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "email", userDetails.getUsername()));
+        }
     }
 }

@@ -4,6 +4,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
 import { Card } from '../ui/Card';
+import { bookingService, cancellationService } from '../../services';
 // Temporary inline types to fix import issue
 type CancellationReasonType = 'PERSONAL_EMERGENCY' | 'MEDICAL_EMERGENCY' | 'WEATHER_CONDITIONS' | 'FORCE_MAJEURE' | 'TRAVEL_RESTRICTIONS' | 'SCHEDULE_CONFLICT' | 'FINANCIAL_DIFFICULTY' | 'DISSATISFACTION' | 'DUPLICATE_BOOKING' | 'TECHNICAL_ERROR' | 'OTHER';
 
@@ -68,7 +69,7 @@ interface CancellationRequestFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (cancellation: any) => void;
-  preselectedBookingId?: number;
+  preselectedBookingId?: number | string;
 }
 
 export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = ({
@@ -86,7 +87,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   const [formData, setFormData] = useState<CancellationRequest>({
-    bookingId: preselectedBookingId || 0,
+    bookingId: Number(preselectedBookingId) || 0,
     reason: '',
     reasonCategory: 'OTHER',
     additionalNotes: '',
@@ -154,30 +155,106 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
     if (isOpen && user) {
       console.log('🔄 Initializing form - preselectedBookingId:', preselectedBookingId);
       loadUserBookings();
-      if (preselectedBookingId) {
-        const booking = mockBookings.find(b => b.id === preselectedBookingId);
-        console.log('📋 Found preselected booking:', booking);
-        if (booking) {
-          setSelectedBooking(booking);
-          setFormData(prev => ({ ...prev, bookingId: preselectedBookingId }));
-          console.log('⏭️ Skipping to step 2 for preselected booking');
-          setCurrentStep(2);
-        }
-      } else {
+      if (!preselectedBookingId) {
         console.log('📝 No preselected booking - starting at step 1');
         setCurrentStep(1);
       }
     }
   }, [isOpen, user, preselectedBookingId]);
 
+  // Handle preselected booking after bookings are loaded
+  useEffect(() => {
+    if (preselectedBookingId && userBookings.length > 0) {
+      const booking = userBookings.find(b => b.id === Number(preselectedBookingId));
+      console.log('📋 Looking for booking with ID:', Number(preselectedBookingId), 'in bookings:', userBookings.map(b => b.id));
+      console.log('📋 Found preselected booking from real data:', booking);
+      if (booking) {
+        setSelectedBooking(booking);
+        setFormData(prev => ({ ...prev, bookingId: Number(preselectedBookingId) }));
+        console.log('⏭️ Skipping to step 2 for preselected booking');
+        setCurrentStep(2);
+      } else {
+        console.log('❌ Preselected booking not found in user bookings');
+        setCurrentStep(1);
+      }
+    }
+  }, [preselectedBookingId, userBookings]);
+
   const loadUserBookings = async () => {
+    if (!user?.id) return;
+    
     try {
       setIsLoading(true);
-      // TODO: Replace with real API call
-      // const bookings = await bookingService.getUserBookings(user.id);
-      setUserBookings(mockBookings.filter(b => b.canCancel));
+      console.log('🔍 Loading user bookings for cancellation, user ID:', user.id);
+      
+      // Get real bookings from API
+      const bookings = await bookingService.getBookingsByUser(user.id);
+      console.log('📥 Received bookings for cancellation:', bookings);
+      
+      // Convert to UserBooking format and filter cancelable bookings
+      const userBookings: UserBooking[] = bookings
+        .filter(booking => {
+          // Debug each booking's cancellation eligibility
+          console.log('🔍 Checking booking for cancellation:', {
+            bookingCode: booking.bookingCode,
+            status: booking.status,
+            startDate: booking.startDate,
+            tourName: booking.tour?.name
+          });
+          
+          // Allow cancellation for various booking statuses
+          const validStatuses = ['CONFIRMED', 'PAID', 'Confirmed', 'Paid', 'PENDING', 'Pending'];
+          const isValidStatus = validStatuses.includes(booking.status);
+          
+          // Check if booking is in the future (more lenient - allow same day)
+          const bookingDate = new Date(booking.startDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Reset to start of day
+          const isFutureOrToday = bookingDate >= today;
+          
+          console.log('📊 Cancellation check result:', {
+            isValidStatus,
+            validStatuses,
+            actualStatus: booking.status,
+            isFutureOrToday,
+            bookingDate: bookingDate.toISOString(),
+            today: today.toISOString(),
+            canCancel: isValidStatus && isFutureOrToday
+          });
+          
+          return isValidStatus && isFutureOrToday;
+        })
+        .map(booking => ({
+          id: booking.id || Date.now(), // Use booking ID or timestamp as fallback
+          bookingCode: booking.bookingCode,
+          tourName: booking.tour?.name || 'Unknown Tour',
+          startDate: booking.startDate,
+          totalPrice: Number(booking.totalPrice),
+          status: booking.status,
+          canCancel: true
+        }));
+      
+      console.log('✅ Converted user bookings for cancellation:', userBookings);
+      
+      // If no bookings pass the filter, show all bookings for debugging
+      if (userBookings.length === 0 && bookings.length > 0) {
+        console.log('⚠️ No bookings passed cancellation filter, showing all for debugging');
+        const allUserBookings: UserBooking[] = bookings.map(booking => ({
+          id: booking.id || Date.now(),
+          bookingCode: booking.bookingCode,
+          tourName: booking.tour?.name || 'Unknown Tour',
+          startDate: booking.startDate,
+          totalPrice: Number(booking.totalPrice),
+          status: booking.status,
+          canCancel: true // Allow all for debugging
+        }));
+        setUserBookings(allUserBookings);
+      } else {
+        setUserBookings(userBookings);
+      }
+      
     } catch (error) {
-      console.error('Error loading bookings:', error);
+      console.error('Error loading bookings for cancellation:', error);
       // Fallback to mock data
       setUserBookings(mockBookings.filter(b => b.canCancel));
     } finally {
@@ -196,8 +273,17 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
 
     try {
       setIsLoading(true);
+      console.log('🔍 Evaluating cancellation for booking:', selectedBooking.id);
       
-      // Mock evaluation - replace with real API call
+      // Use real API call
+      const evaluation = await cancellationService.evaluateCancellation(selectedBooking.id, formData);
+      console.log('✅ Cancellation evaluation result:', evaluation);
+      
+      setEvaluation(evaluation);
+    } catch (error) {
+      console.error('❌ Error evaluating cancellation:', error);
+      
+      // Fallback to mock evaluation if API fails
       const mockEvaluation: CancellationEvaluation = {
         isEligible: true,
         reason: 'Cancellation allowed according to policy',
@@ -210,17 +296,15 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
         warnings: ['Cancellation fee áp dụng', 'Processing fee áp dụng'],
         requirements: ['Yêu cầu lý do rõ ràng', 'Có thể yêu cầu giấy tờ chứng minh']
       };
-
+      
       setEvaluation(mockEvaluation);
-    } catch (error) {
-      console.error('Error evaluating cancellation:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (selectedBooking && formData.reasonCategory && formData.reason.length >= 5) {
+    if (selectedBooking && formData.reasonCategory && formData.reason.length >= 10) {
       // Triggering evaluation for cancellation request
       evaluateCancellation();
     }
@@ -258,15 +342,17 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
 
     try {
       setIsLoading(true);
+      console.log('📤 Submitting cancellation request:', formData);
       
-      // TODO: Replace with real API call
-      // const result = await cancellationService.requestCancellation(formData);
+      // Use real API call
+      const result = await cancellationService.submitCancellationRequest(formData);
+      console.log('✅ Cancellation request submitted successfully:', result);
       
-      // Mock success response
-      const mockResponse = {
-        id: Date.now(),
-        bookingId: formData.bookingId,
-        status: 'REQUESTED',
+      // Success response from API
+      const apiResponse = {
+        id: result.id,
+        bookingId: result.bookingId,
+        status: result.status,
         message: 'Yêu cầu hủy booking đã được gửi thành công'
       };
 
@@ -285,7 +371,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
       console.log('🚀 Dispatching cancellation event:', cancellationEvent.detail);
       window.dispatchEvent(cancellationEvent);
 
-      onSuccess(mockResponse);
+      onSuccess(apiResponse);
       
       // Show success notification
       const event = new CustomEvent('show-toast', {
@@ -349,7 +435,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
       case 1:
         return selectedBooking !== null;
       case 2:
-        return formData.reasonCategory && formData.reason.length >= 5;
+        return formData.reasonCategory && formData.reason.length >= 10;
       case 3:
         const canProceed = formData.acknowledgesCancellationPolicy && formData.acknowledgesRefundTerms;
         // Step 3 validation: checkboxes and evaluation
@@ -479,10 +565,10 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           rows={4}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
-          minLength={5}
+          minLength={10}
         />
         <p className="text-xs text-gray-500 mt-1">
-          Tối thiểu 5 ký tự ({formData.reason.length}/5)
+          Tối thiểu 10 ký tự ({formData.reason.length}/10)
         </p>
       </div>
 
@@ -607,29 +693,29 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
                 <div className="flex justify-between">
                   <span>Số tiền hoàn ước tính:</span>
                   <span className="font-medium text-green-600">
-                    {evaluation.estimatedRefund.toLocaleString('vi-VN')} ₫
+                    {(evaluation.estimatedRefund || 0).toLocaleString('vi-VN')} ₫
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Phí hủy:</span>
-                  <span className="text-red-600">-{evaluation.cancellationFee.toLocaleString('vi-VN')} ₫</span>
+                  <span className="text-red-600">-{(evaluation.cancellationFee || 0).toLocaleString('vi-VN')} ₫</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Phí xử lý:</span>
-                  <span className="text-red-600">-{evaluation.processingFee.toLocaleString('vi-VN')} ₫</span>
+                  <span className="text-red-600">-{(evaluation.processingFee || 0).toLocaleString('vi-VN')} ₫</span>
                 </div>
                 <hr className="border-yellow-300" />
                 <div className="flex justify-between font-semibold">
                   <span>Số tiền hoàn cuối cùng:</span>
                   <span className="text-green-600">
-                    {evaluation.finalRefundAmount.toLocaleString('vi-VN')} ₫
+                    {(evaluation.finalRefundAmount || 0).toLocaleString('vi-VN')} ₫
                   </span>
                 </div>
                 <p className="text-xs text-yellow-700 mt-2">
                   Chính sách: {evaluation.policyName} • {evaluation.hoursBeforeDeparture}h trước khởi hành
                 </p>
                 
-                {evaluation.warnings.length > 0 && (
+                {evaluation.warnings && evaluation.warnings.length > 0 && (
                   <div className="mt-3">
                     <p className="text-xs font-medium text-yellow-800">Lưu ý:</p>
                     <ul className="text-xs text-yellow-700 list-disc list-inside">

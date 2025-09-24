@@ -9,6 +9,35 @@ INSERT INTO roles (name) VALUES
 ('Customer')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
+-- Insert default cancellation policy
+INSERT INTO cancellation_policies (
+    name, 
+    description, 
+    policy_type, 
+    hours_before_departure_full_refund,
+    hours_before_departure_partial_refund,
+    hours_before_departure_no_refund,
+    full_refund_percentage,
+    partial_refund_percentage,
+    no_refund_percentage,
+    cancellation_fee,
+    processing_fee,
+    status
+) VALUES (
+    'Standard Policy',
+    'Chính sách hủy tiêu chuẩn cho tất cả tour',
+    'STANDARD',
+    72,  -- 72 hours before = full refund
+    24,  -- 24 hours before = partial refund  
+    0,   -- less than 24 hours = no refund
+    100.00,
+    50.00,
+    0.00,
+    100000.00,  -- 100k cancellation fee
+    50000.00,   -- 50k processing fee
+    'ACTIVE'
+) ON DUPLICATE KEY UPDATE name = VALUES(name);
+
 -- Insert sample categories
 INSERT INTO categories (name, slug, description, status) VALUES 
 ('Du lịch biển', 'du-lich-bien', 'Các tour du lịch biển đảo tuyệt đẹp', 'Active'),

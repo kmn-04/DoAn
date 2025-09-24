@@ -17,6 +17,7 @@ import { Card, Button, Pagination, SkeletonBookingCard } from '../../components/
 import { bookingService } from '../../services';
 import { useAuth } from '../../hooks/useAuth';
 import { CancellationRequestForm, CancellationHistory } from '../../components/cancellation';
+import { TourDetailModal } from '../../components/tour';
 
 interface Booking {
   id: string;
@@ -31,7 +32,7 @@ interface Booking {
   adults: number;
   children: number;
   totalPrice: number;
-  status: 'confirmed' | 'pending' | 'completed' | 'cancelled';
+  status: 'confirmed' | 'pending' | 'completed' | 'cancelled' | 'cancellation_requested';
   paymentStatus: 'paid' | 'pending' | 'failed';
   bookingDate: string;
   specialRequests?: string;
@@ -146,6 +147,11 @@ const BookingHistoryPage: React.FC = () => {
   const [cancellationRefreshTrigger, setCancellationRefreshTrigger] = useState(0);
   const [newCancellationData, setNewCancellationData] = useState<any>(null);
   
+  // Tour detail modal states
+  const [showTourDetailModal, setShowTourDetailModal] = useState(false);
+  const [selectedTourForDetail, setSelectedTourForDetail] = useState<{ id: number; slug?: string } | null>(null);
+  
+  
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
     status: searchParams.get('status') || 'all',
@@ -154,12 +160,12 @@ const BookingHistoryPage: React.FC = () => {
 
   const bookingsPerPage = 5;
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      if (!user?.id) return;
-      
-      try {
-        setIsLoading(true);
+  // Move fetchBookings outside useEffect so it can be called from other functions
+  const fetchBookings = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setIsLoading(true);
         
         // Check if we need to refresh due to recent payment
         const shouldRefresh = localStorage.getItem('refreshBookings');
@@ -173,9 +179,14 @@ const BookingHistoryPage: React.FC = () => {
         const bookingResponses = await bookingService.getBookingsByUser(user.id);
         console.log('📥 Received bookings from API:', bookingResponses);
         
+        // Filter out cancelled bookings first
+        const activeBookingResponses = bookingResponses.filter(booking => 
+          !['CANCELLED', 'CancellationRequested'].includes(booking.status)
+        );
+        
         // Convert BookingResponse to local Booking interface
-        const convertedBookings: Booking[] = bookingResponses.map(booking => ({
-          id: booking.bookingCode,
+        const convertedBookings: Booking[] = activeBookingResponses.map(booking => ({
+          id: String(booking.id), // Use booking ID as string for frontend compatibility
           tourId: booking.tour?.id || 0,
           tourName: booking.tour?.name || 'Unknown Tour',
           tourSlug: booking.tour?.slug || '',
@@ -187,7 +198,11 @@ const BookingHistoryPage: React.FC = () => {
           adults: booking.numAdults,
           children: booking.numChildren,
           totalPrice: Number(booking.totalPrice),
-          status: booking.status.toLowerCase() as 'confirmed' | 'pending' | 'completed' | 'cancelled',
+          status: (() => {
+            const status = booking.status.toLowerCase();
+            if (status === 'cancellationrequested') return 'cancellation_requested';
+            return status as 'confirmed' | 'pending' | 'completed' | 'cancelled' | 'cancellation_requested';
+          })(),
           paymentStatus: 'paid', // Default since API doesn't specify
           bookingDate: booking.createdAt,
           specialRequests: booking.specialRequests
@@ -215,6 +230,7 @@ const BookingHistoryPage: React.FC = () => {
       }
     };
 
+  useEffect(() => {
     fetchBookings();
   }, [user?.id]);
 
@@ -230,6 +246,11 @@ const BookingHistoryPage: React.FC = () => {
 
     // Filter bookings
     let filtered = [...bookings];
+
+    // For the bookings tab, exclude bookings that have been requested for cancellation
+    if (activeTab === 'bookings') {
+      filtered = filtered.filter(booking => booking.status !== 'cancellation_requested');
+    }
 
     if (filters.search) {
       filtered = filtered.filter(booking => 
@@ -275,7 +296,7 @@ const BookingHistoryPage: React.FC = () => {
 
     setFilteredBookings(filtered);
     setCurrentPage(1);
-  }, [filters, bookings, setSearchParams]);
+  }, [filters, bookings, activeTab, setSearchParams]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -331,8 +352,42 @@ const BookingHistoryPage: React.FC = () => {
     console.log('📝 Opening cancellation form with preselected booking:', bookingId);
   };
 
+
+  // Tour detail methods
+  const handleViewTourDetail = (tourId: number, tourSlug?: string) => {
+    console.log('👁️ User clicked view tour detail:', { tourId, tourSlug });
+    setSelectedTourForDetail({ id: tourId, slug: tourSlug });
+    setShowTourDetailModal(true);
+  };
+
   const handleCancellationSuccess = (cancellationData: any) => {
     console.log('🎉 Cancellation success with data:', cancellationData);
+    
+    // IMMEDIATE UPDATE: Remove the booking from the list immediately for better UX
+    // Try to get booking ID from cancellation data or fallback to selected booking
+    const bookingIdToUpdate = cancellationData?.bookingId || selectedBookingForCancellation;
+    
+    if (bookingIdToUpdate) {
+      console.log('🔄 Immediately removing booking from list:', bookingIdToUpdate);
+      console.log('🔍 Current bookings before update:', bookings.map(b => ({ id: b.id, status: b.status })));
+      
+      setBookings(prev => {
+        const updated = prev.map(booking => {
+          const bookingIdStr = String(booking.id);
+          const targetIdStr = String(bookingIdToUpdate);
+          console.log('🔍 Comparing:', { bookingId: bookingIdStr, targetId: targetIdStr, match: bookingIdStr === targetIdStr });
+          
+          return bookingIdStr === targetIdStr 
+            ? { ...booking, status: 'cancellation_requested' as any }
+            : booking;
+        });
+        
+        console.log('🔍 Updated bookings:', updated.map(b => ({ id: b.id, status: b.status })));
+        return updated;
+      });
+    } else {
+      console.log('⚠️ No booking ID found to update');
+    }
     
     // Show success message
     const event = new CustomEvent('show-toast', {
@@ -347,6 +402,12 @@ const BookingHistoryPage: React.FC = () => {
 
     // Store the new cancellation data
     setNewCancellationData(cancellationData);
+
+    // IMPORTANT: Refresh bookings to reflect status changes from backend
+    console.log('🔄 Refreshing bookings after cancellation request');
+    setTimeout(() => {
+      fetchBookings(); // This will reload the booking list after a delay
+    }, 1000);
 
     // Close modal and reset state
     setShowCancellationForm(false);
@@ -365,12 +426,14 @@ const BookingHistoryPage: React.FC = () => {
 
   const canCancelBooking = (booking: Booking): boolean => {
     // Can cancel if status is confirmed or pending and start date is in the future
+    // Cannot cancel if already requested for cancellation
     const startDate = new Date(booking.startDate);
     const now = new Date();
     const isInFuture = startDate > now;
     const canCancelStatus = booking.status === 'confirmed' || booking.status === 'pending';
+    const notAlreadyCancelling = booking.status !== 'cancellation_requested';
     
-    return isInFuture && canCancelStatus;
+    return isInFuture && canCancelStatus && notAlreadyCancelling;
   };
 
   const clearFilters = () => {
@@ -526,7 +589,16 @@ const BookingHistoryPage: React.FC = () => {
           const statusBadge = getStatusBadge(booking.status);
           const paymentBadge = getPaymentStatusBadge(booking.paymentStatus);
           const StatusIcon = statusBadge.icon;
-          const isUpcoming = booking.status === 'confirmed' && new Date(booking.startDate) > new Date();
+          const isUpcoming = (booking.status === 'confirmed' || booking.status === 'pending') && new Date(booking.startDate) > new Date();
+          
+          // Check if tour should show warning (within 10 days)
+          const shouldShowWarning = () => {
+            if (!isUpcoming) return false;
+            const now = new Date();
+            const startDate = new Date(booking.startDate);
+            const daysUntilStart = Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            return daysUntilStart <= 10 && daysUntilStart > 0;
+          };
 
           return (
             <Card key={booking.id} className="p-6 hover:shadow-md transition-shadow">
@@ -598,14 +670,6 @@ const BookingHistoryPage: React.FC = () => {
 
                 {/* Actions */}
                 <div className="flex flex-col space-y-2 lg:w-32">
-                  <Link 
-                    to={`/booking/confirmation/${booking.id}`}
-                    className="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                  >
-                    <EyeIcon className="h-4 w-4 mr-1" />
-                    Xem
-                  </Link>
-                  
                   {canCancelBooking(booking) && (
                     <button 
                       onClick={() => handleCancelBooking(Number(booking.id))}
@@ -613,6 +677,16 @@ const BookingHistoryPage: React.FC = () => {
                     >
                       <XCircleIcon className="h-4 w-4 mr-1" />
                       Hủy booking
+                    </button>
+                  )}
+
+                  {isUpcoming && (
+                    <button 
+                      onClick={() => handleViewTourDetail(booking.tourId, booking.tourSlug)}
+                      className="inline-flex items-center justify-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <EyeIcon className="h-4 w-4 mr-1" />
+                      Xem tour
                     </button>
                   )}
                   
@@ -627,14 +701,6 @@ const BookingHistoryPage: React.FC = () => {
                     </button>
                   )}
 
-                  {isUpcoming && (
-                    <Link 
-                      to={`/tours/${booking.tourSlug}`}
-                      className="inline-flex items-center justify-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-                    >
-                      Xem tour
-                    </Link>
-                  )}
                 </div>
               </div>
 
@@ -648,14 +714,19 @@ const BookingHistoryPage: React.FC = () => {
               )}
 
               {/* Upcoming Tour Alert */}
-              {isUpcoming && (
+              {shouldShowWarning() && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex items-start space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <ExclamationTriangleIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
                       <p className="font-medium text-blue-900">Tour sắp diễn ra</p>
                       <p className="text-blue-700">
-                        Hãy chuẩn bị giấy tờ tùy thân và hành lý cần thiết. Chúng tôi sẽ liên hệ trước 3 ngày khởi hành.
+                        {(() => {
+                          const now = new Date();
+                          const startDate = new Date(booking.startDate);
+                          const daysUntilStart = Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                          return `Hãy chuẩn bị giấy tờ tùy thân và hành lý cần thiết. Chúng tôi sẽ liên hệ trước ${daysUntilStart} ngày khởi hành.`;
+                        })()}
                       </p>
                     </div>
                   </div>
@@ -725,6 +796,20 @@ const BookingHistoryPage: React.FC = () => {
         onSuccess={handleCancellationSuccess}
         preselectedBookingId={selectedBookingForCancellation || undefined}
       />
+
+      {/* Tour Detail Modal */}
+      {selectedTourForDetail && (
+        <TourDetailModal
+          isOpen={showTourDetailModal}
+          onClose={() => {
+            setShowTourDetailModal(false);
+            setSelectedTourForDetail(null);
+          }}
+          tourId={selectedTourForDetail.id}
+          tourSlug={selectedTourForDetail.slug}
+        />
+      )}
+
     </div>
   );
 };

@@ -69,6 +69,9 @@ public interface BookingCancellationService {
     boolean isUserAbusiveCanceller(Long userId);
     List<BookingCancellation> getRecentUserCancellations(Long userId, int daysBack);
     
+    // Test methods
+    long countAllCancellations();
+    
     // Utility classes for responses
     class CancellationStatistics {
         public long totalCancellations;
