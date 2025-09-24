@@ -185,6 +185,9 @@ public class EntityMapper {
     public BookingCancellationResponse toBookingCancellationResponse(BookingCancellation cancellation) {
         if (cancellation == null) return null;
         
+        System.out.println("🔍 EntityMapper: Converting cancellation ID=" + cancellation.getId() + 
+                          ", booking=" + (cancellation.getBooking() != null ? cancellation.getBooking().getId() : "null"));
+        
         BookingCancellationResponse response = new BookingCancellationResponse();
         response.setId(cancellation.getId());
         response.setReason(cancellation.getReason());
@@ -219,6 +222,10 @@ public class EntityMapper {
         
         // Convert booking summary
         if (cancellation.getBooking() != null) {
+            System.out.println("🔍 EntityMapper: Booking details - ID=" + cancellation.getBooking().getId() + 
+                              ", code=" + cancellation.getBooking().getBookingCode() + 
+                              ", startDate=" + cancellation.getBooking().getStartDate());
+            
             BookingCancellationResponse.BookingSummary bookingSummary = new BookingCancellationResponse.BookingSummary();
             bookingSummary.setId(cancellation.getBooking().getId());
             bookingSummary.setBookingCode(cancellation.getBooking().getBookingCode());

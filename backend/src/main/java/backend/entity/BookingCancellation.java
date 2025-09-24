@@ -30,6 +30,11 @@ public class BookingCancellation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cancelled_by_user_id", nullable = false)
     private User cancelledBy;
+    
+    // Who requested the cancellation (same as cancelledBy in most cases)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "requested_by", nullable = false)
+    private User requestedBy;
 
     // Applied cancellation policy
     @ManyToOne(fetch = FetchType.LAZY)
@@ -44,6 +49,9 @@ public class BookingCancellation {
     @Column(nullable = false)
     private CancellationReason reasonCategory;
 
+    @Column(name = "detailed_reason", columnDefinition = "TEXT")
+    private String detailedReason;
+    
     @Column(columnDefinition = "TEXT")
     private String additionalNotes;
 

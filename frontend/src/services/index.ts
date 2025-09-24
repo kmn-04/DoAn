@@ -8,6 +8,7 @@ export { default as userService } from './userService';
 export { default as wishlistService } from './wishlistService';
 export { default as notificationService } from './notificationService';
 export { default as recommendationService } from './recommendationService';
+export { default as cancellationService } from './cancellationService';
 export { apiClient } from './api';
 
 // Export types

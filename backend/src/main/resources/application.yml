@@ -3,10 +3,16 @@ spring:
     name: backend
   
   datasource:
-    url: jdbc:mysql://localhost:3306/doan?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&sessionVariables=sql_mode=''
+    url: jdbc:mysql://localhost:3306/doan?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&sessionVariables=sql_mode=''&characterEncoding=UTF-8&useUnicode=true&connectionCollation=utf8mb4_unicode_ci&useServerPrepStmts=false
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   
   jpa:
     hibernate:
@@ -22,7 +28,10 @@ spring:
     init:
       mode: always  # Enable data.sql initialization
       schema-locations: classpath:schema-updates.sql
-      data-locations: classpath:data.sql
+      data-locations: 
+        - classpath:database-fix-complete.sql
+        - classpath:data.sql
+        - classpath:update-refund-policy.sql
       defer-datasource-initialization: true
       continue-on-error: true  # Ignore DDL errors
   

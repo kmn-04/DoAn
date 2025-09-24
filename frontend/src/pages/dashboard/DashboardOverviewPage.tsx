@@ -76,13 +76,16 @@ const DashboardOverviewPage: React.FC = () => {
           wishlistService.getUserWishlist(user.id).catch(() => [])
         ]);
         
-        // Calculate stats from real data
-        const totalBookings = bookings.length;
-        const upcomingTours = bookings.filter(b => 
+        // Calculate stats from real data - only count active bookings
+        const activeBookings = bookings.filter(b => 
+          !['CANCELLED', 'CancellationRequested'].includes(b.status)
+        );
+        const totalBookings = activeBookings.length;
+        const upcomingTours = activeBookings.filter(b => 
           new Date(b.startDate) > new Date() && 
           (b.status === 'CONFIRMED' || b.status === 'PAID')
         ).length;
-        const completedTours = bookings.filter(b => b.status === 'COMPLETED').length;
+        const completedTours = activeBookings.filter(b => b.status === 'COMPLETED').length;
         const wishlistCount = wishlistItems.length;
         
         setStats({
@@ -92,8 +95,8 @@ const DashboardOverviewPage: React.FC = () => {
           wishlistCount
         });
 
-        // Convert bookings to recent bookings format
-        const recentBookingsData = bookings
+        // Convert active bookings to recent bookings format
+        const recentBookingsData = activeBookings
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 4)
           .map(booking => ({

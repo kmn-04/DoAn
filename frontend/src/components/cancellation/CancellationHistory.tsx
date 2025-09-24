@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { cancellationService } from '../../services';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -10,6 +11,25 @@ import { CancellationDetails } from './CancellationDetails';
 // Inline types to fix import issues
 type CancellationStatusType = 'REQUESTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
 type RefundStatusType = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'NOT_APPLICABLE';
+
+// UTC+7 timezone formatter for Vietnam
+const formatDateVietnam = (dateString: string | undefined): string => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'Invalid Date';
+  }
+};
 
 const CancellationStatus = {
   REQUESTED: 'REQUESTED',
@@ -258,42 +278,52 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
 
     try {
       setIsLoading(true);
+      console.log('🔍 Loading user cancellations:', { userId: user.id, currentPage, statusFilter, searchTerm });
       
-      // TODO: Replace with real API call
-      // const response = await cancellationService.getUserCancellations(user.id, {
-      //   page: currentPage - 1,
-      //   size: pageSize,
-      //   status: statusFilter,
-      //   search: searchTerm
-      // });
-
-      // Mock response with filtering - combine mock data with new cancellations
-      console.log('🔄 Loading cancellations - newCancellations:', newCancellations);
-      console.log('🔄 Loading cancellations - mockCancellations:', mockCancellations);
-      let filteredCancellations = [...newCancellations, ...mockCancellations];
-      console.log('🔄 Combined cancellations:', filteredCancellations);
+      // Use real API call
+      const response = await cancellationService.getUserCancellations(user.id, currentPage - 1, pageSize);
+      // Successfully loaded cancellations from API
       
-      if (statusFilter) {
-        filteredCancellations = filteredCancellations.filter(c => c.status === statusFilter);
+      // Convert API response to CancellationHistoryItem format
+      const apiCancellations = response.content.map(cancellation => ({
+        id: cancellation.id,
+        bookingId: cancellation.booking?.id || 0,
+        bookingCode: cancellation.booking?.bookingCode || 'N/A',
+        tourName: cancellation.booking?.tourName || 'Unknown Tour',
+        reason: cancellation.reason,
+        reasonCategory: cancellation.reasonCategory,
+        status: cancellation.status as CancellationStatusType,
+        refundStatus: cancellation.refundStatus as RefundStatusType,
+        originalAmount: cancellation.originalAmount,
+        finalRefundAmount: cancellation.finalRefundAmount,
+        cancelledAt: cancellation.cancelledAt || cancellation.createdAt,
+        processedAt: cancellation.processedAt,
+        hoursBeforeDeparture: cancellation.hoursBeforeDeparture || 0,
+        policyName: cancellation.policyName || 'Standard Policy',
+        isEmergencyCase: cancellation.isEmergencyCase
+      }));
+      
+      // Combine with new cancellations from form submissions
+      let allCancellations = [...newCancellations, ...apiCancellations];
+      // Combined cancellations ready for display
+      
+      // Apply client-side filtering if needed
+      if (statusFilter && statusFilter !== 'all') {
+        allCancellations = allCancellations.filter(c => c.status === statusFilter);
       }
       
       if (searchTerm) {
         const search = searchTerm.toLowerCase();
-        filteredCancellations = filteredCancellations.filter(c => 
+        allCancellations = allCancellations.filter(c => 
           c.bookingCode.toLowerCase().includes(search) ||
           c.tourName.toLowerCase().includes(search) ||
           c.reason.toLowerCase().includes(search)
         );
       }
-
-      // Pagination
-      const startIndex = (currentPage - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const paginatedData = filteredCancellations.slice(startIndex, endIndex);
       
-      setCancellations(paginatedData);
-      setTotalCount(filteredCancellations.length);
-      setTotalPages(Math.ceil(filteredCancellations.length / pageSize));
+      setCancellations(allCancellations);
+      setTotalCount(response.totalElements + newCancellations.length);
+      setTotalPages(Math.ceil((response.totalElements + newCancellations.length) / pageSize));
 
     } catch (error) {
       console.error('Error loading cancellations:', error);
@@ -366,15 +396,6 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   return (
     <div className={className}>
@@ -504,7 +525,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wide">Ngày hủy</p>
                         <p className="text-sm font-medium text-gray-900">
-                          {formatDate(cancellation.cancelledAt)}
+                          {formatDateVietnam(cancellation.cancelledAt)}
                         </p>
                       </div>
                       <div>
@@ -558,11 +579,11 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Xử lý: {formatDate(cancellation.processedAt)}
+                      Xử lý: {formatDateVietnam(cancellation.processedAt)}
                       {cancellation.refundProcessedAt && (
                         <>
                           <span className="mx-2">•</span>
-                          Hoàn tiền: {formatDate(cancellation.refundProcessedAt)}
+                          Hoàn tiền: {formatDateVietnam(cancellation.refundProcessedAt)}
                         </>
                       )}
                     </div>

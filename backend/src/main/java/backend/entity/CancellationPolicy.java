@@ -87,6 +87,29 @@ public class CancellationPolicy {
     @Column(nullable = false)
     private Integer priority = 1;
 
+    // Additional fields to match data.sql
+    @Column(name = "processing_fee_percentage", precision = 5, scale = 2)
+    private BigDecimal processingFeePercentage = BigDecimal.ZERO;
+
+    @Column(name = "weather_cancellation_allowed")
+    private Boolean weatherCancellationAllowed = false;
+
+    @Column(name = "medical_cancellation_allowed")  
+    private Boolean medicalCancellationAllowed = false;
+
+    @Column(name = "force_majeure_allowed")
+    private Boolean forceMajeureAllowed = false;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @Column(name = "effective_from")
+    private LocalDateTime effectiveFrom;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -110,12 +133,17 @@ public class CancellationPolicy {
 
     // Helper method to calculate refund percentage based on hours before departure
     public BigDecimal getRefundPercentage(int hoursBeforeDeparture) {
+        // Defensive null checks
+        if (hoursBeforeDepartureFullRefund == null || fullRefundPercentage == null) {
+            return new BigDecimal("50"); // Default 50%
+        }
+        
         if (hoursBeforeDeparture >= hoursBeforeDepartureFullRefund) {
-            return fullRefundPercentage;
-        } else if (hoursBeforeDeparture >= hoursBeforeDeparturePartialRefund) {
-            return partialRefundPercentage;
-        } else if (hoursBeforeDeparture >= hoursBeforeDepartureNoRefund) {
-            return noRefundPercentage;
+            return fullRefundPercentage != null ? fullRefundPercentage : new BigDecimal("100");
+        } else if (hoursBeforeDeparturePartialRefund != null && hoursBeforeDeparture >= hoursBeforeDeparturePartialRefund) {
+            return partialRefundPercentage != null ? partialRefundPercentage : new BigDecimal("50");
+        } else if (hoursBeforeDepartureNoRefund != null && hoursBeforeDeparture >= hoursBeforeDepartureNoRefund) {
+            return noRefundPercentage != null ? noRefundPercentage : BigDecimal.ZERO;
         } else {
             return BigDecimal.ZERO; // Past minimum notice
         }
@@ -123,11 +151,18 @@ public class CancellationPolicy {
 
     // Check if cancellation is allowed based on timing
     public boolean isCancellationAllowed(int hoursBeforeDeparture) {
+        if (minimumNoticeHours == null) {
+            return hoursBeforeDeparture >= 1; // Default minimum 1 hour
+        }
         return hoursBeforeDeparture >= minimumNoticeHours;
     }
 
     // Calculate total refund amount
     public BigDecimal calculateRefundAmount(BigDecimal originalAmount, int hoursBeforeDeparture) {
+        if (originalAmount == null) {
+            return BigDecimal.ZERO;
+        }
+        
         if (!isCancellationAllowed(hoursBeforeDeparture)) {
             return BigDecimal.ZERO;
         }
@@ -135,8 +170,16 @@ public class CancellationPolicy {
         BigDecimal refundPercentage = getRefundPercentage(hoursBeforeDeparture);
         BigDecimal refundAmount = originalAmount.multiply(refundPercentage).divide(new BigDecimal("100"));
         
-        // Subtract fixed fees
-        refundAmount = refundAmount.subtract(cancellationFee).subtract(processingFee);
+        // Subtract fixed fees (with null checks)
+        BigDecimal totalFees = BigDecimal.ZERO;
+        if (cancellationFee != null) {
+            totalFees = totalFees.add(cancellationFee);
+        }
+        if (processingFee != null) {
+            totalFees = totalFees.add(processingFee);
+        }
+        
+        refundAmount = refundAmount.subtract(totalFees);
         
         // Ensure refund is not negative
         return refundAmount.max(BigDecimal.ZERO);

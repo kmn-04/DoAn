@@ -36,6 +36,15 @@ CREATE TABLE IF NOT EXISTS cancellation_policies (
     category_id BIGINT,
     priority INT NOT NULL DEFAULT 1,
     
+    -- Additional fields to match data.sql
+    processing_fee_percentage DECIMAL(5,2) DEFAULT 0.00,
+    weather_cancellation_allowed BOOLEAN DEFAULT FALSE,
+    medical_cancellation_allowed BOOLEAN DEFAULT FALSE,
+    force_majeure_allowed BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    effective_from TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    
     -- Timestamps
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
