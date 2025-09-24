@@ -74,15 +74,21 @@ public class BookingController extends BaseController {
             @Valid @RequestBody BookingCreateRequest request) {
         
         log.info("Creating booking for tour: {} by user: {}", request.getTourId(), "current_user");
+        log.info("📋 Booking request details: {}", request);
         
         // Get tour and user entities
         Tour tour = tourService.getTourById(request.getTourId())
                 .orElseThrow(() -> new backend.exception.ResourceNotFoundException("Tour", "id", request.getTourId()));
+        log.info("✅ Found tour: {} - {}", tour.getId(), tour.getName());
                 
-        // For now, we'll need to get current user from security context
-        // This is a simplified version - in real implementation, get from JWT token
-        User user = userService.getUserById(1L)  // Temporary - should get from security context
-                .orElseThrow(() -> new backend.exception.ResourceNotFoundException("User", "id", 1L));
+        // Get user ID from request or use default
+        // In production, should get from JWT token/security context
+        Long currentUserId = request.getUserId() != null ? request.getUserId() : 1L;
+        log.info("🔍 Using user ID: {} (from request: {})", currentUserId, request.getUserId());
+        
+        User user = userService.getUserById(currentUserId)
+                .orElseThrow(() -> new backend.exception.ResourceNotFoundException("User", "id", currentUserId));
+        log.info("✅ Found user: {} - {}", user.getId(), user.getEmail());
         
         // Create booking entity
         Booking booking = new Booking();
@@ -96,7 +102,10 @@ public class BookingController extends BaseController {
         
         // Create booking
         Booking createdBooking = bookingService.createBooking(booking);
+        log.info("✅ Created booking: {} for user: {}", createdBooking.getBookingCode(), createdBooking.getUser().getId());
+        
         BookingResponse bookingResponse = mapper.toBookingResponse(createdBooking);
+        log.info("📤 Returning booking response: {}", bookingResponse.getBookingCode());
         
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(success("Booking created successfully", bookingResponse));

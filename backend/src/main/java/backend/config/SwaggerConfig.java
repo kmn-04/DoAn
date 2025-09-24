@@ -28,11 +28,8 @@ public class SwaggerConfig {
                                 .url("https://opensource.org/licenses/MIT")))
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:8080/api")
-                                .description("Development Server"),
-                        new Server()
-                                .url("https://your-domain.com/api")
-                                .description("Production Server")
+                                .url("http://localhost:8080")
+                                .description("Development Server")
                 ));
     }
 }

@@ -20,6 +20,7 @@ const PartnerDetailPage = React.lazy(() => import('./pages/PartnerDetailPage'));
 const PartnershipPage = React.lazy(() => import('./pages/PartnershipPage'));
 const BookingCheckoutPage = React.lazy(() => import('./pages/BookingCheckoutPage'));
 const BookingConfirmationPage = React.lazy(() => import('./pages/BookingConfirmationPage'));
+const PaymentReturnPage = React.lazy(() => import('./pages/payment/PaymentReturnPage'));
 const ComponentDemo = React.lazy(() => import('./pages/ComponentDemo'));
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage'));
@@ -125,6 +126,15 @@ function App() {
                   </Suspense>
                 </PageErrorBoundary>
               </ProtectedRoute>
+            } />
+            
+            {/* Payment Routes */}
+            <Route path="/payment/momo/return" element={
+              <PageErrorBoundary>
+                <Suspense fallback={<PageLoader message="Đang xử lý kết quả thanh toán..." />}>
+                  <PaymentReturnPage />
+                </Suspense>
+              </PageErrorBoundary>
             } />
 
             <Route path="/bookings" element={

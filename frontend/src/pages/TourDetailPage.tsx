@@ -22,6 +22,7 @@ import BookingForm from '../components/tours/BookingForm';
 import TourReviews from '../components/tours/TourReviews';
 import TourCard from '../components/tours/TourCard';
 import { Button } from '../components/ui';
+import tourService from '../services/tourService';
 
 interface TourDetail {
   id: number;
@@ -200,14 +201,88 @@ const TourDetailPage: React.FC = () => {
   const [expandedDays, setExpandedDays] = useState<number[]>([1]); // Mặc định mở rộng ngày đầu tiên
 
   useEffect(() => {
-    // Simulate API call
     const fetchTour = async () => {
-      setIsLoading(true);
-      // In real app, fetch tour by slug
-      setTimeout(() => {
+      if (!slug) return;
+      
+      try {
+        setIsLoading(true);
+        console.log('🔍 Fetching tour by slug:', slug);
+        
+        // Get tour by slug from API
+        const tourResponse = await tourService.getTourBySlug(slug);
+        console.log('✅ Tour API response:', tourResponse);
+        
+        // Map API response to TourDetail interface
+        const mappedTour: TourDetail = {
+          id: tourResponse.id,
+          name: tourResponse.name,
+          slug: tourResponse.slug,
+          description: tourResponse.description || 'Khám phá tour tuyệt vời này',
+          price: tourResponse.price,
+          originalPrice: tourResponse.originalPrice,
+          duration: `${tourResponse.duration} ngày`,
+          location: tourResponse.location,
+          rating: tourResponse.averageRating || 0,
+          reviewCount: tourResponse.totalReviews || 0,
+          maxPeople: tourResponse.maxGroupSize || 20,
+          images: tourResponse.images?.map(img => img.imageUrl) || ['/default-tour.jpg'],
+          badge: tourResponse.isFeatured ? 'Nổi bật' : undefined,
+          category: tourResponse.category?.name || 'Tour',
+          highlights: tourResponse.highlights || [
+            'Trải nghiệm tuyệt vời',
+            'Dịch vụ chất lượng cao',
+            'Hướng dẫn viên chuyên nghiệp'
+          ],
+          included: tourResponse.includes || [
+            'Xe du lịch đời mới, máy lạnh',
+            'Khách sạn tiêu chuẩn',
+            'Ăn theo chương trình',
+            'Vé tham quan các điểm trong chương trình',
+            'Hướng dẫn viên nhiệt tình',
+            'Bảo hiểm du lịch'
+          ],
+          excluded: tourResponse.excludes || [
+            'Vé máy bay đi/về điểm tập trung',
+            'Chi phí cá nhân',
+            'Phụ thu phòng đơn',
+            'Tip cho hướng dẫn viên'
+          ],
+          itinerary: tourResponse.itinerary || [
+            {
+              day: 1,
+              title: `Ngày 1: Khởi hành đến ${tourResponse.location}`,
+              description: 'Bắt đầu hành trình khám phá',
+              activities: ['Tập trung tại điểm hẹn', 'Khởi hành', 'Nhận phòng khách sạn']
+            },
+            {
+              day: 2,
+              title: `Ngày 2: Tham quan ${tourResponse.location}`,
+              description: 'Khám phá những điểm đến tuyệt vời',
+              activities: ['Tham quan các điểm nổi tiếng', 'Ăn trưa tại nhà hàng địa phương', 'Trở về']
+            }
+          ],
+          importantInfo: [
+            'Vui lòng mang theo giấy tờ tùy thân',
+            'Trang phục thoải mái, phù hợp với thời tiết',
+            'Mang theo thuốc cá nhân nếu cần'
+          ],
+          cancellationPolicy: 'Miễn phí hủy trong 24h. Hủy trước 7 ngày không tính phí.',
+          availableDates: [
+            new Date().toISOString().split('T')[0],
+            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          ]
+        };
+        
+        setTour(mappedTour);
+        
+      } catch (error) {
+        console.error('❌ Error fetching tour:', error);
+        // Fallback to mock data if API fails
         setTour(mockTourDetail);
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
 
     fetchTour();

@@ -37,6 +37,9 @@ public class BookingCreateRequest {
     
     private String promotionCode;
     
+    // User ID for booking (optional, can be extracted from JWT token)
+    private Long userId;
+    
     // Custom validation
     public int getTotalPeople() {
         return (numAdults != null ? numAdults : 0) + (numChildren != null ? numChildren : 0);
