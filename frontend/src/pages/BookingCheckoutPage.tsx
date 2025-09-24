@@ -12,6 +12,19 @@ import {
 import { Button, Input } from '../components/ui';
 import { useAuth } from '../hooks/useAuth';
 import { bookingService } from '../services';
+import paymentService from '../services/paymentService';
+import PaymentMethodSelection from '../components/payment/PaymentMethodSelection';
+
+interface PaymentRequest {
+  bookingId: string;
+  amount: number; // Frontend uses number, backend converts to BigDecimal
+  orderInfo: string;
+  paymentMethod: 'MOMO' | 'VNPAY' | 'STRIPE' | 'PAYPAL';
+  extraData?: string;
+  userId?: number;
+  userEmail?: string;
+  userPhone?: string;
+}
 
 interface BookingData {
   tourId: number;
@@ -85,23 +98,37 @@ const BookingCheckoutPage: React.FC = () => {
     specialRequirements: ''
   });
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod['type']>('credit_card');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('MOMO');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Get booking data from URL params or localStorage
-    const mockBookingData: BookingData = {
-      tourId: 1,
-      tourName: "Hạ Long Bay - Kỳ Quan Thế Giới",
-      tourImage: "https://images.unsplash.com/photo-1528127269322-539801943592?w=400",
-      startDate: searchParams.get('startDate') || '2024-02-15',
-      adults: parseInt(searchParams.get('adults') || '2'),
-      children: parseInt(searchParams.get('children') || '1'),
-      totalPrice: parseInt(searchParams.get('totalPrice') || '6200000'),
-      specialRequests: searchParams.get('specialRequests') || undefined
+    // Get booking data from URL params
+    const tourId = parseInt(searchParams.get('tourId') || '0');
+    const tourName = searchParams.get('tourName') || 'Tour không xác định';
+    const tourImage = searchParams.get('tourImage') || '/default-tour.jpg';
+    const startDate = searchParams.get('startDate') || new Date().toISOString().split('T')[0];
+    const adults = parseInt(searchParams.get('adults') || '1');
+    const children = parseInt(searchParams.get('children') || '0');
+    const totalPrice = parseInt(searchParams.get('totalPrice') || '0');
+    const specialRequests = searchParams.get('specialRequests') || undefined;
+
+    console.log('🔍 Booking checkout params:', {
+      tourId, tourName, tourImage, startDate, adults, children, totalPrice
+    });
+
+    const bookingData: BookingData = {
+      tourId,
+      tourName,
+      tourImage,
+      startDate,
+      adults,
+      children,
+      totalPrice,
+      specialRequests
     };
     
-    setBookingData(mockBookingData);
+    setBookingData(bookingData);
   }, [searchParams]);
 
   const formatPrice = (price: number) => {
@@ -185,7 +212,7 @@ const BookingCheckoutPage: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      // Create booking via API
+      // Step 1: Create booking via API
       const bookingRequest = {
         tourId: bookingData.tourId,
         startDate: bookingData.startDate,
@@ -193,40 +220,76 @@ const BookingCheckoutPage: React.FC = () => {
         numChildren: bookingData.children,
         specialRequests: bookingData.specialRequests,
         contactPhone: customerInfo.phone,
+        userId: user?.id || 1 // Pass current user ID
       };
 
+      console.log('📋 Booking request data:', bookingRequest);
       const bookingResult = await bookingService.createBooking(bookingRequest);
+      console.log('📋 Booking result:', bookingResult);
 
-      // Show success notification
-      const event = new CustomEvent('show-toast', {
-        detail: {
-          type: 'success',
-          title: 'Đặt tour thành công!',
-          message: `Booking ${bookingResult.bookingCode} đã được tạo thành công`,
-          duration: 5000
-        }
-      });
-      window.dispatchEvent(event);
+      // Step 2: Create payment request
+      const paymentRequest: PaymentRequest = {
+        bookingId: bookingResult.bookingCode || 'UNKNOWN',
+        amount: bookingData.totalPrice || 0,
+        orderInfo: `Thanh toán tour ${bookingData.tourName || 'Unknown Tour'}`,
+        paymentMethod: selectedPaymentMethod || 'MOMO',
+        userId: user?.id,
+        userEmail: customerInfo.email || 'unknown@example.com',
+        userPhone: customerInfo.phone || '0000000000',
+        extraData: JSON.stringify({
+          tourId: bookingData.tourId,
+          tourName: bookingData.tourName,
+          customerName: customerInfo.fullName
+        })
+      };
 
-      // Redirect to confirmation page
-      navigate(`/booking/confirmation/${bookingResult.bookingCode}`, {
-        state: { 
-          bookingData, 
-          customerInfo, 
-          paymentMethod: selectedPayment,
-          bookingResult 
-        }
-      });
+      // Validate required fields
+      if (!paymentRequest.bookingId || paymentRequest.bookingId === 'UNKNOWN') {
+        throw new Error('Booking ID is missing');
+      }
+      if (!paymentRequest.amount || paymentRequest.amount <= 0) {
+        throw new Error('Invalid payment amount');
+      }
+      if (!paymentRequest.orderInfo.trim()) {
+        throw new Error('Order info is missing');
+      }
+      if (!paymentRequest.paymentMethod) {
+        throw new Error('Payment method is missing');
+      }
+
+      console.log('📤 Payment request data:', paymentRequest);
+      const paymentResult = await paymentService.createPayment(paymentRequest);
+      console.log('📥 Payment response:', paymentResult);
+
+      if (paymentResult.status === 'FAILED') {
+        throw new Error(paymentResult.errorMessage || 'Payment creation failed');
+      }
+
+      // Step 3: Redirect to payment gateway
+      if (paymentResult.payUrl) {
+        // Store booking info in sessionStorage for return page
+        sessionStorage.setItem('pendingBooking', JSON.stringify({
+          bookingCode: bookingResult.bookingCode,
+          bookingData,
+          customerInfo,
+          paymentMethod: selectedPaymentMethod
+        }));
+
+        // Redirect to MoMo payment page
+        window.location.href = paymentResult.payUrl;
+      } else {
+        throw new Error('Payment URL not received');
+      }
 
     } catch (error: any) {
-      console.error('Booking creation failed:', error);
+      console.error('Booking/Payment creation failed:', error);
       
       // Show error notification
       const event = new CustomEvent('show-toast', {
         detail: {
           type: 'error',
           title: 'Đặt tour thất bại!',
-          message: error?.response?.data?.message || 'Có lỗi xảy ra khi đặt tour. Vui lòng thử lại!',
+          message: error?.message || error?.response?.data?.message || 'Có lỗi xảy ra khi đặt tour. Vui lòng thử lại!',
           duration: 5000
         }
       });
@@ -383,81 +446,23 @@ const BookingCheckoutPage: React.FC = () => {
             )}
 
             {currentStep === 2 && (
-              <div className="bg-white rounded-lg shadow-sm border p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Phương thức thanh toán</h2>
+              <div className="space-y-6">
+                <PaymentMethodSelection
+                  selectedMethod={selectedPaymentMethod}
+                  onMethodSelect={setSelectedPaymentMethod}
+                  onPaymentInitiate={handleBooking}
+                  amount={bookingData.totalPrice}
+                  disabled={isProcessing}
+                />
                 
-                <div className="space-y-4 mb-8">
-                  {paymentMethods.map((method) => {
-                    const IconComponent = method.icon;
-                    return (
-                      <label
-                        key={method.type}
-                        className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                          selectedPayment === method.type
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="payment"
-                          value={method.type}
-                          checked={selectedPayment === method.type}
-                          onChange={(e) => setSelectedPayment(e.target.value as PaymentMethod['type'])}
-                          className="sr-only"
-                        />
-                        
-                        <IconComponent className="h-6 w-6 text-gray-600 mr-4" />
-                        
-                        <div className="flex-1">
-                          <div className="font-semibold text-gray-900">{method.label}</div>
-                          <div className="text-sm text-gray-600">{method.description}</div>
-                        </div>
-                        
-                        {selectedPayment === method.type && (
-                          <CheckCircleIcon className="h-6 w-6 text-blue-600" />
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-
-                {/* Security Notice */}
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-start space-x-3">
-                    <ShieldCheckIcon className="h-6 w-6 text-green-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-green-900">Thanh toán an toàn</h4>
-                      <p className="text-sm text-green-700 mt-1">
-                        Thông tin thanh toán được mã hóa SSL 256-bit. Chúng tôi không lưu trữ thông tin thẻ của bạn.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Navigation */}
-                <div className="flex items-center justify-between">
+                {/* Back Button */}
+                <div className="flex justify-start">
                   <Button
                     variant="outline"
                     onClick={handlePrevStep}
                     className="px-6 py-3"
                   >
-                    Quay lại
-                  </Button>
-                  
-                  <Button
-                    onClick={handleBooking}
-                    disabled={isProcessing}
-                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
-                  >
-                    {isProcessing ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Đang xử lý...
-                      </>
-                    ) : (
-                      'Xác nhận đặt tour'
-                    )}
+                    ← Quay lại
                   </Button>
                 </div>
               </div>

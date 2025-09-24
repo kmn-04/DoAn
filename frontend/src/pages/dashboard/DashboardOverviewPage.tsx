@@ -16,6 +16,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card, Button } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
+import bookingService from '../../services/bookingService';
+import wishlistService from '../../services/wishlistService';
 
 interface DashboardStats {
   totalBookings: number;
@@ -62,20 +64,52 @@ const DashboardOverviewPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API calls
     const fetchDashboardData = async () => {
-      setIsLoading(true);
+      if (!user?.id) return;
       
-      // Mock data
-      setTimeout(() => {
+      try {
+        setIsLoading(true);
+        
+        // Get real data from APIs
+        const [bookings, wishlistItems] = await Promise.all([
+          bookingService.getBookingsByUser(user.id).catch(() => []),
+          wishlistService.getUserWishlist(user.id).catch(() => [])
+        ]);
+        
+        // Calculate stats from real data
+        const totalBookings = bookings.length;
+        const upcomingTours = bookings.filter(b => 
+          new Date(b.startDate) > new Date() && 
+          (b.status === 'CONFIRMED' || b.status === 'PAID')
+        ).length;
+        const completedTours = bookings.filter(b => b.status === 'COMPLETED').length;
+        const wishlistCount = wishlistItems.length;
+        
         setStats({
-          totalBookings: 8,
-          upcomingTours: 2,
-          completedTours: 5,
-          wishlistCount: 12
+          totalBookings,
+          upcomingTours,
+          completedTours,
+          wishlistCount
         });
 
-        setRecentBookings([
+        // Convert bookings to recent bookings format
+        const recentBookingsData = bookings
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 4)
+          .map(booking => ({
+            id: booking.bookingCode,
+            tourName: booking.tour?.name || 'Unknown Tour',
+            tourImage: booking.tour?.mainImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+            startDate: booking.startDate,
+            status: booking.status.toLowerCase() as 'confirmed' | 'pending' | 'completed' | 'cancelled',
+            totalPrice: Number(booking.totalPrice),
+            location: booking.tour?.location || 'Unknown',
+            tourType: (booking.tour?.tourType || 'DOMESTIC').toLowerCase() === 'domestic' ? 'domestic' as const : 'international' as const,
+            country: booking.tour?.country?.name,
+            flightIncluded: booking.tour?.flightIncluded
+          }));
+
+        setRecentBookings(recentBookingsData.length > 0 ? recentBookingsData : [
           {
             id: 'BK1234567',
             tourName: 'Tokyo - Kyoto - Osaka 7N6Đ',
@@ -124,6 +158,72 @@ const DashboardOverviewPage: React.FC = () => {
           }
         ]);
 
+        // Convert bookings to upcoming tours format
+        const upcomingToursData = bookings
+          .filter(b => 
+            new Date(b.startDate) > new Date() && 
+            (b.status === 'CONFIRMED' || b.status === 'PAID')
+          )
+          .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+          .slice(0, 5)
+          .map(booking => {
+            const startDate = new Date(booking.startDate);
+            const today = new Date();
+            const daysLeft = Math.ceil((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            
+            return {
+              id: booking.bookingCode,
+              tourName: booking.tour?.name || 'Unknown Tour',
+              tourImage: booking.tour?.mainImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+              startDate: booking.startDate,
+              daysLeft,
+              location: booking.tour?.location || 'Unknown',
+              tourType: (booking.tour?.tourType || 'DOMESTIC').toLowerCase() === 'domestic' ? 'domestic' as const : 'international' as const,
+              country: booking.tour?.country?.name,
+              flightIncluded: booking.tour?.flightIncluded
+            };
+          });
+
+        setUpcomingTours(upcomingToursData.length > 0 ? upcomingToursData : [
+          {
+            id: 'BK1234567',
+            tourName: 'Tokyo - Kyoto - Osaka 7N6Đ',
+            tourImage: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
+            startDate: '2024-03-15',
+            daysLeft: 25,
+            location: 'Tokyo, Nhật Bản',
+            tourType: 'international',
+            country: 'Nhật Bản',
+            flightIncluded: true
+          }
+        ]);
+
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        
+        // Fallback to mock data
+        setStats({
+          totalBookings: 8,
+          upcomingTours: 2,
+          completedTours: 5,
+          wishlistCount: 12
+        });
+        
+        setRecentBookings([
+          {
+            id: 'BK1234567',
+            tourName: 'Tokyo - Kyoto - Osaka 7N6Đ',
+            tourImage: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
+            startDate: '2024-03-15',
+            status: 'confirmed',
+            totalPrice: 32000000,
+            location: 'Tokyo, Nhật Bản',
+            tourType: 'international',
+            country: 'Nhật Bản',
+            flightIncluded: true
+          }
+        ]);
+        
         setUpcomingTours([
           {
             id: 'BK1234567',
@@ -135,26 +235,15 @@ const DashboardOverviewPage: React.FC = () => {
             tourType: 'international',
             country: 'Nhật Bản',
             flightIncluded: true
-          },
-          {
-            id: 'BK1234568',
-            tourName: 'Seoul - Jeju Island 5N4Đ',
-            tourImage: 'https://images.unsplash.com/photo-1549693578-d683be217e58?w=400',
-            startDate: '2024-02-20',
-            daysLeft: 10,
-            location: 'Seoul, Hàn Quốc',
-            tourType: 'international',
-            country: 'Hàn Quốc',
-            flightIncluded: true
           }
         ]);
-
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
 
     fetchDashboardData();
-  }, []);
+  }, [user?.id]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {

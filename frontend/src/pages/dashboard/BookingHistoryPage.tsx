@@ -161,8 +161,17 @@ const BookingHistoryPage: React.FC = () => {
       try {
         setIsLoading(true);
         
+        // Check if we need to refresh due to recent payment
+        const shouldRefresh = localStorage.getItem('refreshBookings');
+        if (shouldRefresh) {
+          localStorage.removeItem('refreshBookings');
+          console.log('🔄 Refreshing bookings after payment success');
+        }
+        
         // Get bookings for current user
+        console.log('🔍 Fetching bookings for user ID:', user.id);
         const bookingResponses = await bookingService.getBookingsByUser(user.id);
+        console.log('📥 Received bookings from API:', bookingResponses);
         
         // Convert BookingResponse to local Booking interface
         const convertedBookings: Booking[] = bookingResponses.map(booking => ({

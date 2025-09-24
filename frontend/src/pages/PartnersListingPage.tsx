@@ -8,6 +8,7 @@ import PartnerCard from '../components/partners/PartnerCard';
 import PartnerFiltersComponent from '../components/partners/PartnerFilters';
 import PartnerCTABanner from '../components/partners/PartnerCTABanner';
 import { Loading, Pagination } from '../components/ui';
+import partnerService from '../services/partnerService';
 
 const PartnersListingPage: React.FC = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -201,13 +202,30 @@ const PartnersListingPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      setPartners(mockPartners);
-      setTotalPages(1);
-      setLoading(false);
-    }, 1000);
+    const loadPartners = async () => {
+      try {
+        setLoading(true);
+        const response = await partnerService.getAllPartners({
+          page: currentPage - 1, // API uses 0-based indexing
+          size: 20,
+          sortBy: filters.sortBy || 'name',
+          sortDirection: filters.sortOrder || 'asc'
+        });
+        
+        const mappedPartners = response.content.map(partnerService.mapToPartner);
+        setPartners(mappedPartners);
+        setTotalPages(response.totalPages);
+      } catch (error) {
+        console.error('Error loading partners:', error);
+        // Fallback to mock data
+        setPartners(mockPartners);
+        setTotalPages(1);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPartners();
   }, [filters, currentPage]);
 
   const handleFiltersChange = (newFilters: PartnerFilters) => {

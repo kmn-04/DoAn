@@ -356,9 +356,27 @@ const ToursListingPage: React.FC = () => {
   
   const toursPerPage = 6;
 
+  // Initialize filters from URL params
+  const [filters, setFilters] = useState<FilterState>({
+    search: searchParams.get('search') || '',
+    category: searchParams.get('category') || '',
+    priceMin: searchParams.get('priceMin') || '',
+    priceMax: searchParams.get('priceMax') || '',
+    duration: searchParams.get('duration') || '',
+    rating: searchParams.get('rating') || '',
+    sortBy: searchParams.get('sortBy') || 'popular',
+    location: searchParams.get('location') || '',
+    tourType: searchParams.get('tourType') || '',
+    continent: searchParams.get('continent') || '',
+    country: searchParams.get('country') || '',
+    visaRequired: searchParams.get('visaRequired') === 'true',
+    flightIncluded: searchParams.get('flightIncluded') === 'true'
+  });
+
   // Fetch tours from API
-  const fetchTours = async () => {
+  const fetchTours = useCallback(async () => {
     try {
+      console.log('🚀 fetchTours called with filters:', filters);
       setIsLoading(true);
       
       // Build search request from filters
@@ -383,17 +401,32 @@ const ToursListingPage: React.FC = () => {
       if (filters.visaRequired !== undefined) searchRequest.visaRequired = filters.visaRequired;
       if (filters.flightIncluded !== undefined) searchRequest.flightIncluded = filters.flightIncluded;
 
-      const response = await tourService.searchTours(searchRequest);
+      console.log('📡 Calling tourService.getAllTours with params:', {
+        page: searchRequest.page,
+        size: searchRequest.size,
+        sortBy: searchRequest.sortBy,
+        sortDirection: searchRequest.sortDirection
+      });
+      const response = await tourService.getAllTours({
+        page: searchRequest.page,
+        size: searchRequest.size,
+        sortBy: searchRequest.sortBy,
+        sortDirection: searchRequest.sortDirection
+      });
+      console.log('✅ API Response:', response);
       
       // Convert API response to local format
       const convertedTours = response.content.map(convertTourResponse);
+      console.log('🔄 Converted tours:', convertedTours);
       setTours(convertedTours);
       setFilteredTours(convertedTours);
       setTotalPages(response.totalPages);
       setTotalTours(response.totalElements);
+      console.log('✅ State updated - tours count:', convertedTours.length);
       
     } catch (error) {
-      console.error('Error fetching tours:', error);
+      console.error('❌ Error fetching tours:', error);
+      console.log('🔄 Falling back to mock data');
       // Fallback to mock data on error
       setTours(mockTours);
       setFilteredTours(mockTours);
@@ -402,24 +435,7 @@ const ToursListingPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Initialize filters from URL params
-  const [filters, setFilters] = useState<FilterState>({
-    search: searchParams.get('search') || '',
-    category: searchParams.get('category') || '',
-    priceMin: searchParams.get('priceMin') || '',
-    priceMax: searchParams.get('priceMax') || '',
-    duration: searchParams.get('duration') || '',
-    rating: searchParams.get('rating') || '',
-    sortBy: searchParams.get('sortBy') || 'popular',
-    location: searchParams.get('location') || '',
-    tourType: searchParams.get('tourType') || '',
-    continent: searchParams.get('continent') || '',
-    country: searchParams.get('country') || '',
-    visaRequired: searchParams.get('visaRequired') === 'true',
-    flightIncluded: searchParams.get('flightIncluded') === 'true'
-  });
+  }, [currentPage, filters, toursPerPage]);
 
   // Update URL when filters change
   useEffect(() => {
@@ -435,6 +451,11 @@ const ToursListingPage: React.FC = () => {
     });
     setSearchParams(params);
   }, [filters, setSearchParams]);
+
+  // Load tours when component mounts or filters change
+  useEffect(() => {
+    fetchTours();
+  }, [fetchTours]);
 
   // Filter and sort tours
   useEffect(() => {
