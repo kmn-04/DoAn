@@ -103,7 +103,47 @@ const BookingCheckoutPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Get booking data from URL params
+    // Check if this is a retry payment
+    const isRetry = searchParams.get('retry') === 'true';
+    const bookingId = searchParams.get('bookingId');
+    
+    if (isRetry && bookingId) {
+      // For retry payment, get data from sessionStorage
+      console.log('🔄 This is a retry payment for booking:', bookingId);
+      const retryData = sessionStorage.getItem('retryPaymentBooking');
+      
+      if (retryData) {
+        try {
+          const parsedData = JSON.parse(retryData);
+          console.log('✅ Found retry payment data:', parsedData);
+          
+          const bookingData: BookingData = {
+            tourId: parsedData.tourId,
+            tourName: parsedData.tourName,
+            tourImage: parsedData.tourImage || '/default-tour.jpg',
+            startDate: parsedData.startDate,
+            adults: parsedData.adults,
+            children: parsedData.children,
+            totalPrice: parsedData.totalPrice,
+            specialRequests: parsedData.specialRequests
+          };
+          
+          console.log('💰 Setting bookingData with totalPrice:', bookingData.totalPrice);
+          setBookingData(bookingData);
+          
+          // Don't remove sessionStorage yet - keep it for the payment request
+          // It will be cleaned up after successful payment redirect
+          console.log('✅ Retry payment data loaded successfully');
+          return;
+        } catch (error) {
+          console.error('❌ Error parsing retry payment data:', error);
+        }
+      } else {
+        console.warn('⚠️ No retry payment data found in sessionStorage');
+      }
+    }
+    
+    // Normal flow: Get booking data from URL params
     const tourId = parseInt(searchParams.get('tourId') || '0');
     const tourName = searchParams.get('tourName') || 'Tour không xác định';
     const tourImage = searchParams.get('tourImage') || '/default-tour.jpg';
@@ -212,24 +252,41 @@ const BookingCheckoutPage: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      // Step 1: Create booking via API
-      const bookingRequest = {
-        tourId: bookingData.tourId,
-        startDate: bookingData.startDate,
-        numAdults: bookingData.adults,
-        numChildren: bookingData.children,
-        specialRequests: bookingData.specialRequests,
-        contactPhone: customerInfo.phone,
-        userId: user?.id || 1 // Pass current user ID
-      };
+      // Check if this is a retry payment
+      const isRetry = searchParams.get('retry') === 'true';
+      const existingBookingId = searchParams.get('bookingId');
+      
+      let bookingResult;
+      
+      if (isRetry && existingBookingId) {
+        // For retry payment, skip booking creation
+        console.log('🔄 Retry payment detected, using existing booking:', existingBookingId);
+        
+        // Use the bookingData from sessionStorage which already has all info
+        bookingResult = {
+          bookingCode: existingBookingId,
+          id: existingBookingId
+        };
+      } else {
+        // Normal flow: Create new booking
+        const bookingRequest = {
+          tourId: bookingData.tourId,
+          startDate: bookingData.startDate,
+          numAdults: bookingData.adults,
+          numChildren: bookingData.children,
+          specialRequests: bookingData.specialRequests,
+          contactPhone: customerInfo.phone,
+          userId: user?.id || 1 // Pass current user ID
+        };
 
-      console.log('📋 Booking request data:', bookingRequest);
-      const bookingResult = await bookingService.createBooking(bookingRequest);
-      console.log('📋 Booking result:', bookingResult);
+        console.log('📋 Booking request data:', bookingRequest);
+        bookingResult = await bookingService.createBooking(bookingRequest);
+        console.log('📋 Booking result:', bookingResult);
+      }
 
       // Step 2: Create payment request
       const paymentRequest: PaymentRequest = {
-        bookingId: bookingResult.bookingCode || 'UNKNOWN',
+        bookingId: bookingResult.bookingCode || bookingResult.id || 'UNKNOWN',
         amount: bookingData.totalPrice || 0,
         orderInfo: `Thanh toán tour ${bookingData.tourName || 'Unknown Tour'}`,
         paymentMethod: selectedPaymentMethod || 'MOMO',
@@ -275,7 +332,12 @@ const BookingCheckoutPage: React.FC = () => {
           paymentMethod: selectedPaymentMethod
         }));
 
+        // Clean up retry payment data before redirect
+        sessionStorage.removeItem('retryPaymentBooking');
+        console.log('🧹 Cleaned up retry payment data');
+
         // Redirect to MoMo payment page
+        console.log('🚀 Redirecting to payment gateway:', paymentResult.payUrl);
         window.location.href = paymentResult.payUrl;
       } else {
         throw new Error('Payment URL not received');

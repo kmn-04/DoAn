@@ -173,8 +173,25 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
     @Override
     @Transactional(readOnly = true)
     public Page<BookingCancellationResponse> getUserCancellations(Long userId, Pageable pageable) {
-        return cancellationRepository.findByCancelledByIdOrderByCreatedAtDesc(userId, pageable)
-                .map(this::mapToResponse);
+        Page<BookingCancellation> cancellations = cancellationRepository.findByCancelledByIdOrderByCreatedAtDesc(userId, pageable);
+        
+        // Eagerly fetch the booking and tour relationships to avoid LazyInitializationException
+        cancellations.forEach(cancellation -> {
+            try {
+                if (cancellation.getBooking() != null) {
+                    // Force initialization of lazy-loaded relationships
+                    cancellation.getBooking().getBookingCode();
+                    if (cancellation.getBooking().getTour() != null) {
+                        cancellation.getBooking().getTour().getName();
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to load booking details for cancellation {}: {}", 
+                        cancellation.getId(), e.getMessage());
+            }
+        });
+        
+        return cancellations.map(this::mapToResponse);
     }
 
     @Override

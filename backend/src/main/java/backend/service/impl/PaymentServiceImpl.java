@@ -103,7 +103,18 @@ public class PaymentServiceImpl implements PaymentService {
     public Payment processFailedPayment(String transactionId, String failureReason) {
         log.info("Processing failed payment for transaction: {} - Reason: {}", transactionId, failureReason);
         
+        // Update payment status to Failed
         Payment payment = updatePaymentStatus(transactionId, PaymentStatus.Failed);
+        
+        // Reset booking status back to Pending if it's not Paid
+        Booking booking = payment.getBooking();
+        if (booking != null && booking.getStatus() != Booking.BookingStatus.Paid) {
+            log.info("Resetting booking: {} back to PENDING status", booking.getBookingCode());
+            booking.setStatus(Booking.BookingStatus.Pending);
+            booking.setUpdatedAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+            log.info("✅ Booking: {} reset to PENDING - User can retry payment", booking.getBookingCode());
+        }
         
         log.info("✅ Marked payment as FAILED for transaction: {}", transactionId);
         

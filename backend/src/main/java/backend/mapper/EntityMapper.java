@@ -6,11 +6,13 @@ import backend.dto.response.CategoryResponse;
 import backend.dto.response.BookingResponse;
 import backend.dto.response.BookingCancellationResponse;
 import backend.entity.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class EntityMapper {
     
     /**
@@ -243,20 +245,34 @@ public class EntityMapper {
             response.setSupportingDocuments(List.of(cancellation.getSupportingDocuments().split(",")));
         }
         
-        // Convert booking summary
-        if (cancellation.getBooking() != null) {
-            BookingCancellationResponse.BookingSummary bookingSummary = new BookingCancellationResponse.BookingSummary();
-            bookingSummary.setId(cancellation.getBooking().getId());
-            bookingSummary.setBookingCode(cancellation.getBooking().getBookingCode());
-            bookingSummary.setStartDate(cancellation.getBooking().getStartDate().atStartOfDay());
-            bookingSummary.setTotalPeople(cancellation.getBooking().getTotalPeople());
-            bookingSummary.setTotalPrice(cancellation.getBooking().getTotalPrice());
-            bookingSummary.setStatus(cancellation.getBooking().getStatus() != null ? cancellation.getBooking().getStatus().toString() : null);
-            
-            if (cancellation.getBooking().getTour() != null) {
-                bookingSummary.setTourName(cancellation.getBooking().getTour().getName());
+        // Convert booking summary - handle case where booking might be deleted or lazy-load fails
+        try {
+            if (cancellation.getBooking() != null) {
+                BookingCancellationResponse.BookingSummary bookingSummary = new BookingCancellationResponse.BookingSummary();
+                bookingSummary.setId(cancellation.getBooking().getId());
+                bookingSummary.setBookingCode(cancellation.getBooking().getBookingCode());
+                bookingSummary.setStartDate(cancellation.getBooking().getStartDate().atStartOfDay());
+                bookingSummary.setTotalPeople(cancellation.getBooking().getTotalPeople());
+                bookingSummary.setTotalPrice(cancellation.getBooking().getTotalPrice());
+                bookingSummary.setStatus(cancellation.getBooking().getStatus() != null ? cancellation.getBooking().getStatus().toString() : null);
+                
+                if (cancellation.getBooking().getTour() != null) {
+                    bookingSummary.setTourName(cancellation.getBooking().getTour().getName());
+                }
+                
+                response.setBooking(bookingSummary);
             }
-            
+        } catch (Exception e) {
+            // Booking was deleted or lazy-load failed - create a minimal summary
+            log.warn("Failed to load booking for cancellation {}: {}", cancellation.getId(), e.getMessage());
+            BookingCancellationResponse.BookingSummary bookingSummary = new BookingCancellationResponse.BookingSummary();
+            bookingSummary.setId(null);
+            bookingSummary.setBookingCode("DELETED");
+            bookingSummary.setStartDate(cancellation.getDepartureDate());
+            bookingSummary.setTotalPeople(0);
+            bookingSummary.setTotalPrice(cancellation.getOriginalAmount());
+            bookingSummary.setStatus("DELETED");
+            bookingSummary.setTourName("Booking đã bị xóa");
             response.setBooking(bookingSummary);
         }
         

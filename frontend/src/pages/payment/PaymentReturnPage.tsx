@@ -36,31 +36,48 @@ const PaymentReturnPage: React.FC = () => {
         console.log('🔍 PaymentReturnPage - URL params:', Object.fromEntries(searchParams.entries()));
         const result = paymentService.handlePaymentReturn(searchParams);
         console.log('🔍 PaymentReturnPage - Parsed result:', result);
-        setPaymentResult(result);
         
-        // TEMPORARY: Skip backend verification to test client-side parsing
-        console.log('🔧 TEMPORARY: Skipping backend verification for debugging');
-        
-        // TODO: Re-enable after backend debugging
-        // // If successful, verify with backend
-        // if (result.status === 'SUCCESS' && result.orderId) {
-        //   try {
-        //     const verifiedResult = await paymentService.checkMoMoPaymentStatus(result.orderId);
-        //     
-        //     // Only use backend result if it's SUCCESS or FAILED (definitive status)
-        //     // Keep client result if backend still shows PENDING
-        //     if (verifiedResult.status === 'SUCCESS' || verifiedResult.status === 'FAILED') {
-        //       setPaymentResult(verifiedResult);
-        //     } else {
-        //       console.log('Backend status check returned PENDING, keeping client-side result');
-        //       // Keep the original successful result from client-side parsing
-        //     }
-        //   } catch (error) {
-        //     console.error('Error verifying payment:', error);
-        //     // Keep the original result if verification fails
-        //     console.log('Backend verification failed, keeping client-side result');
-        //   }
-        // }
+        // IMPORTANT: Always call backend to process payment result
+        // This ensures booking status is updated correctly
+        if (result.orderId) {
+          try {
+            console.log('📞 Calling backend to process payment result for orderId:', result.orderId);
+            
+            // Manually trigger backend callback processing
+            // This simulates what MoMo IPN would do
+            const momoData = new URLSearchParams();
+            searchParams.forEach((value, key) => {
+              momoData.append(key, value);
+            });
+            
+            // Call backend callback endpoint
+            const response = await fetch('http://localhost:8080/api/payment/momo/callback', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: momoData.toString()
+            });
+            
+            console.log('✅ Backend callback response:', await response.json());
+            
+            // Then check payment status from backend
+            const verifiedResult = await paymentService.checkMoMoPaymentStatus(result.orderId);
+            console.log('✅ Backend verified result:', verifiedResult);
+            
+            // Use backend result as the source of truth
+            setPaymentResult(verifiedResult);
+            
+          } catch (error) {
+            console.error('❌ Error calling backend:', error);
+            // Fallback to client-side parsed result
+            console.log('⚠️ Using client-side result as fallback');
+            setPaymentResult(result);
+          }
+        } else {
+          // No orderId, use client result
+          setPaymentResult(result);
+        }
         
       } catch (error) {
         console.error('Error processing payment return:', error);
