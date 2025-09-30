@@ -3,7 +3,7 @@ import React, { useEffect, useCallback, useMemo, useRef, useState } from 'react'
 /**
  * Custom hook for debouncing values
  */
-export const useDebounce = <T>(value: T, delay: number): T => {
+export const useDebounce = <T,>(value: T, delay: number): T => {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export const useThrottle = (callback: (...args: any[]) => void, delay: number) =
 /**
  * Custom hook for memoizing expensive calculations
  */
-export const useExpensiveMemo = <T>(
+export const useExpensiveMemo = <T,>(
   factory: () => T,
   deps: React.DependencyList
 ): T => {
@@ -57,7 +57,7 @@ export const useExpensiveMemo = <T>(
 /**
  * Custom hook for lazy initialization of expensive values
  */
-export const useLazyRef = <T>(initializer: () => T) => {
+export const useLazyRef = <T,>(initializer: () => T) => {
   const ref = useRef<T>();
   
   if (ref.current === undefined) {
@@ -131,7 +131,7 @@ export const useRenderPerformance = (componentName: string) => {
 /**
  * Custom hook for virtual scrolling (for large lists)
  */
-export const useVirtualScroll = <T>(
+export const useVirtualScroll = <T,>(
   items: T[],
   itemHeight: number,
   containerHeight: number

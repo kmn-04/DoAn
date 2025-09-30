@@ -26,6 +26,7 @@ const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const AboutPage = React.lazy(() => import('./pages/AboutPage'));
+const ContactPage = React.lazy(() => import('./pages/ContactPage'));
 
 // Dashboard pages - lazy loaded
 const BookingHistoryPage = React.lazy(() => import('./pages/dashboard/BookingHistoryPage'));
@@ -157,12 +158,9 @@ function App() {
 
             <Route path="/contact" element={
               <Layout>
-                <div className="min-h-screen bg-gray-50">
-                  <div className="text-center py-20">
-                    <h1 className="text-4xl font-bold text-gray-900">📞 Liên Hệ</h1>
-                    <p className="text-gray-600 mt-4">Đang xây dựng...</p>
-                  </div>
-                </div>
+                <Suspense fallback={<PageLoader message="Đang tải trang liên hệ..." />}>
+                  <ContactPage />
+                </Suspense>
               </Layout>
             } />
 

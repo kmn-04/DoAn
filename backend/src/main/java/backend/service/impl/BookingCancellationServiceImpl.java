@@ -7,7 +7,7 @@ import backend.exception.BadRequestException;
 import backend.exception.ResourceNotFoundException;
 import backend.repository.*;
 import backend.service.BookingCancellationService;
-import backend.util.EntityMapper;
+import backend.mapper.EntityMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

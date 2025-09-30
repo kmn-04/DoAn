@@ -13,7 +13,7 @@ import backend.repository.UserRepository;
 import backend.security.JwtUtils;
 import backend.security.UserDetailsImpl;
 import backend.service.AuthService;
-import backend.util.EntityMapper;
+import backend.mapper.EntityMapper;
 
 import java.util.Set;
 import lombok.RequiredArgsConstructor;

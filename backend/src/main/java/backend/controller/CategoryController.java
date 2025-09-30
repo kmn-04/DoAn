@@ -8,7 +8,7 @@ import backend.entity.Category;
 import backend.entity.Category.CategoryStatus;
 import backend.exception.ResourceNotFoundException;
 import backend.service.CategoryService;
-import backend.util.EntityMapper;
+import backend.mapper.EntityMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

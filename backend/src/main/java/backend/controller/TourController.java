@@ -12,7 +12,7 @@ import backend.entity.Tour.TourStatus;
 import backend.exception.ResourceNotFoundException;
 import backend.service.CategoryService;
 import backend.service.TourService;
-import backend.util.EntityMapper;
+import backend.mapper.EntityMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

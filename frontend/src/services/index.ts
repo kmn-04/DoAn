@@ -9,6 +9,7 @@ export { default as wishlistService } from './wishlistService';
 export { default as notificationService } from './notificationService';
 export { default as recommendationService } from './recommendationService';
 export { default as cancellationService } from './cancellationService';
+export { default as contactService } from './contactService';
 export { apiClient } from './api';
 
 // Export types
@@ -38,3 +39,8 @@ export type {
   CategoryWithTourCount,
   CategoryStatus
 } from './categoryService';
+
+export type {
+  ContactRequest,
+  ContactResponse
+} from './contactService';
