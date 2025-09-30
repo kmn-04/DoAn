@@ -18,6 +18,12 @@ phone VARCHAR(20),
 address VARCHAR(255),
 dob DATE,
 email_verified_at TIMESTAMP NULL,
+-- Thống kê người dùng
+login_count INT DEFAULT 0,
+total_bookings INT DEFAULT 0,
+total_tour_views INT DEFAULT 0,
+last_login_at TIMESTAMP NULL,
+last_activity_at TIMESTAMP NULL,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 deleted_at TIMESTAMP NULL,
@@ -52,6 +58,9 @@ max_people INT NOT NULL,
 status ENUM('Active','Inactive') DEFAULT 'Active',
 is_featured BOOLEAN DEFAULT FALSE,
 category_id BIGINT,
+-- Thêm trường mới
+tour_type ENUM('DOMESTIC','INTERNATIONAL') DEFAULT 'DOMESTIC',
+main_image VARCHAR(255),
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 deleted_at TIMESTAMP NULL,
@@ -65,8 +74,13 @@ day_number INT NOT NULL,
 title VARCHAR(255),
 description TEXT,
 partner_id BIGINT NULL,
+-- Thêm trường mới cho đối tác
+accommodation_partner_id BIGINT NULL,
+meals_partner_id BIGINT NULL,
 FOREIGN KEY (tour_id) REFERENCES tours(id),
-FOREIGN KEY (partner_id) REFERENCES partners(id)
+FOREIGN KEY (partner_id) REFERENCES partners(id),
+FOREIGN KEY (accommodation_partner_id) REFERENCES partners(id),
+FOREIGN KEY (meals_partner_id) REFERENCES partners(id)
 );
 -- =============================
 -- Bảng booking & thanh toán
@@ -135,7 +149,7 @@ updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 CREATE TABLE partners (
 id BIGINT AUTO_INCREMENT PRIMARY KEY,
 name VARCHAR(150) NOT NULL,
-type ENUM('Hotel','Restaurant','Transport') NOT NULL,
+type ENUM('Hotel','Restaurant','Transport','TourOperator') NOT NULL,
 address VARCHAR(255),
 phone VARCHAR(20),
 avatar_url VARCHAR(255)
@@ -167,8 +181,11 @@ CREATE TABLE contact_requests (
 id BIGINT AUTO_INCREMENT PRIMARY KEY,
 name VARCHAR(150) NOT NULL,
 email VARCHAR(150) NOT NULL,
+phone VARCHAR(20),
+subject VARCHAR(255),
 message TEXT,
-status ENUM('New','In-progress','Resolved') DEFAULT 'New',
+tour_interest VARCHAR(255),
+status ENUM('New','In-progress','Resolved','Closed') DEFAULT 'New',
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -189,4 +206,58 @@ user_id BIGINT,
 action VARCHAR(255),
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- =============================
+-- Bảng hoạt động người dùng (User Activity)
+-- =============================
+CREATE TABLE user_activities (
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+user_id BIGINT NOT NULL,
+activity_type VARCHAR(100) NOT NULL,
+activity_data TEXT,
+ip_address VARCHAR(45),
+user_agent TEXT,
+session_id VARCHAR(255),
+page_url VARCHAR(500),
+referer_url VARCHAR(500),
+duration_seconds INT DEFAULT 0,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (user_id) REFERENCES users(id),
+INDEX idx_user_activities_user_id (user_id),
+INDEX idx_user_activities_activity_type (activity_type),
+INDEX idx_user_activities_created_at (created_at),
+INDEX idx_user_activities_session_id (session_id),
+INDEX idx_user_activities_ip_address (ip_address)
+);
+
+-- =============================
+-- Bảng phiên đăng nhập (User Session)
+-- =============================
+CREATE TABLE user_sessions (
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+user_id BIGINT NOT NULL,
+session_id VARCHAR(255) UNIQUE NOT NULL,
+ip_address VARCHAR(45),
+user_agent TEXT,
+device_type VARCHAR(50),
+browser VARCHAR(100),
+os VARCHAR(100),
+country VARCHAR(100),
+city VARCHAR(100),
+login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+logged_out_at TIMESTAMP NULL,
+logout_reason VARCHAR(255),
+is_active BOOLEAN DEFAULT TRUE,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+FOREIGN KEY (user_id) REFERENCES users(id),
+INDEX idx_user_sessions_user_id (user_id),
+INDEX idx_user_sessions_session_id (session_id),
+INDEX idx_user_sessions_is_active (is_active),
+INDEX idx_user_sessions_login_at (login_at),
+INDEX idx_user_sessions_ip_address (ip_address),
+INDEX idx_user_sessions_device_type (device_type),
+INDEX idx_user_sessions_country (country)
 );
