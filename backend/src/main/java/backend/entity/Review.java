@@ -24,9 +24,24 @@ public class Review {
     @Column(columnDefinition = "TEXT")
     private String comment;
     
+    @Column(columnDefinition = "JSON")
+    private String images; // Array of image URLs (JSON)
+    
+    @Column(name = "helpful_count")
+    private Integer helpfulCount = 0; // Số lượt "hữu ích"
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReviewStatus status = ReviewStatus.Pending;
+    
+    @Column(name = "admin_reply", columnDefinition = "TEXT")
+    private String adminReply; // Phản hồi từ admin
+    
+    @Column(name = "replied_at")
+    private LocalDateTime repliedAt; // Thời điểm phản hồi
+    
+    @Column(name = "replied_by")
+    private Long repliedBy; // Admin ID who replied
     
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

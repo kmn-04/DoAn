@@ -47,17 +47,21 @@ public interface TourService {
     Page<Tour> searchTours(String keyword, Pageable pageable);
     
     /**
-     * Search tours with international filters
+     * Search tours with all filters (updated for new filter fields)
+     * Note: continent and minRating removed (location now searches across destination, region, country)
      */
     Page<Tour> searchToursWithFilters(
         String keyword,
         Long categoryId,
         BigDecimal minPrice,
         BigDecimal maxPrice,
-        Integer duration,
+        Integer minDuration,
+        Integer maxDuration,
         Tour.TourType tourType,
-        Long countryId,
-        String continent,
+        String location,
+        String countryCode,
+        String continent,  // DEPRECATED - will be removed
+        BigDecimal minRating,  // DEPRECATED - will be removed
         Boolean visaRequired,
         Boolean flightIncluded,
         Pageable pageable

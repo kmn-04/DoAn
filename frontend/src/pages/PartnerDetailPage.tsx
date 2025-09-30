@@ -31,7 +31,7 @@ const PartnerDetailPage: React.FC = () => {
     name: 'Saigon Tourist',
     slug: 'saigon-tourist',
     description: 'Công ty du lịch hàng đầu Việt Nam với hơn 30 năm kinh nghiệm trong ngành du lịch. Chúng tôi chuyên cung cấp các dịch vụ du lịch chất lượng cao, từ tour trong nước đến quốc tế, đáp ứng mọi nhu cầu của khách hàng từ du lịch gia đình, doanh nghiệp đến du lịch luxury.',
-    type: 'TourOperator' as const,
+    type: 'Hotel' as const,
     website: 'https://saigontourist.net',
     phone: '028-3822-4987',
     email: 'info@saigontourist.net',

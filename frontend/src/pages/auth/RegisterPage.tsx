@@ -91,7 +91,8 @@ const RegisterPage: React.FC = () => {
     });
     
     if (result.success) {
-      navigate('/', { replace: true });
+      // Sau khi đăng ký thành công, chuyển sang trang login
+      navigate('/login', { replace: true });
     }
     // Error handling is done in the useAuth hook
   };

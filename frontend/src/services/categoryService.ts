@@ -20,7 +20,11 @@ export interface CategoryResponse {
   slug: string;
   description?: string;
   imageUrl?: string;
-  status: 'ACTIVE' | 'INACTIVE';
+  icon?: string;  // NEW: Icon emoji for category
+  parentId?: number;  // NEW: For hierarchical categories
+  displayOrder?: number;  // NEW: Sort order
+  isFeatured?: boolean;  // NEW: Featured categories
+  status: 'ACTIVE' | 'INACTIVE' | 'Active' | 'Inactive';  // Support both formats
   totalTours?: number;
   createdAt: string;
   updatedAt: string;

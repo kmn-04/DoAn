@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,7 @@ public class TourController extends BaseController {
     
     @GetMapping
     @Operation(summary = "Get all tours with pagination")
+    @Transactional(readOnly = true)  // Fix LazyInitializationException
     public ResponseEntity<ApiResponse<PageResponse<TourResponse>>> getAllTours(
             @Parameter(description = "Page number") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
@@ -48,6 +50,12 @@ public class TourController extends BaseController {
         
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         Page<Tour> tours = tourService.getAllTours(pageable);
+        // Eagerly load category to avoid LazyInitializationException
+        tours.forEach(tour -> {
+            if (tour.getCategory() != null) {
+                tour.getCategory().getName(); // Force load
+            }
+        });
         Page<TourResponse> tourResponses = tours.map(mapper::toTourResponse);
         
         return ResponseEntity.ok(successPage(tourResponses));
@@ -75,11 +83,32 @@ public class TourController extends BaseController {
     
     @GetMapping("/search")
     @Operation(summary = "Search tours with filters (GET)")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<PageResponse<TourResponse>>> searchTours(@Valid TourSearchRequest request) {
+        
+        log.info("Searching tours with request: {}", request);
         
         Pageable pageable = createPageable(request.getPage(), request.getSize(), 
                                          request.getSortBy(), request.getSortDirection());
-        Page<Tour> tours = tourService.searchTours(request.getKeyword(), pageable);
+        
+        // Use comprehensive filter search
+        Page<Tour> tours = tourService.searchToursWithFilters(
+            request.getKeyword(),
+            request.getCategoryId(),
+            request.getMinPrice(),
+            request.getMaxPrice(),
+            request.getMinDuration(),
+            request.getMaxDuration(),
+            request.getTourType() != null ? Tour.TourType.valueOf(request.getTourType()) : null,
+            request.getLocation(),
+            request.getCountryCode(),
+            request.getContinent(),
+            request.getMinRating(),
+            request.getVisaRequired(),
+            request.getFlightIncluded(),
+            pageable
+        );
+        
         Page<TourResponse> tourResponses = tours.map(mapper::toTourResponse);
         
         return ResponseEntity.ok(successPage(tourResponses));
@@ -87,11 +116,32 @@ public class TourController extends BaseController {
     
     @PostMapping("/search")
     @Operation(summary = "Search tours with filters (POST)")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<PageResponse<TourResponse>>> searchToursPost(@Valid @RequestBody TourSearchRequest request) {
+        
+        log.info("Searching tours (POST) with request: {}", request);
         
         Pageable pageable = createPageable(request.getPage(), request.getSize(), 
                                          request.getSortBy(), request.getSortDirection());
-        Page<Tour> tours = tourService.searchTours(request.getKeyword(), pageable);
+        
+        // Use comprehensive filter search
+        Page<Tour> tours = tourService.searchToursWithFilters(
+            request.getKeyword(),
+            request.getCategoryId(),
+            request.getMinPrice(),
+            request.getMaxPrice(),
+            request.getMinDuration(),
+            request.getMaxDuration(),
+            request.getTourType() != null ? Tour.TourType.valueOf(request.getTourType()) : null,
+            request.getLocation(),
+            request.getCountryCode(),
+            request.getContinent(),
+            request.getMinRating(),
+            request.getVisaRequired(),
+            request.getFlightIncluded(),
+            pageable
+        );
+        
         Page<TourResponse> tourResponses = tours.map(mapper::toTourResponse);
         
         return ResponseEntity.ok(successPage(tourResponses));
@@ -99,6 +149,7 @@ public class TourController extends BaseController {
     
     @GetMapping("/{tourId}")
     @Operation(summary = "Get tour by ID")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<TourResponse>> getTourById(
             @Parameter(description = "Tour ID") @PathVariable Long tourId) {
         
@@ -110,6 +161,7 @@ public class TourController extends BaseController {
     
     @GetMapping("/slug/{slug}")
     @Operation(summary = "Get tour by slug")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<TourResponse>> getTourBySlug(
             @Parameter(description = "Tour slug") @PathVariable String slug) {
         
@@ -121,6 +173,7 @@ public class TourController extends BaseController {
     
     @GetMapping("/category/{categoryId}")
     @Operation(summary = "Get tours by category")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<TourResponse>>> getToursByCategory(
             @Parameter(description = "Category ID") @PathVariable Long categoryId) {
         
@@ -132,6 +185,7 @@ public class TourController extends BaseController {
     
     @GetMapping("/category/slug/{categorySlug}")
     @Operation(summary = "Get tours by category slug")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<TourResponse>>> getToursByCategorySlug(
             @Parameter(description = "Category slug") @PathVariable String categorySlug) {
         
@@ -143,6 +197,7 @@ public class TourController extends BaseController {
     
     @GetMapping("/top-rated")
     @Operation(summary = "Get top rated tours")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<TourResponse>>> getTopRatedTours(
             @Parameter(description = "Number of tours to return") @RequestParam(defaultValue = "10") int limit) {
         

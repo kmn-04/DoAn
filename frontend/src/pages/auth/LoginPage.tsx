@@ -34,7 +34,7 @@ const LoginPage: React.FC = () => {
   const location = useLocation();
   
   // Get redirect path from location state
-  const from = (location.state as any)?.from?.pathname || '/';
+  const from = (location.state as any)?.from?.pathname || '/dashboard';
 
   const {
     register,

@@ -35,7 +35,26 @@ public class TourSearchRequest {
     
     private Boolean isFeatured;
     
-    private String sortBy = "createdAt"; // createdAt, price, rating, name
+    // New filter fields for tour type and location
+    private String tourType; // DOMESTIC, INTERNATIONAL
+    
+    private String location; // Hà Nội, Tokyo, Paris...
+    
+    private String countryCode; // VN, JP, FR...
+    
+    private String continent; // Asia, Europe, America, Oceania
+    
+    // Rating filter
+    @DecimalMin(value = "0.0", message = "Min rating must be non-negative")
+    @Max(value = 5, message = "Max rating must not exceed 5")
+    private BigDecimal minRating;
+    
+    // Visa and flight filters (for international tours)
+    private Boolean visaRequired;
+    
+    private Boolean flightIncluded;
+    
+    private String sortBy = "createdAt"; // createdAt, price, rating, name, reviewCount
     
     private String sortDirection = "desc"; // asc, desc
     

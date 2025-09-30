@@ -142,8 +142,8 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
             cancellation.setStatus(BookingCancellation.CancellationStatus.REQUESTED);
         }
 
-        // Update booking status
-        booking.setStatus(Booking.BookingStatus.CancellationRequested);
+        // Update booking confirmation status
+        booking.setConfirmationStatus(Booking.ConfirmationStatus.CancellationRequested);
         bookingRepository.save(booking);
 
         // Save cancellation
@@ -207,9 +207,9 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
         // }
 
         // Check booking status
-        if (booking.getStatus() == Booking.BookingStatus.Cancelled || 
-            booking.getStatus() == Booking.BookingStatus.Completed ||
-            booking.getStatus() == Booking.BookingStatus.CancellationRequested) {
+        if (booking.getConfirmationStatus() == Booking.ConfirmationStatus.Cancelled || 
+            booking.getConfirmationStatus() == Booking.ConfirmationStatus.Completed ||
+            booking.getConfirmationStatus() == Booking.ConfirmationStatus.CancellationRequested) {
             return false;
         }
 
@@ -240,9 +240,9 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
 
         cancellation.markAsApproved(admin, adminNotes);
 
-        // Update booking status
+        // Update booking confirmation status
         Booking booking = cancellation.getBooking();
-        booking.setStatus(Booking.BookingStatus.Cancelled);
+        booking.setConfirmationStatus(Booking.ConfirmationStatus.Cancelled);
         bookingRepository.save(booking);
 
         BookingCancellation savedCancellation = cancellationRepository.save(cancellation);
@@ -266,9 +266,9 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
 
         cancellation.markAsRejected(admin, adminNotes);
 
-        // Restore booking status
+        // Restore booking confirmation status
         Booking booking = cancellation.getBooking();
-        booking.setStatus(Booking.BookingStatus.Confirmed); // Or original status
+        booking.setConfirmationStatus(Booking.ConfirmationStatus.Confirmed); // Or original status
         bookingRepository.save(booking);
 
         BookingCancellation savedCancellation = cancellationRepository.save(cancellation);

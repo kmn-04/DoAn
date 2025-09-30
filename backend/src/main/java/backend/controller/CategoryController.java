@@ -76,7 +76,13 @@ public class CategoryController extends BaseController {
     }
     
     private CategoryResponse createMockCategory(Long id, String name, String slug, String description) {
-        return new CategoryResponse(id, name, slug, description, null, "Active", null, null, null);
+        CategoryResponse response = new CategoryResponse();
+        response.setId(id);
+        response.setName(name);
+        response.setSlug(slug);
+        response.setDescription(description);
+        response.setStatus("Active");
+        return response;
     }
     
     @GetMapping("/with-tour-count")
@@ -97,7 +103,7 @@ public class CategoryController extends BaseController {
         
         Pageable pageable = createPageable(page, size);
         Page<Category> categories = categoryService.searchCategories(keyword, pageable);
-        Page<CategoryResponse> categoryResponses = categories.map(mapper::toCategoryResponse);
+        Page<CategoryResponse> categoryResponses = categories.map(mapper::toCategoryResponseFull);
         
         return ResponseEntity.ok(successPage(categoryResponses));
     }
@@ -110,7 +116,7 @@ public class CategoryController extends BaseController {
         Category category = categoryService.getCategoryById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
         
-        return ResponseEntity.ok(success(mapper.toCategoryResponse(category)));
+        return ResponseEntity.ok(success(mapper.toCategoryResponseFull(category)));
     }
     
     @GetMapping("/slug/{slug}")
@@ -121,7 +127,7 @@ public class CategoryController extends BaseController {
         Category category = categoryService.getCategoryBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "slug", slug));
         
-        return ResponseEntity.ok(success(mapper.toCategoryResponse(category)));
+        return ResponseEntity.ok(success(mapper.toCategoryResponseFull(category)));
     }
     
     @PostMapping
@@ -137,7 +143,7 @@ public class CategoryController extends BaseController {
         
         Category createdCategory = categoryService.createCategory(category);
         
-        return ResponseEntity.ok(success("Category created successfully", mapper.toCategoryResponse(createdCategory)));
+        return ResponseEntity.ok(success("Category created successfully", mapper.toCategoryResponseFull(createdCategory)));
     }
     
     @PutMapping("/{categoryId}")
@@ -154,7 +160,7 @@ public class CategoryController extends BaseController {
         
         Category updatedCategory = categoryService.updateCategory(categoryId, categoryUpdate);
         
-        return ResponseEntity.ok(success("Category updated successfully", mapper.toCategoryResponse(updatedCategory)));
+        return ResponseEntity.ok(success("Category updated successfully", mapper.toCategoryResponseFull(updatedCategory)));
     }
     
     @PutMapping("/{categoryId}/status")
@@ -165,7 +171,7 @@ public class CategoryController extends BaseController {
         
         Category updatedCategory = categoryService.changeCategoryStatus(categoryId, status);
         
-        return ResponseEntity.ok(success("Category status updated", mapper.toCategoryResponse(updatedCategory)));
+        return ResponseEntity.ok(success("Category status updated", mapper.toCategoryResponseFull(updatedCategory)));
     }
     
     @DeleteMapping("/{categoryId}")

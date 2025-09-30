@@ -63,7 +63,7 @@ public class BookingModificationServiceTest {
         testBooking.setNumAdults(2);
         testBooking.setNumChildren(0);
         testBooking.setTotalPrice(new BigDecimal("500.00"));
-        testBooking.setStatus(Booking.BookingStatus.Confirmed);
+        testBooking.setConfirmationStatus(Booking.ConfirmationStatus.Confirmed);
 
         // Create test modification request
         testRequest = new BookingModificationRequest();
@@ -203,7 +203,7 @@ public class BookingModificationServiceTest {
     @Test
     void testValidateModificationRequest_BookingNotConfirmed() {
         // Arrange
-        testBooking.setStatus(Booking.BookingStatus.Pending);
+        testBooking.setConfirmationStatus(Booking.ConfirmationStatus.Pending);
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
         // Act
@@ -246,7 +246,7 @@ public class BookingModificationServiceTest {
     @Test
     void testCanBookingBeModified_False() {
         // Arrange
-        testBooking.setStatus(Booking.BookingStatus.Cancelled);
+        testBooking.setConfirmationStatus(Booking.ConfirmationStatus.Cancelled);
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
         // Act

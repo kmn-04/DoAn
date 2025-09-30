@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   MagnifyingGlassIcon, 
   XMarkIcon,
-  ChevronDownIcon,
-  AdjustmentsHorizontalIcon
+  FunnelIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '../ui';
-import { categoryService, countryService, tourService } from '../../services';
+import { countryService, categoryService, tourService } from '../../services';
+import type { CategoryResponse } from '../../services';
 
 interface FilterState {
   search: string;
@@ -31,8 +31,24 @@ interface TourFiltersProps {
   totalResults: number;
 }
 
-// Static data that doesn't need API
-const durations = [
+// Categories will be fetched from API
+
+const TOUR_TYPES = [
+  { value: '', label: 'Tất cả loại tour' },
+  { value: 'domestic', label: 'Trong nước' },
+  { value: 'international', label: 'Quốc tế' }
+];
+
+const PRICE_RANGES = [
+  { value: '', label: 'Tất cả mức giá', min: '', max: '' },
+  { value: '0-2000000', label: 'Dưới 2 triệu', min: '0', max: '2000000' },
+  { value: '2000000-5000000', label: '2-5 triệu', min: '2000000', max: '5000000' },
+  { value: '5000000-10000000', label: '5-10 triệu', min: '5000000', max: '10000000' },
+  { value: '10000000-20000000', label: '10-20 triệu', min: '10000000', max: '20000000' },
+  { value: '20000000-', label: 'Trên 20 triệu', min: '20000000', max: '' }
+];
+
+const DURATIONS = [
   { value: '', label: 'Tất cả thời gian' },
   { value: '1', label: '1 ngày' },
   { value: '2-3', label: '2-3 ngày' },
@@ -41,13 +57,19 @@ const durations = [
   { value: '15+', label: '15+ ngày' }
 ];
 
-const sortOptions = [
+const RATINGS = [
+  { value: '', label: 'Tất cả đánh giá' },
+  { value: '4.5', label: '4.5⭐ trở lên' },
+  { value: '4.0', label: '4⭐ trở lên' },
+  { value: '3.5', label: '3.5⭐ trở lên' },
+  { value: '3.0', label: '3⭐ trở lên' }
+];
+
+const SORT_OPTIONS = [
   { value: 'popular', label: 'Phổ biến nhất' },
-  { value: 'price-low', label: 'Giá thấp đến cao' },
-  { value: 'price-high', label: 'Giá cao đến thấp' },
-  { value: 'rating', label: 'Đánh giá cao nhất' },
   { value: 'newest', label: 'Mới nhất' },
-  { value: 'duration', label: 'Thời gian ngắn nhất' }
+  { value: 'price-low', label: 'Giá thấp nhất' },
+  { value: 'price-high', label: 'Giá cao nhất' }
 ];
 
 const TourFilters: React.FC<TourFiltersProps> = ({
@@ -56,545 +78,292 @@ const TourFilters: React.FC<TourFiltersProps> = ({
   onClearFilters,
   totalResults
 }) => {
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [expandedSections, setExpandedSections] = useState({
-    category: true,
-    tourType: true,
-    continent: true,
-    country: true,
-    price: true,
-    duration: true,
-    location: true,
-    rating: true,
-    services: true
-  });
-
-  // Dynamic data from API
-  const [categories, setCategories] = useState([
-    { value: '', label: 'Tất cả danh mục' }
-  ]);
-  const [countries, setCountries] = useState<{value: string; label: string; continent?: string}[]>([
-    { value: '', label: 'Tất cả quốc gia' }
-  ]);
-  const [continents, setContinents] = useState([
-    { value: '', label: 'Tất cả châu lục' }
-  ]);
-  const [locations, setLocations] = useState([
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  const [locations, setLocations] = useState<{ value: string; label: string }[]>([
     { value: '', label: 'Tất cả địa điểm' }
   ]);
 
-  // Fetch filter data from API
+  // Fetch categories from API
   useEffect(() => {
-    const fetchFilterData = async () => {
+    const fetchCategories = async () => {
       try {
-
-        // Fetch categories
-        const categoriesData = await categoryService.getActiveCategories();
-        const categoryOptions = [
-          { value: '', label: 'Tất cả danh mục' },
-          ...categoriesData.map(cat => ({
-            value: cat.slug,
-            label: cat.name
-          }))
-        ];
-        setCategories(categoryOptions);
-
-        // Fetch countries for international tours
-        const countriesData = await countryService.getAllCountries();
-        const countryOptions = [
-          { value: '', label: 'Tất cả quốc gia' },
-          ...countriesData.map(country => ({
-            value: country.name,
-            label: country.name,
-            continent: country.continent
-          }))
-        ];
-        setCountries(countryOptions);
-
-        // Get unique continents
-        const uniqueContinents = [...new Set(countriesData.map(c => c.continent))];
-        const continentOptions = [
-          { value: '', label: 'Tất cả châu lục' },
-          ...uniqueContinents.map(continent => ({
-            value: continent,
-            label: continent === 'ASIA' ? 'Châu Á' :
-                   continent === 'EUROPE' ? 'Châu Âu' :
-                   continent === 'AMERICA' ? 'Châu Mỹ' :
-                   continent === 'AFRICA' ? 'Châu Phi' :
-                   continent === 'OCEANIA' ? 'Châu Đại Dương' : continent
-          }))
-        ];
-        setContinents(continentOptions);
-
-        // Fetch unique locations from tours
-        const locationsData = await tourService.getUniqueLocations();
-        const locationOptions = [
-          { value: '', label: 'Tất cả địa điểm' },
-          ...locationsData.map(location => ({
-            value: location.toLowerCase().replace(/\s+/g, '-'),
-            label: location
-          }))
-        ];
-        setLocations(locationOptions);
-
+        const cats = await categoryService.getAllCategories();
+        setCategories(cats);
       } catch (error) {
-        console.error('Error fetching filter data:', error);
-        
-        // Fallback data on error
-        setCategories([
-          { value: '', label: 'Tất cả danh mục' },
-          { value: 'beach', label: 'Tour Biển' },
-          { value: 'mountain', label: 'Tour Núi' },
-          { value: 'city', label: 'Tour Thành Phố' },
-          { value: 'culture', label: 'Tour Văn Hóa' },
-          { value: 'adventure', label: 'Tour Mạo Hiểm' },
-          { value: 'food', label: 'Tour Ẩm Thực' }
-        ]);
-        
-        setCountries([
-          { value: '', label: 'Tất cả quốc gia' },
-          { value: 'Nhật Bản', label: 'Nhật Bản', continent: 'ASIA' },
-          { value: 'Hàn Quốc', label: 'Hàn Quốc', continent: 'ASIA' },
-          { value: 'Thái Lan', label: 'Thái Lan', continent: 'ASIA' },
-          { value: 'Singapore', label: 'Singapore', continent: 'ASIA' },
-          { value: 'Pháp', label: 'Pháp', continent: 'EUROPE' },
-          { value: 'Úc', label: 'Úc', continent: 'OCEANIA' }
-        ]);
-        
-        setContinents([
-          { value: '', label: 'Tất cả châu lục' },
-          { value: 'ASIA', label: 'Châu Á' },
-          { value: 'EUROPE', label: 'Châu Âu' },
-          { value: 'AMERICA', label: 'Châu Mỹ' },
-          { value: 'OCEANIA', label: 'Châu Đại Dương' }
-        ]);
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Get categories based on tour type
+  const getCategoriesForTourType = (tourType: string) => {
+    const defaultOption = { value: '', label: 'Tất cả danh mục' };
+    
+    if (!categories.length) return [defaultOption];
+    
+    // Filter categories based on tour type if needed
+    // For now, return all categories
+    const categoryOptions = categories.map(cat => ({
+      value: cat.slug,
+      label: cat.name
+    }));
+    
+    return [defaultOption, ...categoryOptions];
+  };
+  
+  // Get locations based on tour type
+  const getLocationsForTourType = (tourType: string) => {
+    // Define domestic and international keywords for filtering
+    const domesticKeywords = ['việt', 'hà nội', 'sài gòn', 'hồ chí minh', 'đà nẵng', 'quảng', 'lào cai', 'kiên giang', 'lâm đồng', 'khánh hòa', 'bình', 'phú quốc', 'sapa', 'hạ long', 'hội an', 'đà lạt', 'nha trang', 'vũng tàu', 'huế', 'cần thơ', 'miền', 'nam', 'bắc', 'trung'];
+    const internationalKeywords = ['nhật', 'hàn', 'thái', 'singapore', 'malaysia', 'ấn độ', 'trung quốc', 'pháp', 'ý', 'tây ban nha', 'anh', 'mỹ', 'úc', 'dubai', 'hàn quốc', 'nhật bản'];
+    
+    if (tourType === 'domestic') {
+      // Filter to show only Vietnamese locations
+      const filtered = locations.filter(loc => {
+        if (loc.value === '') return true;
+        const lowerValue = loc.value.toLowerCase();
+        // Include if contains any domestic keyword OR doesn't contain international keywords
+        return domesticKeywords.some(kw => lowerValue.includes(kw)) || 
+               !internationalKeywords.some(kw => lowerValue.includes(kw));
+      });
+      return filtered.length > 1 ? filtered : [{ value: '', label: 'Tất cả địa điểm' }];
+    } else if (tourType === 'international') {
+      // Filter to show only international countries
+      const filtered = locations.filter(loc => {
+        if (loc.value === '') return true;
+        const lowerValue = loc.value.toLowerCase();
+        // Include if contains any international keyword
+        return internationalKeywords.some(kw => lowerValue.includes(kw));
+      });
+      return filtered.length > 1 ? filtered : [{ value: '', label: 'Tất cả địa điểm' }];
+    }
+    
+    // Show all locations if no tour type selected
+    return locations;
+  };
+
+  // Handle filter change with smart logic
+  const handleFilterChange = (key: keyof FilterState, value: string | boolean) => {
+    const newFilters = { ...filters, [key]: value };
+    
+    // Reset category and location if tour type changes
+    if (key === 'tourType') {
+      const validCategories = getCategoriesForTourType(value as string);
+      const currentCategoryValid = validCategories.some(cat => cat.value === filters.category);
+      if (!currentCategoryValid && filters.category) {
+        newFilters.category = '';
+      }
+      
+      // Reset location if it's not valid for new tour type
+      const validLocations = getLocationsForTourType(value as string);
+      const currentLocationValid = validLocations.some(loc => loc.value === filters.location);
+      if (!currentLocationValid && filters.location) {
+        newFilters.location = '';
+      }
+    }
+    
+    onFiltersChange(newFilters);
+  };
+
+  // Handle price range change
+  const handlePriceRangeChange = (value: string) => {
+    const range = PRICE_RANGES.find(r => r.value === value);
+    if (range) {
+      onFiltersChange({
+        ...filters,
+        priceMin: range.min,
+        priceMax: range.max
+      });
+    }
+  };
+
+  // Get current price range
+  const getCurrentPriceRange = () => {
+    const { priceMin, priceMax } = filters;
+    if (!priceMin && !priceMax) return '';
+    
+    const range = PRICE_RANGES.find(r => r.min === priceMin && r.max === priceMax);
+    return range ? range.value : '';
+  };
+
+  // Check if has active filters
+  const hasActiveFilters = () => {
+    return filters.search || filters.category || filters.tourType || filters.priceMin || 
+           filters.priceMax || filters.duration || filters.location || filters.rating ||
+           filters.flightIncluded;
+  };
+
+  // Fetch locations from tours in CSDL
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        // Get unique locations from tours table
+        const locationsData = await tourService.getUniqueLocations();
+        const locationOptions = locationsData.map(loc => ({
+          value: loc,
+          label: loc
+        }));
         
         setLocations([
           { value: '', label: 'Tất cả địa điểm' },
-          { value: 'ha-noi', label: 'Hà Nội' },
-          { value: 'ho-chi-minh', label: 'TP. Hồ Chí Minh' },
-          { value: 'da-nang', label: 'Đà Nẵng' },
-          { value: 'quang-ninh', label: 'Quảng Ninh' }
+          ...locationOptions
         ]);
-      } finally {
-        // Cleanup if needed
+      } catch (error) {
+        console.error('Error fetching locations:', error);
       }
     };
 
-    fetchFilterData();
+    fetchLocations();
   }, []);
 
-  const handleFilterChange = (key: keyof FilterState, value: string) => {
-    onFiltersChange({ ...filters, [key]: value });
-  };
-
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
-  const hasActiveFilters = Object.entries(filters).some(([key, value]) => 
-    key !== 'sortBy' && value !== ''
-  );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border">
-      {/* Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Bộ lọc tìm kiếm
-            </h3>
-            <span className="text-sm text-gray-500">
-              {totalResults} kết quả
-            </span>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            {hasActiveFilters && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onClearFilters}
-                className="text-red-600 border-red-300 hover:bg-red-50"
-              >
-                <XMarkIcon className="h-4 w-4 mr-1" />
-                Xóa bộ lọc
-              </Button>
-            )}
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowMobileFilters(!showMobileFilters)}
-              className="lg:hidden"
-            >
-              <AdjustmentsHorizontalIcon className="h-4 w-4 mr-1" />
-              Bộ lọc
-            </Button>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mt-4">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      {/* Filters Bar */}
+      <div className="p-4">
+        {/* Search */}
+        <div className="mb-4">
           <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Tìm kiếm tour du lịch..."
+              placeholder="Tìm kiếm tour..."
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
           </div>
         </div>
 
-        {/* Sort */}
-        <div className="mt-4 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">Sắp xếp theo:</span>
-          <select
-            value={filters.sortBy}
-            onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {sortOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+        {/* Filter Dropdowns - Horizontal layout with scroll */}
+        <div className="flex gap-3 mb-4 overflow-x-auto pb-2">
+          {/* Tour Type */}
+          <div className="flex-shrink-0 min-w-[160px]">
+            <select
+              value={filters.tourType}
+              onChange={(e) => handleFilterChange('tourType', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              {TOUR_TYPES.map(type => (
+                <option key={type.value} value={type.value}>{type.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Category - Dynamic */}
+          <div className="flex-shrink-0 min-w-[180px]">
+            <select
+              value={filters.category}
+              onChange={(e) => handleFilterChange('category', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              {getCategoriesForTourType(filters.tourType).map(category => (
+                <option key={category.value} value={category.value}>{category.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Price Range */}
+          <div className="flex-shrink-0 min-w-[160px]">
+            <select
+              value={getCurrentPriceRange()}
+              onChange={(e) => handlePriceRangeChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              {PRICE_RANGES.map(range => (
+                <option key={range.value} value={range.value}>{range.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Duration */}
+          <div className="flex-shrink-0 min-w-[150px]">
+            <select
+              value={filters.duration}
+              onChange={(e) => handleFilterChange('duration', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              {DURATIONS.map(duration => (
+                <option key={duration.value} value={duration.value}>{duration.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Location - Dynamic based on tour type */}
+          <div className="flex-shrink-0 min-w-[160px]">
+            <select
+              value={filters.location}
+              onChange={(e) => handleFilterChange('location', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              {getLocationsForTourType(filters.tourType).map(location => (
+                <option key={location.value} value={location.value}>{location.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Rating */}
+          <div className="flex-shrink-0 min-w-[140px]">
+            <select
+              value={filters.rating}
+              onChange={(e) => handleFilterChange('rating', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              {RATINGS.map(rating => (
+                <option key={rating.value} value={rating.value}>{rating.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort */}
+          <div className="flex-shrink-0 min-w-[160px]">
+            <select
+              value={filters.sortBy}
+              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              {SORT_OPTIONS.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Flight Included - for international */}
+          {filters.tourType === 'international' && (
+            <div className="flex-shrink-0 min-w-[140px]">
+              <label className="flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:bg-gray-50 h-full">
+                <input
+                  type="checkbox"
+                  checked={filters.flightIncluded}
+                  onChange={(e) => handleFilterChange('flightIncluded', e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
+                />
+                <span className="text-sm text-gray-700 whitespace-nowrap">✈️ Vé máy bay</span>
+              </label>
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Filters Content */}
-      <div className={`${showMobileFilters ? 'block' : 'hidden'} lg:block`}>
-        <div className="p-4 space-y-6">
-          {/* Category Filter */}
-          <div>
-            <button
-              onClick={() => toggleSection('category')}
-              className="flex items-center justify-between w-full text-left"
-            >
-              <h4 className="font-medium text-gray-900">Danh mục</h4>
-              <ChevronDownIcon 
-                className={`h-4 w-4 transition-transform ${
-                  expandedSections.category ? 'rotate-180' : ''
-                }`} 
-              />
-            </button>
-            
-            {expandedSections.category && (
-              <div className="mt-3 space-y-2">
-                {categories.map(category => (
-                  <label key={category.value} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="category"
-                      value={category.value}
-                      checked={filters.category === category.value}
-                      onChange={(e) => handleFilterChange('category', e.target.value)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">{category.label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
+        {/* Results and Clear */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <FunnelIcon className="h-4 w-4 text-gray-500" />
+            <span className="text-sm text-gray-600">
+              <span className="font-semibold text-gray-900">{totalResults}</span> kết quả
+            </span>
           </div>
-
-          {/* Tour Type Filter */}
-          <div>
-            <button
-              onClick={() => toggleSection('tourType')}
-              className="flex items-center justify-between w-full text-left"
+          
+          {hasActiveFilters() && (
+            <Button
+              onClick={onClearFilters}
+              variant="outline"
+              size="sm"
+              className="text-red-600 border-red-300 hover:bg-red-50"
             >
-              <h4 className="font-medium text-gray-900">Loại Tour</h4>
-              <ChevronDownIcon 
-                className={`h-4 w-4 transition-transform ${
-                  expandedSections.tourType ? 'rotate-180' : ''
-                }`} 
-              />
-            </button>
-            
-            {expandedSections.tourType && (
-              <div className="mt-3 space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="tourType"
-                    value=""
-                    checked={filters.tourType === ''}
-                    onChange={(e) => handleFilterChange('tourType', e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Tất cả</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="tourType"
-                    value="domestic"
-                    checked={filters.tourType === 'domestic'}
-                    onChange={(e) => handleFilterChange('tourType', e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Tour Trong Nước</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="tourType"
-                    value="international"
-                    checked={filters.tourType === 'international'}
-                    onChange={(e) => handleFilterChange('tourType', e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Tour Quốc Tế</span>
-                </label>
-              </div>
-            )}
-          </div>
-
-          {/* Continent Filter - only show for international tours */}
-          {filters.tourType === 'international' && (
-            <div>
-              <button
-                onClick={() => toggleSection('continent')}
-                className="flex items-center justify-between w-full text-left"
-              >
-                <h4 className="font-medium text-gray-900">Châu Lục</h4>
-                <ChevronDownIcon 
-                  className={`h-4 w-4 transition-transform ${
-                    expandedSections.continent ? 'rotate-180' : ''
-                  }`} 
-                />
-              </button>
-              
-              {expandedSections.continent && (
-                <div className="mt-3">
-                  <select
-                    value={filters.continent}
-                    onChange={(e) => handleFilterChange('continent', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {continents.map(continent => (
-                      <option key={continent.value} value={continent.value}>
-                        {continent.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Country Filter - only show for international tours */}
-          {filters.tourType === 'international' && (
-            <div>
-              <button
-                onClick={() => toggleSection('country')}
-                className="flex items-center justify-between w-full text-left"
-              >
-                <h4 className="font-medium text-gray-900">Quốc Gia</h4>
-                <ChevronDownIcon 
-                  className={`h-4 w-4 transition-transform ${
-                    expandedSections.country ? 'rotate-180' : ''
-                  }`} 
-                />
-              </button>
-              
-              {expandedSections.country && (
-                <div className="mt-3">
-                  <select
-                    value={filters.country}
-                    onChange={(e) => handleFilterChange('country', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Tất cả quốc gia</option>
-                    {countries
-                      .filter(country => !filters.continent || country.continent === filters.continent)
-                      .map(country => (
-                        <option key={country.value} value={country.value}>
-                          {country.label}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Price Range Filter */}
-          <div>
-            <button
-              onClick={() => toggleSection('price')}
-              className="flex items-center justify-between w-full text-left"
-            >
-              <h4 className="font-medium text-gray-900">Khoảng giá</h4>
-              <ChevronDownIcon 
-                className={`h-4 w-4 transition-transform ${
-                  expandedSections.price ? 'rotate-180' : ''
-                }`} 
-              />
-            </button>
-            
-            {expandedSections.price && (
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  placeholder="Giá từ"
-                  value={filters.priceMin}
-                  onChange={(e) => handleFilterChange('priceMin', e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="number"
-                  placeholder="Giá đến"
-                  value={filters.priceMax}
-                  onChange={(e) => handleFilterChange('priceMax', e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Duration Filter */}
-          <div>
-            <button
-              onClick={() => toggleSection('duration')}
-              className="flex items-center justify-between w-full text-left"
-            >
-              <h4 className="font-medium text-gray-900">Thời gian</h4>
-              <ChevronDownIcon 
-                className={`h-4 w-4 transition-transform ${
-                  expandedSections.duration ? 'rotate-180' : ''
-                }`} 
-              />
-            </button>
-            
-            {expandedSections.duration && (
-              <div className="mt-3 space-y-2">
-                {durations.map(duration => (
-                  <label key={duration.value} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="duration"
-                      value={duration.value}
-                      checked={filters.duration === duration.value}
-                      onChange={(e) => handleFilterChange('duration', e.target.value)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">{duration.label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Location Filter */}
-          <div>
-            <button
-              onClick={() => toggleSection('location')}
-              className="flex items-center justify-between w-full text-left"
-            >
-              <h4 className="font-medium text-gray-900">Địa điểm</h4>
-              <ChevronDownIcon 
-                className={`h-4 w-4 transition-transform ${
-                  expandedSections.location ? 'rotate-180' : ''
-                }`} 
-              />
-            </button>
-            
-            {expandedSections.location && (
-              <div className="mt-3 space-y-2">
-                {locations.map(location => (
-                  <label key={location.value} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="location"
-                      value={location.value}
-                      checked={filters.location === location.value}
-                      onChange={(e) => handleFilterChange('location', e.target.value)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">{location.label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Rating Filter */}
-          <div>
-            <button
-              onClick={() => toggleSection('rating')}
-              className="flex items-center justify-between w-full text-left"
-            >
-              <h4 className="font-medium text-gray-900">Đánh giá</h4>
-              <ChevronDownIcon 
-                className={`h-4 w-4 transition-transform ${
-                  expandedSections.rating ? 'rotate-180' : ''
-                }`} 
-              />
-            </button>
-            
-            {expandedSections.rating && (
-              <div className="mt-3 space-y-2">
-                {[
-                  { value: '4.5', label: '4.5+ sao' },
-                  { value: '4.0', label: '4.0+ sao' },
-                  { value: '3.5', label: '3.5+ sao' },
-                  { value: '3.0', label: '3.0+ sao' },
-                  { value: '', label: 'Tất cả đánh giá' }
-                ].map(rating => (
-                  <label key={rating.value} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="rating"
-                      value={rating.value}
-                      checked={filters.rating === rating.value}
-                      onChange={(e) => handleFilterChange('rating', e.target.value)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">{rating.label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Services Filter - only show for international tours */}
-          {filters.tourType === 'international' && (
-            <div>
-              <button
-                onClick={() => toggleSection('services')}
-                className="flex items-center justify-between w-full text-left"
-              >
-                <h4 className="font-medium text-gray-900">Dịch Vụ Bổ Sung</h4>
-                <ChevronDownIcon 
-                  className={`h-4 w-4 transition-transform ${
-                    expandedSections.services ? 'rotate-180' : ''
-                  }`} 
-                />
-              </button>
-              
-              {expandedSections.services && (
-                <div className="mt-3 space-y-2">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={filters.flightIncluded || false}
-                      onChange={(e) => onFiltersChange({ ...filters, flightIncluded: e.target.checked })}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Bao gồm vé máy bay</span>
-                  </label>
-                </div>
-              )}
-            </div>
+              <XMarkIcon className="h-4 w-4 mr-1" />
+              Xóa bộ lọc
+            </Button>
           )}
         </div>
       </div>

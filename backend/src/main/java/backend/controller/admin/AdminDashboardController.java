@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -71,13 +70,13 @@ public class AdminDashboardController extends BaseController {
             // Booking statistics - using available methods
             List<Booking> allBookings = bookingService.getAllBookings();
             long totalBookings = allBookings.size();
-            long pendingBookings = allBookings.stream().filter(b -> b.getStatus() == Booking.BookingStatus.Pending).count();
-            long confirmedBookings = allBookings.stream().filter(b -> b.getStatus() == Booking.BookingStatus.Confirmed).count();
-            long completedBookings = allBookings.stream().filter(b -> b.getStatus() == Booking.BookingStatus.Completed).count();
-            long cancelledBookings = allBookings.stream().filter(b -> b.getStatus() == Booking.BookingStatus.Cancelled).count();
+            long pendingBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.Pending).count();
+            long confirmedBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.Confirmed).count();
+            long completedBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.Completed).count();
+            long cancelledBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.Cancelled).count();
             BigDecimal totalRevenue = allBookings.stream()
-                .filter(b -> b.getStatus() == Booking.BookingStatus.Completed || b.getStatus() == Booking.BookingStatus.Confirmed)
-                .map(Booking::getTotalPrice)
+                .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.Completed || b.getConfirmationStatus() == Booking.ConfirmationStatus.Confirmed)
+                .map(Booking::getFinalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
             
             overview.put("bookings", Map.of(
@@ -89,18 +88,14 @@ public class AdminDashboardController extends BaseController {
                 "totalRevenue", totalRevenue
             ));
             
-            // Partner statistics - using available methods
+            // Partner statistics - CHỈ HOTEL VÀ RESTAURANT
             List<Partner> hotels = partnerService.getPartnersByType(Partner.PartnerType.Hotel);
             List<Partner> restaurants = partnerService.getPartnersByType(Partner.PartnerType.Restaurant);
-            List<Partner> transport = partnerService.getPartnersByType(Partner.PartnerType.Transport);
-            List<Partner> tourOperators = partnerService.getPartnersByType(Partner.PartnerType.TourOperator);
             
             overview.put("partners", Map.of(
-                "total", hotels.size() + restaurants.size() + transport.size() + tourOperators.size(),
+                "total", hotels.size() + restaurants.size(),
                 "hotels", hotels.size(),
-                "restaurants", restaurants.size(),
-                "transport", transport.size(),
-                "tourOperators", tourOperators.size()
+                "restaurants", restaurants.size()
             ));
             
             // Category statistics - using available methods

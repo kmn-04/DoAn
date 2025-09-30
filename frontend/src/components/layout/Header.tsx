@@ -86,7 +86,7 @@ const Header: React.FC = () => {
   ];
 
   const navigation = [
-    { name: 'Trang chủ', href: '/', current: location.pathname === '/' },
+    { name: 'Trang chủ', href: '/dashboard', current: location.pathname === '/dashboard' },
     { 
       name: 'Tour du lịch', 
       href: '/tours', 
@@ -114,7 +114,7 @@ const Header: React.FC = () => {
           <div className="flex justify-between items-center py-3">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center">
+            <Link to="/dashboard" className="flex items-center">
               <div className="bg-blue-600 text-white p-2 rounded-lg mr-3">
                 <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />

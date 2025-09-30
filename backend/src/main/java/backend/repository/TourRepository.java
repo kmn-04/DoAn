@@ -122,7 +122,7 @@ public interface TourRepository extends JpaRepository<Tour, Long> {
                                                @Param("status") TourStatus status);
     
     /**
-     * Find tours with comprehensive filters for international tours
+     * Find tours with comprehensive filters (updated with new filter fields)
      */
     @Query("SELECT t FROM Tour t LEFT JOIN t.country c WHERE " +
            "(:keyword IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
@@ -130,41 +130,49 @@ public interface TourRepository extends JpaRepository<Tour, Long> {
            "AND (:categoryId IS NULL OR t.category.id = :categoryId) " +
            "AND (:minPrice IS NULL OR t.price >= :minPrice) " +
            "AND (:maxPrice IS NULL OR t.price <= :maxPrice) " +
-           "AND (:duration IS NULL OR t.duration = :duration) " +
+           "AND (:minDuration IS NULL OR t.duration >= :minDuration) " +
+           "AND (:maxDuration IS NULL OR t.duration <= :maxDuration) " +
            "AND (:tourType IS NULL OR t.tourType = :tourType) " +
-           "AND (:countryId IS NULL OR t.country.id = :countryId) " +
-           "AND (:continent IS NULL OR c.continent = :continent) " +
-           "AND (:visaRequired IS NULL OR c.visaRequired = :visaRequired) " +
+           "AND (:location IS NULL OR " +
+           "    LOWER(t.destination) LIKE LOWER(CONCAT('%', :location, '%')) OR " +
+           "    LOWER(t.departureLocation) LIKE LOWER(CONCAT('%', :location, '%')) OR " +
+           "    LOWER(t.region) LIKE LOWER(CONCAT('%', :location, '%')) OR " +
+           "    LOWER(c.name) LIKE LOWER(CONCAT('%', :location, '%'))) " +
+           "AND (:countryCode IS NULL OR t.countryCode = :countryCode) " +
+           "AND (:visaRequired IS NULL OR t.visaRequired = :visaRequired) " +
            "AND (:flightIncluded IS NULL OR t.flightIncluded = :flightIncluded) " +
-           "AND t.status = 'Active' AND t.deletedAt IS NULL " +
-           "ORDER BY t.isFeatured DESC, t.createdAt DESC")
+           "AND t.status = :status AND t.deletedAt IS NULL")
     Page<Tour> findToursWithFilters(
         @Param("keyword") String keyword,
         @Param("categoryId") Long categoryId,
         @Param("minPrice") BigDecimal minPrice,
         @Param("maxPrice") BigDecimal maxPrice,
-        @Param("duration") Integer duration,
+        @Param("minDuration") Integer minDuration,
+        @Param("maxDuration") Integer maxDuration,
         @Param("tourType") Tour.TourType tourType,
-        @Param("countryId") Long countryId,
-        @Param("continent") String continent,
+        @Param("location") String location,
+        @Param("countryCode") String countryCode,
         @Param("visaRequired") Boolean visaRequired,
         @Param("flightIncluded") Boolean flightIncluded,
+        @Param("status") Tour.TourStatus status,
         Pageable pageable
     );
     
     /**
      * Find distinct locations from tours
-     * For domestic tours, use category name as location
-     * For international tours, use country name as location
+     * For domestic tours, use destination or region
+     * For international tours, use country name
      */
     @Query("SELECT DISTINCT " +
-           "CASE WHEN t.tourType = 'DOMESTIC' THEN t.category.name " +
-           "     WHEN t.tourType = 'INTERNATIONAL' THEN t.country.name " +
+           "CASE WHEN t.tourType = 'DOMESTIC' THEN COALESCE(t.destination, t.region, t.departureLocation) " +
+           "     WHEN t.tourType = 'INTERNATIONAL' THEN COALESCE(t.country.name, t.destination) " +
            "     ELSE 'Unknown' END " +
-           "FROM Tour t WHERE t.status = :status AND t.deletedAt IS NULL " +
+           "FROM Tour t LEFT JOIN t.country c " +
+           "WHERE t.status = :status AND t.deletedAt IS NULL " +
+           "AND (t.destination IS NOT NULL OR t.region IS NOT NULL OR t.country.name IS NOT NULL) " +
            "ORDER BY " +
-           "CASE WHEN t.tourType = 'DOMESTIC' THEN t.category.name " +
-           "     WHEN t.tourType = 'INTERNATIONAL' THEN t.country.name " +
+           "CASE WHEN t.tourType = 'DOMESTIC' THEN COALESCE(t.destination, t.region, t.departureLocation) " +
+           "     WHEN t.tourType = 'INTERNATIONAL' THEN COALESCE(t.country.name, t.destination) " +
            "     ELSE 'Unknown' END")
     List<String> findDistinctLocations(@Param("status") TourStatus status);
 }

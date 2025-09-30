@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Import layout components (keep these as regular imports)
@@ -31,7 +31,7 @@ const ContactPage = React.lazy(() => import('./pages/ContactPage'));
 // Dashboard pages - lazy loaded
 const BookingHistoryPage = React.lazy(() => import('./pages/dashboard/BookingHistoryPage'));
 const ProfilePage = React.lazy(() => import('./pages/dashboard/ProfilePage'));
-const WishlistPage = React.lazy(() => import('./pages/dashboard/WishlistPage'));
+const WishlistPage = React.lazy(() => import('./pages/WishlistPage'));  // Updated: moved to root pages
 const NotificationsPage = React.lazy(() => import('./pages/dashboard/NotificationsPage'));
 const SettingsPage = React.lazy(() => import('./pages/dashboard/SettingsPage'));
 
@@ -53,8 +53,12 @@ function App() {
           <ResponsiveTestTool>
             <Router>
             <Routes>
+            {/* Redirect root to dashboard */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            
             {/* Public routes with main layout */}
-            <Route path="/" element={
+            {/* Dashboard - Trang chủ */}
+            <Route path="/dashboard" element={
               <Layout>
                 <PageErrorBoundary>
                   <Suspense fallback={<PageLoader message="Đang tải trang chủ..." />}>

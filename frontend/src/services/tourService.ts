@@ -1,6 +1,6 @@
 import { apiClient } from './api';
 
-// Tour specific types
+// Tour specific types - UPDATED to match new backend schema
 export interface TourResponse {
   id: number;
   name: string;
@@ -8,10 +8,31 @@ export interface TourResponse {
   description: string;
   shortDescription?: string;
   price: number;
-  discountPrice?: number;
+  salePrice?: number;  // Renamed from discountPrice
+  childPrice?: number;  // NEW
+  infantPrice?: number;  // NEW
   duration: number;
-  maxParticipants: number;
-  location: string;
+  maxPeople: number;  // Renamed from maxParticipants
+  minPeople?: number;  // NEW
+  
+  // Location fields (UPDATED)
+  departureLocation?: string;  // NEW: Nơi khởi hành
+  destination?: string;  // NEW: Điểm đến chính
+  destinations?: string;  // NEW: JSON array of destinations
+  region?: string;  // NEW: Vùng miền
+  countryCode?: string;  // NEW
+  
+  // Transportation & Accommodation (NEW)
+  transportation?: string;
+  accommodation?: string;
+  mealsIncluded?: string;
+  
+  // Services (NEW)
+  includedServices?: string;
+  excludedServices?: string;
+  highlights?: string;  // JSON array
+  
+  // Tour info
   tourType: 'DOMESTIC' | 'INTERNATIONAL';
   country?: {
     id: number;
@@ -22,31 +43,43 @@ export interface TourResponse {
     visaRequired: boolean;
     flagUrl?: string;
   };
+  visaRequired?: boolean;  // NEW: Direct field
   visaInfo?: string;
-  flightIncluded: boolean;
-  itinerary?: string;
-  includes?: string;
-  excludes?: string;
-  notes?: string;
+  flightIncluded?: boolean;
+  
+  // Additional info (UPDATED)
+  note?: string;  // Renamed from notes
+  cancellationPolicy?: string;  // NEW
+  suitableFor?: string;  // NEW
+  viewCount?: number;  // NEW
+  
   isFeatured: boolean;
-  status: 'ACTIVE' | 'INACTIVE' | 'DRAFT';
-  category: {
+  status: 'Active' | 'Inactive' | 'ACTIVE' | 'INACTIVE' | 'DRAFT';
+  
+  // Main image
+  mainImage?: string;  // NEW: Direct field
+  
+  category?: {  // Make optional to handle null
     id: number;
     name: string;
     slug: string;
     description?: string;
+    icon?: string;
   };
-  targetAudiences: Array<{
+  
+  targetAudiences?: Array<{
     id: number;
     name: string;
     description?: string;
   }>;
-  images: Array<{
+  
+  images?: Array<{
     id: number;
     imageUrl: string;
     altText?: string;
     isPrimary: boolean;
   }>;
+  
   averageRating?: number;
   totalReviews?: number;
   createdAt: string;
@@ -71,9 +104,12 @@ export interface TourSearchRequest {
   tourType?: 'DOMESTIC' | 'INTERNATIONAL';
   continent?: string;
   countryId?: number;
+  location?: string;  // NEW: For filtering by destination/location
   minPrice?: number;
   maxPrice?: number;
-  duration?: number;
+  minDuration?: number;  // NEW: For duration range
+  maxDuration?: number;  // NEW: For duration range
+  duration?: number;  // DEPRECATED: Use minDuration/maxDuration instead
   minRating?: number;
   visaRequired?: boolean;
   flightIncluded?: boolean;
@@ -236,6 +272,7 @@ const tourService = {
       const response = await apiClient.get<string[]>('/tours/locations');
       return response.data.data!;
     } catch (error) {
+      console.error('Error fetching locations:', error);
       // Fallback to hardcoded locations if API endpoint not available
       return ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Quảng Ninh', 'Lào Cai', 'Kiên Giang', 'Quảng Nam', 'Lâm Đồng'];
     }

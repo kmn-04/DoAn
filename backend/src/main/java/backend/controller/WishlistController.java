@@ -1,123 +1,103 @@
 package backend.controller;
 
 import backend.dto.response.ApiResponse;
-import backend.dto.response.TourResponse;
-import backend.entity.Wishlist;
-import backend.entity.Tour;
+import backend.dto.response.WishlistResponse;
+import backend.security.UserDetailsImpl;
 import backend.service.WishlistService;
-import backend.mapper.EntityMapper;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+
+import static backend.dto.response.ApiResponse.success;
 
 @RestController
-@RequestMapping("/api/wishlist")
+@RequestMapping("/api/wishlists")
 @RequiredArgsConstructor
-@Slf4j
-@Tag(name = "Wishlist Management", description = "APIs for managing user wishlists")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
-public class WishlistController extends BaseController {
+@Tag(name = "Wishlists", description = "API quản lý danh sách yêu thích")
+public class WishlistController {
     
     private final WishlistService wishlistService;
-    private final EntityMapper mapper;
     
-    @GetMapping("/user/{userId}")
-    @Operation(summary = "Get user's wishlist")
-    public ResponseEntity<ApiResponse<List<TourResponse>>> getUserWishlist(
-            @Parameter(description = "User ID") @PathVariable Long userId) {
-        
-        List<Wishlist> wishlists = wishlistService.getUserWishlist(userId);
-        
-        // Convert to TourResponse list
-        List<TourResponse> tourResponses = wishlists.stream()
-            .map(wishlist -> {
-                TourResponse tourResponse = mapper.toTourResponse(wishlist.getTour());
-                // Add wishlist created date as additional info
-                tourResponse.setCreatedAt(wishlist.getCreatedAt());
-                return tourResponse;
-            })
-            .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(success("User wishlist retrieved successfully", tourResponses));
+    @PostMapping("/tour/{tourId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Thêm tour vào wishlist")
+    public ResponseEntity<ApiResponse<WishlistResponse>> addToWishlist(
+            @PathVariable Long tourId,
+            Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        WishlistResponse response = wishlistService.addToWishlist(userDetails.getId(), tourId);
+        return ResponseEntity.ok(success("Tour added to wishlist successfully", response));
     }
     
-    @PostMapping("/user/{userId}/tour/{tourId}")
-    @Operation(summary = "Add tour to wishlist")
-    public ResponseEntity<ApiResponse<String>> addToWishlist(
-            @Parameter(description = "User ID") @PathVariable Long userId,
-            @Parameter(description = "Tour ID") @PathVariable Long tourId) {
-        
-        wishlistService.addToWishlist(userId, tourId);
-        
-        return ResponseEntity.ok(success("Tour added to wishlist successfully"));
+    @DeleteMapping("/tour/{tourId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Xóa tour khỏi wishlist")
+    public ResponseEntity<ApiResponse<Void>> removeFromWishlist(
+            @PathVariable Long tourId,
+            Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        wishlistService.removeFromWishlist(userDetails.getId(), tourId);
+        return ResponseEntity.ok(success("Tour removed from wishlist successfully", null));
     }
     
-    @DeleteMapping("/user/{userId}/tour/{tourId}")
-    @Operation(summary = "Remove tour from wishlist")
-    public ResponseEntity<ApiResponse<String>> removeFromWishlist(
-            @Parameter(description = "User ID") @PathVariable Long userId,
-            @Parameter(description = "Tour ID") @PathVariable Long tourId) {
-        
-        wishlistService.removeFromWishlist(userId, tourId);
-        
-        return ResponseEntity.ok(success("Tour removed from wishlist successfully"));
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Lấy wishlist của user")
+    public ResponseEntity<ApiResponse<List<WishlistResponse>>> getUserWishlist(
+            Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        List<WishlistResponse> wishlists = wishlistService.getUserWishlist(userDetails.getId());
+        return ResponseEntity.ok(success("Wishlist retrieved successfully", wishlists));
     }
     
-    @GetMapping("/user/{userId}/check/{tourId}")
-    @Operation(summary = "Check if tour is in wishlist")
-    public ResponseEntity<ApiResponse<Boolean>> isInWishlist(
-            @Parameter(description = "User ID") @PathVariable Long userId,
-            @Parameter(description = "Tour ID") @PathVariable Long tourId) {
-        
-        boolean isInWishlist = wishlistService.isInWishlist(userId, tourId);
-        
-        return ResponseEntity.ok(success("Wishlist status checked", isInWishlist));
+    @GetMapping("/paginated")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Lấy wishlist có phân trang")
+    public ResponseEntity<ApiResponse<Page<WishlistResponse>>> getUserWishlistPaginated(
+            Authentication authentication,
+            Pageable pageable) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Page<WishlistResponse> wishlists = wishlistService.getUserWishlistPaginated(userDetails.getId(), pageable);
+        return ResponseEntity.ok(success("Wishlist retrieved successfully", wishlists));
     }
     
-    @GetMapping("/user/{userId}/count")
-    @Operation(summary = "Get user's wishlist count")
-    public ResponseEntity<ApiResponse<Long>> getWishlistCount(
-            @Parameter(description = "User ID") @PathVariable Long userId) {
-        
-        long count = wishlistService.getWishlistCount(userId);
-        
-        return ResponseEntity.ok(success("Wishlist count retrieved", count));
+    @GetMapping("/check/{tourId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Kiểm tra tour có trong wishlist không")
+    public ResponseEntity<ApiResponse<Map<String, Boolean>>> checkTourInWishlist(
+            @PathVariable Long tourId,
+            Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        boolean inWishlist = wishlistService.isTourInWishlist(userDetails.getId(), tourId);
+        return ResponseEntity.ok(success("Check completed", Map.of("inWishlist", inWishlist)));
     }
     
-    @DeleteMapping("/user/{userId}/clear")
-    @Operation(summary = "Clear user's entire wishlist")
-    public ResponseEntity<ApiResponse<String>> clearWishlist(
-            @Parameter(description = "User ID") @PathVariable Long userId) {
-        
-        wishlistService.clearUserWishlist(userId);
-        
-        return ResponseEntity.ok(success("Wishlist cleared successfully"));
+    @GetMapping("/count")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Đếm số lượng item trong wishlist")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> countWishlist(
+            Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Long count = wishlistService.countUserWishlist(userDetails.getId());
+        return ResponseEntity.ok(success("Count retrieved successfully", Map.of("count", count)));
     }
     
-    @GetMapping("/popular")
-    @Operation(summary = "Get most wishlisted tours")
-    public ResponseEntity<ApiResponse<List<TourResponse>>> getMostWishlistedTours(
-            @Parameter(description = "Limit") @RequestParam(defaultValue = "10") int limit) {
-        
-        List<Tour> tours = wishlistService.getMostWishlistedTours(limit);
-        List<TourResponse> tourResponses = mapper.toTourResponseList(tours);
-        
-        return ResponseEntity.ok(success("Most wishlisted tours retrieved", tourResponses));
-    }
-    
-    @GetMapping("/statistics")
-    @Operation(summary = "Get wishlist statistics")
-    public ResponseEntity<ApiResponse<WishlistService.WishlistStatistics>> getWishlistStatistics() {
-        
-        WishlistService.WishlistStatistics statistics = wishlistService.getWishlistStatistics();
-        
-        return ResponseEntity.ok(success("Wishlist statistics retrieved", statistics));
+    @DeleteMapping("/clear")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Xóa toàn bộ wishlist")
+    public ResponseEntity<ApiResponse<Void>> clearWishlist(
+            Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        wishlistService.clearUserWishlist(userDetails.getId());
+        return ResponseEntity.ok(success("Wishlist cleared successfully", null));
     }
 }

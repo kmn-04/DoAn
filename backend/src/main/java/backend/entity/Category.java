@@ -34,6 +34,18 @@ public class Category {
     @Column(name = "image_url")
     private String imageUrl;
     
+    @Column(length = 100)
+    private String icon; // Icon class or URL
+    
+    @Column(name = "parent_id")
+    private Long parentId; // For category hierarchy (NULL = root category)
+    
+    @Column(name = "display_order")
+    private Integer displayOrder = 0; // Thứ tự hiển thị
+    
+    @Column(name = "is_featured", nullable = false)
+    private Boolean isFeatured = false; // Hiển thị ở trang chủ
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CategoryStatus status = CategoryStatus.Active;

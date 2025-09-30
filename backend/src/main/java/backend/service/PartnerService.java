@@ -25,6 +25,17 @@ public interface PartnerService {
     Page<Partner> searchPartners(String keyword, Pageable pageable);
     
     /**
+     * Search partners with multiple filters
+     */
+    Page<Partner> searchPartners(
+        String keyword, 
+        Partner.PartnerType type, 
+        String location, 
+        Double minRating, 
+        Pageable pageable
+    );
+    
+    /**
      * Get partners by type
      */
     List<Partner> getPartnersByType(Partner.PartnerType type);

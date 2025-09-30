@@ -11,7 +11,7 @@ export interface Partner {
   name: string;
   slug: string;
   description: string;
-  type: 'Hotel' | 'Restaurant' | 'Transport' | 'TourOperator' | 'Service';
+  type: 'Hotel' | 'Restaurant';
   address?: string;
   phone?: string;
   email?: string;
@@ -64,6 +64,7 @@ export interface Tour {
 
 export interface PartnerFilters {
   search?: string;
+  type?: string;
   specialty?: string; // Deprecated - use specialties array
   specialties?: string[];
   rating?: number;

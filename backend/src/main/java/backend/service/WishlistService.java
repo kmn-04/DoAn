@@ -1,72 +1,31 @@
 package backend.service;
 
-import backend.entity.Wishlist;
-import backend.entity.User;
-import backend.entity.Tour;
+import backend.dto.response.WishlistResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface WishlistService {
     
-    /**
-     * Add tour to user's wishlist
-     */
-    Wishlist addToWishlist(Long userId, Long tourId);
+    // Add tour to wishlist
+    WishlistResponse addToWishlist(Long userId, Long tourId);
     
-    /**
-     * Remove tour from user's wishlist
-     */
+    // Remove tour from wishlist
     void removeFromWishlist(Long userId, Long tourId);
     
-    /**
-     * Get user's wishlist
-     */
-    List<Wishlist> getUserWishlist(Long userId);
+    // Get user's wishlist
+    List<WishlistResponse> getUserWishlist(Long userId);
     
-    /**
-     * Check if tour is in user's wishlist
-     */
-    boolean isInWishlist(Long userId, Long tourId);
+    // Get user's wishlist with pagination
+    Page<WishlistResponse> getUserWishlistPaginated(Long userId, Pageable pageable);
     
-    /**
-     * Get wishlist count for user
-     */
-    long getWishlistCount(Long userId);
+    // Check if tour is in user's wishlist
+    boolean isTourInWishlist(Long userId, Long tourId);
     
-    /**
-     * Get most wishlisted tours
-     */
-    List<Tour> getMostWishlistedTours(int limit);
+    // Count user's wishlist items
+    Long countUserWishlist(Long userId);
     
-    /**
-     * Clear user's entire wishlist
-     */
+    // Clear user's wishlist
     void clearUserWishlist(Long userId);
-    
-    /**
-     * Get wishlist statistics
-     */
-    WishlistStatistics getWishlistStatistics();
-    
-    // Statistics DTO
-    class WishlistStatistics {
-        private final long totalWishlists;
-        private final long uniqueUsers;
-        private final long uniqueTours;
-        private final double averageWishlistSize;
-        
-        public WishlistStatistics(long totalWishlists, long uniqueUsers, long uniqueTours, double averageWishlistSize) {
-            this.totalWishlists = totalWishlists;
-            this.uniqueUsers = uniqueUsers;
-            this.uniqueTours = uniqueTours;
-            this.averageWishlistSize = averageWishlistSize;
-        }
-        
-        // Getters
-        public long getTotalWishlists() { return totalWishlists; }
-        public long getUniqueUsers() { return uniqueUsers; }
-        public long getUniqueTours() { return uniqueTours; }
-        public double getAverageWishlistSize() { return averageWishlistSize; }
-    }
 }

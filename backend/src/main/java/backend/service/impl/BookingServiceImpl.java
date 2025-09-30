@@ -2,6 +2,8 @@ package backend.service.impl;
 
 import backend.entity.Booking;
 import backend.entity.Booking.BookingStatus;
+import backend.entity.Booking.ConfirmationStatus;
+import backend.entity.Booking.PaymentStatus;
 import backend.entity.Promotion;
 import backend.entity.Tour;
 import backend.repository.BookingRepository;
@@ -47,8 +49,11 @@ public class BookingServiceImpl implements BookingService {
         }
         
         // Set default status
-        if (booking.getStatus() == null) {
-            booking.setStatus(BookingStatus.Pending);
+        if (booking.getConfirmationStatus() == null) {
+            booking.setConfirmationStatus(ConfirmationStatus.Pending);
+        }
+        if (booking.getPaymentStatus() == null) {
+            booking.setPaymentStatus(PaymentStatus.Unpaid);
         }
         
         // Calculate total price if not set
@@ -138,7 +143,21 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public List<Booking> getBookingsByStatus(BookingStatus status) {
-        return bookingRepository.findByStatusOrderByCreatedAtDesc(status);
+        // Note: This method is deprecated. Use getBookingsByConfirmationStatus or getBookingsByPaymentStatus
+        // For backwards compatibility, map to confirmation status
+        ConfirmationStatus confirmationStatus = mapToConfirmationStatus(status);
+        return bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(confirmationStatus);
+    }
+    
+    private ConfirmationStatus mapToConfirmationStatus(BookingStatus status) {
+        return switch (status) {
+            case Pending -> ConfirmationStatus.Pending;
+            case Confirmed, Paid -> ConfirmationStatus.Confirmed;
+            case Cancelled -> ConfirmationStatus.Cancelled;
+            case Completed -> ConfirmationStatus.Completed;
+            case CancellationRequested -> ConfirmationStatus.CancellationRequested;
+            default -> ConfirmationStatus.Pending;
+        };
     }
     
     @Override
@@ -166,11 +185,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        if (booking.getStatus() != BookingStatus.Pending) {
+        if (booking.getConfirmationStatus() != ConfirmationStatus.Pending) {
             throw new RuntimeException("Only pending bookings can be confirmed");
         }
         
-        booking.setStatus(BookingStatus.Confirmed);
+        booking.setConfirmationStatus(ConfirmationStatus.Confirmed);
         Booking confirmedBooking = bookingRepository.save(booking);
         
         log.info("Booking confirmed successfully with ID: {}", bookingId);
@@ -184,11 +203,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        if (booking.getStatus() == BookingStatus.Completed || booking.getStatus() == BookingStatus.Cancelled) {
-            throw new RuntimeException("Cannot cancel booking with status: " + booking.getStatus());
+        if (booking.getConfirmationStatus() == ConfirmationStatus.Completed || booking.getConfirmationStatus() == ConfirmationStatus.Cancelled) {
+            throw new RuntimeException("Cannot cancel booking with status: " + booking.getConfirmationStatus());
         }
         
-        booking.setStatus(BookingStatus.Cancelled);
+        booking.setConfirmationStatus(ConfirmationStatus.Cancelled);
         if (reason != null) {
             booking.setSpecialRequests(booking.getSpecialRequests() + " | Cancelled: " + reason);
         }
@@ -205,7 +224,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        booking.setStatus(BookingStatus.Paid);
+        booking.setPaymentStatus(PaymentStatus.Paid);
         Booking paidBooking = bookingRepository.save(booking);
         
         log.info("Booking marked as paid successfully with ID: {}", bookingId);
@@ -219,11 +238,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        if (booking.getStatus() != BookingStatus.Paid) {
+        if (booking.getPaymentStatus() != PaymentStatus.Paid) {
             throw new RuntimeException("Only paid bookings can be completed");
         }
         
-        booking.setStatus(BookingStatus.Completed);
+        booking.setConfirmationStatus(ConfirmationStatus.Completed);
         Booking completedBooking = bookingRepository.save(booking);
         
         log.info("Booking completed successfully with ID: {}", bookingId);
@@ -275,8 +294,8 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> existingBookings = bookingRepository.findByStartDateBetween(startDate, startDate);
         int bookedPeople = existingBookings.stream()
                 .filter(booking -> booking.getTour().getId().equals(tourId))
-                .filter(booking -> booking.getStatus() == BookingStatus.Confirmed || 
-                                 booking.getStatus() == BookingStatus.Paid)
+                .filter(booking -> booking.getConfirmationStatus() == ConfirmationStatus.Confirmed || 
+                                 booking.getPaymentStatus() == PaymentStatus.Paid)
                 .mapToInt(Booking::getTotalPeople)
                 .sum();
         
@@ -304,8 +323,8 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public List<Booking> getUpcomingBookings() {
         LocalDate today = LocalDate.now();
-        List<BookingStatus> activeStatuses = List.of(
-                BookingStatus.Confirmed, BookingStatus.Paid);
+        List<ConfirmationStatus> activeStatuses = List.of(
+                ConfirmationStatus.Confirmed, ConfirmationStatus.Completed);
         return bookingRepository.findUpcomingBookings(today, activeStatuses);
     }
     
@@ -313,13 +332,15 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public BookingStatistics getBookingStatistics() {
         long totalBookings = bookingRepository.count();
-        long pendingBookings = bookingRepository.countByTourIdAndStatus(null, BookingStatus.Pending);
-        long confirmedBookings = bookingRepository.countByTourIdAndStatus(null, BookingStatus.Confirmed);
-        long paidBookings = bookingRepository.countByTourIdAndStatus(null, BookingStatus.Paid);
-        long cancelledBookings = bookingRepository.countByTourIdAndStatus(null, BookingStatus.Cancelled);
-        long completedBookings = bookingRepository.countByTourIdAndStatus(null, BookingStatus.Completed);
+        // Count by confirmation status
+        long pendingBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.Pending).size();
+        long confirmedBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.Confirmed).size();
+        long cancelledBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.Cancelled).size();
+        long completedBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.Completed).size();
+        // Count by payment status
+        long paidBookings = bookingRepository.findByPaymentStatusOrderByCreatedAtDesc(PaymentStatus.Paid).size();
         
-        BigDecimal totalRevenue = bookingRepository.calculateTotalRevenueByStatus(BookingStatus.Paid);
+        BigDecimal totalRevenue = bookingRepository.calculateTotalRevenueByPaymentStatus(PaymentStatus.Paid);
         if (totalRevenue == null) totalRevenue = BigDecimal.ZERO;
         
         // Calculate monthly revenue
@@ -327,8 +348,8 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
         List<Booking> monthlyBookings = bookingRepository.findByCreatedAtBetween(startOfMonth, endOfMonth);
         BigDecimal monthlyRevenue = monthlyBookings.stream()
-                .filter(booking -> booking.getStatus() == BookingStatus.Paid)
-                .map(Booking::getTotalPrice)
+                .filter(booking -> booking.getPaymentStatus() == PaymentStatus.Paid)
+                .map(Booking::getFinalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         return new BookingStatistics(totalBookings, pendingBookings, confirmedBookings,
@@ -343,8 +364,8 @@ public class BookingServiceImpl implements BookingService {
         
         List<Booking> bookings = bookingRepository.findByCreatedAtBetween(startDateTime, endDateTime);
         return bookings.stream()
-                .filter(booking -> booking.getStatus() == BookingStatus.Paid)
-                .map(Booking::getTotalPrice)
+                .filter(booking -> booking.getPaymentStatus() == PaymentStatus.Paid)
+                .map(Booking::getFinalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

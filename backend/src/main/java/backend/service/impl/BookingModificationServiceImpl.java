@@ -337,7 +337,7 @@ public class BookingModificationServiceImpl implements BookingModificationServic
                     .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
 
             // Check booking status
-            if (booking.getStatus() != Booking.BookingStatus.Confirmed) {
+            if (booking.getConfirmationStatus() != Booking.ConfirmationStatus.Confirmed) {
                 return new ValidationResult(false, "Only confirmed bookings can be modified.");
             }
 

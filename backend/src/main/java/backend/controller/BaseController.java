@@ -35,6 +35,12 @@ public abstract class BaseController {
 
     protected Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
         Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        
+        // Special handling for price sorting - use effectivePriceForSort (COALESCE(sale_price, price))
+        if ("price".equalsIgnoreCase(sortBy)) {
+            return PageRequest.of(page, size, Sort.by(direction, "effectivePriceForSort"));
+        }
+        
         return PageRequest.of(page, size, Sort.by(direction, sortBy));
     }
 

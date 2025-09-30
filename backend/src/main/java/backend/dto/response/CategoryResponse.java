@@ -17,6 +17,10 @@ public class CategoryResponse {
     private String slug;
     private String description;
     private String imageUrl;
+    private String icon;
+    private Long parentId;
+    private Integer displayOrder;
+    private Boolean isFeatured;
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

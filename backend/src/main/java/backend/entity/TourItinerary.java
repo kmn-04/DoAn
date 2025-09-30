@@ -24,6 +24,21 @@ public class TourItinerary {
     @Column(columnDefinition = "TEXT")
     private String description;
     
+    @Column(length = 100)
+    private String location; // Địa điểm trong ngày
+    
+    @Column(columnDefinition = "JSON")
+    private String activities; // Danh sách hoạt động (JSON array)
+    
+    @Column(length = 100)
+    private String meals; // Bữa ăn (Sáng, Trưa, Tối)
+    
+    @Column(length = 150)
+    private String accommodation; // Khách sạn/Nơi ở
+    
+    @Column(columnDefinition = "JSON")
+    private String images; // Hình ảnh cho ngày (JSON array)
+    
     // Relationship with Tour (Many-to-One)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_id")

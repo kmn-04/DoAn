@@ -26,6 +26,7 @@ public class PartnerResponse {
     private String avatarUrl;
     private Double rating;
     private Integer totalReviews;
+    private String status;
     private List<String> specialties;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
