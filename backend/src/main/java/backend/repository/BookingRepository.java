@@ -1,7 +1,8 @@
 package backend.repository;
 
 import backend.entity.Booking;
-import backend.entity.Booking.BookingStatus;
+import backend.entity.Booking.ConfirmationStatus;
+import backend.entity.Booking.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,14 +35,24 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByTourId(Long tourId);
     
     /**
-     * Find bookings by status
+     * Find bookings by confirmation status
      */
-    List<Booking> findByStatusOrderByCreatedAtDesc(BookingStatus status);
+    List<Booking> findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus confirmationStatus);
     
     /**
-     * Find bookings by user and status
+     * Find bookings by payment status
      */
-    List<Booking> findByUserIdAndStatusOrderByCreatedAtDesc(Long userId, BookingStatus status);
+    List<Booking> findByPaymentStatusOrderByCreatedAtDesc(PaymentStatus paymentStatus);
+    
+    /**
+     * Find bookings by user and confirmation status
+     */
+    List<Booking> findByUserIdAndConfirmationStatusOrderByCreatedAtDesc(Long userId, ConfirmationStatus confirmationStatus);
+    
+    /**
+     * Find bookings by user and payment status
+     */
+    List<Booking> findByUserIdAndPaymentStatusOrderByCreatedAtDesc(Long userId, PaymentStatus paymentStatus);
     
     /**
      * Find bookings by date range
@@ -63,9 +74,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Page<Booking> searchBookings(@Param("keyword") String keyword, Pageable pageable);
     
     /**
-     * Count bookings by tour and status
+     * Count bookings by tour and confirmation status
      */
-    long countByTourIdAndStatus(Long tourId, BookingStatus status);
+    long countByTourIdAndConfirmationStatus(Long tourId, ConfirmationStatus confirmationStatus);
+    
+    /**
+     * Count bookings by tour and payment status
+     */
+    long countByTourIdAndPaymentStatus(Long tourId, PaymentStatus paymentStatus);
     
     /**
      * Count bookings by user
@@ -79,10 +95,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findRecentBookings(Pageable pageable);
     
     /**
-     * Calculate total revenue by status
+     * Calculate total revenue by payment status
      */
-    @Query("SELECT SUM(b.totalPrice) FROM Booking b WHERE b.status = :status")
-    BigDecimal calculateTotalRevenueByStatus(@Param("status") BookingStatus status);
+    @Query("SELECT SUM(b.finalAmount) FROM Booking b WHERE b.paymentStatus = :paymentStatus")
+    BigDecimal calculateTotalRevenueByPaymentStatus(@Param("paymentStatus") PaymentStatus paymentStatus);
     
     /**
      * Find bookings with tour details
@@ -93,9 +109,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     /**
      * Find upcoming bookings
      */
-    @Query("SELECT b FROM Booking b WHERE b.startDate >= :currentDate AND b.status IN :statuses")
+    @Query("SELECT b FROM Booking b WHERE b.startDate >= :currentDate AND b.confirmationStatus IN :statuses")
     List<Booking> findUpcomingBookings(@Param("currentDate") LocalDate currentDate, 
-                                      @Param("statuses") List<BookingStatus> statuses);
+                                      @Param("statuses") List<ConfirmationStatus> statuses);
     
     /**
      * Find bookings by promotion

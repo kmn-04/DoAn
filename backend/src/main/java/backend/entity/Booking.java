@@ -16,7 +16,8 @@ import java.util.Set;
 @Table(name = "bookings", indexes = {
     @Index(name = "idx_bookings_user", columnList = "user_id"),
     @Index(name = "idx_bookings_tour", columnList = "tour_id"),
-    @Index(name = "idx_bookings_status", columnList = "status"),
+    @Index(name = "idx_bookings_confirmation_status", columnList = "confirmation_status"),
+    @Index(name = "idx_bookings_payment_status", columnList = "payment_status"),
     @Index(name = "idx_bookings_start_date", columnList = "start_date")
 })
 @Data
@@ -35,14 +36,41 @@ public class Booking {
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
     
+    // Customer information
+    @Column(name = "customer_name", nullable = false, length = 100)
+    private String customerName;
+    
+    @Column(name = "customer_email", nullable = false, length = 100)
+    private String customerEmail;
+    
+    @Column(name = "customer_phone", nullable = false, length = 20)
+    private String customerPhone;
+    
+    @Column(name = "customer_address", columnDefinition = "TEXT")
+    private String customerAddress;
+    
+    // Number of participants
     @Column(name = "num_adults", nullable = false)
     private Integer numAdults = 1;
     
     @Column(name = "num_children", nullable = false)
     private Integer numChildren = 0;
     
+    @Column(name = "num_infants", nullable = false)
+    private Integer numInfants = 0;
+    
+    // Price information
+    @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
+    private BigDecimal unitPrice; // Giá tour cơ bản
+    
     @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
-    private BigDecimal totalPrice;
+    private BigDecimal totalPrice; // Tổng giá trước giảm giá
+    
+    @Column(name = "discount_amount", precision = 12, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO; // Số tiền giảm giá
+    
+    @Column(name = "final_amount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal finalAmount; // Số tiền cuối cùng phải trả
     
     @Column(name = "special_requests", columnDefinition = "TEXT")
     private String specialRequests;
@@ -50,9 +78,24 @@ public class Booking {
     @Column(name = "contact_phone", length = 20)
     private String contactPhone;
     
+    // Status fields - tách thành 2 trạng thái
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BookingStatus status = BookingStatus.Pending;
+    @Column(name = "confirmation_status", nullable = false, length = 30)
+    private ConfirmationStatus confirmationStatus = ConfirmationStatus.Pending;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false, length = 30)
+    private PaymentStatus paymentStatus = PaymentStatus.Unpaid;
+    
+    // Cancellation information
+    @Column(name = "cancellation_reason", columnDefinition = "TEXT")
+    private String cancellationReason;
+    
+    @Column(name = "cancelled_by")
+    private Long cancelledBy; // User ID who cancelled
+    
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
     
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -70,6 +113,11 @@ public class Booking {
     @JoinColumn(name = "tour_id")
     private Tour tour;
     
+    // Relationship with TourSchedule (Many-to-One)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
+    private TourSchedule schedule;
+    
     // Relationship with Promotion (Many-to-One) - Optional
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "promotion_id")
@@ -84,6 +132,11 @@ public class Booking {
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private Set<Review> reviews;
+    
+    // Relationship with BookingParticipant (One-to-Many)
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Set<BookingParticipant> participants;
     
     @PrePersist
     protected void onCreate() {
@@ -106,9 +159,61 @@ public class Booking {
     
     // Helper method to get total people
     public Integer getTotalPeople() {
-        return numAdults + numChildren;
+        return numAdults + numChildren + numInfants;
     }
     
+    // Helper method for cancellation
+    public void cancel(Long userId, String reason) {
+        this.confirmationStatus = ConfirmationStatus.Cancelled;
+        this.cancelledBy = userId;
+        this.cancelledAt = LocalDateTime.now();
+        this.cancellationReason = reason;
+    }
+    
+    // Helper method to check if booking can be cancelled
+    public boolean canBeCancelled() {
+        return confirmationStatus != ConfirmationStatus.Cancelled 
+            && confirmationStatus != ConfirmationStatus.Completed;
+    }
+    
+    public enum ConfirmationStatus {
+        Pending("Chờ xác nhận"),
+        Confirmed("Đã xác nhận"),
+        Cancelled("Đã hủy"),
+        Completed("Đã hoàn thành"),
+        CancellationRequested("Yêu cầu hủy");
+        
+        private final String displayName;
+        
+        ConfirmationStatus(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+    
+    public enum PaymentStatus {
+        Unpaid("Chưa thanh toán"),
+        PartiallyPaid("Thanh toán một phần"),
+        Paid("Đã thanh toán"),
+        Refunding("Đang hoàn tiền"),
+        Refunded("Đã hoàn tiền");
+        
+        private final String displayName;
+        
+        PaymentStatus(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+    
+    // Deprecated - keep for backward compatibility
+    @Deprecated
     public enum BookingStatus {
         Pending, Confirmed, Paid, Cancelled, Completed, CancellationRequested
     }

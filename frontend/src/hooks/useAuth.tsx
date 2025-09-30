@@ -62,7 +62,7 @@ export const useAuth = () => {
       logout();
       console.log('useAuth: showing toast and navigating');
       showToast.success('Đã đăng xuất', 'Hẹn gặp lại bạn!');
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [logout, navigate]);
 

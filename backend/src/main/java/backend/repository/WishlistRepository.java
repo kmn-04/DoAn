@@ -1,8 +1,8 @@
 package backend.repository;
 
 import backend.entity.Wishlist;
-import backend.entity.User;
-import backend.entity.Tour;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,45 +14,33 @@ import java.util.Optional;
 @Repository
 public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
     
-    /**
-     * Find all wishlist items by user
-     */
-    @Query("SELECT w FROM Wishlist w JOIN FETCH w.tour t LEFT JOIN FETCH t.category LEFT JOIN FETCH t.country WHERE w.user.id = :userId ORDER BY w.createdAt DESC")
-    List<Wishlist> findByUserIdWithTourDetails(@Param("userId") Long userId);
-    
-    /**
-     * Find all wishlist items by user (simple)
-     */
+    // Find all wishlists for a user
     List<Wishlist> findByUserIdOrderByCreatedAtDesc(Long userId);
     
-    /**
-     * Find wishlist item by user and tour
-     */
-    Optional<Wishlist> findByUserIdAndTourId(Long userId, Long tourId);
+    // Find wishlists for a user with pagination
+    Page<Wishlist> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
     
-    /**
-     * Check if tour is in user's wishlist
-     */
+    // Check if a tour is in user's wishlist
     boolean existsByUserIdAndTourId(Long userId, Long tourId);
     
-    /**
-     * Delete wishlist item by user and tour
-     */
+    // Find wishlist by user and tour
+    Optional<Wishlist> findByUserIdAndTourId(Long userId, Long tourId);
+    
+    // Count wishlists for a user
+    Long countByUserId(Long userId);
+    
+    // Count wishlists for a tour
+    Long countByTourId(Long tourId);
+    
+    // Find all wishlists with tour details
+    @Query("SELECT w FROM Wishlist w " +
+           "JOIN FETCH w.tour t " +
+           "WHERE w.user.id = :userId " +
+           "AND t.status = 'Active' " +
+           "AND t.deletedAt IS NULL " +
+           "ORDER BY w.createdAt DESC")
+    List<Wishlist> findByUserIdWithActiveTours(@Param("userId") Long userId);
+    
+    // Delete wishlist by user and tour
     void deleteByUserIdAndTourId(Long userId, Long tourId);
-    
-    /**
-     * Count wishlist items by user
-     */
-    long countByUserId(Long userId);
-    
-    /**
-     * Get most wishlisted tours
-     */
-    @Query("SELECT w.tour.id, COUNT(w) as wishlistCount FROM Wishlist w GROUP BY w.tour.id ORDER BY wishlistCount DESC")
-    List<Object[]> findMostWishlistedTours();
-    
-    /**
-     * Find all users who wishlisted a specific tour
-     */
-    List<Wishlist> findByTourId(Long tourId);
 }

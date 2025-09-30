@@ -46,4 +46,23 @@ public interface PartnerRepository extends JpaRepository<Partner, Long> {
      */
     @Query("SELECT p, COUNT(ti) FROM Partner p LEFT JOIN p.tourItineraries ti GROUP BY p ORDER BY p.name")
     List<Object[]> findPartnersWithItineraryCount();
+    
+    /**
+     * Find partners with multiple filters
+     */
+    @Query("SELECT p FROM Partner p WHERE " +
+           "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:type IS NULL OR p.type = :type) " +
+           "AND (:location IS NULL OR LOWER(p.address) LIKE LOWER(CONCAT('%', :location, '%'))) " +
+           "AND (:minRating IS NULL OR p.rating >= :minRating) " +
+           "AND (:status IS NULL OR p.status = :status)")
+    Page<Partner> findPartnersWithFilters(
+        @Param("keyword") String keyword,
+        @Param("type") Partner.PartnerType type,
+        @Param("location") String location,
+        @Param("minRating") Double minRating,
+        @Param("status") Partner.PartnerStatus status,
+        Pageable pageable
+    );
 }

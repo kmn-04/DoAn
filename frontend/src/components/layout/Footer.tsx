@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   const quickLinks = [
-    { name: 'Trang chủ', href: '/' },
+    { name: 'Trang chủ', href: '/dashboard' },
     { name: 'Tour du lịch', href: '/tours' },
     { name: 'Về chúng tôi', href: '/about' },
     { name: 'Liên hệ', href: '/contact' },

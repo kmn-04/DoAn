@@ -1,0 +1,129 @@
+### ========================================
+### TRAVEL BOOKING API - TEST ENDPOINTS
+### Backend: http://localhost:8080
+### ========================================
+
+### 1. HEALTH CHECK
+GET http://localhost:8080/api/tours
+Content-Type: application/json
+
+### 2. REGISTER NEW USER
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "testuser@gmail.com",
+  "password": "123456",
+  "phone": "0123456789"
+}
+
+### 3. LOGIN (Get Token)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@gmail.com",
+  "password": "admin123"
+}
+
+### 4. LOGIN AS ADMIN (Use this token for protected routes)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@gmail.com",
+  "password": "admin123"
+}
+
+### Save the token from response above, then use it below:
+@token = YOUR_TOKEN_HERE
+
+### 5. GET ALL TOURS (Public)
+GET http://localhost:8080/api/tours
+Content-Type: application/json
+
+### 6. GET TOURS WITH FILTERS
+GET http://localhost:8080/api/tours?tourType=DOMESTIC&page=0&size=12
+Content-Type: application/json
+
+### 7. GET TOUR BY SLUG
+GET http://localhost:8080/api/tours/slug/du-lich-ha-long
+Content-Type: application/json
+
+### 8. GET CATEGORIES
+GET http://localhost:8080/api/categories
+Content-Type: application/json
+
+### 9. GET USER PROFILE (Protected - Need Token)
+GET http://localhost:8080/api/users/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 10. GET MY BOOKINGS (Protected - Need Token)
+GET http://localhost:8080/api/bookings/my-bookings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 11. ADMIN: GET DASHBOARD STATS (Protected - Need Admin Token)
+GET http://localhost:8080/api/admin/dashboard/stats
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 12. ADMIN: GET ALL USERS (Protected - Need Admin Token)
+GET http://localhost:8080/api/admin/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 13. CREATE BOOKING (Protected - Need Token)
+POST http://localhost:8080/api/bookings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "tourId": 1,
+  "startDate": "2025-10-15",
+  "customerName": "Test User",
+  "customerEmail": "testuser@gmail.com",
+  "customerPhone": "0123456789",
+  "numAdults": 2,
+  "numChildren": 1,
+  "numInfants": 0,
+  "specialRequests": "Vegetarian meals"
+}
+
+### 14. GET TOUR SCHEDULES
+GET http://localhost:8080/api/tour-schedules?tourId=1
+Content-Type: application/json
+
+### 15. WISHLISTS - Add Tour to Wishlist (Protected)
+POST http://localhost:8080/api/wishlists/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 16. WISHLISTS - Get My Wishlist (Protected)
+GET http://localhost:8080/api/wishlists
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 17. GET TOUR FAQS
+GET http://localhost:8080/api/tour-faqs?tourId=1
+Content-Type: application/json
+
+### 18. SEARCH TOURS
+GET http://localhost:8080/api/tours/search?keyword=ha%20long
+Content-Type: application/json
+
+### 19. GET LOCATIONS (for filter)
+GET http://localhost:8080/api/tours/locations
+Content-Type: application/json
+
+### 20. GET SWAGGER API DOCS
+GET http://localhost:8080/swagger-ui.html
+
+### ========================================
+### NOTES:
+### - Replace {{token}} with actual JWT token from login response
+### - Admin credentials: admin@gmail.com / admin123
+### - Test user: testuser@gmail.com / 123456
+### ========================================

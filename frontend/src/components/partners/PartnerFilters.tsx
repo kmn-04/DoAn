@@ -1,292 +1,170 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   MagnifyingGlassIcon,
-  FunnelIcon,
   XMarkIcon,
-  TagIcon,
-  MapPinIcon,
-  BuildingOffice2Icon,
-  StarIcon,
-  ChevronDownIcon
+  FunnelIcon
 } from '@heroicons/react/24/outline';
-import { Button, Input, Card } from '../ui';
+import { Button } from '../ui';
 import type { PartnerFilters as PartnerFiltersType } from '../../types';
 
 interface PartnerFiltersProps {
   filters: PartnerFiltersType;
   onFiltersChange: (filters: PartnerFiltersType) => void;
   onClearFilters: () => void;
+  totalResults?: number;
 }
+
+const PARTNER_TYPES = [
+  { value: '', label: 'Tất cả loại' },
+  { value: 'Hotel', label: 'Khách sạn' },
+  { value: 'Restaurant', label: 'Nhà hàng' }
+];
+
+const LOCATIONS = [
+  { value: '', label: 'Tất cả khu vực' },
+  { value: 'Hà Nội', label: 'Hà Nội' },
+  { value: 'TP.HCM', label: 'TP. Hồ Chí Minh' },
+  { value: 'Đà Nẵng', label: 'Đà Nẵng' },
+  { value: 'Phú Quốc', label: 'Phú Quốc' }
+];
+
+const RATINGS = [
+  { value: '', label: 'Tất cả đánh giá' },
+  { value: '4.5', label: '4.5⭐ trở lên' },
+  { value: '4.0', label: '4⭐ trở lên' },
+  { value: '3.5', label: '3.5⭐ trở lên' },
+  { value: '3.0', label: '3⭐ trở lên' }
+];
+
+const SORT_OPTIONS = [
+  { value: 'name-asc', label: 'Tên A-Z' },
+  { value: 'name-desc', label: 'Tên Z-A' },
+  { value: 'rating-desc', label: 'Đánh giá cao nhất' },
+  { value: 'totalTours-desc', label: 'Nhiều tour nhất' },
+  { value: 'establishedYear-asc', label: 'Lâu đời nhất' }
+];
 
 const PartnerFilters: React.FC<PartnerFiltersProps> = ({
   filters,
   onFiltersChange,
-  onClearFilters
+  onClearFilters,
+  totalResults = 0
 }) => {
-  const [expandedSections, setExpandedSections] = useState({
-    search: true,
-    specialty: true,
-    location: true,
-    sort: true,
-    rating: true
-  });
-
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+  const handleFilterChange = (key: keyof PartnerFiltersType, value: any) => {
+    onFiltersChange({ ...filters, [key]: value });
   };
-  const specialties = [
-    'Du lịch biển',
-    'Du lịch núi',
-    'Du lịch văn hóa',
-    'Du lịch sinh thái',
-    'Du lịch phiêu lưu',
-    'Du lịch gia đình',
-    'Du lịch luxury',
-    'Du lịch budget'
-  ];
 
-  const locations = [
-    'Hà Nội',
-    'TP. Hồ Chí Minh',
-    'Đà Nẵng',
-    'Nha Trang',
-    'Phú Quốc',
-    'Hạ Long',
-    'Sapa',
-    'Đà Lạt'
-  ];
+  const hasActiveFilters = () => {
+    return filters.search || filters.type || filters.location || filters.rating;
+  };
 
-  const sortOptions = [
-    { value: 'name', label: 'Tên A-Z' },
-    { value: 'rating', label: 'Đánh giá cao nhất' },
-    { value: 'rating-desc', label: 'Đánh giá cao đến thấp' },
-    { value: 'totalTours', label: 'Nhiều tour nhất' },
-    { value: 'establishedYear', label: 'Lâu đời nhất' }
-  ];
+  // Parse sort value (e.g., "rating-desc" -> sortBy="rating", sortOrder="desc")
+  const getCurrentSortValue = () => {
+    const sortBy = filters.sortBy || 'name';
+    const sortOrder = filters.sortOrder || 'asc';
+    return `${sortBy}-${sortOrder}`;
+  };
 
-  const hasActiveFilters = filters.search || 
-    (filters.specialties && filters.specialties.length > 0) || 
-    (filters.locations && filters.locations.length > 0) || 
-    filters.rating;
+  const handleSortChange = (value: string) => {
+    if (!value) {
+      onFiltersChange({ ...filters, sortBy: 'name', sortOrder: 'asc' });
+      return;
+    }
+    const [sortBy, sortOrder] = value.split('-');
+    onFiltersChange({ 
+      ...filters, 
+      sortBy: sortBy as PartnerFiltersType['sortBy'],
+      sortOrder: sortOrder as PartnerFiltersType['sortOrder']
+    });
+  };
 
   return (
-    <>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Bộ lọc tìm kiếm
-        </h3>
-        {hasActiveFilters && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClearFilters}
-            className="text-red-600 border-red-300 hover:bg-red-50"
-          >
-            <XMarkIcon className="h-4 w-4 mr-1" />
-            Xóa bộ lọc
-          </Button>
-        )}
-      </div>
-
-      <div className="space-y-6">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="p-4">
         {/* Search */}
-        <div>
-          <button
-            onClick={() => toggleSection('search')}
-            className="flex items-center justify-between w-full text-left"
-          >
-            <h4 className="font-medium text-gray-900">Tìm kiếm</h4>
-            <ChevronDownIcon 
-              className={`h-4 w-4 transition-transform ${
-                expandedSections.search ? 'rotate-180' : ''
-              }`} 
+        <div className="mb-4">
+          <div className="relative">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm đối tác..."
+              value={filters.search || ''}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
-          </button>
-          
-          {expandedSections.search && (
-            <div className="mt-3">
-              <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Tên đối tác..."
-                  value={filters.search || ''}
-                  onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-          )}
+          </div>
         </div>
 
-        {/* Specialty */}
-        <div>
-          <button
-            onClick={() => toggleSection('specialty')}
-            className="flex items-center justify-between w-full text-left"
+        {/* Filter Dropdowns - Compact layout */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          {/* Partner Type */}
+          <select
+            value={filters.type || ''}
+            onChange={(e) => handleFilterChange('type', e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
           >
-            <h4 className="font-medium text-gray-900">Chuyên môn</h4>
-            <ChevronDownIcon 
-              className={`h-4 w-4 transition-transform ${
-                expandedSections.specialty ? 'rotate-180' : ''
-              }`} 
-            />
-          </button>
-          
-          {expandedSections.specialty && (
-            <div className="mt-3 space-y-2 max-h-40 overflow-y-auto">
-              {specialties.map((specialty) => (
-                <label key={specialty} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={filters.specialties?.includes(specialty) || false}
-                    onChange={(e) => {
-                      const currentSpecialties = filters.specialties || [];
-                      if (e.target.checked) {
-                        onFiltersChange({ 
-                          ...filters, 
-                          specialties: [...currentSpecialties, specialty] 
-                        });
-                      } else {
-                        onFiltersChange({ 
-                          ...filters, 
-                          specialties: currentSpecialties.filter(s => s !== specialty) 
-                        });
-                      }
-                    }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">{specialty}</span>
-                </label>
-              ))}
-            </div>
-          )}
+            {PARTNER_TYPES.map(type => (
+              <option key={type.value} value={type.value}>{type.label}</option>
+            ))}
+          </select>
+
+          {/* Location */}
+          <select
+            value={filters.location || ''}
+            onChange={(e) => handleFilterChange('location', e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          >
+            {LOCATIONS.map(location => (
+              <option key={location.value} value={location.value}>{location.label}</option>
+            ))}
+          </select>
+
+          {/* Rating */}
+          <select
+            value={filters.rating?.toString() || ''}
+            onChange={(e) => handleFilterChange('rating', e.target.value ? parseFloat(e.target.value) : undefined)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          >
+            {RATINGS.map(rating => (
+              <option key={rating.value} value={rating.value}>{rating.label}</option>
+            ))}
+          </select>
+
+          {/* Sort */}
+          <select
+            value={getCurrentSortValue()}
+            onChange={(e) => handleSortChange(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          >
+            {SORT_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
         </div>
 
-        {/* Location */}
-        <div>
-          <button
-            onClick={() => toggleSection('location')}
-            className="flex items-center justify-between w-full text-left"
-          >
-            <h4 className="font-medium text-gray-900">Khu vực</h4>
-            <ChevronDownIcon 
-              className={`h-4 w-4 transition-transform ${
-                expandedSections.location ? 'rotate-180' : ''
-              }`} 
-            />
-          </button>
+        {/* Results and Clear Filters */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <FunnelIcon className="h-4 w-4 text-gray-500" />
+            <span className="text-sm text-gray-600">
+              <span className="font-semibold text-gray-900">{totalResults}</span> kết quả
+            </span>
+          </div>
           
-          {expandedSections.location && (
-            <div className="mt-3 space-y-2 max-h-40 overflow-y-auto">
-              {locations.map((location) => (
-                <label key={location} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={filters.locations?.includes(location) || false}
-                    onChange={(e) => {
-                      const currentLocations = filters.locations || [];
-                      if (e.target.checked) {
-                        onFiltersChange({ 
-                          ...filters, 
-                          locations: [...currentLocations, location] 
-                        });
-                      } else {
-                        onFiltersChange({ 
-                          ...filters, 
-                          locations: currentLocations.filter(l => l !== location) 
-                        });
-                      }
-                    }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">{location}</span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Sort */}
-        <div>
-          <button
-            onClick={() => toggleSection('sort')}
-            className="flex items-center justify-between w-full text-left"
-          >
-            <h4 className="font-medium text-gray-900">Sắp xếp theo</h4>
-            <ChevronDownIcon 
-              className={`h-4 w-4 transition-transform ${
-                expandedSections.sort ? 'rotate-180' : ''
-              }`} 
-            />
-          </button>
-          
-          {expandedSections.sort && (
-            <div className="mt-3">
-              <select
-                value={filters.sortBy || 'name'}
-                onChange={(e) => onFiltersChange({ 
-                  ...filters, 
-                  sortBy: e.target.value as PartnerFiltersType['sortBy']
-                })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-
-        {/* Rating */}
-        <div>
-          <button
-            onClick={() => toggleSection('rating')}
-            className="flex items-center justify-between w-full text-left"
-          >
-            <h4 className="font-medium text-gray-900">Đánh giá</h4>
-            <ChevronDownIcon 
-              className={`h-4 w-4 transition-transform ${
-                expandedSections.rating ? 'rotate-180' : ''
-              }`} 
-            />
-          </button>
-          
-          {expandedSections.rating && (
-            <div className="mt-3 space-y-2">
-              {[
-                { value: '4.5', label: '4.5+ sao' },
-                { value: '4.0', label: '4.0+ sao' },
-                { value: '3.5', label: '3.5+ sao' },
-                { value: '3.0', label: '3.0+ sao' },
-                { value: '', label: 'Tất cả đánh giá' }
-              ].map((option) => (
-                <label key={option.value} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="rating"
-                    value={option.value}
-                    checked={filters.rating?.toString() === option.value}
-                    onChange={(e) => onFiltersChange({ 
-                      ...filters, 
-                      rating: e.target.value ? parseFloat(e.target.value) : undefined 
-                    })}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">{option.label}</span>
-                </label>
-              ))}
-            </div>
+          {hasActiveFilters() && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onClearFilters}
+              className="text-red-600 border-red-300 hover:bg-red-50"
+            >
+              <XMarkIcon className="h-4 w-4 mr-1" />
+              Xóa bộ lọc
+            </Button>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

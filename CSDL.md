@@ -61,10 +61,23 @@ category_id BIGINT,
 -- Thêm trường mới
 tour_type ENUM('DOMESTIC','INTERNATIONAL') DEFAULT 'DOMESTIC',
 main_image VARCHAR(255),
+-- Bổ sung trường cho bộ lọc
+location VARCHAR(100), -- Địa điểm chính (Hà Nội, TP.HCM, Nhật Bản, Hàn Quốc...)
+country_code VARCHAR(3), -- Mã quốc gia (VN, JP, KR, TH...)
+continent VARCHAR(20), -- Châu lục (Asia, Europe, America, Oceania)
+rating DECIMAL(2,1) DEFAULT 0.0, -- Đánh giá trung bình (0.0-5.0)
+review_count INT DEFAULT 0, -- Số lượng đánh giá
+visa_required BOOLEAN DEFAULT FALSE, -- Cần visa (cho tour quốc tế)
+flight_included BOOLEAN DEFAULT FALSE, -- Bao gồm vé máy bay
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 deleted_at TIMESTAMP NULL,
-FOREIGN KEY (category_id) REFERENCES categories(id)
+FOREIGN KEY (category_id) REFERENCES categories(id),
+INDEX idx_tours_tour_type (tour_type),
+INDEX idx_tours_location (location),
+INDEX idx_tours_country_code (country_code),
+INDEX idx_tours_rating (rating),
+INDEX idx_tours_price (price)
 );
 -- Bảng chi tiết lịch trình
 CREATE TABLE tour_itineraries (

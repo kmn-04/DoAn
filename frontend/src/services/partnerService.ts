@@ -6,7 +6,7 @@ export interface PartnerResponse {
   name: string;
   slug: string;
   description: string;
-  type: 'Hotel' | 'Restaurant' | 'Transport' | 'TourOperator' | 'Service';
+  type: 'Hotel' | 'Restaurant';
   address?: string;
   phone?: string;
   email?: string;
@@ -64,8 +64,12 @@ const partnerService = {
     return response.data.data;
   },
 
-  // Search partners
-  searchPartners: async (keyword: string, params: {
+  // Search partners with filters
+  searchPartners: async (params: {
+    keyword?: string;
+    type?: string;
+    location?: string;
+    minRating?: number;
     page?: number;
     size?: number;
     sortBy?: string;
@@ -77,9 +81,12 @@ const partnerService = {
       data: PartnerPageResponse;
     }>('/partners/search', {
       params: {
-        keyword,
+        keyword: params.keyword,
+        type: params.type,
+        location: params.location,
+        minRating: params.minRating,
         page: params.page || 0,
-        size: params.size || 20,
+        size: params.size || 12,
         sortBy: params.sortBy || 'name',
         sortDirection: params.sortDirection || 'asc'
       }

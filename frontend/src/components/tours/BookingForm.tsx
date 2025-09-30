@@ -13,6 +13,7 @@ import { useAuth } from '../../hooks/useAuth';
 interface BookingFormProps {
   tour: {
     id: number;
+    slug: string;
     name: string;
     price: number;
     originalPrice?: number;
@@ -101,6 +102,8 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
     // Redirect to checkout page with booking data
     const params = new URLSearchParams({
       tourId: tour.id.toString(),
+      tourSlug: tour.slug,
+      tourName: tour.name,
       startDate: formData.startDate,
       adults: formData.adults.toString(),
       children: formData.children.toString(),

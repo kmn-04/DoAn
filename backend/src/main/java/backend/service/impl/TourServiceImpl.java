@@ -280,21 +280,25 @@ public class TourServiceImpl implements TourService {
             Long categoryId,
             BigDecimal minPrice,
             BigDecimal maxPrice,
-            Integer duration,
+            Integer minDuration,
+            Integer maxDuration,
             Tour.TourType tourType,
-            Long countryId,
+            String location,
+            String countryCode,
             String continent,
+            BigDecimal minRating,
             Boolean visaRequired,
             Boolean flightIncluded,
             Pageable pageable) {
         
-        log.info("Searching tours with filters: keyword={}, categoryId={}, tourType={}, countryId={}, continent={}",
-                keyword, categoryId, tourType, countryId, continent);
+        log.info("Searching tours with filters: keyword={}, categoryId={}, tourType={}, location={}, countryCode={}",
+                keyword, categoryId, tourType, location, countryCode);
         
         // Use repository method with specifications or custom query
         return tourRepository.findToursWithFilters(
-            keyword, categoryId, minPrice, maxPrice, duration,
-            tourType, countryId, continent, visaRequired, flightIncluded,
+            keyword, categoryId, minPrice, maxPrice, minDuration, maxDuration,
+            tourType, location, countryCode, visaRequired, flightIncluded,
+            TourStatus.Active,
             pageable
         );
     }

@@ -52,8 +52,9 @@ public class Partner {
     @Column(name = "rating")
     private Double rating = 0.0;
     
-    @Column(name = "total_reviews")
-    private Integer totalReviews = 0;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private PartnerStatus status = PartnerStatus.Active;
     
     @Column(name = "specialties", columnDefinition = "TEXT")
     private String specialties; // JSON string of specialties array
@@ -84,6 +85,33 @@ public class Partner {
     }
     
     public enum PartnerType {
-        Hotel, Restaurant, Transport, TourOperator, Service
+        Hotel("Khách sạn"),
+        Restaurant("Nhà hàng");
+        
+        private final String displayName;
+        
+        PartnerType(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+    
+    public enum PartnerStatus {
+        Active("Đang hoạt động"),
+        Inactive("Tạm ngưng"),
+        Suspended("Đình chỉ");
+        
+        private final String displayName;
+        
+        PartnerStatus(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 }

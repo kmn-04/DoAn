@@ -33,7 +33,7 @@ public class RegisterRequest {
     @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
     
-    @Pattern(regexp = "^[0-9]{10,11}$", message = "Phone number must be 10-11 digits")
+    @Pattern(regexp = "^$|^[0-9]{10,11}$", message = "Phone number must be 10-11 digits or empty")
     private String phone;
     
     @Size(max = 255, message = "Address must not exceed 255 characters")

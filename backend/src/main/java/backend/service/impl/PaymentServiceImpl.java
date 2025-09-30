@@ -88,8 +88,8 @@ public class PaymentServiceImpl implements PaymentService {
         // Update payment status
         Payment payment = updatePaymentStatus(transactionId, PaymentStatus.Completed);
         
-        // Update booking status to PAID
-        booking.setStatus(Booking.BookingStatus.Paid);
+        // Update booking payment status to PAID
+        booking.setPaymentStatus(Booking.PaymentStatus.Paid);
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
         
@@ -106,14 +106,14 @@ public class PaymentServiceImpl implements PaymentService {
         // Update payment status to Failed
         Payment payment = updatePaymentStatus(transactionId, PaymentStatus.Failed);
         
-        // Reset booking status back to Pending if it's not Paid
+        // Reset booking payment status back to Unpaid if it's not Paid
         Booking booking = payment.getBooking();
-        if (booking != null && booking.getStatus() != Booking.BookingStatus.Paid) {
-            log.info("Resetting booking: {} back to PENDING status", booking.getBookingCode());
-            booking.setStatus(Booking.BookingStatus.Pending);
+        if (booking != null && booking.getPaymentStatus() != Booking.PaymentStatus.Paid) {
+            log.info("Resetting booking: {} back to UNPAID payment status", booking.getBookingCode());
+            booking.setPaymentStatus(Booking.PaymentStatus.Unpaid);
             booking.setUpdatedAt(LocalDateTime.now());
             bookingRepository.save(booking);
-            log.info("✅ Booking: {} reset to PENDING - User can retry payment", booking.getBookingCode());
+            log.info("✅ Booking: {} reset to UNPAID - User can retry payment", booking.getBookingCode());
         }
         
         log.info("✅ Marked payment as FAILED for transaction: {}", transactionId);

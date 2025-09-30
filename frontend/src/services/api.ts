@@ -93,11 +93,11 @@ api.interceptors.response.use(
 
 // Generic API methods
 export const apiClient = {
-  get: <T>(url: string) => api.get(url),
-  post: <T>(url: string, data?: any) => api.post(url, data),
-  put: <T>(url: string, data?: any) => api.put(url, data),
-  delete: <T>(url: string) => api.delete(url),
-  patch: <T>(url: string, data?: any) => api.patch(url, data),
+  get: <T>(url: string, config?: any) => api.get(url, config),
+  post: <T>(url: string, data?: any, config?: any) => api.post(url, data, config),
+  put: <T>(url: string, data?: any, config?: any) => api.put(url, data, config),
+  delete: <T>(url: string, config?: any) => api.delete(url, config),
+  patch: <T>(url: string, data?: any, config?: any) => api.patch(url, data, config),
 };
 
 export default api;

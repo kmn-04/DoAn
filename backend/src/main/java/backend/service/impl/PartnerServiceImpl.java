@@ -45,6 +45,28 @@ public class PartnerServiceImpl implements PartnerService {
         }
         return partnerRepository.searchByName(keyword.trim(), pageable);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Partner> searchPartners(
+        String keyword, 
+        Partner.PartnerType type, 
+        String location, 
+        Double minRating, 
+        Pageable pageable
+    ) {
+        log.info("Searching partners with filters - keyword: {}, type: {}, location: {}, minRating: {}", 
+            keyword, type, location, minRating);
+        
+        return partnerRepository.findPartnersWithFilters(
+            keyword != null && !keyword.trim().isEmpty() ? keyword.trim() : null,
+            type,
+            location != null && !location.trim().isEmpty() ? location.trim() : null,
+            minRating,
+            Partner.PartnerStatus.Active,
+            pageable
+        );
+    }
 
     @Override
     @Transactional(readOnly = true)
