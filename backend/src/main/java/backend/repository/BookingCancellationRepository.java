@@ -20,8 +20,15 @@ public interface BookingCancellationRepository extends JpaRepository<BookingCanc
     Optional<BookingCancellation> findByBookingId(Long bookingId);
     boolean existsByBookingId(Long bookingId);
 
-    // Find by user who cancelled
-    Page<BookingCancellation> findByCancelledByIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    // Find by user who cancelled - eager fetch booking and tour to avoid LazyInitializationException
+    // Using separate query to handle cases where booking might be deleted
+    @Query("""
+        SELECT bc FROM BookingCancellation bc 
+        WHERE bc.cancelledBy.id = :userId 
+        AND bc.booking IS NOT NULL
+        ORDER BY bc.createdAt DESC
+        """)
+    Page<BookingCancellation> findByCancelledByIdOrderByCreatedAtDesc(@Param("userId") Long userId, Pageable pageable);
 
     // Find by status
     Page<BookingCancellation> findByStatusOrderByCreatedAtDesc(
@@ -66,12 +73,13 @@ public interface BookingCancellationRepository extends JpaRepository<BookingCanc
     // Search cancellations
     @Query("""
         SELECT bc FROM BookingCancellation bc 
-        JOIN bc.booking b 
-        JOIN b.tour t 
-        WHERE LOWER(bc.reason) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
+        LEFT JOIN bc.booking b 
+        LEFT JOIN b.tour t 
+        WHERE (LOWER(bc.reason) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
         OR LOWER(bc.additionalNotes) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
         OR LOWER(b.bookingCode) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
-        OR LOWER(t.name) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
+        OR LOWER(t.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')))
+        AND bc.booking IS NOT NULL
         ORDER BY bc.createdAt DESC
         """)
     Page<BookingCancellation> searchCancellations(@Param("searchTerm") String searchTerm, Pageable pageable);

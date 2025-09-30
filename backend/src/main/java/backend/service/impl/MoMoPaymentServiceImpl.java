@@ -58,10 +58,36 @@ public class MoMoPaymentServiceImpl implements MoMoPaymentService {
             
             // Get booking to create payment record
             log.info("📋 Getting booking for payment: {}", request.getBookingId());
-            Booking booking = bookingService.getBookingByCode(request.getBookingId())
-                    .orElseThrow(() -> new RuntimeException("Booking not found: " + request.getBookingId()));
             
-            log.info("✅ Found booking: {} for user: {}", booking.getBookingCode(), booking.getUser().getId());
+            // Try to get booking by code first, if not found, try by ID
+            Booking booking;
+            try {
+                // First attempt: Try as booking code (string)
+                booking = bookingService.getBookingByCode(request.getBookingId())
+                        .orElse(null);
+                
+                // Second attempt: If not found, try as booking ID (numeric)
+                if (booking == null) {
+                    try {
+                        Long bookingId = Long.parseLong(request.getBookingId());
+                        booking = bookingService.getBookingById(bookingId)
+                                .orElse(null);
+                        log.info("🔍 Found booking by ID: {}", bookingId);
+                    } catch (NumberFormatException e) {
+                        // Not a valid ID, keep booking as null
+                        log.warn("⚠️ Booking identifier is not a valid ID: {}", request.getBookingId());
+                    }
+                }
+                
+                if (booking == null) {
+                    throw new RuntimeException("Booking not found: " + request.getBookingId());
+                }
+            } catch (Exception e) {
+                log.error("❌ Error finding booking: {}", request.getBookingId(), e);
+                throw new RuntimeException("Booking not found: " + request.getBookingId());
+            }
+            
+            log.info("✅ Found booking: {} (ID: {}) for user: {}", booking.getBookingCode(), booking.getId(), booking.getUser().getId());
             
             // Prepare request data
             Map<String, Object> requestData = new HashMap<>();
@@ -234,11 +260,15 @@ public class MoMoPaymentServiceImpl implements MoMoPaymentService {
                 
                 if ("0".equals(resultCode)) {
                     // Payment successful
+                    // Handle transId - can be Long or String from MoMo
+                    Object transIdObj = responseBody.get("transId");
+                    String transactionId = transIdObj != null ? String.valueOf(transIdObj) : null;
+                    
                     return PaymentResponse.builder()
                             .orderId(orderId)
                             .status("SUCCESS")
                             .message("Payment completed successfully")
-                            .transactionId((String) responseBody.get("transId"))
+                            .transactionId(transactionId)
                             .amount(responseBody.get("amount") != null ? 
                                     new BigDecimal(responseBody.get("amount").toString()) : BigDecimal.ZERO)
                             .build();

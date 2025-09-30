@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { 
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -8,10 +8,10 @@ import {
   UsersIcon,
   ClockIcon,
   EyeIcon,
-  DocumentArrowDownIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  XCircleIcon
+  XCircleIcon,
+  CreditCardIcon
 } from '@heroicons/react/24/outline';
 import { Card, Button, Pagination, SkeletonBookingCard } from '../../components/ui';
 import { bookingService } from '../../services';
@@ -130,6 +130,7 @@ const mockBookings: Booking[] = [
 
 const BookingHistoryPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
@@ -203,7 +204,20 @@ const BookingHistoryPage: React.FC = () => {
             if (status === 'cancellationrequested') return 'cancellation_requested';
             return status as 'confirmed' | 'pending' | 'completed' | 'cancelled' | 'cancellation_requested';
           })(),
-          paymentStatus: 'paid', // Default since API doesn't specify
+          paymentStatus: (() => {
+            // Map backend booking status to frontend payment status
+            // If booking is PAID or COMPLETED -> paymentStatus is 'paid'
+            // Otherwise -> 'pending' or 'failed' based on status
+            const bookingStatus = booking.status.toUpperCase();
+            if (bookingStatus === 'PAID' || bookingStatus === 'COMPLETED') {
+              return 'paid';
+            } else if (bookingStatus === 'CANCELLED') {
+              return 'failed';
+            } else {
+              // PENDING, CONFIRMED -> payment still pending
+              return 'pending';
+            }
+          })(),
           bookingDate: booking.createdAt,
           specialRequests: booking.specialRequests
         }));
@@ -317,6 +331,7 @@ const BookingHistoryPage: React.FC = () => {
     const badges: Record<string, { label: string; className: string; icon: React.ComponentType<any> }> = {
       confirmed: { label: 'Đã xác nhận', className: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircleIcon },
       pending: { label: 'Chờ xác nhận', className: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: ClockIcon },
+      paid: { label: 'Chờ xác nhận', className: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: ClockIcon },
       completed: { label: 'Hoàn thành', className: 'bg-blue-100 text-blue-800 border-blue-200', icon: CheckCircleIcon },
       cancelled: { label: 'Đã hủy', className: 'bg-red-100 text-red-800 border-red-200', icon: XCircleIcon }
     };
@@ -326,7 +341,7 @@ const BookingHistoryPage: React.FC = () => {
   const getPaymentStatusBadge = (status: string) => {
     const badges: Record<string, { label: string; className: string }> = {
       paid: { label: 'Đã thanh toán', className: 'bg-green-100 text-green-800' },
-      pending: { label: 'Chờ thanh toán', className: 'bg-yellow-100 text-yellow-800' },
+      pending: { label: 'Chờ thanh toán', className: 'bg-orange-100 text-orange-800' },
       failed: { label: 'Thất bại', className: 'bg-red-100 text-red-800' }
     };
     return badges[status] || { label: status, className: 'bg-gray-100 text-gray-800' };
@@ -358,6 +373,32 @@ const BookingHistoryPage: React.FC = () => {
     console.log('👁️ User clicked view tour detail:', { tourId, tourSlug });
     setSelectedTourForDetail({ id: tourId, slug: tourSlug });
     setShowTourDetailModal(true);
+  };
+
+  const handleRetryPayment = (booking: Booking) => {
+    console.log('💳 User clicked retry payment for booking:', booking.id);
+    
+    // Store booking data for payment page
+    const bookingData = {
+      bookingId: booking.id,
+      tourId: booking.tourId,
+      tourName: booking.tourName,
+      tourSlug: booking.tourSlug,
+      tourImage: booking.tourImage, // Include tour image
+      startDate: booking.startDate,
+      adults: booking.adults,
+      children: booking.children,
+      totalPrice: booking.totalPrice,
+      specialRequests: booking.specialRequests
+    };
+    
+    console.log('💾 Storing retry payment data:', bookingData);
+    
+    // Store in sessionStorage for payment page
+    sessionStorage.setItem('retryPaymentBooking', JSON.stringify(bookingData));
+    
+    // Navigate to checkout page with retry flag
+    navigate(`/booking/checkout?bookingId=${booking.id}&retry=true`);
   };
 
   const handleCancellationSuccess = (cancellationData: any) => {
@@ -425,15 +466,17 @@ const BookingHistoryPage: React.FC = () => {
   };
 
   const canCancelBooking = (booking: Booking): boolean => {
-    // Can cancel if status is confirmed or pending and start date is in the future
-    // Cannot cancel if already requested for cancellation
+    // Can request cancellation if:
+    // 1. Start date is in the future
+    // 2. Not already cancelled, completed, or cancellation requested
+    // 3. Payment status is 'paid' (đã thanh toán)
     const startDate = new Date(booking.startDate);
     const now = new Date();
     const isInFuture = startDate > now;
-    const canCancelStatus = booking.status === 'confirmed' || booking.status === 'pending';
-    const notAlreadyCancelling = booking.status !== 'cancellation_requested';
+    const notCancelledOrCompleted = booking.status !== 'cancellation_requested' && booking.status !== 'cancelled' && booking.status !== 'completed';
+    const isPaid = booking.paymentStatus === 'paid';
     
-    return isInFuture && canCancelStatus && notAlreadyCancelling;
+    return isInFuture && notCancelledOrCompleted && isPaid;
   };
 
   const clearFilters = () => {
@@ -670,33 +713,33 @@ const BookingHistoryPage: React.FC = () => {
 
                 {/* Actions */}
                 <div className="flex flex-col space-y-2 lg:w-32">
-                  {canCancelBooking(booking) && (
-                    <button 
-                      onClick={() => handleCancelBooking(Number(booking.id))}
-                      className="inline-flex items-center justify-center px-3 py-2 border border-red-300 rounded-lg text-sm font-medium text-red-700 bg-white hover:bg-red-50 transition-colors"
-                    >
-                      <XCircleIcon className="h-4 w-4 mr-1" />
-                      Hủy booking
-                    </button>
-                  )}
-
-                  {isUpcoming && (
-                    <button 
-                      onClick={() => handleViewTourDetail(booking.tourId, booking.tourSlug)}
-                      className="inline-flex items-center justify-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <EyeIcon className="h-4 w-4 mr-1" />
-                      Xem tour
-                    </button>
-                  )}
-                  
-                  <button className="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-                    <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
-                    PDF
+                  {/* Nút Xem chi tiết - Hiển thị cho TẤT CẢ booking */}
+                  <button 
+                    onClick={() => handleViewTourDetail(booking.tourId, booking.tourSlug)}
+                    className="inline-flex items-center justify-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <EyeIcon className="h-4 w-4 mr-1" />
+                    Xem
                   </button>
 
-                  {booking.status === 'pending' && booking.paymentStatus === 'pending' && (
-                    <button className="inline-flex items-center justify-center px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium transition-colors">
+                  {/* Nút Yêu cầu hủy - Chỉ hiển thị cho booking đã thanh toán */}
+                  {booking.paymentStatus === 'paid' && canCancelBooking(booking) && (
+                    <button 
+                      onClick={() => handleCancelBooking(Number(booking.id))}
+                      className="inline-flex items-center justify-center px-3 py-2 border border-orange-300 rounded-lg text-sm font-medium text-orange-700 bg-white hover:bg-orange-50 transition-colors"
+                    >
+                      <XCircleIcon className="h-4 w-4 mr-1" />
+                      Yêu cầu hủy
+                    </button>
+                  )}
+
+                  {/* Nút Thanh toán - Hiển thị cho booking chưa thanh toán */}
+                  {booking.paymentStatus === 'pending' && (
+                    <button 
+                      onClick={() => handleRetryPayment(booking)}
+                      className="inline-flex items-center justify-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <CreditCardIcon className="h-4 w-4 mr-1" />
                       Thanh toán
                     </button>
                   )}
