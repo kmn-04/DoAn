@@ -1,5 +1,6 @@
 package backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -61,6 +62,22 @@ public class User {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
     
+    // Statistics fields for admin dashboard
+    @Column(name = "login_count", nullable = false)
+    private Integer loginCount = 0;
+    
+    @Column(name = "total_bookings", nullable = false)
+    private Integer totalBookings = 0;
+    
+    @Column(name = "total_tour_views", nullable = false)
+    private Integer totalTourViews = 0;
+    
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+    
+    @Column(name = "last_activity_at")
+    private LocalDateTime lastActivityAt;
+    
     // Relationship with Role (Many-to-One)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
@@ -68,19 +85,33 @@ public class User {
     
     // Relationship with Booking (One-to-Many)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Booking> bookings;
     
     // Relationship with Review (One-to-Many)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Review> reviews;
     
     // Relationship with Notification (One-to-Many)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Notification> notifications;
     
     // Relationship with Log (One-to-Many)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Log> logs;
+    
+    // Relationship with UserActivity (One-to-Many)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Set<UserActivity> activities;
+    
+    // Relationship with UserSession (One-to-Many)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Set<UserSession> sessions;
     
     @PrePersist
     protected void onCreate() {
@@ -101,6 +132,32 @@ public class User {
     
     public boolean isDeleted() {
         return deletedAt != null;
+    }
+    
+    // Statistics helper methods
+    public void incrementLoginCount() {
+        this.loginCount = (this.loginCount == null ? 0 : this.loginCount) + 1;
+        this.lastLoginAt = LocalDateTime.now();
+        this.lastActivityAt = LocalDateTime.now();
+    }
+    
+    public void incrementTotalBookings() {
+        this.totalBookings = (this.totalBookings == null ? 0 : this.totalBookings) + 1;
+        this.lastActivityAt = LocalDateTime.now();
+    }
+    
+    public void incrementTourViews() {
+        this.totalTourViews = (this.totalTourViews == null ? 0 : this.totalTourViews) + 1;
+        this.lastActivityAt = LocalDateTime.now();
+    }
+    
+    public void updateLastActivity() {
+        this.lastActivityAt = LocalDateTime.now();
+    }
+    
+    public boolean isOnline() {
+        return lastActivityAt != null && 
+               lastActivityAt.isAfter(LocalDateTime.now().minusMinutes(5));
     }
     
     public enum UserStatus {

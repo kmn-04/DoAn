@@ -1,4 +1,4 @@
-package backend.util;
+package backend.mapper;
 
 import backend.dto.response.UserResponse;
 import backend.dto.response.TourResponse;
@@ -31,6 +31,13 @@ public class EntityMapper {
         response.setEmailVerifiedAt(user.getEmailVerifiedAt());
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
+        
+        // Add statistics fields - TODO: Add these to UserResponse DTO
+        // response.setLoginCount(user.getLoginCount());
+        // response.setTotalBookings(user.getTotalBookings());
+        // response.setTotalTourViews(user.getTotalTourViews());
+        // response.setLastLoginAt(user.getLastLoginAt());
+        // response.setLastActivityAt(user.getLastActivityAt());
         
         // Convert role
         if (user.getRole() != null) {
@@ -73,6 +80,10 @@ public class EntityMapper {
         response.setStatus(tour.getStatus() != null ? tour.getStatus().toString() : null);
         response.setCreatedAt(tour.getCreatedAt());
         response.setUpdatedAt(tour.getUpdatedAt());
+        
+        // Add new fields - TODO: Add these to TourResponse DTO
+        // response.setMainImage(tour.getMainImage());
+        // response.setTourType(tour.getTourType() != null ? tour.getTourType().toString() : null);
         
         // Convert category
         if (tour.getCategory() != null) {
@@ -152,6 +163,7 @@ public class EntityMapper {
             userSummary.setId(booking.getUser().getId());
             userSummary.setName(booking.getUser().getName());
             userSummary.setEmail(booking.getUser().getEmail());
+            userSummary.setPhone(booking.getUser().getPhone());
             response.setUser(userSummary);
         }
         
@@ -163,7 +175,21 @@ public class EntityMapper {
             tourSummary.setSlug(booking.getTour().getSlug());
             tourSummary.setPrice(booking.getTour().getPrice());
             tourSummary.setDuration(booking.getTour().getDuration());
+            if (booking.getTour().getCategory() != null) {
+                tourSummary.setCategoryName(booking.getTour().getCategory().getName());
+            }
+            tourSummary.setMainImage(booking.getTour().getMainImage());
             response.setTour(tourSummary);
+        }
+        
+        // Convert promotion
+        if (booking.getPromotion() != null) {
+            BookingResponse.PromotionResponse promotionResponse = new BookingResponse.PromotionResponse();
+            promotionResponse.setId(booking.getPromotion().getId());
+            promotionResponse.setCode(booking.getPromotion().getCode());
+            promotionResponse.setType(booking.getPromotion().getType().toString());
+            promotionResponse.setValue(booking.getPromotion().getValue());
+            response.setPromotion(promotionResponse);
         }
         
         return response;
@@ -184,9 +210,6 @@ public class EntityMapper {
      */
     public BookingCancellationResponse toBookingCancellationResponse(BookingCancellation cancellation) {
         if (cancellation == null) return null;
-        
-        System.out.println("🔍 EntityMapper: Converting cancellation ID=" + cancellation.getId() + 
-                          ", booking=" + (cancellation.getBooking() != null ? cancellation.getBooking().getId() : "null"));
         
         BookingCancellationResponse response = new BookingCancellationResponse();
         response.setId(cancellation.getId());
@@ -222,10 +245,6 @@ public class EntityMapper {
         
         // Convert booking summary
         if (cancellation.getBooking() != null) {
-            System.out.println("🔍 EntityMapper: Booking details - ID=" + cancellation.getBooking().getId() + 
-                              ", code=" + cancellation.getBooking().getBookingCode() + 
-                              ", startDate=" + cancellation.getBooking().getStartDate());
-            
             BookingCancellationResponse.BookingSummary bookingSummary = new BookingCancellationResponse.BookingSummary();
             bookingSummary.setId(cancellation.getBooking().getId());
             bookingSummary.setBookingCode(cancellation.getBooking().getBookingCode());

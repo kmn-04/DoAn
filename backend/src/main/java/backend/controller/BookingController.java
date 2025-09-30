@@ -4,7 +4,7 @@ import backend.dto.response.ApiResponse;
 import backend.dto.response.BookingResponse;
 import backend.entity.Booking;
 import backend.service.BookingService;
-import backend.util.EntityMapper;
+import backend.mapper.EntityMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

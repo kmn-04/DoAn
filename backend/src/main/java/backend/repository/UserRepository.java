@@ -70,10 +70,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * Count users by status
      */
-    long countByStatus(UserStatus status);
+    Long countByStatus(UserStatus status);
     
     /**
-     * Find users with email verification
+     * Find verified users
      */
     @Query("SELECT u FROM User u WHERE u.emailVerifiedAt IS NOT NULL AND u.deletedAt IS NULL")
     List<User> findVerifiedUsers();

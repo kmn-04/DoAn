@@ -1,5 +1,7 @@
 package backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +21,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Tour {
     
     @Id
@@ -56,6 +59,9 @@ public class Tour {
     @Column(name = "is_featured", nullable = false)
     private Boolean isFeatured = false;
     
+    @Column(name = "main_image", length = 255)
+    private String mainImage;
+    
     // International Tour Fields
     @Enumerated(EnumType.STRING)
     @Column(name = "tour_type", nullable = false)
@@ -88,18 +94,22 @@ public class Tour {
     
     // Relationship with TourItinerary (One-to-Many)
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<TourItinerary> itineraries;
     
     // Relationship with TourImage (One-to-Many)
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<TourImage> images;
     
     // Relationship with Booking (One-to-Many)
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Booking> bookings;
     
     // Relationship with Review (One-to-Many)
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Review> reviews;
     
     // Many-to-Many relationship with TargetAudience
@@ -109,6 +119,7 @@ public class Tour {
         joinColumns = @JoinColumn(name = "tour_id"),
         inverseJoinColumns = @JoinColumn(name = "target_audience_id")
     )
+    @JsonIgnore
     private Set<TargetAudience> targetAudiences;
     
     @PrePersist

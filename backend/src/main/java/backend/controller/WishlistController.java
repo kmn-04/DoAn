@@ -5,7 +5,7 @@ import backend.dto.response.TourResponse;
 import backend.entity.Wishlist;
 import backend.entity.Tour;
 import backend.service.WishlistService;
-import backend.util.EntityMapper;
+import backend.mapper.EntityMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

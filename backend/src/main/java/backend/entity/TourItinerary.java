@@ -33,4 +33,14 @@ public class TourItinerary {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "partner_id")
     private Partner partner;
+    
+    // Relationship with Accommodation Partner (Many-to-One) - Optional
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "accommodation_partner_id")
+    private Partner accommodationPartner;
+    
+    // Relationship with Meals Partner (Many-to-One) - Optional
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "meals_partner_id")
+    private Partner mealsPartner;
 }
