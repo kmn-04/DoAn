@@ -132,4 +132,24 @@ public class PartnerServiceImpl implements PartnerService {
         log.info("Counting partners by type: {}", type);
         return partnerRepository.countByType(type);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long getTotalPartners() {
+        return partnerRepository.count();
+    }
+    
+    @Override
+    public Partner changePartnerStatus(Long id, Partner.PartnerStatus status) {
+        log.info("Changing status of partner {} to: {}", id, status);
+        
+        Partner partner = partnerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Partner not found with ID: " + id));
+        
+        partner.setStatus(status);
+        Partner updatedPartner = partnerRepository.save(partner);
+        
+        log.info("Partner status changed successfully for ID: {}", id);
+        return updatedPartner;
+    }
 }

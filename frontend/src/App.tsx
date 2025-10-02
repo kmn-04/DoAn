@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Import layout components (keep these as regular imports)
 import { Layout } from './components/layout';
+import AdminLayout from './components/layout/AdminLayout';
 import { ToastContainer, PageLoader, TourPageLoader, BookingPageLoader, DashboardPageLoader, AuthPageLoader } from './components/ui';
 import { ProtectedRoute } from './components/auth';
 import { ErrorBoundary, PageErrorBoundary } from './components/error';
@@ -20,8 +21,7 @@ const PartnerDetailPage = React.lazy(() => import('./pages/PartnerDetailPage'));
 const PartnershipPage = React.lazy(() => import('./pages/PartnershipPage'));
 const BookingCheckoutPage = React.lazy(() => import('./pages/BookingCheckoutPage'));
 const BookingConfirmationPage = React.lazy(() => import('./pages/BookingConfirmationPage'));
-const PaymentReturnPage = React.lazy(() => import('./pages/payment/PaymentReturnPage'));
-const ComponentDemo = React.lazy(() => import('./pages/ComponentDemo'));
+// PaymentReturnPage removed - MoMo payment under re-implementation
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage'));
@@ -31,9 +31,24 @@ const ContactPage = React.lazy(() => import('./pages/ContactPage'));
 // Dashboard pages - lazy loaded
 const BookingHistoryPage = React.lazy(() => import('./pages/dashboard/BookingHistoryPage'));
 const ProfilePage = React.lazy(() => import('./pages/dashboard/ProfilePage'));
-const WishlistPage = React.lazy(() => import('./pages/WishlistPage'));  // Updated: moved to root pages
+const WishlistPage = React.lazy(() => import('./pages/dashboard/WishlistPage'));
 const NotificationsPage = React.lazy(() => import('./pages/dashboard/NotificationsPage'));
 const SettingsPage = React.lazy(() => import('./pages/dashboard/SettingsPage'));
+const MyReviewsPage = React.lazy(() => import('./pages/dashboard/MyReviewsPage'));
+
+// Admin pages - lazy loaded
+const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminTours = React.lazy(() => import('./pages/admin/AdminTours'));
+const AdminCategories = React.lazy(() => import('./pages/admin/AdminCategories'));
+const AdminBookings = React.lazy(() => import('./pages/admin/AdminBookings'));
+const AdminReviews = React.lazy(() => import('./pages/admin/AdminReviews'));
+const AdminUsers = React.lazy(() => import('./pages/admin/AdminUsers'));
+const AdminPartners = React.lazy(() => import('./pages/admin/AdminPartners'));
+const AdminPromotions = React.lazy(() => import('./pages/admin/AdminPromotions'));
+const AdminNotifications = React.lazy(() => import('./pages/admin/AdminNotifications'));
+const AdminContacts = React.lazy(() => import('./pages/admin/AdminContacts'));
+const AdminStatistics = React.lazy(() => import('./pages/admin/AdminStatistics'));
+const AdminSettings = React.lazy(() => import('./pages/admin/AdminSettings'));
 
 // Create a client
 const queryClient = new QueryClient({
@@ -133,14 +148,7 @@ function App() {
               </ProtectedRoute>
             } />
             
-            {/* Payment Routes */}
-            <Route path="/payment/momo/return" element={
-              <PageErrorBoundary>
-                <Suspense fallback={<PageLoader message="Đang xử lý kết quả thanh toán..." />}>
-                  <PaymentReturnPage />
-                </Suspense>
-              </PageErrorBoundary>
-            } />
+            {/* Payment Routes - MoMo removed, to be re-implemented */}
 
             <Route path="/bookings" element={
               <ProtectedRoute>
@@ -168,13 +176,6 @@ function App() {
               </Layout>
             } />
 
-            <Route path="/demo" element={
-              <Layout>
-                <Suspense fallback={<PageLoader message="Đang tải demo..." />}>
-                  <ComponentDemo />
-                </Suspense>
-              </Layout>
-            } />
 
             {/* User account routes - Protected with public layout */}
             <Route path="/profile" element={
@@ -217,16 +218,134 @@ function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/my-reviews" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <MyReviewsPage />
+                  </Suspense>
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            {/* Admin routes - Protected with admin layout */}
             <Route path="/admin" element={
               <ProtectedRoute requiredRole="admin">
-                <Layout>
-                  <div className="min-h-screen bg-gray-50">
-                    <div className="text-center py-20">
-                      <h1 className="text-4xl font-bold text-gray-900">🔧 Admin Panel</h1>
-                      <p className="text-gray-600 mt-4">Đang xây dựng...</p>
-                    </div>
-                  </div>
-                </Layout>
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminDashboard />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/tours" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminTours />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/categories" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminCategories />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/bookings" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminBookings />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/reviews" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminReviews />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/users" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminUsers />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/partners" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminPartners />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/promotions" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminPromotions />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/notifications" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminNotifications />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/contacts" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminContacts />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/statistics" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminStatistics />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/settings" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminSettings />
+                  </Suspense>
+                </AdminLayout>
               </ProtectedRoute>
             } />
 

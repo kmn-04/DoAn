@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  CalendarDaysIcon,
   UsersIcon,
   CreditCardIcon,
   ShieldCheckIcon,
@@ -9,6 +8,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { Button } from '../ui';
 import { useAuth } from '../../hooks/useAuth';
+import { tourService } from '../../services';
+import TourScheduleSelector from './TourScheduleSelector';
+import { type TourSchedule } from '../tours';
 
 interface BookingFormProps {
   tour: {
@@ -37,17 +39,47 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
   const { isAuthenticated } = useAuth();
   
   const [formData, setFormData] = useState({
-    startDate: '',
     adults: 1,
     children: 0,
     specialRequests: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [availableSchedules, setAvailableSchedules] = useState<TourSchedule[]>([]);
+  const [selectedSchedule, setSelectedSchedule] = useState<TourSchedule | null>(null);
+  const [loadingSchedules, setLoadingSchedules] = useState(false);
+  const [showAllSchedules, setShowAllSchedules] = useState(false);
+  
+  // Load real schedules from API
+  useEffect(() => {
+    const loadSchedules = async () => {
+      setLoadingSchedules(true);
+      try {
+        const schedules = await tourService.getTourSchedules(tour.id);
+        
+        if (schedules && schedules.length > 0) {
+          // Store full schedule objects
+          setAvailableSchedules(schedules);
+        } else {
+          console.warn('No schedules found for tour', tour.id);
+          setAvailableSchedules([]);
+        }
+      } catch (error) {
+        console.error('Error loading schedules:', error);
+        setAvailableSchedules([]);
+      } finally {
+        setLoadingSchedules(false);
+      }
+    };
+    
+    loadSchedules();
+  }, [tour.id]);
 
-  const childPrice = tour.price * 0.7; // 70% of adult price
+  // Calculate prices based on selected schedule or tour default
+  const adultPrice = selectedSchedule?.adultPrice || tour.price;
+  const childPrice = selectedSchedule?.childPrice || (tour.price * 0.7);
   const totalPeople = formData.adults + formData.children;
-  const totalPrice = (formData.adults * tour.price) + (formData.children * childPrice);
+  const totalPrice = (formData.adults * adultPrice) + (formData.children * childPrice);
   
   const discountPercentage = tour.originalPrice 
     ? Math.round(((tour.originalPrice - tour.price) / tour.originalPrice) * 100)
@@ -65,8 +97,8 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.startDate) {
-      newErrors.startDate = 'Vui lòng chọn ngày khởi hành';
+    if (!selectedSchedule) {
+      newErrors.schedule = 'Vui lòng chọn lịch khởi hành';
     }
 
     if (formData.adults < 1) {
@@ -75,6 +107,10 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
 
     if (totalPeople > tour.maxPeople) {
       newErrors.totalPeople = `Tối đa ${tour.maxPeople} người cho tour này`;
+    }
+
+    if (selectedSchedule && totalPeople > selectedSchedule.availableSeats) {
+      newErrors.totalPeople = `Lịch này chỉ còn ${selectedSchedule.availableSeats} chỗ trống`;
     }
 
     if (totalPeople < 1) {
@@ -88,30 +124,38 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validateForm() || !selectedSchedule) {
       return;
     }
 
     // Check if user is logged in
     if (!isAuthenticated) {
+      // Save booking intent to sessionStorage
+      sessionStorage.setItem('intendedBooking', JSON.stringify({
+        tourId: tour.id,
+        tourSlug: tour.slug,
+        startDate: selectedSchedule.departureDate,
+        adults: formData.adults,
+        children: formData.children,
+        specialRequests: formData.specialRequests
+      }));
+      
       // Redirect to login with return URL
-      navigate(`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`);
+      navigate(`/login?returnUrl=/booking/checkout?tourId=${tour.id}&tourSlug=${tour.slug}`);
       return;
     }
 
-    // Redirect to checkout page with booking data
-    const params = new URLSearchParams({
-      tourId: tour.id.toString(),
-      tourSlug: tour.slug,
-      tourName: tour.name,
-      startDate: formData.startDate,
-      adults: formData.adults.toString(),
-      children: formData.children.toString(),
-      totalPrice: totalPrice.toString(),
-      ...(formData.specialRequests && { specialRequests: formData.specialRequests })
+    // Navigate to checkout with pre-filled data via state
+    navigate(`/booking/checkout?tourId=${tour.id}&tourSlug=${tour.slug}`, {
+      state: {
+        prefilledData: {
+          startDate: selectedSchedule.departureDate,
+          adults: formData.adults,
+          children: formData.children,
+          specialRequests: formData.specialRequests
+        }
+      }
     });
-
-    navigate(`/booking/checkout?${params.toString()}`);
   };
 
   const formatPrice = (price: number) => {
@@ -121,25 +165,6 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
     }).format(price);
   };
 
-  // Generate available dates (next 3 months, weekends only for demo)
-  const generateAvailableDates = () => {
-    const dates = [];
-    const today = new Date();
-    
-    for (let i = 0; i < 90; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      
-      // Only weekends for demo
-      if (date.getDay() === 0 || date.getDay() === 6) {
-        dates.push(date.toISOString().split('T')[0]);
-      }
-    }
-    
-    return dates.slice(0, 20); // Limit to 20 dates
-  };
-
-  const availableDates = generateAvailableDates();
 
   return (
     <div className="bg-white rounded-lg shadow-lg border p-6 sticky top-4">
@@ -164,33 +189,130 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Date Selection */}
+        {/* Schedule Selection - Responsive */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            <CalendarDaysIcon className="h-4 w-4 inline mr-1" />
-            Ngày khởi hành
+            📅 Chọn lịch khởi hành
           </label>
-          <select
-            value={formData.startDate}
-            onChange={(e) => handleInputChange('startDate', e.target.value)}
-            className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              errors.startDate ? 'border-red-500' : 'border-gray-300'
-            }`}
-          >
-            <option value="">Chọn ngày khởi hành</option>
-            {availableDates.map(date => (
-              <option key={date} value={date}>
-                {new Date(date).toLocaleDateString('vi-VN', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
+          
+          {loadingSchedules ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-sm text-gray-500 mt-2">Đang tải lịch trình...</p>
+            </div>
+          ) : availableSchedules.length === 0 ? (
+            <div className="text-center py-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-gray-600">Hiện chưa có lịch khởi hành.</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop: Cards View (hidden on mobile) */}
+              <div className="hidden md:block">
+                <div className="grid grid-cols-1 gap-3">
+                  {(showAllSchedules ? availableSchedules : availableSchedules.slice(0, 2)).map((schedule) => {
+                    const isSelected = schedule.id === selectedSchedule?.id;
+                    const maxSeats = schedule.availableSeats + schedule.bookedSeats;
+                    const ratio = schedule.availableSeats / maxSeats;
+                    
+                    return (
+                      <button
+                        key={schedule.id}
+                        type="button"
+                        onClick={() => setSelectedSchedule(schedule)}
+                        className={`text-left p-3 rounded-lg border-2 transition-all ${
+                          isSelected 
+                            ? 'border-blue-600 bg-blue-50' 
+                            : 'border-gray-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="font-semibold text-gray-900">
+                            {new Date(schedule.departureDate).toLocaleDateString('vi-VN', {
+                              day: '2-digit',
+                              month: '2-digit'
+                            })} - {new Date(schedule.returnDate).toLocaleDateString('vi-VN', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            })}
+                          </div>
+                          {isSelected && (
+                            <span className="text-blue-600 text-xs">✓ Đã chọn</span>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-sm">
+                          <span className={`font-medium ${
+                            ratio > 0.5 ? 'text-green-600' : ratio > 0.2 ? 'text-orange-600' : 'text-red-600'
+                          }`}>
+                            {ratio > 0.5 
+                              ? `✓ Còn ${schedule.availableSeats} chỗ` 
+                              : ratio > 0.2 
+                                ? `⚠ Còn ${schedule.availableSeats} chỗ`
+                                : `🔥 Chỉ còn ${schedule.availableSeats} chỗ`
+                            }
+                          </span>
+                          <span className="font-bold text-blue-600">
+                            {schedule.adultPrice.toLocaleString('vi-VN')}đ
+                          </span>
+                        </div>
+                        
+                        {schedule.note && (
+                          <div className="mt-1 text-xs text-gray-500">
+                            💡 {schedule.note}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {/* Show More Button */}
+                {availableSchedules.length > 2 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllSchedules(!showAllSchedules)}
+                    className="w-full mt-3 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                  >
+                    {showAllSchedules 
+                      ? `↑ Thu gọn` 
+                      : `↓ Xem thêm ${availableSchedules.length - 2} lịch khác`
+                    }
+                  </button>
+                )}
+              </div>
+
+              {/* Mobile: Dropdown (shown only on mobile) */}
+              <select
+                className="md:hidden w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={selectedSchedule?.id || ''}
+                onChange={(e) => {
+                  const schedule = availableSchedules.find(s => s.id === parseInt(e.target.value));
+                  if (schedule) setSelectedSchedule(schedule);
+                }}
+              >
+                <option value="">Chọn ngày khởi hành</option>
+                {availableSchedules.map((schedule) => {
+                  const maxSeats = schedule.availableSeats + schedule.bookedSeats;
+                  const ratio = schedule.availableSeats / maxSeats;
+                  const statusText = ratio > 0.5 
+                    ? `Còn ${schedule.availableSeats} chỗ` 
+                    : ratio > 0.2 
+                      ? `Còn ${schedule.availableSeats} chỗ`
+                      : `Chỉ còn ${schedule.availableSeats} chỗ`;
+                  
+                  return (
+                    <option key={schedule.id} value={schedule.id}>
+                      {new Date(schedule.departureDate).toLocaleDateString('vi-VN')} | {statusText} | {schedule.adultPrice.toLocaleString('vi-VN')}đ
+                    </option>
+                  );
                 })}
-              </option>
-            ))}
-          </select>
-          {errors.startDate && (
-            <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>
+              </select>
+              
+              {errors.schedule && (
+                <p className="text-red-500 text-sm mt-2">{errors.schedule}</p>
+              )}
+            </>
           )}
         </div>
 
@@ -219,7 +341,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Trẻ em (2-12 tuổi)
+              Trẻ em (&lt; 12 tuổi)
             </label>
             <select
               value={formData.children}
@@ -255,13 +377,13 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
         </div>
 
         {/* Price Breakdown */}
-        {totalPeople > 0 && (
+        {totalPeople > 0 && selectedSchedule && (
           <div className="bg-gray-50 rounded-lg p-4 space-y-2">
             <h4 className="font-semibold text-gray-900">Chi tiết giá</h4>
             
             <div className="flex justify-between text-sm">
               <span>Người lớn ({formData.adults})</span>
-              <span>{formatPrice(formData.adults * tour.price)}</span>
+              <span>{formatPrice(formData.adults * adultPrice)}</span>
             </div>
             
             {formData.children > 0 && (

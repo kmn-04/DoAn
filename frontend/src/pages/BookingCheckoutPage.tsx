@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeftIcon,
   ShieldCheckIcon,
-  CheckCircleIcon,
-  XCircleIcon
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '../components/ui';
 import { useAuth } from '../hooks/useAuth';
@@ -22,8 +21,8 @@ interface TourInfo {
   name: string;
   slug: string;
   price: number;
+  originalPrice?: number;
   childPrice?: number;
-  infantPrice?: number;
   tourType: 'DOMESTIC' | 'INTERNATIONAL';
   mainImage?: string;
 }
@@ -31,7 +30,8 @@ interface TourInfo {
 const BookingCheckoutPageNew: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
   
   // Redirect if not authenticated
   useEffect(() => {
@@ -49,26 +49,19 @@ const BookingCheckoutPageNew: React.FC = () => {
   // Participant counts
   const [numAdults, setNumAdults] = useState(1);
   const [numChildren, setNumChildren] = useState(0);
-  const [numInfants, setNumInfants] = useState(0);
   
   // Participants info
   const [participants, setParticipants] = useState<Participant[]>([]);
   
-  // Customer info (primary contact)
-  const [customerInfo, setCustomerInfo] = useState({
-    fullName: user?.name || '',
-    email: user?.email || '',
-    phone: '',
-    address: '',
-    specialRequests: ''
-  });
+  // Special requests (separate from participant info)
+  const [specialRequests, setSpecialRequests] = useState('');
   
   // Payment
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Load tour data
+  // Load tour data and prefilled data from navigation state
   useEffect(() => {
     const tourId = searchParams.get('tourId');
     const tourSlug = searchParams.get('tourSlug');
@@ -79,7 +72,41 @@ const BookingCheckoutPageNew: React.FC = () => {
     }
 
     loadTourData(tourId, tourSlug);
-  }, [searchParams]);
+    
+    // Load prefilled data from location state (if coming from tour detail page)
+    const locationState = location.state as { prefilledData?: { adults?: number; children?: number; specialRequests?: string; startDate?: string } } | null;
+    let prefilledData = locationState?.prefilledData;
+    
+    // Or from sessionStorage (if user was redirected to login)
+    if (!prefilledData) {
+      const intendedBooking = sessionStorage.getItem('intendedBooking');
+      if (intendedBooking) {
+        try {
+          prefilledData = JSON.parse(intendedBooking);
+          sessionStorage.removeItem('intendedBooking'); // Clean up
+          console.log('📋 Loading intended booking from sessionStorage:', prefilledData);
+        } catch (e) {
+          console.error('Error parsing intended booking:', e);
+        }
+      }
+    }
+    
+    if (prefilledData) {
+      console.log('📋 Loading prefilled booking data:', prefilledData);
+      
+      if (prefilledData.adults) setNumAdults(prefilledData.adults);
+      if (prefilledData.children) setNumChildren(prefilledData.children);
+      if (prefilledData.specialRequests) {
+        setSpecialRequests(prefilledData.specialRequests || '');
+      }
+      
+      // If there's a start date, we need to find and select matching schedule
+      if (prefilledData.startDate) {
+        // Will be handled after schedules are loaded
+        sessionStorage.setItem('prefilledStartDate', prefilledData.startDate);
+      }
+    }
+  }, [searchParams, location.state]);
 
   const loadTourData = async (tourId: string | null, tourSlug: string | null) => {
     try {
@@ -95,16 +122,38 @@ const BookingCheckoutPageNew: React.FC = () => {
           id: tourData.id,
           name: tourData.name,
           slug: tourData.slug,
-          price: tourData.price,
+          price: tourData.salePrice || tourData.price, // Use sale price if available
+          originalPrice: (tourData.salePrice && tourData.salePrice < tourData.price) ? tourData.price : undefined,
           childPrice: tourData.childPrice,
-          infantPrice: tourData.infantPrice,
           tourType: tourData.tourType,
           mainImage: tourData.mainImage || tourData.images?.[0]?.imageUrl
         });
 
-        // Load schedules (mock for now - replace with API call)
-        // TODO: Replace with actual API: tourService.getTourSchedules(tourData.id)
-        setSchedules([]);
+        // Load schedules from API
+        try {
+          const schedules = await tourService.getTourSchedules(tourData.id);
+          if (schedules && schedules.length > 0) {
+            setSchedules(schedules);
+            
+            // Auto-select schedule if there's a prefilled start date
+            const prefilledStartDate = sessionStorage.getItem('prefilledStartDate');
+            if (prefilledStartDate) {
+              const matchingSchedule = schedules.find(
+                s => s.departureDate === prefilledStartDate
+              );
+              if (matchingSchedule) {
+                console.log('✅ Auto-selecting schedule:', matchingSchedule);
+                setSelectedSchedule(matchingSchedule);
+              }
+              sessionStorage.removeItem('prefilledStartDate');
+            }
+          } else {
+            console.warn('No schedules available for this tour');
+          }
+        } catch (scheduleError) {
+          console.error('Error loading schedules:', scheduleError);
+          // Continue even if schedules fail to load
+        }
       }
     } catch (error) {
       console.error('Error loading tour:', error);
@@ -115,35 +164,35 @@ const BookingCheckoutPageNew: React.FC = () => {
 
   // Calculate prices
   const calculatePrices = () => {
-    if (!tour || !selectedSchedule) return { subtotal: 0, total: 0, discount: 0 };
+    if (!tour) return { subtotal: 0, total: 0, discount: 0, adultPrice: 0, childPrice: 0 };
 
-    const basePrice = selectedSchedule.basePrice;
-    const childPrice = tour.childPrice || basePrice * 0.7;
-    const infantPrice = tour.infantPrice || basePrice * 0.3;
+    // Use schedule prices if available, otherwise use tour's price (already effective price)
+    const adultPrice = selectedSchedule?.adultPrice || tour.price;
+    const childPrice = selectedSchedule?.childPrice || tour.childPrice || adultPrice * 0.7;
 
     const subtotal = 
-      (numAdults * basePrice) + 
-      (numChildren * childPrice) + 
-      (numInfants * infantPrice);
+      (numAdults * adultPrice) + 
+      (numChildren * childPrice);
 
     // TODO: Apply discounts/promotions
     const discount = 0;
     const total = subtotal - discount;
 
-    return { subtotal, total, discount };
+    return { subtotal, total, discount, adultPrice, childPrice };
   };
 
-  const { subtotal, total, discount } = calculatePrices();
+  const { total, discount, adultPrice, childPrice } = calculatePrices();
 
   // Step validation
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!selectedSchedule) {
+    // Only require schedule if schedules are available
+    if (schedules.length > 0 && !selectedSchedule) {
       newErrors.schedule = 'Vui lòng chọn lịch khởi hành';
     }
     
-    const totalPeople = numAdults + numChildren + numInfants;
+    const totalPeople = numAdults + numChildren;
     if (totalPeople < 1) {
       newErrors.people = 'Phải có ít nhất 1 người tham gia';
     }
@@ -177,10 +226,24 @@ const BookingCheckoutPageNew: React.FC = () => {
       newErrors.participants = 'Vui lòng điền đầy đủ thông tin hành khách';
     }
 
-    // Check customer info
-    if (!customerInfo.fullName) newErrors.fullName = 'Vui lòng nhập họ tên';
-    if (!customerInfo.email) newErrors.email = 'Vui lòng nhập email';
-    if (!customerInfo.phone) newErrors.phone = 'Vui lòng nhập số điện thoại';
+    // Validate first participant has contact info (phone & email)
+    if (participants.length > 0) {
+      const firstParticipant = participants[0];
+      
+      if (!firstParticipant.email) {
+        newErrors.participants = 'Vui lòng nhập email cho Người lớn 1 (để nhận thông tin booking)';
+      }
+      
+      if (!firstParticipant.phone) {
+        newErrors.participants = 'Vui lòng nhập số điện thoại cho Người lớn 1 (để liên hệ)';
+      } else {
+        // Validate phone format (10-11 digits only)
+        const cleanPhone = firstParticipant.phone.replace(/[\s\-\(\)]/g, '');
+        if (!/^[0-9]{10,11}$/.test(cleanPhone)) {
+          newErrors.participants = 'Số điện thoại Người lớn 1 phải có 10-11 chữ số';
+        }
+      }
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -214,64 +277,115 @@ const BookingCheckoutPageNew: React.FC = () => {
     if (currentStep > 1) {
       setCurrentStep((currentStep - 1) as 1 | 2 | 3);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // If on step 1, go back to tour detail page
+      navigate(-1);
     }
   };
 
   // Submit booking
   const handleSubmitBooking = async () => {
-    if (!validateStep3() || !tour || !selectedSchedule) return;
+    if (!validateStep3() || !tour) return;
+    
+    // If schedules exist, require one to be selected
+    if (schedules.length > 0 && !selectedSchedule) {
+      alert('Vui lòng chọn lịch khởi hành');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      // Create booking
+      // Use first participant as contact info
+      const contactPerson = participants[0];
+      if (!contactPerson) {
+        alert('❌ Vui lòng quay lại Bước 2 và điền thông tin hành khách');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Validate contact person has required fields
+      if (!contactPerson.phone || !contactPerson.email) {
+        alert('❌ Người lớn 1 cần có đầy đủ Số điện thoại và Email');
+        setIsSubmitting(false);
+        setCurrentStep(2); // Go back to step 2
+        return;
+      }
+      
+      // Clean phone number (remove spaces, dashes, etc)
+      const cleanPhone = (contactPerson.phone || '').replace(/[\s\-\(\)]/g, '');
+      
+      // Validate phone format
+      if (!/^[0-9]{10,11}$/.test(cleanPhone)) {
+        alert('❌ Số điện thoại Người lớn 1 phải có 10-11 chữ số');
+        setIsSubmitting(false);
+        setCurrentStep(2); // Go back to step 2
+        return;
+      }
+      
+      // Create booking using the simpler BookingCreateRequest format
       const bookingRequest = {
         tourId: tour.id,
-        scheduleId: selectedSchedule.id,
-        numAdults,
-        numChildren,
-        numInfants,
-        customerName: customerInfo.fullName,
-        customerEmail: customerInfo.email,
-        customerPhone: customerInfo.phone,
-        customerAddress: customerInfo.address || undefined,
-        specialRequests: customerInfo.specialRequests || undefined,
-        participants: participants.map(p => ({
-          fullName: p.fullName,
-          dateOfBirth: p.dateOfBirth,
-          gender: p.gender,
-          phone: p.phone,
-          email: p.email,
-          idNumber: p.idNumber,
-          passportNumber: p.passportNumber,
-          nationality: p.nationality,
-          specialRequests: p.specialRequests,
-          type: p.type
-        }))
+        startDate: selectedSchedule?.departureDate || new Date().toISOString().split('T')[0],
+        numAdults: numAdults || 1,
+        numChildren: numChildren || 0,
+        specialRequests: specialRequests || undefined,
+        contactPhone: cleanPhone,
+        promotionCode: undefined
       };
+      
+      console.log('📤 Sending booking request:', bookingRequest);
+      console.log('📋 Contact person:', { 
+        name: contactPerson.fullName, 
+        email: contactPerson.email, 
+        phone: cleanPhone 
+      });
 
       const booking = await bookingService.createBooking(bookingRequest);
 
-      // Initiate payment
-      if (selectedPaymentMethod === 'MOMO') {
+      // Initiate payment based on method
+      if (selectedPaymentMethod === 'CASH' || selectedPaymentMethod === 'BANK_TRANSFER') {
+        // For cash/bank transfer, no payment gateway needed - go directly to confirmation
+        navigate(`/booking/confirmation/${booking.bookingCode}`, {
+          state: {
+            bookingData: booking,
+            customerInfo: {
+              name: participants[0]?.fullName || '',
+              email: booking.customerEmail || '',
+              phone: booking.customerPhone || ''
+            },
+            paymentMethod: selectedPaymentMethod,
+            bookingResult: {
+              success: true,
+              bookingCode: booking.bookingCode,
+              bookingId: booking.id,
+              message: selectedPaymentMethod === 'CASH' 
+                ? 'Vui lòng thanh toán trực tiếp khi nhận tour'
+                : 'Vui lòng chuyển khoản theo hướng dẫn'
+            }
+          }
+        });
+      } else if (selectedPaymentMethod === 'MOMO') {
         const paymentRequest = {
           bookingId: booking.id.toString(),
           amount: total,
           orderInfo: `Thanh toán tour: ${tour.name}`,
-          paymentMethod: 'MOMO' as const,
-          userId: user?.id,
-          userEmail: customerInfo.email,
-          userPhone: customerInfo.phone
+          paymentMethod: 'MOMO' as const
         };
 
-        const paymentUrl = await paymentService.initiateMoMoPayment(paymentRequest);
-        window.location.href = paymentUrl;
+        const paymentResponse = await paymentService.createMoMoPayment(paymentRequest);
+        if (paymentResponse.payUrl) {
+          window.location.href = paymentResponse.payUrl;
+        } else {
+          alert('Không thể tạo link thanh toán. Vui lòng thử lại.');
+        }
       } else {
         // Other payment methods
         alert('Phương thức thanh toán này đang được phát triển');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating booking:', error);
-      alert(error.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -294,11 +408,11 @@ const BookingCheckoutPageNew: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="flex items-center text-blue-600 hover:text-blue-700 font-medium mb-4"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-1" />
-            Quay lại
+            {currentStep > 1 ? 'Quay lại bước trước' : 'Quay lại trang tour'}
           </button>
           
           <h1 className="text-3xl font-bold text-gray-900">Đặt Tour</h1>
@@ -360,7 +474,7 @@ const BookingCheckoutPageNew: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Người lớn (≥ 12 tuổi)
+                        Người lớn (&gt; 12 tuổi)
                       </label>
                       <select
                         value={numAdults}
@@ -375,7 +489,7 @@ const BookingCheckoutPageNew: React.FC = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Trẻ em (2-11 tuổi)
+                        Trẻ em (&lt; 12 tuổi)
                       </label>
                       <select
                         value={numChildren}
@@ -384,21 +498,6 @@ const BookingCheckoutPageNew: React.FC = () => {
                       >
                         {[0, 1, 2, 3, 4, 5].map(num => (
                           <option key={num} value={num}>{num} trẻ</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Em bé (&lt; 2 tuổi)
-                      </label>
-                      <select
-                        value={numInfants}
-                        onChange={(e) => setNumInfants(parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      >
-                        {[0, 1, 2].map(num => (
-                          <option key={num} value={num}>{num} em</option>
                         ))}
                       </select>
                     </div>
@@ -417,13 +516,20 @@ const BookingCheckoutPageNew: React.FC = () => {
             {/* Step 2: Participant Info */}
             {currentStep === 2 && (
               <>
+                {/* Thông tin hành khách */}
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                  <ParticipantForm
+                  <div className="mb-4 pb-4 border-b">
+                    <p className="text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
+                      💡 <strong>Lưu ý:</strong> Thông tin của <strong>Người lớn 1</strong> sẽ được dùng làm thông tin liên hệ (nhận email xác nhận & gọi điện)
+                    </p>
+                  </div>
+                  
+                  <ParticipantForm 
                     participants={participants}
                     onParticipantsChange={setParticipants}
                     numAdults={numAdults}
                     numChildren={numChildren}
-                    numInfants={numInfants}
+                    numInfants={0}
                     isInternational={tour.tourType === 'INTERNATIONAL'}
                   />
                   {errors.participants && (
@@ -431,61 +537,19 @@ const BookingCheckoutPageNew: React.FC = () => {
                   )}
                 </div>
 
+                {/* Yêu cầu đặc biệt */}
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Thông tin liên hệ</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Họ và tên <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={customerInfo.fullName}
-                        onChange={(e) => setCustomerInfo(prev => ({ ...prev, fullName: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                      {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        value={customerInfo.email}
-                        onChange={(e) => setCustomerInfo(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                      {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Số điện thoại <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        value={customerInfo.phone}
-                        onChange={(e) => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                      {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Địa chỉ
-                      </label>
-                      <input
-                        type="text"
-                        value={customerInfo.address}
-                        onChange={(e) => setCustomerInfo(prev => ({ ...prev, address: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Yêu cầu đặc biệt</h3>
+                  <textarea
+                    value={specialRequests}
+                    onChange={(e) => setSpecialRequests(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    rows={4}
+                    placeholder="Ví dụ: Ăn chay, dị ứng hải sản, cần xe lăn, phòng gần thang máy..."
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Chúng tôi sẽ cố gắng đáp ứng yêu cầu của bạn (không đảm bảo 100%)
+                  </p>
                 </div>
               </>
             )}
@@ -497,7 +561,10 @@ const BookingCheckoutPageNew: React.FC = () => {
                 
                 <PaymentMethodSelection
                   selectedMethod={selectedPaymentMethod}
-                  onMethodChange={setSelectedPaymentMethod}
+                  onMethodSelect={setSelectedPaymentMethod}
+                  onPaymentInitiate={handleSubmitBooking}
+                  amount={total}
+                  disabled={isSubmitting}
                 />
                 
                 {errors.payment && (
@@ -517,34 +584,16 @@ const BookingCheckoutPageNew: React.FC = () => {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between">
-              <Button
-                onClick={handleBack}
-                disabled={currentStep === 1}
-                variant="outline"
-                className="px-6 py-3"
-              >
-                <ArrowLeftIcon className="h-5 w-5 mr-2" />
-                Quay lại
-              </Button>
-
-              {currentStep < 3 ? (
+            {currentStep < 3 && (
+              <div className="flex justify-end">
                 <Button
                   onClick={handleNext}
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Tiếp tục
                 </Button>
-              ) : (
-                <Button
-                  onClick={handleSubmitBooking}
-                  disabled={isSubmitting}
-                  className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white"
-                >
-                  {isSubmitting ? 'Đang xử lý...' : 'Xác nhận đặt tour'}
-                </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar: Order Summary */}
@@ -568,7 +617,7 @@ const BookingCheckoutPageNew: React.FC = () => {
               {selectedSchedule && (
                 <div className="mb-4 pb-4 border-b border-gray-200">
                   <p className="text-sm text-gray-600">Khởi hành</p>
-                  <p className="font-medium">{new Date(selectedSchedule.startDate).toLocaleDateString('vi-VN')}</p>
+                  <p className="font-medium">{new Date(selectedSchedule.departureDate).toLocaleDateString('vi-VN')}</p>
                 </div>
               )}
 
@@ -577,19 +626,13 @@ const BookingCheckoutPageNew: React.FC = () => {
                 {numAdults > 0 && (
                   <div className="flex justify-between text-sm">
                     <span>Người lớn ({numAdults})</span>
-                    <span>{((selectedSchedule?.basePrice || tour.price) * numAdults).toLocaleString('vi-VN')}đ</span>
+                    <span>{(adultPrice * numAdults).toLocaleString('vi-VN')}đ</span>
                   </div>
                 )}
                 {numChildren > 0 && (
                   <div className="flex justify-between text-sm">
                     <span>Trẻ em ({numChildren})</span>
-                    <span>{((tour.childPrice || tour.price * 0.7) * numChildren).toLocaleString('vi-VN')}đ</span>
-                  </div>
-                )}
-                {numInfants > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span>Em bé ({numInfants})</span>
-                    <span>{((tour.infantPrice || tour.price * 0.3) * numInfants).toLocaleString('vi-VN')}đ</span>
+                    <span>{(childPrice * numChildren).toLocaleString('vi-VN')}đ</span>
                   </div>
                 )}
               </div>

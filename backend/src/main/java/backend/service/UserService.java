@@ -113,4 +113,9 @@ public interface UserService {
         public long getVerifiedUsers() { return verifiedUsers; }
         public long getNewUsersThisMonth() { return newUsersThisMonth; }
     }
+    
+    /**
+     * Get total users count
+     */
+    long getTotalUsers();
 }

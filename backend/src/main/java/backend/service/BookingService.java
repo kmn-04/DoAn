@@ -1,5 +1,6 @@
 package backend.service;
 
+import backend.dto.response.BookingResponse;
 import backend.entity.Booking;
 import backend.entity.Booking.BookingStatus;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,55 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookingService {
+    
+    // ========== DTO Methods (for REST API) ==========
+    
+    /**
+     * Get booking by ID (DTO version)
+     */
+    BookingResponse getBookingByIdDto(Long bookingId);
+    
+    /**
+     * Get all bookings with pagination (DTO version)
+     */
+    Page<BookingResponse> getAllBookingsDto(Pageable pageable);
+    
+    /**
+     * Get bookings by status (DTO version)
+     */
+    Page<BookingResponse> getBookingsByStatusDto(String status, Pageable pageable);
+    
+    /**
+     * Update booking status (DTO version)
+     */
+    BookingResponse updateBookingStatus(Long bookingId, String status);
+    
+    /**
+     * Update payment status (DTO version)
+     */
+    BookingResponse updatePaymentStatus(Long bookingId, String paymentStatus);
+    
+    /**
+     * Admin cancel booking (DTO version)
+     */
+    BookingResponse adminCancelBooking(Long bookingId, String reason);
+    
+    /**
+     * Search bookings (DTO version)
+     */
+    Page<BookingResponse> searchBookingsDto(String keyword, Pageable pageable);
+    
+    /**
+     * Get total bookings count
+     */
+    long getTotalBookings();
+    
+    /**
+     * Get booking count by status
+     */
+    long getBookingCountByStatus(String status);
+    
+    // ========== Entity Methods (LEGACY) ==========
     
     /**
      * Create new booking

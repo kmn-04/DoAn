@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -46,6 +47,7 @@ public class AdminUserController extends BaseController {
     
     @GetMapping
     @Operation(summary = "Get all users with pagination and filters")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<PageResponse<User>>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -64,6 +66,13 @@ public class AdminUserController extends BaseController {
         } else {
             users = userService.getAllUsers(pageable);
         }
+        
+        // Force load roles to avoid LazyInitializationException
+        users.forEach(user -> {
+            if (user.getRole() != null) {
+                user.getRole().getName();
+            }
+        });
         
         return ResponseEntity.ok(successPage(users));
     }
@@ -294,5 +303,18 @@ public class AdminUserController extends BaseController {
         // TODO: Implement failed login tracking
         List<Map<String, Object>> failedAttempts = List.of();
         return ResponseEntity.ok(success("Failed login attempts retrieved", failedAttempts));
+    }
+    
+    @GetMapping("/count")
+    @Operation(summary = "Get total users count", description = "Get total number of users")
+    public ResponseEntity<ApiResponse<Long>> getTotalUsersCount() {
+        try {
+            long count = userService.getTotalUsers();
+            return ResponseEntity.ok(success("Total users count retrieved successfully", count));
+        } catch (Exception e) {
+            log.error("Error getting users count", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to get users count: " + e.getMessage()));
+        }
     }
 }

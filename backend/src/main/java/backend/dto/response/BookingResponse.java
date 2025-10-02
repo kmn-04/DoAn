@@ -60,6 +60,7 @@ public class BookingResponse {
     private PromotionInfo promotion;
     private List<ParticipantInfo> participants;
     private List<PaymentInfo> payments;
+    private List<TourItineraryInfo> itineraries;
     
     @Data
     @NoArgsConstructor
@@ -122,5 +123,31 @@ public class BookingResponse {
         private String status;
         private LocalDateTime paidAt;
         private LocalDateTime createdAt;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TourItineraryInfo {
+        private Long id;
+        private Integer dayNumber;
+        private String title;
+        private String description;
+        private List<String> activities;
+        private String meals;
+        private String accommodation;
+        private PartnerInfo accommodationPartner;
+        private PartnerInfo mealsPartner;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PartnerInfo {
+        private Long id;
+        private String name;
+        private String type;
+        private String address;
+        private Double rating;
     }
 }

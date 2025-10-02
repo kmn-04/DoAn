@@ -128,7 +128,8 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
     });
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | null | undefined) => {
+    if (amount == null) return '0 ₫';
     return amount.toLocaleString('vi-VN') + ' ₫';
   };
 

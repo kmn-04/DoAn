@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { CalendarIcon, UserGroupIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
-import { format, parseISO, isPast, isBefore, addDays } from 'date-fns';
+import { format, parseISO, isBefore, addDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
 export interface TourSchedule {
   id: number;
   tourId: number;
-  startDate: string;
-  endDate: string;
+  departureDate: string;
+  returnDate: string;
   availableSeats: number;
   bookedSeats: number;
-  maxSeats: number;
-  basePrice: number;
-  status: 'AVAILABLE' | 'FULL' | 'CANCELLED' | 'COMPLETED';
+  adultPrice: number;
+  childPrice: number;
+  infantPrice?: number;
+  status: string; // 'Available', 'Full', 'Cancelled', etc.
+  note?: string;
 }
 
 interface TourScheduleSelectorProps {
@@ -35,13 +37,13 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
   // Filter and sort schedules
   const availableSchedules = schedules
     .filter(schedule => {
-      // Only show AVAILABLE schedules that haven't started yet
-      if (schedule.status !== 'AVAILABLE') return false;
-      const startDate = parseISO(schedule.startDate);
+      // Only show Available schedules that haven't started yet
+      if (schedule.status !== 'Available') return false;
+      const startDate = parseISO(schedule.departureDate);
       const threeDaysFromNow = addDays(new Date(), 3);
       return isBefore(threeDaysFromNow, startDate); // Must be at least 3 days in advance
     })
-    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    .sort((a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime());
 
   const displayedSchedules = showAll ? availableSchedules : availableSchedules.slice(0, 6);
 
@@ -56,6 +58,14 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
       // Different months
       return `${format(start, 'dd/MM', { locale: vi })} - ${format(end, 'dd/MM/yyyy', { locale: vi })}`;
     }
+  };
+
+  const calculateDuration = (startDate: string, endDate: string) => {
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const nights = days - 1;
+    return { days, nights };
   };
 
   const getAvailabilityColor = (availableSeats: number, maxSeats: number) => {
@@ -96,7 +106,8 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {displayedSchedules.map((schedule) => {
           const isSelected = schedule.id === selectedScheduleId;
-          const priceDiff = schedule.basePrice - basePrice;
+          const maxSeats = schedule.availableSeats + schedule.bookedSeats;
+          const priceDiff = schedule.adultPrice - basePrice;
           const hasPriceDiff = Math.abs(priceDiff) > 0;
 
           return (
@@ -125,7 +136,7 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
                   Khởi hành
                 </div>
                 <div className="text-lg font-bold text-gray-900">
-                  {formatScheduleDate(schedule.startDate, schedule.endDate)}
+                  {formatScheduleDate(schedule.departureDate, schedule.returnDate)}
                 </div>
               </div>
 
@@ -133,12 +144,12 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center text-sm">
                   <UserGroupIcon className="h-4 w-4 mr-1 text-gray-500" />
-                  <span className={`font-semibold ${getAvailabilityColor(schedule.availableSeats, schedule.maxSeats)}`}>
-                    {getAvailabilityText(schedule.availableSeats, schedule.maxSeats)}
+                  <span className={`font-semibold ${getAvailabilityColor(schedule.availableSeats, maxSeats)}`}>
+                    {getAvailabilityText(schedule.availableSeats, maxSeats)}
                   </span>
                 </div>
                 <span className="text-xs text-gray-500">
-                  {schedule.availableSeats}/{schedule.maxSeats} chỗ
+                  {schedule.availableSeats}/{maxSeats} chỗ
                 </span>
               </div>
 
@@ -164,7 +175,7 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
               <div className="mt-2">
                 <span className="text-xs text-gray-500">Giá: </span>
                 <span className="text-lg font-bold text-blue-600">
-                  {schedule.basePrice.toLocaleString('vi-VN')}đ
+                  {schedule.adultPrice.toLocaleString('vi-VN')}đ
                 </span>
                 <span className="text-sm text-gray-500">/người</span>
               </div>

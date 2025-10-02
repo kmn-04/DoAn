@@ -1,6 +1,7 @@
 package backend.repository;
 
 import backend.entity.Booking;
+import backend.entity.Booking.BookingStatus;
 import backend.entity.Booking.ConfirmationStatus;
 import backend.entity.Booking.PaymentStatus;
 import org.springframework.data.domain.Page;
@@ -122,4 +123,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * Check if booking code exists
      */
     boolean existsByBookingCode(String bookingCode);
+    
+    /**
+     * Count bookings by confirmation status
+     */
+    long countByConfirmationStatus(ConfirmationStatus confirmationStatus);
 }

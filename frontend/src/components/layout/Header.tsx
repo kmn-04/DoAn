@@ -10,7 +10,8 @@ import {
   ArrowRightOnRectangleIcon,
   UserCircleIcon,
   Cog6ToothIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
 import { NotificationCenter } from '../notifications';
@@ -105,6 +106,11 @@ const Header: React.FC = () => {
     { name: 'Tour yêu thích', href: '/wishlist', icon: HeartIcon },
     { name: 'Cài đặt', href: '/settings', icon: Cog6ToothIcon },
   ];
+
+  // Admin-only navigation item
+  const adminNavigation = user?.role?.name === 'ADMIN' 
+    ? [{ name: 'Admin Panel', href: '/admin', icon: ShieldCheckIcon }] 
+    : [];
 
   return (
     <header className="bg-white shadow-lg relative z-50">
@@ -289,7 +295,19 @@ const Header: React.FC = () => {
                       <p className="font-medium">{user?.name}</p>
                       <p className="text-gray-500">{user?.email}</p>
                     </div>
-                    {/* ✅ Updated userNavigation without "Thông báo" */}
+                    {/* Admin Panel link (if admin) */}
+                    {adminNavigation.map((item) => (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        className="flex items-center px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 font-medium"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <item.icon className="h-4 w-4 mr-3" />
+                        {item.name}
+                      </Link>
+                    ))}
+                    {/* User navigation */}
                     {userNavigation.map((item) => (
                       <Link
                         key={item.name}

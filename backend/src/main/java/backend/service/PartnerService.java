@@ -64,4 +64,14 @@ public interface PartnerService {
      * Count partners by type
      */
     long countPartnersByType(Partner.PartnerType type);
+    
+    /**
+     * Get total partners count
+     */
+    long getTotalPartners();
+    
+    /**
+     * Change partner status (Admin)
+     */
+    Partner changePartnerStatus(Long id, Partner.PartnerStatus status);
 }

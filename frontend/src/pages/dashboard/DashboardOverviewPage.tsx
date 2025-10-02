@@ -104,7 +104,7 @@ const DashboardOverviewPage: React.FC = () => {
             tourName: booking.tour?.name || 'Unknown Tour',
             tourImage: booking.tour?.mainImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
             startDate: booking.startDate,
-            status: booking.status.toLowerCase() as 'confirmed' | 'pending' | 'completed' | 'cancelled',
+            status: (booking.confirmationStatus || 'Pending').toLowerCase() as 'confirmed' | 'pending' | 'completed' | 'cancelled',
             totalPrice: Number(booking.totalPrice),
             location: booking.tour?.location || 'Unknown',
             tourType: (booking.tour?.tourType || 'DOMESTIC').toLowerCase() === 'domestic' ? 'domestic' as const : 'international' as const,

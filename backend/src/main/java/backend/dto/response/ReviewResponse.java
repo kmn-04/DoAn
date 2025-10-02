@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -16,11 +17,19 @@ public class ReviewResponse {
     private Integer rating;
     private String comment;
     private String status;
+    private Integer helpfulCount;
+    private List<String> images;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
+    // Admin reply fields
+    private String adminReply;
+    private LocalDateTime repliedAt;
+    private Long repliedBy;
+    
     private UserSummary user;
     private TourSummary tour;
+    private Long bookingId;
     
     @Data
     @NoArgsConstructor

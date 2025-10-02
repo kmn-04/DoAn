@@ -277,6 +277,29 @@ const tourService = {
       return ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Quảng Ninh', 'Lào Cai', 'Kiên Giang', 'Quảng Nam', 'Lâm Đồng'];
     }
   },
+
+  // Get tour schedules
+  getTourSchedules: async (tourId: number): Promise<any[]> => {
+    try {
+      const response = await apiClient.get(`/tour-schedules/tour/${tourId}`);
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error fetching tour schedules:', error);
+      return [];
+    }
+  },
+
+  // Get available schedules for tour
+  getAvailableSchedules: async (tourId: number, fromDate?: string): Promise<any[]> => {
+    try {
+      const params = fromDate ? { fromDate } : {};
+      const response = await apiClient.get(`/tour-schedules/tour/${tourId}/available`, { params });
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error fetching available schedules:', error);
+      return [];
+    }
+  },
 };
 
 export default tourService;

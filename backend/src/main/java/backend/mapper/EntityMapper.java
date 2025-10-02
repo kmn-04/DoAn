@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -53,6 +55,14 @@ public class EntityMapper {
     
     // ========== TOUR MAPPING ==========
     public TourResponse toTourResponse(Tour tour) {
+        return toTourResponse(tour, false);
+    }
+    
+    public TourResponse toTourResponseWithDetails(Tour tour) {
+        return toTourResponse(tour, true);
+    }
+    
+    private TourResponse toTourResponse(Tour tour, boolean includeDetails) {
         if (tour == null) return null;
         
         TourResponse response = new TourResponse();
@@ -90,9 +100,9 @@ public class EntityMapper {
         response.setAccommodation(tour.getAccommodation());
         response.setMealsIncluded(tour.getMealsIncluded());
         
-        // Services
-        response.setIncludedServices(tour.getIncludedServices());
-        response.setExcludedServices(tour.getExcludedServices());
+        // Services - Parse to arrays
+        response.setIncludedServices(parseJsonArray(tour.getIncludedServices()));
+        response.setExcludedServices(parseJsonArray(tour.getExcludedServices()));
         response.setNote(tour.getNote());
         response.setCancellationPolicy(tour.getCancellationPolicy());
         
@@ -114,13 +124,33 @@ public class EntityMapper {
         
         // Category
         if (tour.getCategory() != null) {
-            response.setCategory(toCategoryResponse(tour.getCategory()));
+            response.setCategory(toCategoryResponseForTour(tour.getCategory()));
+        }
+        
+        // Itineraries (with partners) - Only load for detail view
+        if (includeDetails) {
+            try {
+                log.info("🔍 Mapping itineraries for tour {} (includeDetails={})", tour.getId(), includeDetails);
+                if (tour.getItineraries() != null && !tour.getItineraries().isEmpty()) {
+                    log.info("✅ Found {} itineraries for tour {}", tour.getItineraries().size(), tour.getId());
+                    List<TourResponse.TourItineraryResponse> itineraryResponses = toTourItineraryResponseList(tour.getItineraries());
+                    response.setItineraries(itineraryResponses);
+                    log.info("📦 Set {} itinerary responses", itineraryResponses != null ? itineraryResponses.size() : 0);
+                } else {
+                    log.warn("⚠️ No itineraries found for tour {}", tour.getId());
+                }
+            } catch (Exception e) {
+                // Ignore lazy loading exceptions
+                log.error("❌ Could not load itineraries for tour {}: {}", tour.getId(), e.getMessage(), e);
+            }
+        } else {
+            log.debug("⏩ Skipping itineraries for tour {} (includeDetails=false)", tour.getId());
         }
         
         return response;
     }
     
-    public TourResponse.CategoryResponse toCategoryResponse(Category category) {
+    public TourResponse.CategoryResponse toCategoryResponseForTour(Category category) {
         if (category == null) return null;
         
         TourResponse.CategoryResponse response = new TourResponse.CategoryResponse();
@@ -137,6 +167,83 @@ public class EntityMapper {
     public List<TourResponse> toTourResponseList(List<Tour> tours) {
         if (tours == null) return null;
         return tours.stream().map(this::toTourResponse).collect(Collectors.toList());
+    }
+    
+    // ========== TOUR ITINERARY MAPPING ==========
+    public TourResponse.TourItineraryResponse toTourItineraryResponse(TourItinerary itinerary) {
+        if (itinerary == null) return null;
+        
+        TourResponse.TourItineraryResponse response = new TourResponse.TourItineraryResponse();
+        response.setId(itinerary.getId());
+        response.setDayNumber(itinerary.getDayNumber());
+        response.setTitle(itinerary.getTitle());
+        response.setDescription(itinerary.getDescription());
+        response.setLocation(itinerary.getLocation());
+        response.setActivities(parseJsonArray(itinerary.getActivities()));
+        response.setMeals(itinerary.getMeals());
+        response.setAccommodation(itinerary.getAccommodation());
+        response.setImages(parseJsonArray(itinerary.getImages()));
+        
+        // Map partners - Handle lazy loading carefully
+        try {
+            if (itinerary.getPartner() != null) {
+                response.setPartner(toPartnerSummary(itinerary.getPartner()));
+            }
+        } catch (Exception e) {
+            log.debug("Could not load partner for itinerary {}: {}", itinerary.getId(), e.getMessage());
+        }
+        
+        try {
+            if (itinerary.getAccommodationPartner() != null) {
+                response.setAccommodationPartner(toPartnerSummary(itinerary.getAccommodationPartner()));
+            }
+        } catch (Exception e) {
+            log.debug("Could not load accommodation partner for itinerary {}: {}", itinerary.getId(), e.getMessage());
+        }
+        
+        try {
+            if (itinerary.getMealsPartner() != null) {
+                response.setMealsPartner(toPartnerSummary(itinerary.getMealsPartner()));
+            }
+        } catch (Exception e) {
+            log.debug("Could not load meals partner for itinerary {}: {}", itinerary.getId(), e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    public List<TourResponse.TourItineraryResponse> toTourItineraryResponseList(Set<TourItinerary> itineraries) {
+        if (itineraries == null || itineraries.isEmpty()) return null;
+        return itineraries.stream()
+                .sorted((i1, i2) -> Integer.compare(i1.getDayNumber(), i2.getDayNumber()))
+                .map(this::toTourItineraryResponse)
+                .collect(Collectors.toList());
+    }
+    
+    // Map Partner to simple summary (for itinerary)
+    public TourResponse.PartnerResponse toPartnerSummary(Partner partner) {
+        if (partner == null) return null;
+        
+        TourResponse.PartnerResponse response = new TourResponse.PartnerResponse();
+        response.setId(partner.getId());
+        response.setName(partner.getName());
+        response.setType(partner.getType() != null ? partner.getType().getDisplayName() : null);
+        response.setAddress(partner.getAddress());
+        response.setRating(partner.getRating());
+        return response;
+    }
+    
+    // Map Partner to booking partner info
+    public BookingResponse.PartnerInfo toBookingPartnerInfo(Partner partner) {
+        if (partner == null) return null;
+        
+        BookingResponse.PartnerInfo info = new BookingResponse.PartnerInfo();
+        info.setId(partner.getId());
+        info.setName(partner.getName());
+        info.setType(partner.getType() != null ? partner.getType().getDisplayName() : null);
+        info.setAddress(partner.getAddress());
+        info.setRating(partner.getRating());
+        return info;
     }
     
     // ========== BOOKING MAPPING ==========
@@ -166,11 +273,11 @@ public class EntityMapper {
         response.setDiscountAmount(booking.getDiscountAmount());
         response.setFinalAmount(booking.getFinalAmount());
         
-        // Status
+        // Status (lowercase for frontend compatibility)
         response.setConfirmationStatus(booking.getConfirmationStatus() != null ? 
-            booking.getConfirmationStatus().getDisplayName() : null);
+            booking.getConfirmationStatus().name().toLowerCase() : null);
         response.setPaymentStatus(booking.getPaymentStatus() != null ? 
-            booking.getPaymentStatus().getDisplayName() : null);
+            booking.getPaymentStatus().name().toLowerCase() : null);
         
         // Additional
         response.setSpecialRequests(booking.getSpecialRequests());
@@ -208,6 +315,47 @@ public class EntityMapper {
             scheduleInfo.setReturnDate(schedule.getReturnDate());
             scheduleInfo.setAvailableSeats(schedule.getAvailableSeats());
             response.setSchedule(scheduleInfo);
+        }
+        
+        // Itineraries from Tour
+        if (booking.getTour() != null && booking.getTour().getItineraries() != null) {
+            try {
+                List<BookingResponse.TourItineraryInfo> itineraryInfos = booking.getTour().getItineraries().stream()
+                    .sorted((i1, i2) -> Integer.compare(i1.getDayNumber(), i2.getDayNumber()))
+                    .map(itinerary -> {
+                        BookingResponse.TourItineraryInfo info = new BookingResponse.TourItineraryInfo();
+                        info.setId(itinerary.getId());
+                        info.setDayNumber(itinerary.getDayNumber());
+                        info.setTitle(itinerary.getTitle());
+                        info.setDescription(itinerary.getDescription());
+                        info.setActivities(parseJsonArray(itinerary.getActivities()));
+                        info.setMeals(itinerary.getMeals());
+                        info.setAccommodation(itinerary.getAccommodation());
+                        
+                        // Map partners
+                        try {
+                            if (itinerary.getAccommodationPartner() != null) {
+                                info.setAccommodationPartner(toBookingPartnerInfo(itinerary.getAccommodationPartner()));
+                            }
+                        } catch (Exception e) {
+                            log.debug("Could not load accommodation partner: {}", e.getMessage());
+                        }
+                        
+                        try {
+                            if (itinerary.getMealsPartner() != null) {
+                                info.setMealsPartner(toBookingPartnerInfo(itinerary.getMealsPartner()));
+                            }
+                        } catch (Exception e) {
+                            log.debug("Could not load meals partner: {}", e.getMessage());
+                        }
+                        
+                        return info;
+                    })
+                    .collect(Collectors.toList());
+                response.setItineraries(itineraryInfos);
+            } catch (Exception e) {
+                log.error("Error loading itineraries for booking: {}", e.getMessage());
+            }
         }
         
         return response;
@@ -301,7 +449,92 @@ public class EntityMapper {
         return faqs.stream().map(this::toTourFaqResponse).collect(Collectors.toList());
     }
     
+    // ========== REVIEW MAPPING ==========
+    public ReviewResponse toReviewResponse(Review review) {
+        if (review == null) return null;
+        
+        ReviewResponse response = new ReviewResponse();
+        response.setId(review.getId());
+        response.setRating(review.getRating());
+        response.setComment(review.getComment());
+        response.setStatus(review.getStatus() != null ? review.getStatus().toString() : null);
+        response.setHelpfulCount(review.getHelpfulCount());
+        response.setCreatedAt(review.getCreatedAt());
+        response.setUpdatedAt(review.getUpdatedAt());
+        response.setAdminReply(review.getAdminReply());
+        response.setRepliedAt(review.getRepliedAt());
+        response.setRepliedBy(review.getRepliedBy());
+        
+        // Parse images JSON
+        if (review.getImages() != null && !review.getImages().isEmpty()) {
+            try {
+                List<String> images = objectMapper.readValue(
+                        review.getImages(), 
+                        new TypeReference<List<String>>() {}
+                );
+                response.setImages(images);
+            } catch (Exception e) {
+                log.error("Error parsing review images JSON", e);
+                response.setImages(new ArrayList<>());
+            }
+        }
+        
+        // User info
+        if (review.getUser() != null) {
+            User user = review.getUser();
+            ReviewResponse.UserSummary userSummary = new ReviewResponse.UserSummary();
+            userSummary.setId(user.getId());
+            userSummary.setName(user.getName());
+            userSummary.setAvatarUrl(user.getAvatarUrl());
+            response.setUser(userSummary);
+        }
+        
+        // Tour info
+        if (review.getTour() != null) {
+            Tour tour = review.getTour();
+            ReviewResponse.TourSummary tourSummary = new ReviewResponse.TourSummary();
+            tourSummary.setId(tour.getId());
+            tourSummary.setName(tour.getName());
+            tourSummary.setSlug(tour.getSlug());
+            tourSummary.setMainImage(tour.getMainImage());
+            response.setTour(tourSummary);
+        }
+        
+        // Booking ID
+        if (review.getBooking() != null) {
+            response.setBookingId(review.getBooking().getId());
+        }
+        
+        return response;
+    }
+    
+    public List<ReviewResponse> toReviewResponseList(List<Review> reviews) {
+        if (reviews == null) return null;
+        return reviews.stream().map(this::toReviewResponse).collect(Collectors.toList());
+    }
+    
     // ========== CATEGORY MAPPING ==========
+    public Category toCategory(backend.dto.request.CategoryRequest request) {
+        if (request == null) return null;
+        
+        Category category = new Category();
+        category.setName(request.getName());
+        category.setSlug(request.getSlug());
+        category.setDescription(request.getDescription());
+        category.setImageUrl(request.getImageUrl());
+        category.setIcon(request.getIcon());
+        category.setParentId(request.getParentId());
+        category.setDisplayOrder(request.getDisplayOrder());
+        category.setIsFeatured(request.getIsFeatured());
+        category.setStatus(request.getStatus());
+        
+        return category;
+    }
+    
+    public CategoryResponse toCategoryResponse(Category category) {
+        return toCategoryResponseFull(category);
+    }
+    
     public CategoryResponse toCategoryResponseFull(Category category) {
         if (category == null) return null;
         
@@ -388,6 +621,26 @@ public class EntityMapper {
     }
     
     // ========== PARTNER MAPPING ==========
+    public Partner toPartner(backend.dto.request.PartnerRequest request) {
+        if (request == null) return null;
+        
+        Partner partner = new Partner();
+        partner.setName(request.getName());
+        partner.setSlug(request.getSlug());
+        partner.setDescription(request.getDescription());
+        partner.setType(request.getType());
+        partner.setAddress(request.getAddress());
+        partner.setPhone(request.getPhone());
+        partner.setEmail(request.getEmail());
+        partner.setWebsite(request.getWebsite());
+        partner.setEstablishedYear(request.getEstablishedYear());
+        partner.setAvatarUrl(request.getAvatarUrl());
+        partner.setStatus(request.getStatus());
+        partner.setSpecialties(request.getSpecialties());
+        
+        return partner;
+    }
+    
     public PartnerResponse toPartnerResponse(Partner partner) {
         if (partner == null) return null;
         
@@ -405,11 +658,9 @@ public class EntityMapper {
         response.setAvatarUrl(partner.getAvatarUrl());
         response.setRating(partner.getRating());
         response.setStatus(partner.getStatus() != null ? partner.getStatus().toString() : null);
+        response.setSpecialties(partner.getSpecialties()); // Keep as JSON string
         response.setCreatedAt(partner.getCreatedAt());
         response.setUpdatedAt(partner.getUpdatedAt());
-        
-        // Parse specialties from JSON
-        response.setSpecialties(parseJsonArray(partner.getSpecialties()));
         
         // Map images if available - safely handle lazy loading
         try {
@@ -445,11 +696,24 @@ public class EntityMapper {
     // ========== HELPER METHODS ==========
     private List<String> parseJsonArray(String json) {
         if (json == null || json.isEmpty()) return new ArrayList<>();
-        try {
-            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
-        } catch (Exception e) {
-            log.error("Error parsing JSON array: {}", e.getMessage());
-            return new ArrayList<>();
+        
+        // Trim whitespace
+        json = json.trim();
+        
+        // Check if it's a JSON array (starts with '[')
+        if (json.startsWith("[")) {
+            try {
+                return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+            } catch (Exception e) {
+                log.error("Error parsing JSON array: {}", e.getMessage());
+                return new ArrayList<>();
+            }
+        } else {
+            // It's plain text with line breaks - split by newline
+            return Arrays.stream(json.split("\\r?\\n"))
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty())
+                    .collect(Collectors.toList());
         }
     }
 }

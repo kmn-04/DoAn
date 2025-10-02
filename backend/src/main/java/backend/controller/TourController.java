@@ -63,6 +63,7 @@ public class TourController extends BaseController {
     
     @GetMapping("/active")
     @Operation(summary = "Get all active tours")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<TourResponse>>> getActiveTours() {
         
         List<Tour> tours = tourService.getAllActiveTours();
@@ -73,6 +74,7 @@ public class TourController extends BaseController {
     
     @GetMapping("/featured")
     @Operation(summary = "Get featured tours")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<TourResponse>>> getFeaturedTours() {
         
         List<Tour> tours = tourService.getFeaturedTours();
@@ -156,19 +158,18 @@ public class TourController extends BaseController {
         Tour tour = tourService.getTourById(tourId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tour", "id", tourId));
         
-        return ResponseEntity.ok(success(mapper.toTourResponse(tour)));
+        return ResponseEntity.ok(success(mapper.toTourResponseWithDetails(tour)));
     }
     
     @GetMapping("/slug/{slug}")
     @Operation(summary = "Get tour by slug")
-    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<TourResponse>> getTourBySlug(
             @Parameter(description = "Tour slug") @PathVariable String slug) {
         
-        Tour tour = tourService.getTourBySlug(slug)
+        Tour tour = tourService.getTourBySlugWithDetails(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Tour", "slug", slug));
         
-        return ResponseEntity.ok(success(mapper.toTourResponse(tour)));
+        return ResponseEntity.ok(success(mapper.toTourResponseWithDetails(tour)));
     }
     
     @GetMapping("/category/{categoryId}")

@@ -1,7 +1,12 @@
 package backend.service.impl;
 
+import backend.dto.request.TourRequest;
+import backend.dto.response.TourResponse;
+import backend.entity.Category;
 import backend.entity.Tour;
 import backend.entity.Tour.TourStatus;
+import backend.mapper.TourMapper;
+import backend.repository.CategoryRepository;
 import backend.repository.TourRepository;
 import backend.repository.ReviewRepository;
 import backend.service.TourService;
@@ -29,6 +34,8 @@ public class TourServiceImpl implements TourService {
     
     private final TourRepository tourRepository;
     private final ReviewRepository reviewRepository;
+    private final CategoryRepository categoryRepository;
+    private final TourMapper tourMapper;
     
     @Override
     public Tour createTour(Tour tour) {
@@ -107,6 +114,59 @@ public class TourServiceImpl implements TourService {
     @Transactional(readOnly = true)
     public Optional<Tour> getTourBySlug(String slug) {
         return tourRepository.findBySlug(slug);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Tour> getTourBySlugWithDetails(String slug) {
+        Optional<Tour> tourOpt = tourRepository.findBySlug(slug);
+        
+        // Force load itineraries and partners within transaction
+        tourOpt.ifPresent(tour -> {
+            // Force load category to avoid LazyInitializationException
+            if (tour.getCategory() != null) {
+                tour.getCategory().getName(); // Trigger lazy load
+            }
+            
+            // Access itineraries to trigger lazy load
+            if (tour.getItineraries() != null && !tour.getItineraries().isEmpty()) {
+                // Iterate to force load each itinerary
+                tour.getItineraries().forEach(itinerary -> {
+                    // Load basic itinerary data
+                    itinerary.getTitle();
+                    
+                    // Force load partners
+                    try {
+                        if (itinerary.getPartner() != null) {
+                            itinerary.getPartner().getId();
+                            itinerary.getPartner().getName();
+                        }
+                    } catch (Exception e) {
+                        log.debug("Could not load partner for itinerary {}", itinerary.getId());
+                    }
+                    
+                    try {
+                        if (itinerary.getAccommodationPartner() != null) {
+                            itinerary.getAccommodationPartner().getId();
+                            itinerary.getAccommodationPartner().getName();
+                        }
+                    } catch (Exception e) {
+                        log.debug("Could not load accommodation partner for itinerary {}", itinerary.getId());
+                    }
+                    
+                    try {
+                        if (itinerary.getMealsPartner() != null) {
+                            itinerary.getMealsPartner().getId();
+                            itinerary.getMealsPartner().getName();
+                        }
+                    } catch (Exception e) {
+                        log.debug("Could not load meals partner for itinerary {}", itinerary.getId());
+                    }
+                });
+            }
+        });
+        
+        return tourOpt;
     }
     
     @Override
@@ -329,5 +389,104 @@ public class TourServiceImpl implements TourService {
     public List<String> getUniqueLocations() {
         log.info("Getting unique locations from tours");
         return tourRepository.findDistinctLocations(TourStatus.Active);
+    }
+    
+    // ========== NEW DTO METHODS ==========
+    
+    @Override
+    public TourResponse createTour(TourRequest request) {
+        log.info("Creating tour from DTO request: {}", request.getName());
+        
+        // Convert DTO to Entity
+        Tour tour = tourMapper.toEntity(request);
+        
+        // Set category
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + request.getCategoryId()));
+        tour.setCategory(category);
+        
+        // Generate slug
+        String slug = generateUniqueSlug(tour.getName());
+        tour.setSlug(slug);
+        
+        // Set timestamps
+        tour.setCreatedAt(LocalDateTime.now());
+        tour.setUpdatedAt(LocalDateTime.now());
+        
+        // Save tour
+        Tour savedTour = tourRepository.save(tour);
+        
+        log.info("Tour created successfully with ID: {}", savedTour.getId());
+        
+        // Convert to Response DTO
+        return tourMapper.toResponse(savedTour);
+    }
+    
+    @Override
+    public TourResponse updateTour(Long tourId, TourRequest request) {
+        log.info("Updating tour ID: {} with DTO request", tourId);
+        
+        // Find existing tour
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
+        
+        // Update entity from DTO
+        tourMapper.updateEntity(tour, request);
+        
+        // Update category if changed
+        if (!tour.getCategory().getId().equals(request.getCategoryId())) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Category not found with ID: " + request.getCategoryId()));
+            tour.setCategory(category);
+        }
+        
+        // Update slug if name changed
+        if (!tour.getName().equals(request.getName())) {
+            String newSlug = generateUniqueSlug(request.getName());
+            tour.setSlug(newSlug);
+        }
+        
+        // Update timestamp
+        tour.setUpdatedAt(LocalDateTime.now());
+        
+        // Save
+        Tour updatedTour = tourRepository.save(tour);
+        
+        log.info("Tour updated successfully: {}", updatedTour.getId());
+        
+        // Convert to Response DTO
+        return tourMapper.toResponse(updatedTour);
+    }
+    
+    @Override
+    public TourResponse updateTourStatus(Long tourId, String status) {
+        log.info("Updating tour status ID: {}, new status: {}", tourId, status);
+        
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new RuntimeException("Tour not found with id: " + tourId));
+        
+        tour.setStatus(TourStatus.valueOf(status));
+        tour.setUpdatedAt(LocalDateTime.now());
+        
+        Tour updated = tourRepository.save(tour);
+        
+        return tourMapper.toResponse(updated);
+    }
+    
+    @Override
+    public TourResponse toggleFeaturedStatus(Long tourId, boolean featured) {
+        log.info("Toggling featured status for tour ID: {}, featured: {}", tourId, featured);
+        
+        Tour tour = setFeaturedTour(tourId, featured);
+        tour.setUpdatedAt(LocalDateTime.now());
+        
+        Tour updated = tourRepository.save(tour);
+        
+        return tourMapper.toResponse(updated);
+    }
+    
+    @Override
+    public long getTotalTours() {
+        return tourRepository.count();
     }
 }

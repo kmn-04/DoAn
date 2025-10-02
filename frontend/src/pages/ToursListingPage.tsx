@@ -57,8 +57,8 @@ const convertTourResponse = (tourResponse: TourResponse): Tour => {
     name: tourResponse.name,
     slug: tourResponse.slug,
     description: tourResponse.description || tourResponse.shortDescription || '',
-    price: tourResponse.price,
-    originalPrice: tourResponse.salePrice, // Use salePrice instead of discountPrice
+    price: tourResponse.salePrice || tourResponse.price, // Giá hiệu quả (đã sale hoặc gốc)
+    originalPrice: (tourResponse.salePrice && tourResponse.salePrice < tourResponse.price) ? tourResponse.price : undefined, // Giá gốc chỉ khi có sale
     duration: `${tourResponse.duration} ngày`,
     location: tourResponse.destination || tourResponse.departureLocation || 'Việt Nam', // Use new fields
     tourType: tourResponse.tourType === 'DOMESTIC' ? 'domestic' : 'international',

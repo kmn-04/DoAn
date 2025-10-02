@@ -1,5 +1,7 @@
 package backend.service;
 
+import backend.dto.request.TourRequest;
+import backend.dto.response.TourResponse;
 import backend.entity.Tour;
 import backend.entity.Tour.TourStatus;
 import org.springframework.data.domain.Page;
@@ -12,7 +14,27 @@ import java.util.Optional;
 public interface TourService {
     
     /**
-     * Create new tour
+     * Create new tour (DTO version)
+     */
+    TourResponse createTour(TourRequest request);
+    
+    /**
+     * Update tour (DTO version)
+     */
+    TourResponse updateTour(Long tourId, TourRequest request);
+    
+    /**
+     * Update tour status (DTO version)
+     */
+    TourResponse updateTourStatus(Long tourId, String status);
+    
+    /**
+     * Toggle featured status (DTO version)
+     */
+    TourResponse toggleFeaturedStatus(Long tourId, boolean featured);
+    
+    /**
+     * Create new tour (Entity version - LEGACY)
      */
     Tour createTour(Tour tour);
     
@@ -30,6 +52,11 @@ public interface TourService {
      * Get tour by slug
      */
     Optional<Tour> getTourBySlug(String slug);
+    
+    /**
+     * Get tour by slug with itineraries and partners (for detail view)
+     */
+    Optional<Tour> getTourBySlugWithDetails(String slug);
     
     /**
      * Get all active tours
@@ -181,4 +208,9 @@ public interface TourService {
         public BigDecimal getAveragePrice() { return averagePrice; }
         public double getAverageRating() { return averageRating; }
     }
+    
+    /**
+     * Get total tours count
+     */
+    long getTotalTours();
 }

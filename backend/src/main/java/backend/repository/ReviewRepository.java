@@ -25,6 +25,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findByUserIdOrderByCreatedAtDesc(Long userId);
     
     /**
+     * Find reviews by user ID with pagination
+     */
+    Page<Review> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    
+    /**
      * Find reviews by status
      */
     List<Review> findByStatusOrderByCreatedAtDesc(ReviewStatus status);
@@ -33,6 +38,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      * Find approved reviews for tour
      */
     List<Review> findByTourIdAndStatusOrderByCreatedAtDesc(Long tourId, ReviewStatus status);
+    
+    /**
+     * Find approved reviews for tour with pagination
+     */
+    Page<Review> findByTourIdAndStatusOrderByCreatedAtDesc(Long tourId, ReviewStatus status, Pageable pageable);
     
     /**
      * Find reviews by rating
@@ -93,4 +103,14 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      */
     @Query("SELECT r FROM Review r JOIN FETCH r.user JOIN FETCH r.tour WHERE r.id = :reviewId")
     Review findByIdWithDetails(@Param("reviewId") Long reviewId);
+    
+    /**
+     * Find reviews by status with pagination (Admin)
+     */
+    Page<Review> findByStatus(ReviewStatus status, Pageable pageable);
+    
+    /**
+     * Count reviews by status
+     */
+    long countByStatus(ReviewStatus status);
 }
