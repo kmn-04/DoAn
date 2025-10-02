@@ -39,7 +39,7 @@ const wishlistService = {
   // Get user's wishlist
   getUserWishlist: async (userId: number): Promise<WishlistItem[]> => {
     try {
-      const response = await apiClient.get<TourResponse[]>(`/wishlist/user/${userId}`);
+      const response = await apiClient.get<TourResponse[]>(`/wishlists`);
       
       // Convert TourResponse to WishlistItem
       return response.data.data!.map(tour => ({
@@ -78,19 +78,19 @@ const wishlistService = {
 
   // Add tour to wishlist
   addToWishlist: async (userId: number, tourId: number): Promise<void> => {
-    await apiClient.post(`/wishlist/user/${userId}/tour/${tourId}`);
+    await apiClient.post(`/wishlists/tour/${tourId}`);
   },
 
   // Remove tour from wishlist
   removeFromWishlist: async (userId: number, tourId: number): Promise<void> => {
-    await apiClient.delete(`/wishlist/user/${userId}/tour/${tourId}`);
+    await apiClient.delete(`/wishlists/tour/${tourId}`);
   },
 
   // Check if tour is in wishlist
   isInWishlist: async (userId: number, tourId: number): Promise<boolean> => {
     try {
-      const response = await apiClient.get<boolean>(`/wishlist/user/${userId}/check/${tourId}`);
-      return response.data.data!;
+      const response = await apiClient.get<boolean>(`/wishlists/check/${tourId}`);
+      return response.data.data!.inWishlist || false;
     } catch (error) {
       return false;
     }
@@ -99,8 +99,8 @@ const wishlistService = {
   // Get wishlist count
   getWishlistCount: async (userId: number): Promise<number> => {
     try {
-      const response = await apiClient.get<number>(`/wishlist/user/${userId}/count`);
-      return response.data.data!;
+      const response = await apiClient.get<number>(`/wishlists/count`);
+      return response.data.data!.count || 0;
     } catch (error) {
       return 0;
     }
@@ -108,13 +108,13 @@ const wishlistService = {
 
   // Clear entire wishlist
   clearWishlist: async (userId: number): Promise<void> => {
-    await apiClient.delete(`/wishlist/user/${userId}/clear`);
+    await apiClient.delete(`/wishlists/clear`);
   },
 
   // Get most wishlisted tours
   getMostWishlistedTours: async (limit: number = 10): Promise<WishlistItem[]> => {
     try {
-      const response = await apiClient.get<TourResponse[]>(`/wishlist/popular?limit=${limit}`);
+      const response = await apiClient.get<TourResponse[]>(`/wishlists/popular?limit=${limit}`);
       
       return response.data.data!.map(tour => ({
         id: tour.id,
@@ -151,7 +151,7 @@ const wishlistService = {
   // Get wishlist statistics
   getWishlistStatistics: async (): Promise<WishlistStatistics> => {
     try {
-      const response = await apiClient.get<WishlistStatistics>('/wishlist/statistics');
+      const response = await apiClient.get<WishlistStatistics>('/wishlists/statistics');
       return response.data.data!;
     } catch (error) {
       return {

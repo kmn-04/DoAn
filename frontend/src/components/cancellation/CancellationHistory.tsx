@@ -531,15 +531,18 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wide">Số tiền gốc</p>
                         <p className="text-sm font-medium text-gray-900">
-                          {cancellation.originalAmount.toLocaleString('vi-VN')} ₫
+                          {cancellation.originalAmount != null 
+                            ? `${cancellation.originalAmount.toLocaleString('vi-VN')} ₫`
+                            : 'N/A'
+                          }
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wide">Hoàn tiền</p>
                         <p className={`text-sm font-medium ${
-                          cancellation.finalRefundAmount > 0 ? 'text-green-600' : 'text-red-600'
+                          (cancellation.finalRefundAmount != null && cancellation.finalRefundAmount > 0) ? 'text-green-600' : 'text-red-600'
                         }`}>
-                          {cancellation.finalRefundAmount > 0 
+                          {cancellation.finalRefundAmount != null && cancellation.finalRefundAmount > 0 
                             ? `${cancellation.finalRefundAmount.toLocaleString('vi-VN')} ₫`
                             : 'Không hoàn tiền'
                           }

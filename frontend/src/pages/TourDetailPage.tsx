@@ -16,6 +16,7 @@ import {
   ArrowLeftIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
+import { IoBedOutline, IoRestaurantOutline } from 'react-icons/io5';
 
 import ImageGallery from '../components/tours/ImageGallery';
 import BookingForm from '../components/tours/BookingForm';
@@ -195,6 +196,7 @@ const mockRelatedTours = [
 const TourDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [tour, setTour] = useState<TourDetail | null>(null);
+  const [relatedTours, setRelatedTours] = useState<any[]>([]);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'reviews' | 'info'>('overview');
   const [isLoading, setIsLoading] = useState(true);
@@ -211,75 +213,217 @@ const TourDetailPage: React.FC = () => {
         // Get tour by slug from API
         const tourResponse = await tourService.getTourBySlug(slug);
         console.log('✅ Tour API response:', tourResponse);
+        console.log('📦 includedServices type:', typeof tourResponse.includedServices, tourResponse.includedServices);
+        console.log('📦 excludedServices type:', typeof tourResponse.excludedServices, tourResponse.excludedServices);
+        console.log('📌 highlights type:', typeof tourResponse.highlights, tourResponse.highlights);
         
-        // Map API response to TourDetail interface
-        const mappedTour: TourDetail = {
-          id: tourResponse.id,
-          name: tourResponse.name,
-          slug: tourResponse.slug,
-          description: tourResponse.description || 'Khám phá tour tuyệt vời này',
-          price: tourResponse.price,
-          originalPrice: tourResponse.originalPrice,
-          duration: `${tourResponse.duration} ngày`,
-          location: tourResponse.location,
-          rating: tourResponse.averageRating || 0,
-          reviewCount: tourResponse.totalReviews || 0,
-          maxPeople: tourResponse.maxGroupSize || 20,
-          images: tourResponse.images?.map(img => img.imageUrl) || ['/default-tour.jpg'],
-          badge: tourResponse.isFeatured ? 'Nổi bật' : undefined,
-          category: tourResponse.category?.name || 'Tour',
-          highlights: tourResponse.highlights || [
-            'Trải nghiệm tuyệt vời',
-            'Dịch vụ chất lượng cao',
-            'Hướng dẫn viên chuyên nghiệp'
-          ],
-          included: tourResponse.includes || [
+        // Parse included services
+        let includedList = [];
+        if (tourResponse.includedServices) {
+          if (Array.isArray(tourResponse.includedServices)) {
+            includedList = tourResponse.includedServices;
+          } else if (typeof tourResponse.includedServices === 'string') {
+            try {
+              includedList = JSON.parse(tourResponse.includedServices);
+            } catch {
+              includedList = [];
+            }
+          }
+        }
+        
+        // Parse excluded services
+        let excludedList = [];
+        if (tourResponse.excludedServices) {
+          if (Array.isArray(tourResponse.excludedServices)) {
+            excludedList = tourResponse.excludedServices;
+          } else if (typeof tourResponse.excludedServices === 'string') {
+            try {
+              excludedList = JSON.parse(tourResponse.excludedServices);
+            } catch {
+              excludedList = [];
+            }
+          }
+        }
+        
+        // Use fallback if empty
+        if (includedList.length === 0) {
+          includedList = [
             'Xe du lịch đời mới, máy lạnh',
             'Khách sạn tiêu chuẩn',
             'Ăn theo chương trình',
             'Vé tham quan các điểm trong chương trình',
             'Hướng dẫn viên nhiệt tình',
             'Bảo hiểm du lịch'
-          ],
-          excluded: tourResponse.excludes || [
+          ];
+        }
+        
+        if (excludedList.length === 0) {
+          excludedList = [
             'Vé máy bay đi/về điểm tập trung',
             'Chi phí cá nhân',
             'Phụ thu phòng đơn',
             'Tip cho hướng dẫn viên'
-          ],
-          itinerary: tourResponse.itinerary || [
-            {
-              day: 1,
-              title: `Ngày 1: Khởi hành đến ${tourResponse.location}`,
-              description: 'Bắt đầu hành trình khám phá',
-              activities: ['Tập trung tại điểm hẹn', 'Khởi hành', 'Nhận phòng khách sạn']
-            },
-            {
-              day: 2,
-              title: `Ngày 2: Tham quan ${tourResponse.location}`,
-              description: 'Khám phá những điểm đến tuyệt vời',
-              activities: ['Tham quan các điểm nổi tiếng', 'Ăn trưa tại nhà hàng địa phương', 'Trở về']
-            }
-          ],
+          ];
+        }
+        
+        console.log('✅ Final includedList:', includedList.length, 'items');
+        console.log('✅ Final excludedList:', excludedList.length, 'items');
+        
+        // Map API response to TourDetail interface
+        const mappedTour: TourDetail = {
+          id: tourResponse.id,
+          name: tourResponse.name,
+          slug: tourResponse.slug,
+          description: tourResponse.description || tourResponse.shortDescription || 'Khám phá tour tuyệt vời này',
+          price: tourResponse.salePrice || tourResponse.price, // Giá hiệu quả (đã sale hoặc gốc)
+          originalPrice: (tourResponse.salePrice && tourResponse.salePrice < tourResponse.price) ? tourResponse.price : undefined, // Giá gốc chỉ khi có sale
+          duration: `${tourResponse.duration} ngày`,
+          location: tourResponse.destination || tourResponse.departureLocation || 'Việt Nam',
+          rating: 4.5, // TODO: Add rating to backend
+          reviewCount: 0, // TODO: Add review count to backend
+          maxPeople: tourResponse.maxPeople || 20,
+          images: tourResponse.images?.map((img: any) => img.imageUrl) || ['/default-tour.jpg'],
+          badge: tourResponse.isFeatured ? 'Nổi bật' : undefined,
+          category: tourResponse.category?.name || 'Tour',
+          highlights: Array.isArray(tourResponse.highlights) 
+            ? tourResponse.highlights 
+            : (typeof tourResponse.highlights === 'string' 
+                ? JSON.parse(tourResponse.highlights) 
+                : [
+                    'Trải nghiệm tuyệt vời',
+                    'Dịch vụ chất lượng cao',
+                    'Hướng dẫn viên chuyên nghiệp'
+                  ]),
+          included: includedList,
+          excluded: excludedList,
+          itinerary: tourResponse.itineraries && tourResponse.itineraries.length > 0
+            ? tourResponse.itineraries.map((item: any) => ({
+                day: item.dayNumber,
+                title: item.title,
+                description: item.description || '',
+                activities: Array.isArray(item.activities) 
+                  ? item.activities 
+                  : (typeof item.activities === 'string' 
+                      ? JSON.parse(item.activities) 
+                      : []),
+                // Include partner information
+                partner: item.partner,
+                accommodationPartner: item.accommodationPartner,
+                mealsPartner: item.mealsPartner
+              }))
+            : [
+                {
+                  day: 1,
+                  title: `Ngày 1: Khởi hành đến ${tourResponse.destination || 'điểm đến'}`,
+                  description: 'Bắt đầu hành trình khám phá',
+                  activities: ['Tập trung tại điểm hẹn', 'Khởi hành', 'Nhận phòng khách sạn']
+                },
+                {
+                  day: 2,
+                  title: `Ngày 2: Tham quan ${tourResponse.destination || 'điểm đến'}`,
+                  description: 'Khám phá những điểm đến tuyệt vời',
+                  activities: ['Tham quan các điểm nổi tiếng', 'Ăn trưa tại nhà hàng địa phương', 'Trở về']
+                }
+              ],
           importantInfo: [
             'Vui lòng mang theo giấy tờ tùy thân',
             'Trang phục thoải mái, phù hợp với thời tiết',
             'Mang theo thuốc cá nhân nếu cần'
           ],
-          cancellationPolicy: 'Miễn phí hủy trong 24h. Hủy trước 7 ngày không tính phí.',
-          availableDates: [
-            new Date().toISOString().split('T')[0],
-            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-          ]
+          cancellationPolicy: tourResponse.cancellationPolicy || 'Miễn phí hủy trong 24h. Hủy trước 7 ngày không tính phí.',
+          availableDates: tourResponse.schedules && tourResponse.schedules.length > 0
+            ? tourResponse.schedules
+                .filter((schedule: any) => schedule.status === 'Available')
+                .map((schedule: any) => schedule.departureDate)
+            : []
         };
         
         setTour(mappedTour);
         
+        // Fetch related tours with smart recommendation
+        if (tourResponse.category?.id) {
+          try {
+            const categoryResponse = await tourService.getToursByCategory(tourResponse.category.id);
+            const allToursInCategory = categoryResponse.content || categoryResponse.data || categoryResponse;
+            
+            // Filter out current tour
+            const availableTours = (Array.isArray(allToursInCategory) ? allToursInCategory : [])
+              .filter((t: any) => t.id !== tourResponse.id);
+            
+            // Calculate price range
+            const currentPrice = tourResponse.salePrice || tourResponse.price;
+            const priceMin = currentPrice * 0.7;  // -30%
+            const priceMax = currentPrice * 1.3;  // +30%
+            
+            let relatedToursList: any[] = [];
+            
+            // TIER 1: Same category + similar price (±30%) + high rating
+            const tier1 = availableTours
+              .filter((t: any) => {
+                const tPrice = t.salePrice || t.price;
+                return tPrice >= priceMin && tPrice <= priceMax;
+              })
+              .sort((a: any, b: any) => {
+                // Sort by rating (if available), then by view count
+                const ratingA = a.rating || 0;
+                const ratingB = b.rating || 0;
+                if (ratingB !== ratingA) return ratingB - ratingA;
+                return (b.viewCount || 0) - (a.viewCount || 0);
+              })
+              .slice(0, 3);
+            
+            relatedToursList = [...tier1];
+            
+            // TIER 2: If not enough, expand price range to ±50%
+            if (relatedToursList.length < 3) {
+              const priceMinWide = currentPrice * 0.5;  // -50%
+              const priceMaxWide = currentPrice * 1.5;  // +50%
+              
+              const tier2 = availableTours
+                .filter((t: any) => !relatedToursList.some((rt: any) => rt.id === t.id))
+                .filter((t: any) => {
+                  const tPrice = t.salePrice || t.price;
+                  return tPrice >= priceMinWide && tPrice <= priceMaxWide;
+                })
+                .sort((a: any, b: any) => {
+                  const ratingA = a.rating || 0;
+                  const ratingB = b.rating || 0;
+                  if (ratingB !== ratingA) return ratingB - ratingA;
+                  return (b.viewCount || 0) - (a.viewCount || 0);
+                })
+                .slice(0, 3 - relatedToursList.length);
+              
+              relatedToursList = [...relatedToursList, ...tier2];
+            }
+            
+            // TIER 3: Still not enough, take any from same category
+            if (relatedToursList.length < 3) {
+              const tier3 = availableTours
+                .filter((t: any) => !relatedToursList.some((rt: any) => rt.id === t.id))
+                .sort((a: any, b: any) => {
+                  const ratingA = a.rating || 0;
+                  const ratingB = b.rating || 0;
+                  if (ratingB !== ratingA) return ratingB - ratingA;
+                  return (b.viewCount || 0) - (a.viewCount || 0);
+                })
+                .slice(0, 3 - relatedToursList.length);
+              
+              relatedToursList = [...relatedToursList, ...tier3];
+            }
+            
+            console.log(`✅ Found ${relatedToursList.length} related tours (Tier breakdown: ${tier1.length} tier1, ${relatedToursList.length - tier1.length} tier2+3)`);
+            setRelatedTours(relatedToursList);
+          } catch (relatedError) {
+            console.error('❌ Error fetching related tours:', relatedError);
+            setRelatedTours(mockRelatedTours);
+          }
+        } else {
+          setRelatedTours(mockRelatedTours);
+        }
+        
       } catch (error) {
         console.error('❌ Error fetching tour:', error);
-        // Fallback to mock data if API fails
-        setTour(mockTourDetail);
+        // Don't show anything if API fails - let error boundary handle it
       } finally {
         setIsLoading(false);
       }
@@ -390,10 +534,7 @@ const TourDetailPage: React.FC = () => {
                       </span>
                     )}
                     <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold capitalize">
-                      {tour.category === 'beach' ? 'Tour biển đảo' : 
-                       tour.category === 'mountain' ? 'Tour miền núi' :
-                       tour.category === 'culture' ? 'Tour văn hóa' :
-                       tour.category === 'city' ? 'Tour thành phố' : 'Tour du lịch'}
+                      {tour.category || 'Tour du lịch'}
                     </span>
                   </div>
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">{tour.name}</h1>
@@ -543,10 +684,10 @@ const TourDetailPage: React.FC = () => {
                   </div>
                   
                   <div className="space-y-4">
-                    {tour.itinerary.map((day) => {
+                    {tour.itinerary.map((day, index) => {
                       const isExpanded = expandedDays.includes(day.day);
                       return (
-                        <div key={day.day} className="bg-white rounded-lg border overflow-hidden">
+                        <div key={`day-${index}`} className="bg-white rounded-lg border overflow-hidden">
                           {/* Day Header - Always visible */}
                           <div 
                             className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -559,7 +700,10 @@ const TourDetailPage: React.FC = () => {
                                 </div>
                                 <div>
                                   <h4 className="text-lg font-bold text-gray-900">{day.title}</h4>
-                                  <p className="text-sm text-gray-600 mt-1">{day.description}</p>
+                                  <div 
+                                    className="text-sm text-gray-600 mt-1 prose prose-sm max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: day.description }}
+                                  />
                                 </div>
                               </div>
                               <div className="flex-shrink-0">
@@ -576,12 +720,37 @@ const TourDetailPage: React.FC = () => {
                           {isExpanded && (
                             <div className="px-4 pb-4 border-t bg-gray-50">
                               <div className="pt-4 space-y-3">
+                                {/* Activities */}
                                 {day.activities.map((activity, index) => (
                                   <div key={index} className="flex items-start space-x-3">
                                     <CalendarDaysIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                                    <span className="text-sm text-gray-700 leading-relaxed">{activity}</span>
+                                    <div 
+                                      className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none"
+                                      dangerouslySetInnerHTML={{ __html: activity }}
+                                    />
                                   </div>
                                 ))}
+                                
+                                {/* Partners - Chỉ hiển thị khách sạn và nhà hàng */}
+                                {((day as any).accommodationPartner || (day as any).mealsPartner) && (
+                                  <div className="flex items-start space-x-3 pt-2">
+                                    <div className="h-4 w-4 flex-shrink-0"></div>
+                                    <div className="text-sm text-gray-600 italic flex flex-wrap gap-x-6 gap-y-1">
+                                      {(day as any).accommodationPartner && (
+                                        <span className="flex items-center gap-1.5">
+                                          <IoBedOutline className="h-4 w-4 text-blue-600" />
+                                          <span className="text-blue-700 font-medium">{(day as any).accommodationPartner.name}</span>
+                                        </span>
+                                      )}
+                                      {(day as any).mealsPartner && (
+                                        <span className="flex items-center gap-1.5">
+                                          <IoRestaurantOutline className="h-4 w-4 text-orange-600" />
+                                          <span className="text-orange-700 font-medium">{(day as any).mealsPartner.name}</span>
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
@@ -637,14 +806,16 @@ const TourDetailPage: React.FC = () => {
         </div>
 
         {/* Related Tours */}
-        <div className="mt-16">
-          <h3 className="text-2xl font-bold text-gray-900 mb-8">Tour liên quan</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockRelatedTours.map((relatedTour) => (
-              <TourCard key={relatedTour.id} tour={relatedTour} />
-            ))}
+        {relatedTours.length > 0 && (
+          <div className="mt-16">
+            <h3 className="text-2xl font-bold text-gray-900 mb-8">Tour liên quan</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relatedTours.map((relatedTour) => (
+                <TourCard key={relatedTour.id} tour={relatedTour} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

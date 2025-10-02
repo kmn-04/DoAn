@@ -45,36 +45,35 @@ export interface PaymentMethodsResponse {
 const paymentService = {
   // Get available payment methods
   getPaymentMethods: async (): Promise<PaymentMethodsResponse> => {
-    const response = await apiClient.get<PaymentMethodsResponse>('/payment/methods');
-    return response.data.data!;
-  },
-
-  // Create MoMo payment
-  createMoMoPayment: async (request: PaymentRequest): Promise<PaymentResponse> => {
-    console.log('🔍 MoMo payment request:', request);
-    
-    // Ensure all required fields are present and valid
-    const validatedRequest = {
-      bookingId: request.bookingId || '',
-      amount: Number(request.amount) || 0,
-      orderInfo: request.orderInfo || 'Payment',
-      paymentMethod: request.paymentMethod || 'MOMO',
-      extraData: request.extraData || '',
-      userId: request.userId || null,
-      userEmail: request.userEmail || '',
-      userPhone: request.userPhone || ''
+    // Return hardcoded payment methods including Cash on Arrival
+    return {
+      CASH: {
+        name: 'Thanh toán khi nhận tour',
+        code: 'CASH',
+        description: 'Thanh toán trực tiếp cho hướng dẫn viên khi bắt đầu tour',
+        logo: '',
+        enabled: true,
+        testMode: false
+      },
+      BANK_TRANSFER: {
+        name: 'Chuyển khoản ngân hàng',
+        code: 'BANK_TRANSFER',
+        description: 'Chuyển khoản qua ngân hàng (sẽ có hướng dẫn sau khi đặt)',
+        logo: '',
+        enabled: true,
+        testMode: false
+      }
+      // MoMo, VNPay, etc. disabled for now
     };
-    
-    console.log('🔍 Validated MoMo request:', validatedRequest);
-    
-    const response = await apiClient.post<PaymentResponse>('/payment/momo/create', validatedRequest);
-    return response.data.data!;
   },
 
-  // Check MoMo payment status
+  // MoMo payment - Removed (to be re-implemented)
+  createMoMoPayment: async (request: PaymentRequest): Promise<PaymentResponse> => {
+    throw new Error('MoMo payment temporarily disabled - under re-implementation');
+  },
+
   checkMoMoPaymentStatus: async (orderId: string): Promise<PaymentResponse> => {
-    const response = await apiClient.get<PaymentResponse>(`/payment/momo/status/${orderId}`);
-    return response.data.data!;
+    throw new Error('MoMo payment temporarily disabled - under re-implementation');
   },
 
   // Create VNPay payment (placeholder)
@@ -95,6 +94,20 @@ const paymentService = {
   // Generic payment creation
   createPayment: async (request: PaymentRequest): Promise<PaymentResponse> => {
     switch (request.paymentMethod) {
+      case 'CASH':
+      case 'BANK_TRANSFER':
+        // For cash/bank transfer, no payment gateway needed
+        // Just return success response
+        return {
+          success: true,
+          orderId: `ORD-${Date.now()}`,
+          amount: request.amount,
+          paymentMethod: request.paymentMethod,
+          paymentUrl: '', // No redirect needed
+          message: request.paymentMethod === 'CASH' 
+            ? 'Đặt tour thành công! Vui lòng thanh toán khi nhận tour.'
+            : 'Đặt tour thành công! Vui lòng chuyển khoản theo hướng dẫn.'
+        };
       case 'MOMO':
         return paymentService.createMoMoPayment(request);
       case 'VNPAY':
@@ -108,45 +121,9 @@ const paymentService = {
     }
   },
 
-  // Handle payment redirect return
+  // Handle payment redirect return - Removed
   handlePaymentReturn: (params: URLSearchParams): PaymentResponse => {
-    const resultCode = params.get('resultCode');
-    const orderId = params.get('orderId');
-    const message = params.get('message');
-    
-    console.log('🔍 MoMo callback parameters:', {
-      resultCode,
-      orderId,
-      message,
-      requestId: params.get('requestId'),
-      amount: params.get('amount'),
-      transId: params.get('transId'),
-      extraData: params.get('extraData'),
-      allParams: Object.fromEntries(params.entries())
-    });
-    
-    // MoMo success codes: '0' = success
-    const isSuccess = resultCode === '0' || resultCode === 0;
-    
-    console.log('🔍 Success check:', {
-      resultCode,
-      resultCodeType: typeof resultCode,
-      isSuccess,
-      comparison: resultCode === '0',
-      comparisonNumber: resultCode === 0
-    });
-    
-    return {
-      paymentId: params.get('requestId') || '',
-      orderId: orderId || '',
-      bookingId: params.get('extraData') || '',
-      amount: parseInt(params.get('amount') || '0'),
-      paymentMethod: 'MOMO',
-      status: isSuccess ? 'SUCCESS' : 'FAILED',
-      message: message || (isSuccess ? 'Thanh toán thành công' : 'Thanh toán không thành công'),
-      transactionId: params.get('transId') || '',
-      createdAt: new Date().toISOString()
-    };
+    throw new Error('Payment return handling temporarily disabled');
   },
 
   // Format amount for display

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.util.Set;
 @Entity
 @Table(name = "partners")
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -19,6 +21,7 @@ public class Partner {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
     
     @Column(nullable = false, length = 150)
@@ -86,7 +89,11 @@ public class Partner {
     
     public enum PartnerType {
         Hotel("Khách sạn"),
-        Restaurant("Nhà hàng");
+        Restaurant("Nhà hàng"),
+        Transport("Vận chuyển"),
+        TourOperator("Công ty lữ hành"),
+        Insurance("Bảo hiểm"),
+        Other("Khác");
         
         private final String displayName;
         

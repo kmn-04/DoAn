@@ -197,14 +197,14 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           // Debug each booking's cancellation eligibility
           console.log('🔍 Checking booking for cancellation:', {
             bookingCode: booking.bookingCode,
-            status: booking.status,
+            confirmationStatus: booking.confirmationStatus,
             startDate: booking.startDate,
             tourName: booking.tour?.name
           });
           
           // Allow cancellation for various booking statuses
-          const validStatuses = ['CONFIRMED', 'PAID', 'Confirmed', 'Paid', 'PENDING', 'Pending'];
-          const isValidStatus = validStatuses.includes(booking.status);
+          const validStatuses = ['Confirmed', 'Pending'];
+          const isValidStatus = validStatuses.includes(booking.confirmationStatus || '');
           
           // Check if booking is in the future (more lenient - allow same day)
           const bookingDate = new Date(booking.startDate);
@@ -215,7 +215,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           console.log('📊 Cancellation check result:', {
             isValidStatus,
             validStatuses,
-            actualStatus: booking.status,
+            actualStatus: booking.confirmationStatus,
             isFutureOrToday,
             bookingDate: bookingDate.toISOString(),
             today: today.toISOString(),
@@ -230,7 +230,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           tourName: booking.tour?.name || 'Unknown Tour',
           startDate: booking.startDate,
           totalPrice: Number(booking.totalPrice),
-          status: booking.status,
+          status: booking.confirmationStatus || 'Pending',
           canCancel: true
         }));
       
@@ -245,7 +245,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           tourName: booking.tour?.name || 'Unknown Tour',
           startDate: booking.startDate,
           totalPrice: Number(booking.totalPrice),
-          status: booking.status,
+          status: booking.confirmationStatus || 'Pending',
           canCancel: true // Allow all for debugging
         }));
         setUserBookings(allUserBookings);
@@ -497,11 +497,11 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">
-                      {booking.totalPrice.toLocaleString('vi-VN')} ₫
+                      {booking.totalPrice != null ? booking.totalPrice.toLocaleString('vi-VN') : '0'} ₫
                     </p>
                     <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
                       booking.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
-                      booking.status === 'Paid' ? 'bg-blue-100 text-blue-800' :
+                      booking.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                       {booking.status}
@@ -688,7 +688,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Số tiền gốc:</span>
-                  <span className="font-medium">{selectedBooking?.totalPrice.toLocaleString('vi-VN')} ₫</span>
+                  <span className="font-medium">{selectedBooking?.totalPrice != null ? selectedBooking.totalPrice.toLocaleString('vi-VN') : '0'} ₫</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Số tiền hoàn ước tính:</span>
@@ -754,7 +754,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
                 <p><span className="font-medium">Tour:</span> {selectedBooking.tourName}</p>
                 <p><span className="font-medium">Mã booking:</span> {selectedBooking.bookingCode}</p>
                 <p><span className="font-medium">Khởi hành:</span> {new Date(selectedBooking.startDate).toLocaleDateString('vi-VN')}</p>
-                <p><span className="font-medium">Số tiền:</span> {selectedBooking.totalPrice.toLocaleString('vi-VN')} ₫</p>
+                <p><span className="font-medium">Số tiền:</span> {selectedBooking.totalPrice != null ? selectedBooking.totalPrice.toLocaleString('vi-VN') : '0'} ₫</p>
               </div>
             </div>
 
@@ -785,7 +785,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
               <div className="text-sm text-gray-600 space-y-1">
                 <p><span className="font-medium">Số tiền hoàn:</span> 
                   <span className="text-green-600 font-semibold ml-1">
-                    {evaluation.finalRefundAmount.toLocaleString('vi-VN')} ₫
+                    {evaluation.finalRefundAmount != null ? evaluation.finalRefundAmount.toLocaleString('vi-VN') : '0'} ₫
                   </span>
                 </p>
                 <p className="text-xs text-gray-500">

@@ -112,7 +112,7 @@ const TourCard: React.FC<TourCardProps> = memo(({
         {/* Category */}
         {tour.category && (
           <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs">
-            {tour.category}
+            {typeof tour.category === 'string' ? tour.category : tour.category.name}
           </div>
         )}
       </div>

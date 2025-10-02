@@ -10,6 +10,9 @@ export { default as notificationService } from './notificationService';
 export { default as recommendationService } from './recommendationService';
 export { default as cancellationService } from './cancellationService';
 export { default as contactService } from './contactService';
+export { default as reviewService } from './reviewService';
+export { default as paymentService } from './paymentService';
+export { default as partnerService } from './partnerService';
 export { apiClient } from './api';
 
 // Export types

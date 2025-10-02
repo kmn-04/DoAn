@@ -81,13 +81,13 @@ public class BookingController extends BaseController {
                 .orElseThrow(() -> new backend.exception.ResourceNotFoundException("Tour", "id", request.getTourId()));
         log.info("✅ Found tour: {} - {}", tour.getId(), tour.getName());
                 
-        // Get user ID from request or use default
-        // In production, should get from JWT token/security context
-        Long currentUserId = request.getUserId() != null ? request.getUserId() : 1L;
-        log.info("🔍 Using user ID: {} (from request: {})", currentUserId, request.getUserId());
+        // Get current user from security context
+        String currentUserEmail = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+        log.info("🔍 Current authenticated user email: {}", currentUserEmail);
         
-        User user = userService.getUserById(currentUserId)
-                .orElseThrow(() -> new backend.exception.ResourceNotFoundException("User", "id", currentUserId));
+        User user = userService.getUserByEmail(currentUserEmail)
+                .orElseThrow(() -> new backend.exception.ResourceNotFoundException("User", "email", currentUserEmail));
         log.info("✅ Found user: {} - {}", user.getId(), user.getEmail());
         
         // Create booking entity
@@ -99,6 +99,15 @@ public class BookingController extends BaseController {
         booking.setNumChildren(request.getNumChildren() != null ? request.getNumChildren() : 0);
         booking.setSpecialRequests(request.getSpecialRequests());
         booking.setContactPhone(request.getContactPhone());
+        
+        // Set unit price from tour's effective price
+        booking.setUnitPrice(tour.getEffectivePrice());
+        log.info("💰 Set unit price: {}", tour.getEffectivePrice());
+        
+        // Set customer info from user
+        booking.setCustomerName(user.getName());
+        booking.setCustomerEmail(user.getEmail());
+        booking.setCustomerPhone(user.getPhone() != null ? user.getPhone() : request.getContactPhone());
         
         // Create booking
         Booking createdBooking = bookingService.createBooking(booking);

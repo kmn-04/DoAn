@@ -216,4 +216,9 @@ public class UserServiceImpl implements UserService {
         
         return new UserStatistics(totalUsers, activeUsers, inactiveUsers, verifiedUsers, newUsersThisMonth);
     }
+    
+    @Override
+    public long getTotalUsers() {
+        return userRepository.count();
+    }
 }

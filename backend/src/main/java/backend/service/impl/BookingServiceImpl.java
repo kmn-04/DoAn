@@ -1,11 +1,13 @@
 package backend.service.impl;
 
+import backend.dto.response.BookingResponse;
 import backend.entity.Booking;
 import backend.entity.Booking.BookingStatus;
 import backend.entity.Booking.ConfirmationStatus;
 import backend.entity.Booking.PaymentStatus;
 import backend.entity.Promotion;
 import backend.entity.Tour;
+import backend.mapper.BookingMapper;
 import backend.repository.BookingRepository;
 import backend.repository.PromotionRepository;
 import backend.repository.TourRepository;
@@ -33,6 +35,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final TourRepository tourRepository;
     private final PromotionRepository promotionRepository;
+    private final BookingMapper bookingMapper;
     
     @Override
     public Booking createBooking(Booking booking) {
@@ -60,6 +63,11 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getTotalPrice() == null) {
             BigDecimal totalPrice = calculateBookingPrice(booking);
             booking.setTotalPrice(totalPrice);
+        }
+        
+        // Set final amount (same as total price if no discount)
+        if (booking.getFinalAmount() == null) {
+            booking.setFinalAmount(booking.getTotalPrice());
         }
         
         Booking savedBooking = bookingRepository.save(booking);
@@ -119,19 +127,90 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public Optional<Booking> getBookingById(Long bookingId) {
-        return bookingRepository.findById(bookingId);
+        Optional<Booking> booking = bookingRepository.findById(bookingId);
+        
+        // Force initialization of lazy-loaded relationships to avoid LazyInitializationException
+        booking.ifPresent(b -> {
+            if (b.getTour() != null) {
+                b.getTour().getName(); // Force load
+            }
+            if (b.getUser() != null) {
+                b.getUser().getName(); // Force load
+            }
+            if (b.getSchedule() != null) {
+                b.getSchedule().getDepartureDate(); // Force load schedule
+            }
+        });
+        
+        return booking;
     }
     
     @Override
     @Transactional(readOnly = true)
     public Optional<Booking> getBookingByCode(String bookingCode) {
-        return bookingRepository.findByBookingCode(bookingCode);
+        Optional<Booking> booking = bookingRepository.findByBookingCode(bookingCode);
+        
+        // Force initialization of lazy-loaded relationships to avoid LazyInitializationException
+        booking.ifPresent(b -> {
+            if (b.getTour() != null) {
+                b.getTour().getName(); // Force load
+            }
+            if (b.getUser() != null) {
+                b.getUser().getName(); // Force load
+            }
+            if (b.getSchedule() != null) {
+                b.getSchedule().getDepartureDate(); // Force load schedule
+            }
+        });
+        
+        return booking;
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<Booking> getBookingsByUser(Long userId) {
-        return bookingRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        List<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        
+        // Force initialization of lazy-loaded relationships to avoid LazyInitializationException
+        bookings.forEach(booking -> {
+            if (booking.getTour() != null) {
+                booking.getTour().getName(); // Force load tour
+                
+                // Force load itineraries and their partners
+                try {
+                    if (booking.getTour().getItineraries() != null) {
+                        booking.getTour().getItineraries().size(); // Force load itineraries
+                        booking.getTour().getItineraries().forEach(itinerary -> {
+                            // Force load partners for each itinerary
+                            try {
+                                if (itinerary.getAccommodationPartner() != null) {
+                                    itinerary.getAccommodationPartner().getName();
+                                }
+                            } catch (Exception e) {
+                                log.debug("Could not load accommodation partner: {}", e.getMessage());
+                            }
+                            try {
+                                if (itinerary.getMealsPartner() != null) {
+                                    itinerary.getMealsPartner().getName();
+                                }
+                            } catch (Exception e) {
+                                log.debug("Could not load meals partner: {}", e.getMessage());
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    log.debug("Could not load itineraries: {}", e.getMessage());
+                }
+            }
+            if (booking.getUser() != null) {
+                booking.getUser().getName(); // Force load user
+            }
+            if (booking.getSchedule() != null) {
+                booking.getSchedule().getDepartureDate(); // Force load schedule
+            }
+        });
+        
+        return bookings;
     }
     
     @Override
@@ -175,7 +254,22 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public List<Booking> getAllBookings() {
-        return bookingRepository.findAll();
+        List<Booking> bookings = bookingRepository.findAll();
+        
+        // Force initialization of lazy-loaded relationships to avoid LazyInitializationException
+        bookings.forEach(booking -> {
+            if (booking.getTour() != null) {
+                booking.getTour().getName(); // Force load
+            }
+            if (booking.getUser() != null) {
+                booking.getUser().getName(); // Force load
+            }
+            if (booking.getSchedule() != null) {
+                booking.getSchedule().getDepartureDate(); // Force load schedule
+            }
+        });
+        
+        return bookings;
     }
     
     @Override
@@ -367,5 +461,122 @@ public class BookingServiceImpl implements BookingService {
                 .filter(booking -> booking.getPaymentStatus() == PaymentStatus.Paid)
                 .map(Booking::getFinalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+    
+    // ========== NEW DTO METHODS ==========
+    
+    @Override
+    public BookingResponse getBookingByIdDto(Long bookingId) {
+        log.info("Getting booking by ID (DTO): {}", bookingId);
+        
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
+        
+        return bookingMapper.toResponse(booking);
+    }
+    
+    @Override
+    public Page<BookingResponse> getAllBookingsDto(Pageable pageable) {
+        log.info("Getting all bookings (DTO) with pagination");
+        
+        Page<Booking> bookings = bookingRepository.findAll(pageable);
+        
+        return bookings.map(bookingMapper::toResponse);
+    }
+    
+    @Override
+    public Page<BookingResponse> getBookingsByStatusDto(String status, Pageable pageable) {
+        log.info("Getting bookings by status (DTO): {}", status);
+        
+        ConfirmationStatus confirmationStatus = ConfirmationStatus.valueOf(status);
+        // Get list and convert to Page manually
+        List<Booking> bookingList = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(confirmationStatus);
+        
+        // Simple pagination - just return all as one page for now
+        // TODO: Implement proper pagination in repository
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), bookingList.size());
+        List<Booking> pageContent = bookingList.subList(start, end);
+        
+        Page<Booking> bookings = new org.springframework.data.domain.PageImpl<>(
+                pageContent, pageable, bookingList.size());
+        
+        return bookings.map(bookingMapper::toResponse);
+    }
+    
+    @Override
+    public BookingResponse updateBookingStatus(Long bookingId, String status) {
+        log.info("Updating booking status for ID: {}, new status: {}", bookingId, status);
+        
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
+        
+        ConfirmationStatus newStatus = ConfirmationStatus.valueOf(status);
+        booking.setConfirmationStatus(newStatus);
+        booking.setUpdatedAt(LocalDateTime.now());
+        
+        Booking updated = bookingRepository.save(booking);
+        
+        return bookingMapper.toResponse(updated);
+    }
+    
+    @Override
+    public BookingResponse updatePaymentStatus(Long bookingId, String paymentStatus) {
+        log.info("Updating payment status for ID: {}, new status: {}", bookingId, paymentStatus);
+        
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
+        
+        PaymentStatus newPaymentStatus = PaymentStatus.valueOf(paymentStatus);
+        booking.setPaymentStatus(newPaymentStatus);
+        booking.setUpdatedAt(LocalDateTime.now());
+        
+        Booking updated = bookingRepository.save(booking);
+        
+        return bookingMapper.toResponse(updated);
+    }
+    
+    @Override
+    public BookingResponse adminCancelBooking(Long bookingId, String reason) {
+        log.info("Admin cancelling booking ID: {}, reason: {}", bookingId, reason);
+        
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
+        
+        booking.setConfirmationStatus(ConfirmationStatus.Cancelled);
+        booking.setCancellationReason(reason);
+        booking.setCancelledAt(LocalDateTime.now());
+        booking.setUpdatedAt(LocalDateTime.now());
+        
+        // TODO: Set cancelledBy from security context
+        
+        Booking updated = bookingRepository.save(booking);
+        
+        return bookingMapper.toResponse(updated);
+    }
+    
+    @Override
+    public Page<BookingResponse> searchBookingsDto(String keyword, Pageable pageable) {
+        log.info("Searching bookings (DTO) with keyword: {}", keyword);
+        
+        Page<Booking> bookings = bookingRepository.searchBookings(keyword, pageable);
+        
+        return bookings.map(bookingMapper::toResponse);
+    }
+    
+    @Override
+    public long getTotalBookings() {
+        return bookingRepository.count();
+    }
+    
+    @Override
+    public long getBookingCountByStatus(String status) {
+        try {
+            ConfirmationStatus confirmationStatus = ConfirmationStatus.valueOf(status);
+            return bookingRepository.countByConfirmationStatus(confirmationStatus);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid booking status: {}", status);
+            return 0;
+        }
     }
 }

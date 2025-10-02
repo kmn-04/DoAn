@@ -49,8 +49,8 @@ public class TourResponse {
     private String mealsIncluded;
     
     // Services
-    private String includedServices;
-    private String excludedServices;
+    private List<String> includedServices;
+    private List<String> excludedServices;
     private String note;
     private String cancellationPolicy;
     

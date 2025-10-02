@@ -182,45 +182,59 @@ const BookingHistoryPage: React.FC = () => {
         
         // Filter out cancelled bookings first
         const activeBookingResponses = bookingResponses.filter(booking => 
-          !['CANCELLED', 'CancellationRequested'].includes(booking.status)
+          !['Cancelled', 'CancellationRequested'].includes(booking.confirmationStatus || '')
         );
         
         // Convert BookingResponse to local Booking interface
-        const convertedBookings: Booking[] = activeBookingResponses.map(booking => ({
-          id: String(booking.id), // Use booking ID as string for frontend compatibility
-          tourId: booking.tour?.id || 0,
-          tourName: booking.tour?.name || 'Unknown Tour',
-          tourSlug: booking.tour?.slug || '',
-        tourImage: booking.tour?.images?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
-        startDate: booking.startDate,
-        endDate: booking.startDate, // API doesn't have endDate, using startDate
-        duration: '1 ngày', // API doesn't have duration
-        location: booking.tour?.location || 'Unknown',
-          adults: booking.numAdults,
-          children: booking.numChildren,
-          totalPrice: Number(booking.totalPrice),
-          status: (() => {
-            const status = booking.status.toLowerCase();
-            if (status === 'cancellationrequested') return 'cancellation_requested';
-            return status as 'confirmed' | 'pending' | 'completed' | 'cancelled' | 'cancellation_requested';
-          })(),
-          paymentStatus: (() => {
-            // Map backend booking status to frontend payment status
-            // If booking is PAID or COMPLETED -> paymentStatus is 'paid'
-            // Otherwise -> 'pending' or 'failed' based on status
-            const bookingStatus = booking.status.toUpperCase();
-            if (bookingStatus === 'PAID' || bookingStatus === 'COMPLETED') {
+        const convertedBookings: Booking[] = activeBookingResponses.map(booking => {
+          // Map confirmationStatus from backend enum (Pending, Confirmed, etc.) to lowercase
+          const mapConfirmationStatus = (status: string | undefined): 'confirmed' | 'pending' | 'completed' | 'cancelled' | 'cancellation_requested' => {
+            if (!status) return 'pending';
+            const statusLower = status.toLowerCase();
+            if (statusLower === 'cancellationrequested') return 'cancellation_requested';
+            return statusLower as 'confirmed' | 'pending' | 'completed' | 'cancelled';
+          };
+
+          // Map paymentStatus from backend enum (Unpaid, Paid, etc.) to frontend format
+          const mapPaymentStatus = (status: string | undefined): 'paid' | 'pending' | 'failed' => {
+            if (!status) return 'pending';
+            const statusUpper = status.toUpperCase();
+            if (statusUpper === 'PAID') {
               return 'paid';
-            } else if (bookingStatus === 'CANCELLED') {
-              return 'failed';
-            } else {
-              // PENDING, CONFIRMED -> payment still pending
+            } else if (statusUpper === 'UNPAID' || statusUpper === 'PARTIALLYPAID') {
               return 'pending';
+            } else if (statusUpper === 'REFUNDING' || statusUpper === 'REFUNDED') {
+              return 'failed';
             }
-          })(),
-          bookingDate: booking.createdAt,
-          specialRequests: booking.specialRequests
-        }));
+            return 'pending';
+          };
+
+          console.log(`🔄 Mapping booking ${booking.id}:`, {
+            raw_confirmation: booking.confirmationStatus,
+            mapped_confirmation: mapConfirmationStatus(booking.confirmationStatus),
+            raw_payment: booking.paymentStatus,
+            mapped_payment: mapPaymentStatus(booking.paymentStatus)
+          });
+
+          return {
+            id: String(booking.id), // Use booking ID as string for frontend compatibility
+            tourId: booking.tour?.id || 0,
+            tourName: booking.tour?.name || 'Unknown Tour',
+            tourSlug: booking.tour?.slug || '',
+            tourImage: booking.tour?.mainImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+            startDate: booking.startDate,
+            endDate: booking.schedule?.returnDate || booking.startDate,
+            duration: booking.tour?.duration ? `${booking.tour.duration} ngày` : '1 ngày',
+            location: booking.tour?.destination || booking.tour?.departureLocation || 'Unknown',
+            adults: booking.numAdults,
+            children: booking.numChildren,
+            totalPrice: Number(booking.finalAmount || booking.totalPrice),
+            status: mapConfirmationStatus(booking.confirmationStatus),
+            paymentStatus: mapPaymentStatus(booking.paymentStatus),
+            bookingDate: booking.createdAt,
+            specialRequests: booking.specialRequests
+          };
+        });
         
         setBookings(convertedBookings);
         
@@ -277,7 +291,7 @@ const BookingHistoryPage: React.FC = () => {
     if (filters.status !== 'all') {
       if (filters.status === 'upcoming') {
         filtered = filtered.filter(booking => 
-          booking.status === 'confirmed' && new Date(booking.startDate) > new Date()
+          (booking.status === 'confirmed' || booking.status === 'pending') && new Date(booking.startDate) > new Date()
         );
       } else {
         filtered = filtered.filter(booking => booking.status === filters.status);
@@ -331,7 +345,6 @@ const BookingHistoryPage: React.FC = () => {
     const badges: Record<string, { label: string; className: string; icon: React.ComponentType<any> }> = {
       confirmed: { label: 'Đã xác nhận', className: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircleIcon },
       pending: { label: 'Chờ xác nhận', className: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: ClockIcon },
-      paid: { label: 'Chờ xác nhận', className: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: ClockIcon },
       completed: { label: 'Hoàn thành', className: 'bg-blue-100 text-blue-800 border-blue-200', icon: CheckCircleIcon },
       cancelled: { label: 'Đã hủy', className: 'bg-red-100 text-red-800 border-red-200', icon: XCircleIcon }
     };
@@ -342,9 +355,13 @@ const BookingHistoryPage: React.FC = () => {
     const badges: Record<string, { label: string; className: string }> = {
       paid: { label: 'Đã thanh toán', className: 'bg-green-100 text-green-800' },
       pending: { label: 'Chờ thanh toán', className: 'bg-orange-100 text-orange-800' },
+      unpaid: { label: 'Chờ thanh toán', className: 'bg-orange-100 text-orange-800' },
+      partiallypaid: { label: 'Thanh toán một phần', className: 'bg-yellow-100 text-yellow-800' },
+      refunding: { label: 'Đang hoàn tiền', className: 'bg-blue-100 text-blue-800' },
+      refunded: { label: 'Đã hoàn tiền', className: 'bg-gray-100 text-gray-800' },
       failed: { label: 'Thất bại', className: 'bg-red-100 text-red-800' }
     };
-    return badges[status] || { label: status, className: 'bg-gray-100 text-gray-800' };
+    return badges[status.toLowerCase()] || { label: status, className: 'bg-gray-100 text-gray-800' };
   };
 
   const handleFilterChange = (key: string, value: string) => {
@@ -632,6 +649,14 @@ const BookingHistoryPage: React.FC = () => {
           const statusBadge = getStatusBadge(booking.status);
           const paymentBadge = getPaymentStatusBadge(booking.paymentStatus);
           const StatusIcon = statusBadge.icon;
+          
+          // Debug
+          console.log('🏷️ Badges for booking', booking.id, {
+            confirmationStatus: booking.status,
+            statusBadge: statusBadge.label,
+            paymentStatus: booking.paymentStatus,
+            paymentBadge: paymentBadge.label
+          });
           const isUpcoming = (booking.status === 'confirmed' || booking.status === 'pending') && new Date(booking.startDate) > new Date();
           
           // Check if tour should show warning (within 10 days)
@@ -665,14 +690,17 @@ const BookingHistoryPage: React.FC = () => {
                         </p>
                       </div>
                       
-                      <div className="flex flex-col items-end space-y-1">
-                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${statusBadge.className}`}>
-                          <StatusIcon className="h-3 w-3 mr-1" />
+                      <div className="flex flex-col items-end space-y-2">
+                        {/* Confirmation Status Badge */}
+                        <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border ${statusBadge.className}`}>
+                          <StatusIcon className="h-3.5 w-3.5 mr-1.5" />
                           {statusBadge.label}
                         </div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${paymentBadge.className}`}>
+                        {/* Payment Status Badge */}
+                        <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${paymentBadge.className}`}>
+                          <CreditCardIcon className="h-3.5 w-3.5 mr-1.5" />
                           {paymentBadge.label}
-                        </span>
+                        </div>
                       </div>
                     </div>
 

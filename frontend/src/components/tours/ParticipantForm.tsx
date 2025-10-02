@@ -288,20 +288,6 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                         required={isInternational}
                       />
                     </div>
-
-                    {/* Special Requests */}
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Yêu cầu đặc biệt
-                      </label>
-                      <textarea
-                        value={participant.specialRequests || ''}
-                        onChange={(e) => updateParticipant(index, 'specialRequests', e.target.value)}
-                        placeholder="Ăn chay, dị ứng, nhu cầu hỗ trợ đặc biệt..."
-                        rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      />
-                    </div>
                   </div>
                 </div>
               )}

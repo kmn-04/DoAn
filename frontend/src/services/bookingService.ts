@@ -17,48 +17,106 @@ export interface PageResponse<T> {
 export interface BookingResponse {
   id: number;
   bookingCode: string;
-  tour: {
-    id: number;
-    name: string;
-    slug: string;
-    price: number;
-    location: string;
-    tourType: 'DOMESTIC' | 'INTERNATIONAL';
-    country?: {
-      name: string;
-      code: string;
-    };
-    images: Array<{
-      imageUrl: string;
-      isPrimary: boolean;
-    }>;
-  };
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    phone?: string;
-  };
   startDate: string;
+  
+  // Customer information
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerAddress?: string;
+  
+  // Participants
   numAdults: number;
   numChildren: number;
+  numInfants?: number;
   totalPeople: number;
+  
+  // Price information
+  unitPrice: number;
   totalPrice: number;
-  finalPrice: number;
-  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'COMPLETED' | 'CANCELLED';
-  paymentStatus: 'UNPAID' | 'PAID' | 'REFUNDED';
+  discountAmount?: number;
+  finalAmount: number;
+  
+  // Status (lowercase from backend)
+  confirmationStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  paymentStatus: 'unpaid' | 'partiallypaid' | 'paid' | 'refunding' | 'refunded';
+  
+  // Additional info
   specialRequests?: string;
   contactPhone?: string;
   cancellationReason?: string;
+  
+  // Timestamps
+  createdAt: string;
+  updatedAt: string;
+  
+  // Related data
+  tour?: {
+    id: number;
+    name: string;
+    slug: string;
+    mainImage: string;
+    duration: number;
+    departureLocation: string;
+    destination: string;
+  };
+  schedule?: {
+    id: number;
+    departureDate: string;
+    returnDate: string;
+    availableSeats: number;
+  };
   promotion?: {
     id: number;
     code: string;
     name: string;
-    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
     discountValue: number;
+    discountType: string;
   };
-  createdAt: string;
-  updatedAt: string;
+  participants?: Array<{
+    id: number;
+    fullName: string;
+    gender: string;
+    dateOfBirth: string;
+    nationality: string;
+    passportNumber?: string;
+    passportExpiry?: string;
+    participantType: string;
+    specialRequirements?: string;
+  }>;
+  payments?: Array<{
+    id: number;
+    paymentCode: string;
+    amount: number;
+    paymentMethod: string;
+    paymentProvider: string;
+    status: string;
+    paidAt?: string;
+    createdAt: string;
+  }>;
+  itineraries?: Array<{
+    id: number;
+    dayNumber: number;
+    title: string;
+    description?: string;
+    activities: string[];
+    meals?: string;
+    accommodation?: string;
+    accommodationPartner?: {
+      id: number;
+      name: string;
+      type?: string;
+      address?: string;
+      rating?: number;
+    };
+    mealsPartner?: {
+      id: number;
+      name: string;
+      type?: string;
+      address?: string;
+      rating?: number;
+    };
+  }>;
 }
 
 export interface BookingCreateRequest {

@@ -1,7 +1,7 @@
 package backend.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PartnerResponse {
     private Long id;
     private String name;
@@ -25,15 +25,11 @@ public class PartnerResponse {
     private Integer establishedYear;
     private String avatarUrl;
     private Double rating;
-    private Integer totalReviews;
     private String status;
-    private List<String> specialties;
+    private String specialties;
+    private List<PartnerImageResponse> images;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
-    private List<PartnerImageResponse> images;
-    private Integer totalTours; // Calculated field
-    private Integer totalBookings; // Calculated field
     
     @Data
     @NoArgsConstructor
@@ -42,7 +38,7 @@ public class PartnerResponse {
         private Long id;
         private String imageUrl;
         private String imageType;
-        private Integer displayOrder;
         private String altText;
+        private Integer displayOrder;
     }
 }
