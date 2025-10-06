@@ -281,5 +281,19 @@ public class PromotionController extends BaseController {
                     .body(error("Failed to get promotions count: " + e.getMessage()));
         }
     }
+    
+    @GetMapping("/admin/promotions/count/active")
+    @Operation(summary = "Get active promotions count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Long>> getActivePromotionsCount() {
+        try {
+            long count = promotionService.getValidPromotions().size();
+            return ResponseEntity.ok(success("Active promotions count retrieved successfully", count));
+        } catch (Exception e) {
+            log.error("Error getting active promotions count", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to get active promotions count: " + e.getMessage()));
+        }
+    }
 }
 

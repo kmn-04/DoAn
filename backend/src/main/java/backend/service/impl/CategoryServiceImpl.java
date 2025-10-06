@@ -66,6 +66,23 @@ public class CategoryServiceImpl implements CategoryService {
         if (category.getImageUrl() != null) {
             existingCategory.setImageUrl(category.getImageUrl());
         }
+        if (category.getIcon() != null) {
+            existingCategory.setIcon(category.getIcon());
+        }
+        if (category.getSlug() != null) {
+            existingCategory.setSlug(category.getSlug());
+        }
+        if (category.getParentId() != null) {
+            existingCategory.setParentId(category.getParentId());
+        }
+        if (category.getDisplayOrder() != null) {
+            existingCategory.setDisplayOrder(category.getDisplayOrder());
+        }
+        if (category.getStatus() != null) {
+            existingCategory.setStatus(category.getStatus());
+        }
+        // Always update isFeatured (even if false)
+        existingCategory.setIsFeatured(category.getIsFeatured());
         
         Category updatedCategory = categoryRepository.save(existingCategory);
         log.info("Category updated successfully with ID: {}", updatedCategory.getId());

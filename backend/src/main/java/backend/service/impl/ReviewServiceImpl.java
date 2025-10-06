@@ -200,9 +200,31 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
         
-        // TODO: Implement vote tracking to prevent duplicate votes
-        // For now, just increment the count
-        review.setHelpfulCount(review.getHelpfulCount() + 1);
+        // Get current voted user IDs
+        String currentVoters = review.getHelpfulUserIds();
+        java.util.Set<String> voterSet = new java.util.HashSet<>();
+        
+        if (currentVoters != null && !currentVoters.isEmpty()) {
+            voterSet.addAll(java.util.Arrays.asList(currentVoters.split(",")));
+        }
+        
+        String userIdStr = userId.toString();
+        
+        // Toggle vote
+        if (voterSet.contains(userIdStr)) {
+            // User already voted - remove vote (unlike)
+            voterSet.remove(userIdStr);
+            review.setHelpfulCount(Math.max(0, review.getHelpfulCount() - 1));
+            log.info("User {} removed helpful vote from review {}", userId, reviewId);
+        } else {
+            // User hasn't voted - add vote
+            voterSet.add(userIdStr);
+            review.setHelpfulCount(review.getHelpfulCount() + 1);
+            log.info("User {} added helpful vote to review {}", userId, reviewId);
+        }
+        
+        // Save back to comma-separated string
+        review.setHelpfulUserIds(voterSet.isEmpty() ? null : String.join(",", voterSet));
         
         Review updatedReview = reviewRepository.save(review);
         return mapper.toReviewResponse(updatedReview);
@@ -321,6 +343,61 @@ public class ReviewServiceImpl implements ReviewService {
         
         log.info("Review rejected successfully: {}", reviewId);
         return mapper.toReviewResponse(rejectedReview);
+    }
+    
+    @Override
+    public ReviewResponse updateReviewStatus(Long reviewId, String status) {
+        log.info("Updating review {} status to: {}", reviewId, status);
+        
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
+        
+        ReviewStatus newStatus = ReviewStatus.valueOf(status);
+        review.setStatus(newStatus);
+        Review updatedReview = reviewRepository.save(review);
+        
+        // Update tour rating if status is Approved or if it was Approved before
+        if (newStatus == ReviewStatus.Approved || review.getStatus() == ReviewStatus.Approved) {
+            updateTourRating(review.getTour().getId());
+        }
+        
+        log.info("Review status updated successfully: {}", reviewId);
+        return mapper.toReviewResponse(updatedReview);
+    }
+    
+    @Override
+    public ReviewResponse replyToReview(Long reviewId, String reply) {
+        log.info("Admin replying to review {}", reviewId);
+        
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
+        
+        review.setAdminReply(reply);
+        review.setRepliedAt(java.time.LocalDateTime.now());
+        // Note: repliedBy field would need SecurityContext to get current admin user ID
+        // For now, leaving it null or you can inject SecurityContext
+        
+        Review updatedReview = reviewRepository.save(review);
+        
+        log.info("Reply added successfully to review: {}", reviewId);
+        return mapper.toReviewResponse(updatedReview);
+    }
+    
+    @Override
+    public ReviewResponse deleteReply(Long reviewId) {
+        log.info("Admin deleting reply from review {}", reviewId);
+        
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
+        
+        review.setAdminReply(null);
+        review.setRepliedAt(null);
+        review.setRepliedBy(null);
+        
+        Review updatedReview = reviewRepository.save(review);
+        
+        log.info("Reply deleted successfully from review: {}", reviewId);
+        return mapper.toReviewResponse(updatedReview);
     }
     
     @Override

@@ -112,6 +112,55 @@ public class AdminReviewController extends BaseController {
         }
     }
     
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Update review status", description = "Update review status to Pending, Approved, or Rejected (Admin only)")
+    public ResponseEntity<ApiResponse<ReviewResponse>> updateReviewStatus(
+            @PathVariable Long id,
+            @RequestParam String status
+    ) {
+        try {
+            log.info("Updating review {} status to: {}", id, status);
+            ReviewResponse review = reviewService.updateReviewStatus(id, status);
+            return ResponseEntity.ok(success("Review status updated successfully", review));
+        } catch (Exception e) {
+            log.error("Error updating review status for ID: {}", id, e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to update review status: " + e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/{id}/reply")
+    @Operation(summary = "Reply to review", description = "Admin reply to a review (Admin only)")
+    public ResponseEntity<ApiResponse<ReviewResponse>> replyToReview(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> request
+    ) {
+        try {
+            String reply = request.get("reply");
+            log.info("Admin replying to review {}: {}", id, reply);
+            ReviewResponse review = reviewService.replyToReview(id, reply);
+            return ResponseEntity.ok(success("Reply added successfully", review));
+        } catch (Exception e) {
+            log.error("Error replying to review ID: {}", id, e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to add reply: " + e.getMessage()));
+        }
+    }
+    
+    @DeleteMapping("/{id}/reply")
+    @Operation(summary = "Delete reply", description = "Delete admin reply from a review (Admin only)")
+    public ResponseEntity<ApiResponse<ReviewResponse>> deleteReply(@PathVariable Long id) {
+        try {
+            log.info("Admin deleting reply from review {}", id);
+            ReviewResponse review = reviewService.deleteReply(id);
+            return ResponseEntity.ok(success("Reply deleted successfully", review));
+        } catch (Exception e) {
+            log.error("Error deleting reply from review ID: {}", id, e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to delete reply: " + e.getMessage()));
+        }
+    }
+    
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete review", description = "Delete a review (Admin only)")
     public ResponseEntity<ApiResponse<Void>> deleteReview(@PathVariable Long id) {

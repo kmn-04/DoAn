@@ -46,7 +46,8 @@ public class SecurityConfig {
                     "/webjars/**",
                     "/favicon.ico",
                     "/",
-                    "/status"
+                    "/status",
+                    "/uploads/**"  // Allow public access to uploaded files
                 ).permitAll()
                 
                 // DEVELOPMENT MODE: Allow all API requests

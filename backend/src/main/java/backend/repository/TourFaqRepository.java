@@ -27,5 +27,6 @@ public interface TourFaqRepository extends JpaRepository<TourFaq, Long> {
     );
     
     // Delete all FAQs for a tour
+    @org.springframework.data.jpa.repository.Modifying
     void deleteByTourId(Long tourId);
 }

@@ -175,4 +175,10 @@ public interface TourRepository extends JpaRepository<Tour, Long> {
            "     WHEN t.tourType = 'INTERNATIONAL' THEN COALESCE(t.country.name, t.destination) " +
            "     ELSE 'Unknown' END")
     List<String> findDistinctLocations(@Param("status") TourStatus status);
+    
+    /**
+     * Count bookings by tour ID
+     */
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.tour.id = :tourId")
+    long countBookingsByTourId(@Param("tourId") Long tourId);
 }

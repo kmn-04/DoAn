@@ -33,6 +33,9 @@ public class Review {
     @Column(name = "helpful_count")
     private Integer helpfulCount = 0; // Số lượt "hữu ích"
     
+    @Column(columnDefinition = "TEXT")
+    private String helpfulUserIds; // Comma-separated list of user IDs who voted (e.g., "1,5,12")
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReviewStatus status = ReviewStatus.Pending;

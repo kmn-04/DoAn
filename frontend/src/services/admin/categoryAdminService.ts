@@ -40,6 +40,14 @@ export interface PaginatedResponse<T> {
 
 const categoryAdminService = {
   // Get all categories with pagination
+  getAllCategories: async (page = 0, size = 10, sortBy = 'displayOrder', direction = 'asc') => {
+    const response = await apiClient.get<PaginatedResponse<CategoryResponse>>(
+      `/admin/categories?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`
+    );
+    return response.data.data;
+  },
+
+  // Alias for compatibility
   getAll: async (page = 0, size = 10, sortBy = 'displayOrder', direction = 'asc') => {
     const response = await apiClient.get<PaginatedResponse<CategoryResponse>>(
       `/admin/categories?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`
@@ -48,24 +56,44 @@ const categoryAdminService = {
   },
 
   // Get category by ID
+  getCategoryById: async (id: number) => {
+    const response = await apiClient.get<CategoryResponse>(`/admin/categories/${id}`);
+    return response.data.data;
+  },
+
   getById: async (id: number) => {
     const response = await apiClient.get<CategoryResponse>(`/admin/categories/${id}`);
     return response.data.data;
   },
 
   // Create category
+  createCategory: async (data: CategoryRequest) => {
+    const response = await apiClient.post<CategoryResponse>('/admin/categories', data);
+    return response.data.data;
+  },
+
   create: async (data: CategoryRequest) => {
     const response = await apiClient.post<CategoryResponse>('/admin/categories', data);
     return response.data.data;
   },
 
   // Update category
+  updateCategory: async (id: number, data: CategoryRequest) => {
+    const response = await apiClient.put<CategoryResponse>(`/admin/categories/${id}`, data);
+    return response.data.data;
+  },
+
   update: async (id: number, data: CategoryRequest) => {
     const response = await apiClient.put<CategoryResponse>(`/admin/categories/${id}`, data);
     return response.data.data;
   },
 
   // Delete category
+  deleteCategory: async (id: number) => {
+    const response = await apiClient.delete(`/admin/categories/${id}`);
+    return response.data;
+  },
+
   delete: async (id: number) => {
     const response = await apiClient.delete(`/admin/categories/${id}`);
     return response.data;

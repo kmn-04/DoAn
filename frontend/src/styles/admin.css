@@ -1,0 +1,320 @@
+/* ============================================
+   ADMIN PANEL - CLEAN & PROFESSIONAL THEME
+   ============================================ */
+
+/* Modal Overlay */
+.admin-modal-overlay {
+  @apply fixed inset-0 z-50 overflow-y-auto;
+}
+
+.admin-modal-backdrop {
+  @apply fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity backdrop-blur-sm;
+}
+
+.admin-modal-container {
+  @apply flex min-h-screen items-center justify-center p-4;
+}
+
+.admin-modal {
+  @apply relative bg-white rounded-xl shadow-2xl w-full transform transition-all;
+  max-width: 48rem;
+}
+
+.admin-modal-header {
+  @apply px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white;
+}
+
+.admin-modal-title {
+  @apply text-xl font-semibold text-gray-900;
+}
+
+.admin-modal-body {
+  @apply px-6 py-6 max-h-[calc(100vh-200px)] overflow-y-auto;
+}
+
+.admin-modal-footer {
+  @apply px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3;
+}
+
+/* Form Elements */
+.admin-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+.admin-input {
+  @apply block w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg
+         focus:ring-2 focus:ring-blue-500 focus:border-transparent
+         transition-colors duration-200
+         placeholder:text-gray-400;
+}
+
+.admin-input:disabled {
+  @apply bg-gray-100 cursor-not-allowed;
+}
+
+.admin-input-error {
+  @apply border-red-300 focus:ring-red-500;
+}
+
+.admin-textarea {
+  @apply block w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg
+         focus:ring-2 focus:ring-blue-500 focus:border-transparent
+         transition-colors duration-200
+         placeholder:text-gray-400
+         resize-none;
+}
+
+.admin-select {
+  @apply block w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg
+         focus:ring-2 focus:ring-blue-500 focus:border-transparent
+         transition-colors duration-200
+         cursor-pointer;
+}
+
+.admin-checkbox {
+  @apply w-4 h-4 text-blue-600 bg-white border-gray-300 rounded
+         focus:ring-2 focus:ring-blue-500
+         transition-colors duration-200
+         cursor-pointer;
+}
+
+.admin-error-text {
+  @apply mt-1 text-sm text-red-600;
+}
+
+.admin-helper-text {
+  @apply mt-1 text-xs text-gray-500;
+}
+
+/* Buttons */
+.admin-btn {
+  @apply px-4 py-2.5 text-sm font-medium rounded-lg
+         transition-all duration-200
+         focus:outline-none focus:ring-2 focus:ring-offset-2
+         disabled:opacity-50 disabled:cursor-not-allowed
+         inline-flex items-center justify-center gap-2;
+}
+
+.admin-btn-primary {
+  @apply admin-btn bg-blue-600 text-white hover:bg-blue-700 
+         focus:ring-blue-500 shadow-sm hover:shadow;
+}
+
+.admin-btn-secondary {
+  @apply admin-btn bg-white text-gray-700 border border-gray-300
+         hover:bg-gray-50 focus:ring-gray-500;
+}
+
+.admin-btn-danger {
+  @apply admin-btn bg-red-600 text-white hover:bg-red-700 
+         focus:ring-red-500 shadow-sm hover:shadow;
+}
+
+.admin-btn-success {
+  @apply admin-btn bg-green-600 text-white hover:bg-green-700 
+         focus:ring-green-500 shadow-sm hover:shadow;
+}
+
+/* Table */
+.admin-table-container {
+  @apply bg-white shadow-sm rounded-xl overflow-hidden border border-gray-200;
+}
+
+.admin-table {
+  @apply min-w-full divide-y divide-gray-200;
+}
+
+.admin-table-header {
+  @apply bg-gradient-to-r from-gray-50 to-gray-100;
+}
+
+.admin-table-th {
+  @apply px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider;
+}
+
+.admin-table-row {
+  @apply hover:bg-gray-50 transition-colors duration-150;
+}
+
+.admin-table-td {
+  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+}
+
+/* Status Badges */
+.admin-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.admin-badge-green {
+  @apply admin-badge bg-emerald-100 text-emerald-800;
+}
+
+.admin-badge-yellow {
+  @apply admin-badge bg-amber-100 text-amber-800;
+}
+
+.admin-badge-red {
+  @apply admin-badge bg-red-100 text-red-800;
+}
+
+.admin-badge-blue {
+  @apply admin-badge bg-blue-100 text-blue-800;
+}
+
+.admin-badge-purple {
+  @apply admin-badge bg-purple-100 text-purple-800;
+}
+
+.admin-badge-gray {
+  @apply admin-badge bg-gray-100 text-gray-800;
+}
+
+/* Icon Buttons */
+.admin-icon-btn {
+  @apply p-1.5 rounded-lg transition-all duration-200
+         focus:outline-none focus:ring-2 focus:ring-offset-1;
+}
+
+.admin-icon-btn-view {
+  @apply admin-icon-btn text-blue-600 hover:bg-blue-50 focus:ring-blue-500;
+}
+
+.admin-icon-btn-edit {
+  @apply admin-icon-btn text-amber-600 hover:bg-amber-50 focus:ring-amber-500;
+}
+
+.admin-icon-btn-delete {
+  @apply admin-icon-btn text-red-600 hover:bg-red-50 focus:ring-red-500;
+}
+
+.admin-icon-btn-delete-confirm {
+  @apply admin-icon-btn bg-red-100 text-red-900 ring-2 ring-red-500;
+}
+
+/* Cards */
+.admin-card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6
+         hover:shadow-md transition-shadow duration-200;
+}
+
+.admin-stat-card {
+  @apply admin-card;
+}
+
+.admin-stat-icon {
+  @apply flex-shrink-0 p-3 rounded-lg;
+}
+
+.admin-stat-value {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.admin-stat-label {
+  @apply text-sm font-medium text-gray-600;
+}
+
+/* Filters */
+.admin-filter-container {
+  @apply admin-card mb-6;
+}
+
+.admin-filter-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+/* Dropdown in Table */
+.admin-table-select {
+  @apply px-3 py-1.5 text-sm border-0 rounded-lg font-medium
+         focus:ring-2 focus:ring-offset-1
+         transition-all duration-200 cursor-pointer;
+}
+
+.admin-table-select-active {
+  @apply admin-table-select bg-emerald-100 text-emerald-800 hover:bg-emerald-200 focus:ring-emerald-500;
+}
+
+.admin-table-select-inactive {
+  @apply admin-table-select bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-gray-500;
+}
+
+.admin-table-select-suspended {
+  @apply admin-table-select bg-amber-100 text-amber-800 hover:bg-amber-200 focus:ring-amber-500;
+}
+
+.admin-table-select-pending {
+  @apply admin-table-select bg-blue-100 text-blue-800 hover:bg-blue-200 focus:ring-blue-500;
+}
+
+/* Loading State */
+.admin-loading {
+  @apply flex items-center justify-center py-12;
+}
+
+.admin-spinner {
+  @apply animate-spin h-8 w-8 text-blue-600;
+}
+
+/* Empty State */
+.admin-empty {
+  @apply text-center py-12 text-gray-500;
+}
+
+/* Pagination */
+.admin-pagination {
+  @apply flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200;
+}
+
+.admin-pagination-info {
+  @apply text-sm text-gray-700;
+}
+
+.admin-pagination-buttons {
+  @apply flex gap-2;
+}
+
+/* View Modal (Detail) */
+.admin-view-section {
+  @apply border-b border-gray-200 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0;
+}
+
+.admin-view-section-title {
+  @apply text-sm font-semibold text-gray-900 mb-3;
+}
+
+.admin-view-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.admin-view-item {
+  /* No default styles needed */
+}
+
+.admin-view-label {
+  @apply text-xs text-gray-500 mb-1;
+}
+
+.admin-view-value {
+  @apply text-sm text-gray-900 font-medium;
+}
+
+/* Alert Box */
+.admin-alert {
+  @apply rounded-lg p-4 mb-4;
+}
+
+.admin-alert-info {
+  @apply admin-alert bg-blue-50 border border-blue-200;
+}
+
+.admin-alert-success {
+  @apply admin-alert bg-green-50 border border-green-200;
+}
+
+.admin-alert-warning {
+  @apply admin-alert bg-yellow-50 border border-yellow-200;
+}
+
+.admin-alert-error {
+  @apply admin-alert bg-red-50 border border-red-200;
+}
+

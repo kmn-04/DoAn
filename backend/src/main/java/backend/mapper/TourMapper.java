@@ -3,6 +3,7 @@ package backend.mapper;
 import backend.dto.request.TourRequest;
 import backend.dto.response.TourResponse;
 import backend.entity.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class TourMapper {
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -138,6 +140,7 @@ public class TourMapper {
         }
         
         tour.setNote(request.getNote());
+        // NOTE: "Tổng quan" is handled by description field
         tour.setCancellationPolicy(request.getCancellationPolicy());
         tour.setSuitableFor(request.getSuitableFor());
         
@@ -149,6 +152,8 @@ public class TourMapper {
         if (request.getFlightIncluded() != null) {
             tour.setFlightIncluded(request.getFlightIncluded());
         }
+        
+        // NOTE: Images and itineraries are handled separately in service layer
     }
     
     public TourResponse toResponse(Tour tour) {
@@ -237,9 +242,17 @@ public class TourMapper {
         
         // Images
         if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+            log.debug("Mapping {} images for tour {}", tour.getImages().size(), tour.getId());
+            String mainImageUrl = tour.getMainImage();
+            // Filter out mainImage from images list (should only contain additional images)
             response.setImages(tour.getImages().stream()
+                    .filter(img -> !img.getImageUrl().equals(mainImageUrl)) // Exclude mainImage
                     .map(this::toImageResponse)
                     .collect(Collectors.toList()));
+        } else {
+            log.warn("Tour {} has no images: tour.getImages() = {}", 
+                    tour.getId(), 
+                    tour.getImages() == null ? "null" : "empty");
         }
         
         // Itineraries
@@ -279,11 +292,13 @@ public class TourMapper {
     }
     
     private TourResponse.TourImageResponse toImageResponse(TourImage image) {
+        // All images in tour_images table are ADDITIONAL images (NOT primary)
+        // Primary image is stored separately in tours.main_image field
         return new TourResponse.TourImageResponse(
                 image.getId(),
                 image.getImageUrl(),
                 null, // caption - not in entity
-                false // isPrimary - not in entity
+                false // Always false - these are additional images only
         );
     }
     

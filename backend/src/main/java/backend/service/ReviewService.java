@@ -108,6 +108,21 @@ public interface ReviewService {
     ReviewResponse rejectReview(Long reviewId, String reason);
     
     /**
+     * Update review status (Admin)
+     */
+    ReviewResponse updateReviewStatus(Long reviewId, String status);
+    
+    /**
+     * Reply to review (Admin)
+     */
+    ReviewResponse replyToReview(Long reviewId, String reply);
+    
+    /**
+     * Delete reply from review (Admin)
+     */
+    ReviewResponse deleteReply(Long reviewId);
+    
+    /**
      * Delete any review (Admin)
      */
     void deleteReviewAdmin(Long reviewId);

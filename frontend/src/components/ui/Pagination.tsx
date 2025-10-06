@@ -1,221 +1,130 @@
 import React from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { cn } from '../../utils/cn';
-import { Button } from './Button';
 
-export interface PaginationProps {
+interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  totalItems?: number;
-  itemsPerPage?: number;
   onPageChange: (page: number) => void;
-  showInfo?: boolean;
-  showSizeChanger?: boolean;
-  pageSizeOptions?: number[];
-  onPageSizeChange?: (size: number) => void;
-  className?: string;
-  disabled?: boolean;
+  maxVisible?: number; // Max number of page buttons to show
 }
 
-export const Pagination: React.FC<PaginationProps> = ({
+const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
-  totalItems,
-  itemsPerPage = 10,
   onPageChange,
-  showInfo = true,
-  showSizeChanger = false,
-  pageSizeOptions = [10, 20, 50, 100],
-  onPageSizeChange,
-  className,
-  disabled = false,
+  maxVisible = 5
 }) => {
-  // Generate page numbers to display
-  const getPageNumbers = () => {
+  if (totalPages <= 1) return null;
+
+  const getPageNumbers = (): (number | string)[] => {
     const pages: (number | string)[] = [];
-    const maxVisiblePages = 7;
     
-    if (totalPages <= maxVisiblePages) {
-      // Show all pages if total is small
-      for (let i = 1; i <= totalPages; i++) {
+    if (totalPages <= maxVisible) {
+      // Show all pages if total is less than max
+      for (let i = 0; i < totalPages; i++) {
         pages.push(i);
       }
     } else {
       // Always show first page
-      pages.push(1);
+      pages.push(0);
       
-      if (currentPage > 3) {
+      let startPage = Math.max(1, currentPage - 1);
+      let endPage = Math.min(totalPages - 2, currentPage + 1);
+      
+      // Adjust if near the beginning
+      if (currentPage <= 2) {
+        endPage = Math.min(totalPages - 2, 3);
+      }
+      
+      // Adjust if near the end
+      if (currentPage >= totalPages - 3) {
+        startPage = Math.max(1, totalPages - 4);
+      }
+      
+      // Add ellipsis after first page if needed
+      if (startPage > 1) {
         pages.push('...');
       }
       
-      // Show pages around current page
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-      
-      for (let i = start; i <= end; i++) {
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
       
-      if (currentPage < totalPages - 2) {
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 2) {
         pages.push('...');
       }
       
       // Always show last page
       if (totalPages > 1) {
-        pages.push(totalPages);
+        pages.push(totalPages - 1);
       }
     }
     
     return pages;
   };
 
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages && page !== currentPage && !disabled) {
-      onPageChange(page);
-    }
-  };
-
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems || 0);
-
-  if (totalPages <= 1) {
-    return null;
-  }
+  const pageNumbers = getPageNumbers();
 
   return (
-    <div className={cn('flex items-center justify-between', className)}>
-      {/* Info */}
-      {showInfo && totalItems && (
-        <div className="text-sm text-gray-700">
-          Hiển thị <span className="font-medium">{startItem}</span> đến{' '}
-          <span className="font-medium">{endItem}</span> trong tổng số{' '}
-          <span className="font-medium">{totalItems}</span> kết quả
-        </div>
-      )}
+    <div className="flex items-center justify-center gap-2 mt-6">
+      {/* Previous Button */}
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 0}
+        className="px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+        title="Trang trước"
+      >
+        <ChevronLeftIcon className="h-5 w-5" />
+      </button>
 
-      {/* Pagination Controls */}
-      <div className="flex items-center space-x-2">
-        {/* Previous Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1 || disabled}
-          leftIcon={<ChevronLeftIcon className="h-4 w-4" />}
-        >
-          Trước
-        </Button>
-
-        {/* Page Numbers */}
-        <div className="flex items-center space-x-1">
-          {getPageNumbers().map((page, index) => {
-            if (page === '...') {
-              return (
-                <span
-                  key={`ellipsis-${index}`}
-                  className="px-3 py-2 text-gray-500"
-                >
-                  ...
-                </span>
-              );
-            }
-
-            const pageNumber = page as number;
-            const isActive = pageNumber === currentPage;
-
+      {/* Page Numbers */}
+      <div className="flex items-center gap-1">
+        {pageNumbers.map((page, index) => {
+          if (page === '...') {
             return (
-              <button
-                key={pageNumber}
-                onClick={() => handlePageChange(pageNumber)}
-                disabled={disabled}
-                className={cn(
-                  'px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                  isActive
-                    ? 'bg-primary-600 text-white'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-                  disabled && 'opacity-50 cursor-not-allowed'
-                )}
+              <span
+                key={`ellipsis-${index}`}
+                className="px-3 py-2 text-gray-500"
               >
-                {pageNumber}
-              </button>
+                ...
+              </span>
             );
-          })}
-        </div>
+          }
 
-        {/* Next Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages || disabled}
-          rightIcon={<ChevronRightIcon className="h-4 w-4" />}
-        >
-          Sau
-        </Button>
+          const pageNum = page as number;
+          const isActive = pageNum === currentPage;
+
+          return (
+            <button
+              key={pageNum}
+              onClick={() => onPageChange(pageNum)}
+              className={`
+                min-w-[40px] px-3 py-2 rounded-md border transition-colors font-medium
+                ${isActive
+                  ? 'bg-blue-600 text-white border-blue-600 cursor-default'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }
+              `}
+            >
+              {pageNum + 1}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Page Size Changer */}
-      {showSizeChanger && onPageSizeChange && (
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-700">Hiển thị:</span>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            disabled={disabled}
-            className="px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
-            {pageSizeOptions.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-          <span className="text-sm text-gray-700">/ trang</span>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Simple Pagination (just prev/next)
-export interface SimplePaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  disabled?: boolean;
-  className?: string;
-}
-
-export const SimplePagination: React.FC<SimplePaginationProps> = ({
-  currentPage,
-  totalPages,
-  onPageChange,
-  disabled = false,
-  className,
-}) => {
-  return (
-    <div className={cn('flex items-center justify-center space-x-4', className)}>
-      <Button
-        variant="outline"
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1 || disabled}
-        leftIcon={<ChevronLeftIcon className="h-4 w-4" />}
-      >
-        Trang trước
-      </Button>
-      
-      <span className="text-sm text-gray-700">
-        Trang {currentPage} / {totalPages}
-      </span>
-      
-      <Button
-        variant="outline"
+      {/* Next Button */}
+      <button
         onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages || disabled}
-        rightIcon={<ChevronRightIcon className="h-4 w-4" />}
+        disabled={currentPage >= totalPages - 1}
+        className="px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+        title="Trang sau"
       >
-        Trang sau
-      </Button>
+        <ChevronRightIcon className="h-5 w-5" />
+      </button>
     </div>
   );
 };
+
+export default Pagination;
