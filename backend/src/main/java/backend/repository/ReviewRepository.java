@@ -113,4 +113,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      * Count reviews by status
      */
     long countByStatus(ReviewStatus status);
+    
+    /**
+     * Delete all reviews by tour ID
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    void deleteByTourId(Long tourId);
 }

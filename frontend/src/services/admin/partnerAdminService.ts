@@ -47,6 +47,13 @@ export interface PaginatedResponse<T> {
 
 const partnerAdminService = {
   // Get all partners with pagination
+  getAllPartners: async (page = 0, size = 10, sortBy = 'name', direction = 'asc') => {
+    const response = await apiClient.get<PaginatedResponse<PartnerResponse>>(
+      `/admin/partners?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`
+    );
+    return response.data.data;
+  },
+
   getAll: async (page = 0, size = 10, sortBy = 'name', direction = 'asc') => {
     const response = await apiClient.get<PaginatedResponse<PartnerResponse>>(
       `/admin/partners?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`
@@ -55,24 +62,44 @@ const partnerAdminService = {
   },
 
   // Get partner by ID
+  getPartnerById: async (id: number) => {
+    const response = await apiClient.get<PartnerResponse>(`/admin/partners/${id}`);
+    return response.data.data;
+  },
+
   getById: async (id: number) => {
     const response = await apiClient.get<PartnerResponse>(`/admin/partners/${id}`);
     return response.data.data;
   },
 
   // Create partner
+  createPartner: async (data: PartnerRequest) => {
+    const response = await apiClient.post<PartnerResponse>('/admin/partners', data);
+    return response.data.data;
+  },
+
   create: async (data: PartnerRequest) => {
     const response = await apiClient.post<PartnerResponse>('/admin/partners', data);
     return response.data.data;
   },
 
   // Update partner
+  updatePartner: async (id: number, data: PartnerRequest) => {
+    const response = await apiClient.put<PartnerResponse>(`/admin/partners/${id}`, data);
+    return response.data.data;
+  },
+
   update: async (id: number, data: PartnerRequest) => {
     const response = await apiClient.put<PartnerResponse>(`/admin/partners/${id}`, data);
     return response.data.data;
   },
 
   // Delete partner
+  deletePartner: async (id: number) => {
+    const response = await apiClient.delete(`/admin/partners/${id}`);
+    return response.data;
+  },
+
   delete: async (id: number) => {
     const response = await apiClient.delete(`/admin/partners/${id}`);
     return response.data;

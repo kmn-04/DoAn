@@ -44,4 +44,8 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
            "AND s.status = 'Available' " +
            "AND s.departureDate >= :fromDate")
     Long countAvailableSchedules(@Param("tourId") Long tourId, @Param("fromDate") LocalDate fromDate);
+    
+    // Delete all schedules by tour ID
+    @org.springframework.data.jpa.repository.Modifying
+    void deleteByTourId(Long tourId);
 }

@@ -213,7 +213,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'} w-full`}>
         {/* Mobile menu button - fixed position */}
         <button
           onClick={() => setSidebarOpen(true)}
@@ -223,8 +223,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </button>
 
         {/* Page content */}
-        <main className="min-h-screen bg-gray-100">
-          {children}
+        <main className="min-h-screen bg-gray-100 overflow-x-auto">
+          <div className="max-w-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>

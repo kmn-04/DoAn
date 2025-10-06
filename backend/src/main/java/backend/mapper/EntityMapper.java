@@ -532,7 +532,31 @@ public class EntityMapper {
     }
     
     public CategoryResponse toCategoryResponse(Category category) {
-        return toCategoryResponseFull(category);
+        // Use simple mapping without loading lazy collections
+        return toCategoryResponseSimple(category);
+    }
+    
+    public CategoryResponse toCategoryResponseSimple(Category category) {
+        if (category == null) return null;
+        
+        CategoryResponse response = new CategoryResponse();
+        response.setId(category.getId());
+        response.setName(category.getName());
+        response.setSlug(category.getSlug());
+        response.setDescription(category.getDescription());
+        response.setImageUrl(category.getImageUrl());
+        response.setIcon(category.getIcon());
+        response.setParentId(category.getParentId());
+        response.setDisplayOrder(category.getDisplayOrder());
+        response.setIsFeatured(category.getIsFeatured());
+        response.setStatus(category.getStatus() != null ? category.getStatus().toString() : null);
+        response.setCreatedAt(category.getCreatedAt());
+        response.setUpdatedAt(category.getUpdatedAt());
+        
+        // DON'T load tours - avoid LazyInitializationException
+        response.setTourCount(0L); // Will be set separately if needed
+        
+        return response;
     }
     
     public CategoryResponse toCategoryResponseFull(Category category) {
@@ -551,6 +575,18 @@ public class EntityMapper {
         response.setStatus(category.getStatus() != null ? category.getStatus().toString() : null);
         response.setCreatedAt(category.getCreatedAt());
         response.setUpdatedAt(category.getUpdatedAt());
+        
+        // Set tour count - only use in transactional context
+        try {
+            if (category.getTours() != null) {
+                response.setTourCount((long) category.getTours().size());
+            } else {
+                response.setTourCount(0L);
+            }
+        } catch (Exception e) {
+            log.warn("Could not load tour count for category {}: {}", category.getId(), e.getMessage());
+            response.setTourCount(0L);
+        }
         
         return response;
     }

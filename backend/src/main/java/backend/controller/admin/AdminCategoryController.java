@@ -36,28 +36,80 @@ public class AdminCategoryController extends BaseController {
     private final EntityMapper mapper;
     
     @GetMapping
-    @Operation(summary = "Get all categories", description = "Get all categories with pagination (Admin only)")
+    @Operation(summary = "Get all categories", description = "Get all categories with pagination and filters (Admin only)")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Page<CategoryResponse>>> getAllCategories(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "displayOrder") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Boolean featured
     ) {
         try {
-            Sort.Direction sortDirection = direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-            Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
-            
             List<Category> categories = categoryService.getAllCategories();
             
-            // Convert to Page manually if not paginated in service
-            int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), categories.size());
-            List<CategoryResponse> responses = mapper.toCategoryResponseList(
-                categories.subList(start, end)
-            );
+            // Force load tours to avoid LazyInitializationException
+            categories.forEach(category -> {
+                if (category.getTours() != null) {
+                    category.getTours().size(); // Force initialization
+                }
+            });
             
+            // Apply filters
+            java.util.stream.Stream<Category> stream = categories.stream();
+            
+            if (search != null && !search.isEmpty()) {
+                String searchLower = search.toLowerCase();
+                stream = stream.filter(cat -> 
+                    cat.getName().toLowerCase().contains(searchLower)
+                );
+            }
+            
+            if (status != null && !status.equalsIgnoreCase("all")) {
+                stream = stream.filter(cat -> 
+                    cat.getStatus() != null && cat.getStatus().name().equalsIgnoreCase(status)
+                );
+            }
+            
+            if (featured != null) {
+                stream = stream.filter(cat -> cat.getIsFeatured() == featured);
+            }
+            
+            List<Category> filteredList = stream.collect(java.util.stream.Collectors.toList());
+            
+            // Apply sorting
+            filteredList.sort((a, b) -> {
+                int comparison = 0;
+                switch (sortBy.toLowerCase()) {
+                    case "id":
+                        comparison = Long.compare(a.getId(), b.getId());
+                        break;
+                    case "name":
+                        comparison = a.getName().compareToIgnoreCase(b.getName());
+                        break;
+                    case "displayorder":
+                        comparison = Integer.compare(
+                            a.getDisplayOrder() != null ? a.getDisplayOrder() : 0,
+                            b.getDisplayOrder() != null ? b.getDisplayOrder() : 0
+                        );
+                        break;
+                    default:
+                        comparison = Long.compare(a.getId(), b.getId());
+                }
+                return direction.equalsIgnoreCase("desc") ? -comparison : comparison;
+            });
+            
+            // Paginate
+            Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+            int start = (int) pageable.getOffset();
+            int end = Math.min(start + pageable.getPageSize(), filteredList.size());
+            List<Category> pageContent = start > filteredList.size() ? new java.util.ArrayList<>() : filteredList.subList(start, end);
+            
+            List<CategoryResponse> responses = mapper.toCategoryResponseList(pageContent);
             Page<CategoryResponse> pageResult = new org.springframework.data.domain.PageImpl<>(
-                responses, pageable, categories.size()
+                responses, pageable, filteredList.size()
             );
             
             return ResponseEntity.ok(success("Categories retrieved successfully", pageResult));
@@ -136,16 +188,45 @@ public class AdminCategoryController extends BaseController {
     @Operation(summary = "Change category status", description = "Change category status (Admin only)")
     public ResponseEntity<ApiResponse<CategoryResponse>> changeCategoryStatus(
             @PathVariable Long id,
-            @RequestParam CategoryStatus status
+            @RequestParam String status
     ) {
         try {
-            Category updatedCategory = categoryService.changeCategoryStatus(id, status);
+            log.info("Changing category {} status to: {}", id, status);
+            CategoryStatus categoryStatus = CategoryStatus.valueOf(status);
+            Category updatedCategory = categoryService.changeCategoryStatus(id, categoryStatus);
             CategoryResponse response = mapper.toCategoryResponse(updatedCategory);
             return ResponseEntity.ok(success("Category status updated successfully", response));
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid status value: {}", status, e);
+            return ResponseEntity.badRequest()
+                    .body(error("Invalid status value: " + status + ". Must be 'Active' or 'Inactive'"));
         } catch (Exception e) {
             log.error("Error changing category status for ID: {}", id, e);
             return ResponseEntity.internalServerError()
                     .body(error("Failed to change category status: " + e.getMessage()));
+        }
+    }
+    
+    @PatchMapping("/{id}/featured")
+    @Operation(summary = "Toggle category featured status", description = "Toggle category featured status (Admin only)")
+    public ResponseEntity<ApiResponse<CategoryResponse>> toggleFeaturedStatus(
+            @PathVariable Long id,
+            @RequestParam boolean featured
+    ) {
+        try {
+            log.info("Toggling category {} featured status to: {}", id, featured);
+            Category category = categoryService.getCategoryById(id)
+                    .orElseThrow(() -> new RuntimeException("Category not found with ID: " + id));
+            
+            category.setIsFeatured(featured);
+            Category updatedCategory = categoryService.updateCategory(id, category);
+            
+            CategoryResponse response = mapper.toCategoryResponse(updatedCategory);
+            return ResponseEntity.ok(success("Category featured status updated successfully", response));
+        } catch (Exception e) {
+            log.error("Error toggling featured status for category ID: {}", id, e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to toggle featured status: " + e.getMessage()));
         }
     }
     
@@ -159,6 +240,51 @@ public class AdminCategoryController extends BaseController {
             log.error("Error getting categories count", e);
             return ResponseEntity.internalServerError()
                     .body(error("Failed to get categories count: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/count/active")
+    @Operation(summary = "Get active categories count", description = "Get number of active categories (Admin only)")
+    public ResponseEntity<ApiResponse<Long>> getActiveCategoriesCount() {
+        try {
+            long count = categoryService.getAllCategories().stream()
+                .filter(c -> c.getStatus() == CategoryStatus.Active)
+                .count();
+            return ResponseEntity.ok(success("Active categories count retrieved successfully", count));
+        } catch (Exception e) {
+            log.error("Error getting active categories count", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to get active categories count: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/count/inactive")
+    @Operation(summary = "Get inactive categories count", description = "Get number of inactive categories (Admin only)")
+    public ResponseEntity<ApiResponse<Long>> getInactiveCategoriesCount() {
+        try {
+            long count = categoryService.getAllCategories().stream()
+                .filter(c -> c.getStatus() == CategoryStatus.Inactive)
+                .count();
+            return ResponseEntity.ok(success("Inactive categories count retrieved successfully", count));
+        } catch (Exception e) {
+            log.error("Error getting inactive categories count", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to get inactive categories count: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/count/featured")
+    @Operation(summary = "Get featured categories count", description = "Get number of featured categories (Admin only)")
+    public ResponseEntity<ApiResponse<Long>> getFeaturedCategoriesCount() {
+        try {
+            long count = categoryService.getAllCategories().stream()
+                .filter(Category::getIsFeatured)
+                .count();
+            return ResponseEntity.ok(success("Featured categories count retrieved successfully", count));
+        } catch (Exception e) {
+            log.error("Error getting featured categories count", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to get featured categories count: " + e.getMessage()));
         }
     }
 }

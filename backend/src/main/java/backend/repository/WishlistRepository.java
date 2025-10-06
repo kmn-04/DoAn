@@ -43,4 +43,8 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
     
     // Delete wishlist by user and tour
     void deleteByUserIdAndTourId(Long userId, Long tourId);
+    
+    // Delete all wishlists by tour ID
+    @org.springframework.data.jpa.repository.Modifying
+    void deleteByTourId(Long tourId);
 }

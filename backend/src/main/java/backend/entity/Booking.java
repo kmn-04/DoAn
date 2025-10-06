@@ -199,7 +199,6 @@ public class Booking {
     
     public enum PaymentStatus {
         Unpaid("Chưa thanh toán"),
-        PartiallyPaid("Thanh toán một phần"),
         Paid("Đã thanh toán"),
         Refunding("Đang hoàn tiền"),
         Refunded("Đã hoàn tiền");

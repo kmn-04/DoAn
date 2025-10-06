@@ -36,6 +36,13 @@ public class TourServiceImpl implements TourService {
     private final ReviewRepository reviewRepository;
     private final CategoryRepository categoryRepository;
     private final TourMapper tourMapper;
+    private final backend.repository.TourItineraryRepository itineraryRepository;
+    private final backend.repository.TourImageRepository imageRepository;
+    private final backend.repository.TourScheduleRepository scheduleRepository;
+    private final backend.repository.TourFaqRepository faqRepository;
+    private final backend.repository.TourPriceRepository priceRepository;
+    private final backend.repository.WishlistRepository wishlistRepository;
+    private final jakarta.persistence.EntityManager entityManager;
     
     @Override
     public Tour createTour(Tour tour) {
@@ -263,15 +270,56 @@ public class TourServiceImpl implements TourService {
     
     @Override
     public void deleteTour(Long tourId) {
-        log.info("Soft deleting tour with ID: {}", tourId);
+        log.info("Deleting tour with ID: {}", tourId);
         
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
         
-        tour.softDelete();
-        tourRepository.save(tour);
+        // Check if tour has bookings using repository query (avoid LazyInitializationException)
+        long bookingCount = tourRepository.countBookingsByTourId(tourId);
+        if (bookingCount > 0) {
+            log.warn("Cannot delete tour {} - has {} bookings", tourId, bookingCount);
+            throw new RuntimeException("Cannot delete tour with " + bookingCount + " existing booking(s). Please set status to Inactive instead.");
+        }
         
-        log.info("Tour soft deleted successfully with ID: {}", tourId);
+        // Delete related entities manually to avoid foreign key issues
+        log.info("Deleting related entities for tour ID: {}", tourId);
+        
+        try {
+            // Delete wishlists first (no dependencies)
+            wishlistRepository.deleteByTourId(tourId);
+            
+            // Delete reviews (might have dependencies on bookings, but we checked bookings above)
+            reviewRepository.deleteByTourId(tourId);
+            
+            // Delete schedules
+            scheduleRepository.deleteByTourId(tourId);
+            
+            // Delete FAQs
+            faqRepository.deleteByTourId(tourId);
+            
+            // Delete prices
+            priceRepository.deleteByTourId(tourId);
+            
+            // Delete itineraries
+            itineraryRepository.deleteByTourId(tourId);
+            
+            // Delete images
+            imageRepository.deleteByTourId(tourId);
+            
+            // Flush to ensure all deletions are executed before deleting tour
+            entityManager.flush();
+            
+            // Now delete the tour itself
+            tourRepository.delete(tour);
+            entityManager.flush();
+            
+            log.info("✅ Tour deleted successfully with ID: {}", tourId);
+            
+        } catch (Exception e) {
+            log.error("❌ Error deleting tour ID {}: {}", tourId, e.getMessage(), e);
+            throw new RuntimeException("Failed to delete tour: " + e.getMessage(), e);
+        }
     }
     
     @Override
@@ -413,13 +461,76 @@ public class TourServiceImpl implements TourService {
         tour.setCreatedAt(LocalDateTime.now());
         tour.setUpdatedAt(LocalDateTime.now());
         
-        // Save tour
+        // Save tour first (to get ID)
         Tour savedTour = tourRepository.save(tour);
+        
+        // Save images if provided
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            log.info("Saving {} images for tour ID: {}", request.getImages().size(), savedTour.getId());
+            for (TourRequest.TourImageRequest imgReq : request.getImages()) {
+                backend.entity.TourImage image = new backend.entity.TourImage();
+                image.setTour(savedTour);
+                image.setImageUrl(imgReq.getImageUrl());
+                imageRepository.save(image);
+            }
+        }
+        
+        // Save itineraries if provided
+        if (request.getItineraries() != null && !request.getItineraries().isEmpty()) {
+            log.info("Saving {} itineraries for tour ID: {}", request.getItineraries().size(), savedTour.getId());
+            for (TourRequest.TourItineraryRequest itinReq : request.getItineraries()) {
+                backend.entity.TourItinerary itinerary = new backend.entity.TourItinerary();
+                itinerary.setTour(savedTour);
+                itinerary.setDayNumber(itinReq.getDayNumber());
+                itinerary.setTitle(itinReq.getTitle());
+                itinerary.setDescription(itinReq.getDescription());
+                itinerary.setLocation(itinReq.getLocation());
+                
+                // Convert list to comma-separated string for activities
+                if (itinReq.getActivities() != null && !itinReq.getActivities().isEmpty()) {
+                    itinerary.setActivities(String.join(", ", itinReq.getActivities()));
+                }
+                
+                itinerary.setMeals(itinReq.getMeals());
+                itinerary.setAccommodation(itinReq.getAccommodation());
+                
+                // Save partner references if provided
+                if (itinReq.getPartnerId() != null) {
+                    backend.entity.Partner partner = new backend.entity.Partner();
+                    partner.setId(itinReq.getPartnerId());
+                    itinerary.setPartner(partner);
+                }
+                if (itinReq.getAccommodationPartnerId() != null) {
+                    backend.entity.Partner partner = new backend.entity.Partner();
+                    partner.setId(itinReq.getAccommodationPartnerId());
+                    itinerary.setAccommodationPartner(partner);
+                }
+                if (itinReq.getMealsPartnerId() != null) {
+                    backend.entity.Partner partner = new backend.entity.Partner();
+                    partner.setId(itinReq.getMealsPartnerId());
+                    itinerary.setMealsPartner(partner);
+                }
+                
+                itineraryRepository.save(itinerary);
+            }
+        }
         
         log.info("Tour created successfully with ID: {}", savedTour.getId());
         
-        // Convert to Response DTO
-        return tourMapper.toResponse(savedTour);
+        // Refresh tour to load all collections (images, itineraries)
+        Tour refreshedTour = tourRepository.findById(savedTour.getId())
+                .orElseThrow(() -> new RuntimeException("Tour not found after creation"));
+        
+        // Force load lazy collections
+        if (refreshedTour.getImages() != null) {
+            refreshedTour.getImages().size();
+        }
+        if (refreshedTour.getItineraries() != null) {
+            refreshedTour.getItineraries().size();
+        }
+        
+        // Convert to Response DTO with all data loaded
+        return tourMapper.toResponse(refreshedTour);
     }
     
     @Override
@@ -433,15 +544,15 @@ public class TourServiceImpl implements TourService {
         // Update entity from DTO
         tourMapper.updateEntity(tour, request);
         
-        // Update category if changed
-        if (!tour.getCategory().getId().equals(request.getCategoryId())) {
+        // Update category if provided
+        if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new RuntimeException("Category not found with ID: " + request.getCategoryId()));
             tour.setCategory(category);
         }
         
         // Update slug if name changed
-        if (!tour.getName().equals(request.getName())) {
+        if (request.getName() != null && !request.getName().equals(tour.getName())) {
             String newSlug = generateUniqueSlug(request.getName());
             tour.setSlug(newSlug);
         }
@@ -449,8 +560,73 @@ public class TourServiceImpl implements TourService {
         // Update timestamp
         tour.setUpdatedAt(LocalDateTime.now());
         
-        // Save
+        // Save tour first
         Tour updatedTour = tourRepository.save(tour);
+        
+        // Update images if provided
+        if (request.getImages() != null) {
+            log.info("Updating images for tour ID: {}", tourId);
+            // Delete old images
+            imageRepository.deleteByTourId(tourId);
+            entityManager.flush(); // Force flush to execute delete before insert
+            
+            // Save new images
+            if (!request.getImages().isEmpty()) {
+                for (TourRequest.TourImageRequest imgReq : request.getImages()) {
+                    backend.entity.TourImage image = new backend.entity.TourImage();
+                    image.setTour(updatedTour);
+                    image.setImageUrl(imgReq.getImageUrl());
+                    // NOTE: TourImage entity only has imageUrl and tour fields
+                    imageRepository.save(image);
+                }
+            }
+        }
+        
+        // Update itineraries if provided
+        if (request.getItineraries() != null) {
+            log.info("Updating itineraries for tour ID: {}", tourId);
+            // Delete old itineraries
+            itineraryRepository.deleteByTourId(tourId);
+            entityManager.flush(); // Force flush to execute delete before insert
+            
+            // Save new itineraries
+            if (!request.getItineraries().isEmpty()) {
+                log.info("Updating {} itineraries for tour ID: {}", request.getItineraries().size(), tourId);
+                for (TourRequest.TourItineraryRequest itinReq : request.getItineraries()) {
+                    backend.entity.TourItinerary itinerary = new backend.entity.TourItinerary();
+                    itinerary.setTour(updatedTour);
+                    itinerary.setDayNumber(itinReq.getDayNumber());
+                    itinerary.setTitle(itinReq.getTitle());
+                    itinerary.setDescription(itinReq.getDescription());
+                    itinerary.setLocation(itinReq.getLocation());
+                    
+                    if (itinReq.getActivities() != null && !itinReq.getActivities().isEmpty()) {
+                        itinerary.setActivities(String.join(", ", itinReq.getActivities()));
+                    }
+                    
+                    itinerary.setMeals(itinReq.getMeals());
+                    itinerary.setAccommodation(itinReq.getAccommodation());
+                    
+                    if (itinReq.getPartnerId() != null) {
+                        backend.entity.Partner partner = new backend.entity.Partner();
+                        partner.setId(itinReq.getPartnerId());
+                        itinerary.setPartner(partner);
+                    }
+                    if (itinReq.getAccommodationPartnerId() != null) {
+                        backend.entity.Partner partner = new backend.entity.Partner();
+                        partner.setId(itinReq.getAccommodationPartnerId());
+                        itinerary.setAccommodationPartner(partner);
+                    }
+                    if (itinReq.getMealsPartnerId() != null) {
+                        backend.entity.Partner partner = new backend.entity.Partner();
+                        partner.setId(itinReq.getMealsPartnerId());
+                        itinerary.setMealsPartner(partner);
+                    }
+                    
+                    itineraryRepository.save(itinerary);
+                }
+            }
+        }
         
         log.info("Tour updated successfully: {}", updatedTour.getId());
         

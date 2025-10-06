@@ -41,4 +41,8 @@ public interface TourPriceRepository extends JpaRepository<TourPrice, Long> {
         @Param("fromDate") LocalDate fromDate,
         @Param("toDate") LocalDate toDate
     );
+    
+    // Delete all prices by tour ID
+    @org.springframework.data.jpa.repository.Modifying
+    void deleteByTourId(Long tourId);
 }

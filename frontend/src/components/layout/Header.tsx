@@ -108,9 +108,16 @@ const Header: React.FC = () => {
   ];
 
   // Admin-only navigation item
-  const adminNavigation = user?.role?.name === 'ADMIN' 
-    ? [{ name: 'Admin Panel', href: '/admin', icon: ShieldCheckIcon }] 
+  // Debug: Log user role
+  console.log('[Header] User:', user);
+  console.log('[Header] User role:', user?.role);
+  console.log('[Header] User role name:', user?.role?.name);
+  
+  const adminNavigation = user?.role?.name?.toUpperCase() === 'ADMIN' 
+    ? [{ name: 'Quay lại Admin', href: '/admin', icon: ShieldCheckIcon }] 
     : [];
+  
+  console.log('[Header] Admin navigation:', adminNavigation);
 
   return (
     <header className="bg-white shadow-lg relative z-50">

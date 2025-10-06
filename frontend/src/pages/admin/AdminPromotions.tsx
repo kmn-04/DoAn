@@ -1,22 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import {
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
-  MagnifyingGlassIcon,
-  TagIcon,
-  CalendarIcon
+import React, { useState, useEffect } from 'react';
+import { 
+  PlusIcon, 
+  EyeIcon,
+  PencilIcon, 
+  TrashIcon, 
+  TicketIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline';
-import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { apiClient } from '../../services/api';
+import { AxiosError } from 'axios';
+import apiClient from '../../services/api';
+import Pagination from '../../components/ui/Pagination';
 
 interface Promotion {
   id: number;
   code: string;
   name: string;
   description: string;
-  type: string;
+  type: 'PERCENTAGE' | 'FIXED_AMOUNT';
   value: number;
   minOrderAmount: number;
   maxDiscountAmount: number;
@@ -27,64 +29,152 @@ interface Promotion {
   active: boolean;
 }
 
+interface PromotionFormData {
+  code: string;
+  name: string;
+  description: string;
+  type: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  value: number;
+  minOrderAmount: number;
+  maxDiscountAmount: number;
+  usageLimit: number;
+  startDate: string;
+  endDate: string;
+  active: boolean;
+}
+
 const AdminPromotions: React.FC = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [filteredCount, setFilteredCount] = useState(0);
+  
+  // Stats
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    expired: 0,
+    upcoming: 0
+  });
+  
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
+  const [viewingPromotion, setViewingPromotion] = useState<Promotion | null>(null);
+  const [formData, setFormData] = useState<PromotionFormData>({
+    code: '',
+    name: '',
+    description: '',
+    type: 'PERCENTAGE',
+    value: 0,
+    minOrderAmount: 0,
+    maxDiscountAmount: 0,
+    usageLimit: 100,
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    active: true
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   
   // Filters
-  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('id');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const fetchPromotions = async (page = 0) => {
+  useEffect(() => {
+    fetchGlobalStats();
+  }, []);
+
+  useEffect(() => {
+    fetchPromotions(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, searchTerm, statusFilter, typeFilter, sortBy, sortDirection]);
+
+  const fetchGlobalStats = async () => {
+    try {
+      const [totalRes, activeRes] = await Promise.all([
+        apiClient.get('/admin/promotions/count'),
+        apiClient.get('/admin/promotions/count/active')
+      ]);
+      
+      // Calculate expired and upcoming from filtered data
+      const allPromosRes = await apiClient.get('/admin/promotions?page=0&size=1000');
+      const allPromos = allPromosRes.data.data?.content || [];
+      const now = new Date();
+      const expired = allPromos.filter((p: Promotion) => new Date(p.endDate) < now).length;
+      const upcoming = allPromos.filter((p: Promotion) => new Date(p.startDate) > now).length;
+      
+      setStats({
+        total: totalRes.data.data || 0,
+        active: activeRes.data.data || 0,
+        expired,
+        upcoming
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  const fetchPromotions = async (page: number) => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`/admin/promotions?page=${page}&size=10&sortBy=${sortBy}&sortDir=${sortDir}`);
+      const response = await apiClient.get(`/admin/promotions?page=${page}&size=10&sortBy=${sortBy}&sortDir=${sortDirection}`);
       
-      let filtered = response.data.data.content;
+      let filteredData = response.data.data?.content || [];
       
       // Apply filters
       if (searchTerm) {
-        filtered = filtered.filter((p: Promotion) => 
-          p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        filteredData = filteredData.filter((promo: Promotion) =>
+          promo.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (promo.description && promo.description.toLowerCase().includes(searchTerm.toLowerCase()))
         );
       }
-      
-      if (typeFilter !== 'all') {
-        filtered = filtered.filter((p: Promotion) => p.type === typeFilter);
-      }
-      
       if (statusFilter !== 'all') {
+        const now = new Date();
         if (statusFilter === 'active') {
-          filtered = filtered.filter((p: Promotion) => p.active);
-        } else {
-          filtered = filtered.filter((p: Promotion) => !p.active);
+          filteredData = filteredData.filter((p: Promotion) => 
+            p.active && new Date(p.startDate) <= now && new Date(p.endDate) >= now
+          );
+        } else if (statusFilter === 'expired') {
+          filteredData = filteredData.filter((p: Promotion) => new Date(p.endDate) < now);
+        } else if (statusFilter === 'upcoming') {
+          filteredData = filteredData.filter((p: Promotion) => new Date(p.startDate) > now);
+        } else if (statusFilter === 'inactive') {
+          filteredData = filteredData.filter((p: Promotion) => !p.active);
         }
       }
-      
-      if (dateFilter !== 'all') {
-        const now = new Date();
-        filtered = filtered.filter((p: Promotion) => {
-          const endDate = new Date(p.endDate);
-          if (dateFilter === 'active') {
-            return endDate >= now;
-          } else if (dateFilter === 'expired') {
-            return endDate < now;
-          }
-          return true;
-        });
+      if (typeFilter !== 'all') {
+        filteredData = filteredData.filter((p: Promotion) => p.type === typeFilter);
       }
       
-      setPromotions(filtered);
-      setTotalPages(response.data.data.totalPages);
-      setCurrentPage(page);
+      // Apply sorting
+      filteredData.sort((a: Promotion, b: Promotion) => {
+        let compareA: any = a[sortBy as keyof Promotion];
+        let compareB: any = b[sortBy as keyof Promotion];
+        
+        if (typeof compareA === 'string') {
+          compareA = compareA.toLowerCase();
+          compareB = compareB.toLowerCase();
+        }
+        
+        if (sortDirection === 'asc') {
+          return compareA > compareB ? 1 : -1;
+        } else {
+          return compareA < compareB ? 1 : -1;
+        }
+      });
+      
+      setPromotions(filteredData);
+      setTotalPages(response.data.data?.totalPages || 0);
+      setTotalElements(response.data.data?.totalElements || 0);
+      setFilteredCount(filteredData.length);
+      
     } catch (error) {
       console.error('Error fetching promotions:', error);
     } finally {
@@ -92,309 +182,747 @@ const AdminPromotions: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchPromotions(0);
-  }, [searchTerm, typeFilter, statusFilter, dateFilter, sortBy, sortDir]);
+  const generateCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
 
-  const handleToggleActive = async (promotionId: number) => {
+  const openCreateModal = () => {
+    setEditingPromotion(null);
+    setFormData({
+      code: generateCode(),
+      name: '',
+      description: '',
+      type: 'PERCENTAGE',
+      value: 0,
+      minOrderAmount: 0,
+      maxDiscountAmount: 0,
+      usageLimit: 100,
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      active: true
+    });
+    setFormErrors({});
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (promotion: Promotion) => {
+    setEditingPromotion(promotion);
+    setFormData({
+      code: promotion.code,
+      name: promotion.name,
+      description: promotion.description,
+      type: promotion.type,
+      value: promotion.value,
+      minOrderAmount: promotion.minOrderAmount,
+      maxDiscountAmount: promotion.maxDiscountAmount,
+      usageLimit: promotion.usageLimit,
+      startDate: promotion.startDate.split('T')[0],
+      endDate: promotion.endDate.split('T')[0],
+      active: promotion.active
+    });
+    setFormErrors({});
+    setIsModalOpen(true);
+  };
+
+  const openViewModal = (promotion: Promotion) => {
+    setViewingPromotion(promotion);
+    setIsViewModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setIsViewModalOpen(false);
+    setEditingPromotion(null);
+    setViewingPromotion(null);
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    
+    if (!formData.code.trim()) {
+      errors.code = 'Mã khuyến mãi là bắt buộc';
+    }
+    if (!formData.name.trim()) {
+      errors.name = 'Tên khuyến mãi là bắt buộc';
+    }
+    if (formData.value <= 0) {
+      errors.value = 'Giá trị phải lớn hơn 0';
+    }
+    if (formData.type === 'PERCENTAGE' && formData.value > 100) {
+      errors.value = 'Phần trăm không được vượt quá 100';
+    }
+    if (formData.usageLimit < 1) {
+      errors.usageLimit = 'Giới hạn sử dụng phải ít nhất là 1';
+    }
+    if (new Date(formData.startDate) > new Date(formData.endDate)) {
+      errors.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     try {
-      await apiClient.put(`/admin/promotions/${promotionId}/toggle`);
-      fetchPromotions(currentPage);
+      setLoading(true);
+      
+      if (editingPromotion) {
+        await apiClient.put(`/admin/promotions/${editingPromotion.id}`, formData);
+      } else {
+        await apiClient.post('/admin/promotions', formData);
+      }
+      
+      closeModal();
+      await fetchPromotions(currentPage);
     } catch (error) {
-      console.error('Error toggling promotion status:', error);
-      alert('Failed to update promotion status');
+      console.error('Error saving promotion:', error);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      alert(axiosError.response?.data?.message || 'Có lỗi xảy ra');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = async (promotionId: number) => {
-    if (!confirm('Are you sure you want to delete this promotion?')) return;
-
-    try {
-      await apiClient.delete(`/admin/promotions/${promotionId}`);
-      fetchPromotions(currentPage);
-    } catch (error) {
-      console.error('Error deleting promotion:', error);
-      alert('Failed to delete promotion');
+  const handleDelete = async (id: number) => {
+    if (deleteConfirmId === id) {
+      try {
+        setLoading(true);
+        await apiClient.delete(`/admin/promotions/${id}`);
+        setDeleteConfirmId(null);
+        await fetchPromotions(currentPage);
+      } catch (error) {
+        console.error('Error deleting promotion:', error);
+        const axiosError = error as AxiosError<{ message?: string }>;
+        alert(axiosError.response?.data?.message || 'Không thể xóa khuyến mãi');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setDeleteConfirmId(id);
+      setTimeout(() => setDeleteConfirmId(null), 3000);
     }
+  };
+
+  const handleToggleActive = async (id: number, currentActive: boolean) => {
+    try {
+      setLoading(true);
+      const promotion = promotions.find(p => p.id === id);
+      if (promotion) {
+        await apiClient.put(`/admin/promotions/${id}`, { ...promotion, active: !currentActive });
+        await fetchPromotions(currentPage);
+      }
+    } catch (error) {
+      console.error('Error toggling active:', error);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      alert(axiosError.response?.data?.message || 'Không thể cập nhật');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getPromotionStatus = (promotion: Promotion) => {
+    const now = new Date();
+    const start = new Date(promotion.startDate);
+    const end = new Date(promotion.endDate);
+    
+    if (!promotion.active) return { label: 'Tắt', className: 'admin-badge-gray' };
+    if (end < now) return { label: 'Hết hạn', className: 'admin-badge-red' };
+    if (start > now) return { label: 'Sắp diễn ra', className: 'admin-badge-blue' };
+    return { label: 'Đang hoạt động', className: 'admin-badge-green' };
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
-  const formatDiscount = (type: string, value: number) => {
-    if (type === 'PERCENTAGE') {
-      return `${value}%`;
-    }
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(value);
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý Khuyến mãi</h1>
-          <Button className="flex items-center">
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Thêm Khuyến mãi
-          </Button>
+          <h1 className="text-2xl font-semibold text-gray-900">Quản lý khuyến mãi</h1>
+          <button onClick={openCreateModal} className="admin-btn-primary">
+            <PlusIcon className="h-5 w-5" />
+            Thêm khuyến mãi
+          </button>
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-6 space-y-6">
-
-      {/* Filters */}
-      <Card className="p-4">
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Search */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tìm kiếm</label>
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Mã, tên khuyến mãi..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
+          <div className="admin-stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="admin-stat-label">Tổng khuyến mãi</p>
+                <p className="admin-stat-value">{stats.total}</p>
+              </div>
+              <div className="admin-stat-icon bg-purple-100">
+                <TicketIcon className="h-6 w-6 text-purple-600" />
+              </div>
             </div>
           </div>
 
-          {/* Type Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Loại</label>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">Tất cả</option>
-              <option value="Percentage">Phần trăm</option>
-              <option value="Fixed">Cố định</option>
-            </select>
+          <div className="admin-stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="admin-stat-label">Đang hoạt động</p>
+                <p className="admin-stat-value">{stats.active}</p>
+              </div>
+              <div className="admin-stat-icon bg-green-100">
+                <CheckCircleIcon className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
           </div>
 
-          {/* Status Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">Tất cả</option>
-              <option value="active">Hoạt động</option>
-              <option value="inactive">Tạm dừng</option>
-            </select>
+          <div className="admin-stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="admin-stat-label">Hết hạn</p>
+                <p className="admin-stat-value">{stats.expired}</p>
+              </div>
+              <div className="admin-stat-icon bg-red-100">
+                <XCircleIcon className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
           </div>
 
-          {/* Date Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Thời hạn</label>
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">Tất cả</option>
-              <option value="active">Còn hạn</option>
-              <option value="expired">Hết hạn</option>
-            </select>
+          <div className="admin-stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="admin-stat-label">Sắp diễn ra</p>
+                <p className="admin-stat-value">{stats.upcoming}</p>
+              </div>
+              <div className="admin-stat-icon bg-blue-100">
+                <ClockIcon className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Sort row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sắp xếp</label>
-            <select
-              value={`${sortBy}-${sortDir}`}
-              onChange={(e) => {
-                const [field, direction] = e.target.value.split('-');
-                setSortBy(field);
-                setSortDir(direction as 'asc' | 'desc');
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="id-desc">Mới nhất</option>
-              <option value="id-asc">Cũ nhất</option>
-              <option value="code-asc">Mã (A-Z)</option>
-              <option value="code-desc">Mã (Z-A)</option>
-              <option value="value-desc">Giá trị cao</option>
-              <option value="value-asc">Giá trị thấp</option>
-              <option value="endDate-asc">Sắp hết hạn</option>
-              <option value="endDate-desc">Còn hạn lâu</option>
-            </select>
-          </div>
+        {/* Filters */}
+        <div className="admin-filter-container">
+          {/* Filter Result Label */}
+          {(searchTerm || statusFilter !== 'all' || typeFilter !== 'all') && (
+            <div className="mb-4 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-700 font-medium">
+                🔍 Tìm thấy <span className="font-bold">{filteredCount}</span> khuyến mãi
+              </p>
+            </div>
+          )}
+          
+          <div className="admin-filter-grid">
+            <div>
+              <label className="admin-label">Tìm kiếm</label>
+              <input
+                type="text"
+                placeholder="Tìm theo mã, tên..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="admin-input"
+              />
+            </div>
 
-          {/* Reset */}
-          <div className="flex items-end">
-            <button
-              onClick={() => {
-                setSearchTerm('');
-                setTypeFilter('all');
-                setStatusFilter('all');
-                setDateFilter('all');
-                setSortBy('id');
-                setSortDir('desc');
-              }}
-              className="w-full px-4 py-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 hover:border-blue-500 rounded-md"
-            >
-              Xóa bộ lọc
-            </button>
+            <div>
+              <label className="admin-label">Loại</label>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="admin-select"
+              >
+                <option value="all">Tất cả</option>
+                <option value="PERCENTAGE">Phần trăm</option>
+                <option value="FIXED_AMOUNT">Số tiền cố định</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="admin-label">Trạng thái</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="admin-select"
+              >
+                <option value="all">Tất cả</option>
+                <option value="active">Đang hoạt động</option>
+                <option value="upcoming">Sắp diễn ra</option>
+                <option value="expired">Hết hạn</option>
+                <option value="inactive">Tắt</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="admin-label">Sắp xếp</label>
+              <select
+                value={`${sortBy}-${sortDirection}`}
+                onChange={(e) => {
+                  const [field, dir] = e.target.value.split('-');
+                  setSortBy(field);
+                  setSortDirection(dir as 'asc' | 'desc');
+                }}
+                className="admin-select"
+              >
+                <option value="startDate-desc">Ngày bắt đầu mới nhất</option>
+                <option value="startDate-asc">Ngày bắt đầu cũ nhất</option>
+                <option value="value-desc">Giá trị cao - thấp</option>
+                <option value="value-asc">Giá trị thấp - cao</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="mt-4 text-sm text-gray-500">
-          <span>Tìm thấy <strong>{promotions.length}</strong> khuyến mãi</span>
-        </div>
-      </Card>
-
-      {/* Promotions table */}
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        {/* Table */}
+        <div className="admin-table-container">
+          <table className="admin-table">
+            <thead className="admin-table-header">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Code
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Discount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Usage
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Valid Period
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="admin-table-th">Mã khuyến mãi</th>
+                <th className="admin-table-th">Loại</th>
+                <th className="admin-table-th">Giá trị</th>
+                <th className="admin-table-th">Sử dụng</th>
+                <th className="admin-table-th">Thời gian</th>
+                <th className="admin-table-th">Trạng thái</th>
+                <th className="admin-table-th">Thao tác</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
-                    Loading...
+                  <td colSpan={7} className="admin-loading">
+                    <div className="admin-spinner">
+                      <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </div>
                   </td>
                 </tr>
-              ) : promotions.length > 0 ? (
-                promotions.map((promo) => (
-                  <tr key={promo.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <TagIcon className="h-5 w-5 text-blue-500 mr-2" />
-                        <span className="text-sm font-medium text-gray-900">{promo.code}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{promo.name}</div>
-                      <div className="text-sm text-gray-500">{promo.description}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {formatDiscount(promo.type, promo.value)}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {promo.type === 'PERCENTAGE' ? 'Percentage' : 'Fixed Amount'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {promo.usedCount} / {promo.usageLimit}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <CalendarIcon className="h-4 w-4 mr-1" />
-                        <div>
-                          <div>{formatDate(promo.startDate)}</div>
-                          <div>to {formatDate(promo.endDate)}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleToggleActive(promo.id)}
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          promo.active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {promo.active ? 'Active' : 'Inactive'}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
-                          <PencilIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(promo.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
+              ) : promotions.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
-                    No promotions found
+                  <td colSpan={7} className="admin-empty">
+                    Không có dữ liệu
                   </td>
                 </tr>
+              ) : (
+                promotions.map((promotion) => {
+                  const status = getPromotionStatus(promotion);
+                  return (
+                    <tr key={promotion.id} className="admin-table-row">
+                      <td className="admin-table-td">
+                        <span className="font-mono font-semibold text-purple-600">{promotion.code}</span>
+                      </td>
+                      <td className="admin-table-td">
+                        <span className="admin-badge-blue">
+                          {(promotion.type === 'PERCENTAGE' || promotion.type === 'Percentage') ? 'Phần trăm' : 'Số tiền'}
+                        </span>
+                      </td>
+                      <td className="admin-table-td font-semibold text-green-600">
+                        {(promotion.type === 'PERCENTAGE' || promotion.type === 'Percentage')
+                          ? `${promotion.value}%` 
+                          : formatPrice(promotion.value)
+                        }
+                      </td>
+                      <td className="admin-table-td">
+                        <span className="text-sm">
+                          {promotion.usedCount} / {promotion.usageLimit}
+                        </span>
+                      </td>
+                      <td className="admin-table-td text-sm">
+                        <div>{formatDate(promotion.startDate)}</div>
+                        <div className="text-gray-500">đến {formatDate(promotion.endDate)}</div>
+                      </td>
+                      <td className="admin-table-td">
+                        <button
+                          onClick={() => handleToggleActive(promotion.id, promotion.active)}
+                          className={`${status.className} cursor-pointer hover:opacity-80`}
+                          disabled={loading}
+                        >
+                          {status.label}
+                        </button>
+                      </td>
+                      <td className="admin-table-td">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openViewModal(promotion)}
+                            className="admin-icon-btn-view"
+                            title="Xem chi tiết"
+                          >
+                            <EyeIcon className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => openEditModal(promotion)}
+                            className="admin-icon-btn-edit"
+                            title="Chỉnh sửa"
+                          >
+                            <PencilIcon className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(promotion.id)}
+                            className={
+                              deleteConfirmId === promotion.id
+                                ? 'admin-icon-btn-delete-confirm'
+                                : 'admin-icon-btn-delete'
+                            }
+                            title={deleteConfirmId === promotion.id ? 'Click lại để xác nhận' : 'Xóa'}
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <div className="text-sm text-gray-500">
-              Page {currentPage + 1} of {totalPages}
-            </div>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchPromotions(currentPage - 1)}
-                disabled={currentPage === 0}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchPromotions(currentPage + 1)}
-                disabled={currentPage >= totalPages - 1}
-              >
-                Next
-              </Button>
+        <div className="mt-4">
+          <div className="text-sm text-gray-600 text-center mb-2">
+            Hiển thị {promotions.length} / {totalElements} khuyến mãi
+          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      </div>
+
+      {/* View Modal */}
+      {isViewModalOpen && viewingPromotion && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-backdrop" onClick={closeModal} />
+          <div className="admin-modal-container">
+            <div className="admin-modal">
+              <div className="admin-modal-header">
+                <h3 className="admin-modal-title">Chi tiết khuyến mãi</h3>
+              </div>
+              <div className="admin-modal-body">
+                <div className="space-y-6">
+                  <div className="admin-view-section">
+                    <h4 className="admin-view-section-title">Thông tin cơ bản</h4>
+                    <div className="admin-view-grid">
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Mã khuyến mãi</p>
+                        <p className="admin-view-value">
+                          <span className="font-mono font-semibold text-purple-600">{viewingPromotion.code}</span>
+                        </p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Tên</p>
+                        <p className="admin-view-value">{viewingPromotion.name}</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Loại</p>
+                        <p className="admin-view-value">
+                          <span className="admin-badge-blue">
+                            {viewingPromotion.type === 'PERCENTAGE' ? 'Phần trăm' : 'Số tiền cố định'}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Trạng thái</p>
+                        <p className="admin-view-value">
+                          <span className={getPromotionStatus(viewingPromotion).className}>
+                            {getPromotionStatus(viewingPromotion).label}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="admin-view-section">
+                    <h4 className="admin-view-section-title">Giá trị & Điều kiện</h4>
+                    <div className="admin-view-grid">
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Giá trị giảm</p>
+                        <p className="admin-view-value font-semibold text-green-600">
+                          {viewingPromotion.type === 'PERCENTAGE' 
+                            ? `${viewingPromotion.value}%` 
+                            : formatPrice(viewingPromotion.value)
+                          }
+                        </p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Đơn hàng tối thiểu</p>
+                        <p className="admin-view-value">{formatPrice(viewingPromotion.minOrderAmount)}</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Giảm tối đa</p>
+                        <p className="admin-view-value">
+                          {viewingPromotion.maxDiscountAmount > 0 
+                            ? formatPrice(viewingPromotion.maxDiscountAmount) 
+                            : 'Không giới hạn'
+                          }
+                        </p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Sử dụng</p>
+                        <p className="admin-view-value">
+                          {viewingPromotion.usedCount} / {viewingPromotion.usageLimit}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="admin-view-section">
+                    <h4 className="admin-view-section-title">Thời gian</h4>
+                    <div className="admin-view-grid">
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Ngày bắt đầu</p>
+                        <p className="admin-view-value">{formatDate(viewingPromotion.startDate)}</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Ngày kết thúc</p>
+                        <p className="admin-view-value">{formatDate(viewingPromotion.endDate)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="admin-view-section">
+                    <h4 className="admin-view-section-title">Mô tả</h4>
+                    <p className="text-sm text-gray-700">{viewingPromotion.description || 'Chưa có mô tả'}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-modal-footer">
+                <button onClick={closeModal} className="admin-btn-secondary">
+                  Đóng
+                </button>
+                <button onClick={() => { closeModal(); openEditModal(viewingPromotion); }} className="admin-btn-primary">
+                  Chỉnh sửa
+                </button>
+              </div>
             </div>
           </div>
-        )}
-      </Card>
-      </div>
+        </div>
+      )}
+
+      {/* Create/Edit Modal */}
+      {isModalOpen && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-backdrop" onClick={closeModal} />
+          <div className="admin-modal-container">
+            <div className="admin-modal">
+              <div className="admin-modal-header">
+                <h3 className="admin-modal-title">
+                  {editingPromotion ? 'Chỉnh sửa khuyến mãi' : 'Thêm khuyến mãi mới'}
+                </h3>
+              </div>
+              <form onSubmit={handleSubmit}>
+                <div className="admin-modal-body">
+                  <div className="space-y-5">
+                    {/* Code & Name */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="code" className="admin-label">
+                          Mã khuyến mãi <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            id="code"
+                            value={formData.code}
+                            onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                            className={`admin-input font-mono ${formErrors.code ? 'admin-input-error' : ''}`}
+                            placeholder="SUMMER2024"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, code: generateCode() })}
+                            className="admin-btn-secondary whitespace-nowrap"
+                          >
+                            Tạo mã
+                          </button>
+                        </div>
+                        {formErrors.code && <p className="admin-error-text">{formErrors.code}</p>}
+                      </div>
+                      <div>
+                        <label htmlFor="name" className="admin-label">
+                          Tên khuyến mãi <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className={`admin-input ${formErrors.name ? 'admin-input-error' : ''}`}
+                          placeholder="Giảm giá mùa hè"
+                        />
+                        {formErrors.name && <p className="admin-error-text">{formErrors.name}</p>}
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                      <label htmlFor="description" className="admin-label">Mô tả</label>
+                      <textarea
+                        id="description"
+                        rows={2}
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        className="admin-textarea"
+                        placeholder="Mô tả chi tiết về khuyến mãi"
+                      />
+                    </div>
+
+                    {/* Type & Value */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="type" className="admin-label">
+                          Loại giảm giá <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          id="type"
+                          value={formData.type}
+                          onChange={(e) => setFormData({ ...formData, type: e.target.value as 'PERCENTAGE' | 'FIXED_AMOUNT' })}
+                          className="admin-select"
+                        >
+                          <option value="PERCENTAGE">Phần trăm (%)</option>
+                          <option value="FIXED_AMOUNT">Số tiền cố định (VNĐ)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label htmlFor="value" className="admin-label">
+                          Giá trị <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          id="value"
+                          value={formData.value}
+                          onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) || 0 })}
+                          className={`admin-input ${formErrors.value ? 'admin-input-error' : ''}`}
+                          min="0"
+                          max={formData.type === 'PERCENTAGE' ? '100' : undefined}
+                          step={formData.type === 'PERCENTAGE' ? '1' : '1000'}
+                        />
+                        {formErrors.value && <p className="admin-error-text">{formErrors.value}</p>}
+                      </div>
+                    </div>
+
+                    {/* Min Order & Max Discount */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="minOrderAmount" className="admin-label">
+                          Đơn hàng tối thiểu (VNĐ)
+                        </label>
+                        <input
+                          type="number"
+                          id="minOrderAmount"
+                          value={formData.minOrderAmount}
+                          onChange={(e) => setFormData({ ...formData, minOrderAmount: parseFloat(e.target.value) || 0 })}
+                          className="admin-input"
+                          min="0"
+                          step="1000"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="maxDiscountAmount" className="admin-label">
+                          Giảm tối đa (VNĐ)
+                        </label>
+                        <input
+                          type="number"
+                          id="maxDiscountAmount"
+                          value={formData.maxDiscountAmount}
+                          onChange={(e) => setFormData({ ...formData, maxDiscountAmount: parseFloat(e.target.value) || 0 })}
+                          className="admin-input"
+                          min="0"
+                          step="1000"
+                          placeholder="0 = Không giới hạn"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Usage Limit */}
+                    <div>
+                      <label htmlFor="usageLimit" className="admin-label">
+                        Giới hạn sử dụng <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        id="usageLimit"
+                        value={formData.usageLimit}
+                        onChange={(e) => setFormData({ ...formData, usageLimit: parseInt(e.target.value) || 1 })}
+                        className={`admin-input ${formErrors.usageLimit ? 'admin-input-error' : ''}`}
+                        min="1"
+                      />
+                      {formErrors.usageLimit && <p className="admin-error-text">{formErrors.usageLimit}</p>}
+                    </div>
+
+                    {/* Start & End Date */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="startDate" className="admin-label">
+                          Ngày bắt đầu <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          id="startDate"
+                          value={formData.startDate}
+                          onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                          className="admin-input"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="endDate" className="admin-label">
+                          Ngày kết thúc <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          id="endDate"
+                          value={formData.endDate}
+                          onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                          className={`admin-input ${formErrors.endDate ? 'admin-input-error' : ''}`}
+                        />
+                        {formErrors.endDate && <p className="admin-error-text">{formErrors.endDate}</p>}
+                      </div>
+                    </div>
+
+                    {/* Active */}
+                    <div>
+                      <label className="admin-label">Trạng thái</label>
+                      <label className="flex items-center space-x-3 mt-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.active}
+                          onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                          className="admin-checkbox"
+                        />
+                        <span className="text-sm text-gray-700">Kích hoạt ngay</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div className="admin-modal-footer">
+                  <button type="button" onClick={closeModal} className="admin-btn-secondary">
+                    Hủy
+                  </button>
+                  <button type="submit" disabled={loading} className="admin-btn-primary">
+                    {loading ? 'Đang lưu...' : (editingPromotion ? 'Cập nhật' : 'Tạo mới')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default AdminPromotions;
-

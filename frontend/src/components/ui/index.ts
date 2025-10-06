@@ -5,7 +5,7 @@ export * from './Card';
 export * from './Modal';
 export * from './Toast';
 export * from './Loading';
-export * from './Pagination';
+export { default as Pagination } from './Pagination';
 export * from './Skeleton';
 export * from './PageLoader';
 export * from './OptimizedImage';
