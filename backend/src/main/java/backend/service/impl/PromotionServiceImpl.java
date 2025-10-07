@@ -40,8 +40,12 @@ public class PromotionServiceImpl implements PromotionService {
         
         Promotion promotion = new Promotion();
         promotion.setCode(request.getCode().toUpperCase());
+        promotion.setName(request.getName());
+        promotion.setDescription(request.getDescription());
         promotion.setType(Promotion.PromotionType.valueOf(request.getType()));
         promotion.setValue(request.getValue());
+        promotion.setMinOrderAmount(request.getMinOrderAmount());
+        promotion.setMaxDiscount(request.getMaxDiscount());
         promotion.setUsageLimit(request.getUsageLimit());
         promotion.setStartDate(request.getStartDate());
         promotion.setEndDate(request.getEndDate());
@@ -76,8 +80,12 @@ public class PromotionServiceImpl implements PromotionService {
             throw new RuntimeException("End date must be after start date");
         }
         
+        promotion.setName(request.getName());
+        promotion.setDescription(request.getDescription());
         promotion.setType(Promotion.PromotionType.valueOf(request.getType()));
         promotion.setValue(request.getValue());
+        promotion.setMinOrderAmount(request.getMinOrderAmount());
+        promotion.setMaxDiscount(request.getMaxDiscount());
         promotion.setUsageLimit(request.getUsageLimit());
         promotion.setStartDate(request.getStartDate());
         promotion.setEndDate(request.getEndDate());
@@ -237,8 +245,12 @@ public class PromotionServiceImpl implements PromotionService {
         return PromotionResponse.builder()
                 .id(promotion.getId())
                 .code(promotion.getCode())
+                .name(promotion.getName())
+                .description(promotion.getDescription())
                 .type(promotion.getType().name())
                 .value(promotion.getValue())
+                .minOrderAmount(promotion.getMinOrderAmount())
+                .maxDiscount(promotion.getMaxDiscount())
                 .usageLimit(promotion.getUsageLimit())
                 .usageCount((int) usageCount)
                 .startDate(promotion.getStartDate())

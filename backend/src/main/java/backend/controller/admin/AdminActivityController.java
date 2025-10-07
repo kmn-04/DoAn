@@ -37,6 +37,7 @@ public class AdminActivityController extends BaseController {
 
     @GetMapping("/recent")
     @Operation(summary = "Get recent activities", description = "Get recent system activities for dashboard")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getRecentActivities(
             @RequestParam(defaultValue = "10") int limit) {
         try {
@@ -54,10 +55,11 @@ public class AdminActivityController extends BaseController {
                 activity.put("type", "booking");
                 activity.put("icon", "📦");
                 activity.put("title", "Booking mới");
+                // Force initialization
+                String tourName = (booking.getTour() != null ? booking.getTour().getName() : "tour");
                 activity.put("description", 
                     (booking.getCustomerName() != null ? booking.getCustomerName() : "Khách hàng") + 
-                    " đặt " + 
-                    (booking.getTour() != null ? booking.getTour().getName() : "tour"));
+                    " đặt " + tourName);
                 activity.put("time", booking.getCreatedAt());
                 activity.put("timeAgo", getTimeAgo(booking.getCreatedAt()));
                 activity.put("status", booking.getConfirmationStatus() != null ? booking.getConfirmationStatus().name() : "");
@@ -76,9 +78,9 @@ public class AdminActivityController extends BaseController {
                 activity.put("type", "review");
                 activity.put("icon", "⭐");
                 activity.put("title", "Đánh giá mới");
-                activity.put("description", 
-                    (review.getUser() != null && review.getUser().getName() != null ? review.getUser().getName() : "Khách") + 
-                    " đánh giá " + review.getRating() + "/5");
+                // Force initialization
+                String userName = (review.getUser() != null && review.getUser().getName() != null ? review.getUser().getName() : "Khách");
+                activity.put("description", userName + " đánh giá " + review.getRating() + "/5");
                 activity.put("time", review.getCreatedAt());
                 activity.put("timeAgo", getTimeAgo(review.getCreatedAt()));
                 activity.put("status", review.getStatus() != null ? review.getStatus().name() : "");

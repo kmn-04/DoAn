@@ -113,6 +113,44 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
+    public void createNotificationForAdmins(String title, String message, Notification.NotificationType type, String link) {
+        List<User> admins = userRepository.findByRoleName("ROLE_ADMIN");
+        
+        for (User admin : admins) {
+            Notification notification = new Notification();
+            notification.setUser(admin);
+            notification.setTitle(title);
+            notification.setMessage(message);
+            notification.setType(type);
+            notification.setLink(link);
+            notification.setIsRead(false);
+            
+            notificationRepository.save(notification);
+        }
+        
+        log.info("Created {} notifications for admins", admins.size());
+    }
+    
+    @Override
+    public void createNotificationForUsers(String title, String message, Notification.NotificationType type, String link) {
+        List<User> users = userRepository.findByRoleName("ROLE_USER");
+        
+        for (User user : users) {
+            Notification notification = new Notification();
+            notification.setUser(user);
+            notification.setTitle(title);
+            notification.setMessage(message);
+            notification.setType(type);
+            notification.setLink(link);
+            notification.setIsRead(false);
+            
+            notificationRepository.save(notification);
+        }
+        
+        log.info("Created {} notifications for users", users.size());
+    }
+    
+    @Override
     @Transactional(readOnly = true)
     public Optional<Notification> getNotificationById(Long id) {
         return notificationRepository.findById(id);

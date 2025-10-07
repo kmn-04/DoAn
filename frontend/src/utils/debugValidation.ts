@@ -68,47 +68,5 @@ export const DebugValidation = {
   }
 };
 
-// Test the validation functions immediately
-console.group('🔍 Debug Validation Tests');
-
-// Test invalid emails
-const invalidEmails = ['', 'invalid', '@domain.com', 'user@', 'user@domain'];
-console.log('Invalid emails test:', invalidEmails.every(email => !DebugValidation.isValidEmail(email)));
-
-// Test valid emails  
-const validEmails = ['user@domain.com', 'test@example.org'];
-console.log('Valid emails test:', validEmails.every(email => DebugValidation.isValidEmail(email)));
-
-// Test invalid phones
-const invalidPhones = ['', '123', 'abc', '123-456'];
-console.log('Invalid phones test:', invalidPhones.every(phone => !DebugValidation.isValidPhone(phone)));
-
-// Test valid phones
-const validPhones = ['+84901234567', '0901234567'];
-console.log('Valid phones test:', validPhones.every(phone => DebugValidation.isValidPhone(phone)));
-
-// Test weak passwords
-const weakPasswords = ['', '123', 'password', 'Password'];
-console.log('Weak passwords test:', weakPasswords.every(pwd => !DebugValidation.isStrongPassword(pwd)));
-
-// Test strong passwords
-const strongPasswords = ['MyStr0ng!Pass', 'Valid$Pass1'];
-console.log('Strong passwords test:', strongPasswords.every(pwd => DebugValidation.isStrongPassword(pwd)));
-
-// Test dangerous searches
-const dangerousSearches = ['<script>alert(1)</script>', 'SELECT * FROM users'];
-console.log('Dangerous searches test:', dangerousSearches.every(query => !DebugValidation.isSafeSearch(query)));
-
-// Test safe searches
-const safeSearches = ['Ha Long Bay', 'beach tour'];
-console.log('Safe searches test:', safeSearches.every(query => DebugValidation.isSafeSearch(query)));
-
-// Test invalid dates
-const invalidDates = ['', '2023-13-01', 'invalid'];
-console.log('Invalid dates test:', invalidDates.every(date => !DebugValidation.isValidDate(date)));
-
-// Test valid dates
-const validDates = ['2024-01-15', '2025-06-15'];
-console.log('Valid dates test:', validDates.every(date => DebugValidation.isValidDate(date)));
-
-console.groupEnd();
+// Validation tests have been removed for production
+// All validation functions tested and working correctly

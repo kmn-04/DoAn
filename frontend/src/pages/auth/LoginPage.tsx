@@ -51,23 +51,10 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     const result = await login(data.email, data.password);
-    
-    console.log('[LoginPage] Login result:', result);
-    
     if (result.success) {
-      console.log('[LoginPage] User:', result.user);
-      console.log('[LoginPage] User role:', result.user?.role);
-      console.log('[LoginPage] Role name:', result.user?.role?.name);
-      console.log('[LoginPage] Role type:', typeof result.user?.role);
-      
       // Redirect admin to /admin, others to /dashboard or 'from' page
       const isAdmin = result.user?.role?.name?.toUpperCase() === 'ADMIN';
       const redirectPath = isAdmin ? '/admin' : (from !== '/login' && from !== '/' ? from : '/dashboard');
-      
-      console.log('[LoginPage] Is admin?', isAdmin);
-      console.log('[LoginPage] From:', from);
-      console.log('[LoginPage] Redirect to:', redirectPath);
-      
       navigate(redirectPath, { replace: true });
     }
     // Error handling is done in the useAuth hook

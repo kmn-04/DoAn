@@ -172,14 +172,10 @@ const BookingHistoryPage: React.FC = () => {
         const shouldRefresh = localStorage.getItem('refreshBookings');
         if (shouldRefresh) {
           localStorage.removeItem('refreshBookings');
-          console.log('🔄 Refreshing bookings after payment success');
         }
         
         // Get bookings for current user
-        console.log('🔍 Fetching bookings for user ID:', user.id);
         const bookingResponses = await bookingService.getBookingsByUser(user.id);
-        console.log('📥 Received bookings from API:', bookingResponses);
-        
         // Filter out cancelled bookings first
         const activeBookingResponses = bookingResponses.filter(booking => 
           !['Cancelled', 'CancellationRequested'].includes(booking.confirmationStatus || '')
@@ -208,13 +204,6 @@ const BookingHistoryPage: React.FC = () => {
             }
             return 'pending';
           };
-
-          console.log(`🔄 Mapping booking ${booking.id}:`, {
-            raw_confirmation: booking.confirmationStatus,
-            mapped_confirmation: mapConfirmationStatus(booking.confirmationStatus),
-            raw_payment: booking.paymentStatus,
-            mapped_payment: mapPaymentStatus(booking.paymentStatus)
-          });
 
           return {
             id: String(booking.id), // Use booking ID as string for frontend compatibility
@@ -378,23 +367,18 @@ const BookingHistoryPage: React.FC = () => {
 
   // Cancellation methods
   const handleCancelBooking = (bookingId: number) => {
-    console.log('🚀 User clicked cancel booking for ID:', bookingId);
     setSelectedBookingForCancellation(bookingId);
     setShowCancellationForm(true);
-    console.log('📝 Opening cancellation form with preselected booking:', bookingId);
   };
 
 
   // Tour detail methods
   const handleViewTourDetail = (tourId: number, tourSlug?: string) => {
-    console.log('👁️ User clicked view tour detail:', { tourId, tourSlug });
     setSelectedTourForDetail({ id: tourId, slug: tourSlug });
     setShowTourDetailModal(true);
   };
 
   const handleRetryPayment = (booking: Booking) => {
-    console.log('💳 User clicked retry payment for booking:', booking.id);
-    
     // Store booking data for payment page
     const bookingData = {
       bookingId: booking.id,
@@ -408,9 +392,6 @@ const BookingHistoryPage: React.FC = () => {
       totalPrice: booking.totalPrice,
       specialRequests: booking.specialRequests
     };
-    
-    console.log('💾 Storing retry payment data:', bookingData);
-    
     // Store in sessionStorage for payment page
     sessionStorage.setItem('retryPaymentBooking', JSON.stringify(bookingData));
     
@@ -419,32 +400,23 @@ const BookingHistoryPage: React.FC = () => {
   };
 
   const handleCancellationSuccess = (cancellationData: any) => {
-    console.log('🎉 Cancellation success with data:', cancellationData);
-    
     // IMMEDIATE UPDATE: Remove the booking from the list immediately for better UX
     // Try to get booking ID from cancellation data or fallback to selected booking
     const bookingIdToUpdate = cancellationData?.bookingId || selectedBookingForCancellation;
     
     if (bookingIdToUpdate) {
-      console.log('🔄 Immediately removing booking from list:', bookingIdToUpdate);
-      console.log('🔍 Current bookings before update:', bookings.map(b => ({ id: b.id, status: b.status })));
-      
       setBookings(prev => {
         const updated = prev.map(booking => {
           const bookingIdStr = String(booking.id);
           const targetIdStr = String(bookingIdToUpdate);
-          console.log('🔍 Comparing:', { bookingId: bookingIdStr, targetId: targetIdStr, match: bookingIdStr === targetIdStr });
-          
           return bookingIdStr === targetIdStr 
             ? { ...booking, status: 'cancellation_requested' as any }
             : booking;
         });
         
-        console.log('🔍 Updated bookings:', updated.map(b => ({ id: b.id, status: b.status })));
         return updated;
       });
     } else {
-      console.log('⚠️ No booking ID found to update');
     }
     
     // Show success message
@@ -462,7 +434,6 @@ const BookingHistoryPage: React.FC = () => {
     setNewCancellationData(cancellationData);
 
     // IMPORTANT: Refresh bookings to reflect status changes from backend
-    console.log('🔄 Refreshing bookings after cancellation request');
     setTimeout(() => {
       fetchBookings(); // This will reload the booking list after a delay
     }, 1000);
@@ -651,12 +622,6 @@ const BookingHistoryPage: React.FC = () => {
           const StatusIcon = statusBadge.icon;
           
           // Debug
-          console.log('🏷️ Badges for booking', booking.id, {
-            confirmationStatus: booking.status,
-            statusBadge: statusBadge.label,
-            paymentStatus: booking.paymentStatus,
-            paymentBadge: paymentBadge.label
-          });
           const isUpcoming = (booking.status === 'confirmed' || booking.status === 'pending') && new Date(booking.startDate) > new Date();
           
           // Check if tour should show warning (within 10 days)

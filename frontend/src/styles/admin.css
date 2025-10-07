@@ -238,11 +238,133 @@
 }
 
 .admin-table-select-suspended {
-  @apply admin-table-select bg-amber-100 text-amber-800 hover:bg-amber-200 focus:ring-amber-500;
+  @apply admin-table-select bg-yellow-100 text-yellow-800 hover:bg-yellow-200 focus:ring-yellow-500;
+}
+
+.admin-table-select-rejected {
+  @apply admin-table-select bg-red-100 text-red-800 hover:bg-red-200 focus:ring-red-500;
 }
 
 .admin-table-select-pending {
   @apply admin-table-select bg-blue-100 text-blue-800 hover:bg-blue-200 focus:ring-blue-500;
+}
+
+.admin-table-select-confirmed {
+  @apply admin-table-select bg-purple-100 text-purple-800 hover:bg-purple-200 focus:ring-purple-500;
+}
+
+.admin-table-select-completed {
+  @apply admin-table-select bg-green-100 text-green-800 hover:bg-green-200 focus:ring-green-500;
+}
+
+/* Page Layout */
+.admin-page {
+  @apply space-y-6;
+}
+
+.admin-header {
+  @apply px-6 py-4 border-b border-gray-200;
+}
+
+.admin-title {
+  @apply text-2xl font-semibold text-gray-900;
+}
+
+/* Stats Grid */
+.admin-stats-grid {
+  @apply px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.admin-stat-card {
+  @apply bg-white rounded-lg shadow-sm p-5;
+}
+
+.admin-stat-icon {
+  @apply flex-shrink-0 p-3 rounded-lg;
+}
+
+.admin-stat-label {
+  @apply text-sm font-medium text-gray-600;
+}
+
+.admin-stat-value {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+/* Gradient Stats Cards (for Contact page style) */
+.admin-stat-card-gradient {
+  @apply rounded-lg shadow-sm p-5 flex items-center gap-4;
+}
+
+.admin-stat-icon-wrapper {
+  @apply flex-shrink-0 p-3 rounded-lg;
+}
+
+.admin-stat-label-white {
+  @apply text-sm font-medium text-white opacity-90;
+}
+
+.admin-stat-value-white {
+  @apply text-3xl font-bold text-white;
+}
+
+/* Filters */
+.admin-filters {
+  @apply px-6 flex flex-wrap gap-3;
+}
+
+.admin-search-wrapper {
+  @apply relative flex-1 min-w-[200px];
+}
+
+.admin-search-icon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400;
+}
+
+.admin-search-input {
+  @apply w-full pl-10 pr-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg
+         focus:ring-2 focus:ring-blue-500 focus:border-transparent
+         transition-colors duration-200
+         placeholder:text-gray-400;
+}
+
+/* Table Wrapper */
+.admin-table-wrapper {
+  @apply mx-6 bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200;
+}
+
+.admin-table-body {
+  @apply bg-white divide-y divide-gray-200;
+}
+
+/* Pagination */
+.admin-pagination {
+  @apply mx-6 mb-6 flex items-center justify-between px-6 py-4 bg-white border border-gray-200 rounded-lg;
+}
+
+.admin-pagination-info {
+  @apply text-sm text-gray-700 font-medium;
+}
+
+.admin-pagination-btn {
+  @apply px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg
+         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500
+         disabled:opacity-50 disabled:cursor-not-allowed
+         transition-colors duration-200;
+}
+
+/* Modal */
+.admin-modal-overlay {
+  @apply fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4;
+}
+
+.admin-modal-content {
+  @apply bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col;
+}
+
+.admin-modal-close {
+  @apply text-gray-400 hover:text-gray-600 text-3xl font-light leading-none
+         transition-colors duration-200;
 }
 
 /* Loading State */

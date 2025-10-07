@@ -199,7 +199,7 @@ export const EdgeCaseTests = {
       const start = performance.now();
       return () => {
         const end = performance.now();
-        console.log(`${componentName} render time: ${(end - start).toFixed(2)}ms`);
+        // Performance logging removed
       };
     },
 
@@ -321,8 +321,6 @@ export class EdgeCaseTestRunner {
         passed: result,
         duration
       });
-      
-      console.log(`${result ? '✅' : '❌'} ${testName}: ${result ? 'PASSED' : 'FAILED'} (${duration.toFixed(2)}ms)`);
     } catch (error) {
       const duration = performance.now() - start;
       
@@ -350,15 +348,12 @@ export class EdgeCaseTestRunner {
     const summary = this.getResults();
     
     console.group('🧪 Edge Case Test Report');
-    console.log(`Total Tests: ${summary.total}`);
-    console.log(`Passed: ${summary.passed}`);
-    console.log(`Failed: ${summary.failed}`);
-    console.log(`Success Rate: ${((summary.passed / summary.total) * 100).toFixed(1)}%`);
+    console.log(`Total: ${summary.total} | Passed: ${summary.passed} | Failed: ${summary.failed} | Success Rate: ${(summary.passed / summary.total * 100).toFixed(1)}%`);
     
     if (summary.failed > 0) {
       console.group('❌ Failed Tests:');
       summary.results.filter(r => !r.passed).forEach(result => {
-        console.log(`- ${result.test}: ${result.error || 'Test returned false'}`);
+        console.error(`  - ${result.test}: ${result.error || 'Failed'}`);
       });
       console.groupEnd();
     }

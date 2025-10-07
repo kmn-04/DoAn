@@ -26,12 +26,24 @@ public class Promotion {
     @Column(unique = true, nullable = false, length = 50)
     private String code;
     
+    @Column(nullable = false, length = 150)
+    private String name;
+    
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PromotionType type;
     
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal value;
+    
+    @Column(name = "min_order_amount", precision = 12, scale = 2)
+    private BigDecimal minOrderAmount;
+    
+    @Column(name = "max_discount", precision = 12, scale = 2)
+    private BigDecimal maxDiscount;
     
     @Column(name = "usage_limit")
     private Integer usageLimit = 0;

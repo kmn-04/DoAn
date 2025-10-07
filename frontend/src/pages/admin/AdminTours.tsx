@@ -173,7 +173,6 @@ const AdminTours: React.FC = () => {
     itineraries: []
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -260,10 +259,10 @@ const AdminTours: React.FC = () => {
       
       // Debug: Log first tour to check data structure
       if (tours.length > 0) {
-        console.log('📋 Sample Tour Data:', tours[0]);
-        console.log('Has overview?', !!tours[0].overview);
-        console.log('Has category?', !!tours[0].category);
-        console.log('Has itineraries?', !!tours[0].itineraries);
+
+
+
+
       }
       
       setTours(tours);
@@ -371,7 +370,6 @@ const AdminTours: React.FC = () => {
   };
 
   const openEditModal = (tour: Tour) => {
-    console.log('🔍 Opening edit modal with tour:', tour); // Debug log
     setEditingTour(tour);
     
     // Extract images URLs from TourImageRequest objects if needed
@@ -398,9 +396,8 @@ const AdminTours: React.FC = () => {
           .filter(url => url); // Remove empty strings
       }
     }
-    console.log('📸 Main image:', tour.mainImage);
-    console.log('📸 Additional images (excluding primary):', imageUrls);
-    console.log('🗺️ Tour itineraries:', tour.itineraries);
+
+
     
     setFormData({
       name: tour.name || '',
@@ -559,18 +556,12 @@ const AdminTours: React.FC = () => {
         })),
       };
       
-      console.log('📤 Submitting tour data:', tourData); // Debug log
-      console.log('🖼️ Main image:', tourData.mainImage);
-      console.log('📸 Additional images:', tourData.images);
-      console.log('⚠️ CHECKING: Does images array contain mainImage?', 
-        tourData.images.some((img: any) => img.imageUrl === tourData.mainImage));
-      
       if (editingTour) {
         await apiClient.put(`/admin/tours/${editingTour.id}`, tourData);
         alert('Cập nhật tour thành công!');
       } else {
         const response = await apiClient.post('/admin/tours', tourData);
-        console.log('✅ Tour created successfully:', response.data);
+
         alert('Thêm mới tour thành công!');
       }
       
@@ -602,8 +593,6 @@ const AdminTours: React.FC = () => {
     try {
       setLoading(true);
       await apiClient.delete(`/admin/tours/${id}`);
-      setDeleteConfirmId(null);
-      alert('✅ Xóa tour thành công!');
       await Promise.all([
         fetchTours(currentPage),
         fetchGlobalStats()
@@ -895,12 +884,8 @@ const AdminTours: React.FC = () => {
                         </button>
                         <button
                           onClick={() => handleDelete(tour.id)}
-                          className={
-                            deleteConfirmId === tour.id
-                              ? 'admin-icon-btn-delete-confirm'
-                              : 'admin-icon-btn-delete'
-                          }
-                          title={deleteConfirmId === tour.id ? 'Click lại để xác nhận' : 'Xóa'}
+                          className="admin-icon-btn-delete"
+                          title="Xóa"
                         >
                           <TrashIcon className="h-5 w-5" />
                         </button>

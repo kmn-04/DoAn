@@ -8,6 +8,21 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card } from '../../components/ui/Card';
 import { apiClient } from '../../services/api';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
 interface MonthlyRevenue {
   month: string;
@@ -79,6 +94,16 @@ const AdminStatistics: React.FC = () => {
       currency: 'VND'
     }).format(price);
   };
+
+  const formatShortPrice = (price: number) => {
+    if (price >= 1000000000) return `${(price / 1000000000).toFixed(1)}B`;
+    if (price >= 1000000) return `${(price / 1000000).toFixed(1)}M`;
+    if (price >= 1000) return `${(price / 1000).toFixed(0)}K`;
+    return price.toString();
+  };
+
+  // Colors for charts
+  const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'];
 
   if (loading) {
     return (
@@ -172,129 +197,172 @@ const AdminStatistics: React.FC = () => {
 
         {/* Charts */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Monthly Revenue */}
+          {/* Monthly Revenue - LINE CHART */}
           <Card>
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Doanh thu 12 tháng gần nhất</h3>
+              <h3 className="text-lg font-medium text-gray-900">📈 Doanh thu 12 tháng gần nhất</h3>
             </div>
             <div className="p-6">
-              <div className="space-y-3">
-                {monthlyRevenue.slice(-6).reverse().map((month, index) => {
-                  const maxRevenue = Math.max(...monthlyRevenue.map(m => m.revenue || 0));
-                  return (
-                    <div key={month.month || index} className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{month.monthName}</p>
-                        <div className="mt-1 relative">
-                          <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
-                            <div
-                              style={{ width: `${maxRevenue > 0 ? Math.min((month.revenue / maxRevenue) * 100, 100) : 0}%` }}
-                              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="ml-4 text-right">
-                        <p className="text-sm font-semibold text-gray-900">{formatPrice(month.revenue || 0)}</p>
-                        <p className="text-xs text-gray-500">{month.bookingCount} booking</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={monthlyRevenue.slice(-12)}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="monthName" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => formatShortPrice(value)}
+                  />
+                  <Tooltip 
+                    formatter={(value: any) => formatPrice(value)}
+                    labelStyle={{ fontWeight: 'bold' }}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    name="Doanh thu"
+                    stroke="#3b82f6" 
+                    strokeWidth={2}
+                    dot={{ fill: '#3b82f6', r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="bookingCount" 
+                    name="Số booking"
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    dot={{ fill: '#10b981', r: 4 }}
+                    yAxisId={1}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </Card>
 
-          {/* Top Tours */}
+          {/* Top Tours - BAR CHART */}
           <Card>
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Top 10 Tour Bán chạy</h3>
+              <h3 className="text-lg font-medium text-gray-900">📊 Top 10 Tour Bán chạy</h3>
             </div>
             <div className="p-6">
-              <div className="space-y-3">
-                {topTours.slice(0, 10).map((tour, index) => (
-                  <div key={tour.tourId} className="flex items-center justify-between">
-                    <div className="flex items-center flex-1">
-                      <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 text-blue-800 text-xs font-bold">
-                        {index + 1}
-                      </span>
-                      <p className="ml-3 text-sm font-medium text-gray-900 truncate">{tour.tourName}</p>
-                    </div>
-                    <div className="ml-4 text-right">
-                      <p className="text-sm font-semibold text-gray-900">{tour.bookingCount} booking</p>
-                      <p className="text-xs text-gray-500">{formatPrice(tour.totalRevenue)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart 
+                  data={topTours.slice(0, 10).map((tour, index) => ({
+                    ...tour,
+                    shortName: tour.tourName.length > 20 ? tour.tourName.substring(0, 20) + '...' : tour.tourName,
+                    rank: index + 1
+                  }))}
+                  layout="vertical"
+                  margin={{ left: 100 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" tick={{ fontSize: 12 }} />
+                  <YAxis 
+                    type="category" 
+                    dataKey="shortName" 
+                    tick={{ fontSize: 11 }}
+                    width={150}
+                  />
+                  <Tooltip 
+                    formatter={(value: any, name: string) => {
+                      if (name === 'totalRevenue') return [formatPrice(value), 'Doanh thu'];
+                      return [value, 'Số booking'];
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="bookingCount" name="Số booking" fill="#3b82f6" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </Card>
 
-          {/* User Growth */}
+          {/* User Growth - AREA/BAR CHART */}
           <Card>
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Tăng trưởng Người dùng</h3>
+              <h3 className="text-lg font-medium text-gray-900">👥 Tăng trưởng Người dùng</h3>
             </div>
             <div className="p-6">
-              <div className="space-y-3">
-                {userGrowth.slice(-6).reverse().map((month, index) => {
-                  const maxUsers = Math.max(...userGrowth.map(m => m.newUsers || 0));
-                  return (
-                    <div key={month.month || index} className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{month.monthName}</p>
-                        <div className="mt-1 relative">
-                          <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
-                            <div
-                              style={{ width: `${maxUsers > 0 ? Math.min((month.newUsers / maxUsers) * 100, 100) : 0}%` }}
-                              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-semibold text-gray-900">+{month.newUsers || 0}</p>
-                        <p className="text-xs text-gray-500">người dùng</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={userGrowth.slice(-12)}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="monthName" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip 
+                    formatter={(value: any) => [`${value} người dùng`, 'Người dùng mới']}
+                    labelStyle={{ fontWeight: 'bold' }}
+                  />
+                  <Legend />
+                  <Bar 
+                    dataKey="newUsers" 
+                    name="Người dùng mới"
+                    fill="#10b981" 
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </Card>
 
-          {/* Revenue Summary Table */}
+          {/* Revenue Summary - PIE CHART */}
           <Card>
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Tổng quan Doanh thu</h3>
+              <h3 className="text-lg font-medium text-gray-900">🥧 Phân bổ Doanh thu</h3>
             </div>
             <div className="p-6">
-              <dl className="space-y-4">
-                <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                  <dt className="text-sm font-medium text-gray-500">Tháng này</dt>
-                  <dd className="text-sm font-semibold text-gray-900">
-                    {summary ? formatPrice(summary.thisMonthRevenue) : '0 đ'}
-                  </dd>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                  <dt className="text-sm font-medium text-gray-500">Tháng trước</dt>
-                  <dd className="text-sm font-semibold text-gray-900">
-                    {summary ? formatPrice(summary.lastMonthRevenue) : '0 đ'}
-                  </dd>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                  <dt className="text-sm font-medium text-gray-500">Năm nay</dt>
-                  <dd className="text-sm font-semibold text-gray-900">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={summary ? [
+                      { name: 'Tháng này', value: summary.thisMonthRevenue },
+                      { name: 'Tháng trước', value: summary.lastMonthRevenue },
+                      { 
+                        name: 'Các tháng khác (năm nay)', 
+                        value: Math.max(0, summary.thisYearRevenue - summary.thisMonthRevenue - summary.lastMonthRevenue)
+                      }
+                    ].filter(item => item.value > 0) : []}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={(entry) => `${entry.name}: ${formatShortPrice(entry.value)}`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {summary && [
+                      { name: 'Tháng này', value: summary.thisMonthRevenue },
+                      { name: 'Tháng trước', value: summary.lastMonthRevenue },
+                      { 
+                        name: 'Các tháng khác', 
+                        value: Math.max(0, summary.thisYearRevenue - summary.thisMonthRevenue - summary.lastMonthRevenue)
+                      }
+                    ].filter(item => item.value > 0).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: any) => formatPrice(value)} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-500">Tổng doanh thu năm nay</span>
+                  <span className="text-lg font-bold text-blue-600">
                     {summary ? formatPrice(summary.thisYearRevenue) : '0 đ'}
-                  </dd>
+                  </span>
                 </div>
-                <div className="flex justify-between items-center pt-2">
-                  <dt className="text-base font-medium text-gray-900">Tổng cộng</dt>
-                  <dd className="text-lg font-bold text-blue-600">
-                    {summary ? formatPrice(summary.totalRevenue) : '0 đ'}
-                  </dd>
-                </div>
-              </dl>
+              </div>
             </div>
           </Card>
         </div>

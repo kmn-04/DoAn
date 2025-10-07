@@ -39,6 +39,9 @@ public class Notification {
     
     private String link;
     
+    @Column(name = "recipient_type", length = 20)
+    private String recipientType; // ALL, ADMIN, USER
+    
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
     

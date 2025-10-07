@@ -26,14 +26,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Debug logging only in development
-    if (shouldEnableDebugLogging()) {
-      console.log('🔄 API Request:', {
-        method: config.method?.toUpperCase(),
-        url: config.url,
-        data: config.data
-      });
-    }
+    // Debug logging removed for production
     
     return config;
   },
@@ -50,11 +43,6 @@ api.interceptors.response.use(
   (response: any) => {
     // Debug logging only in development
     if (shouldEnableDebugLogging()) {
-      console.log('✅ API Response:', {
-        status: response.status,
-        url: response.config.url,
-        data: response.data
-      });
     }
     return response;
   },

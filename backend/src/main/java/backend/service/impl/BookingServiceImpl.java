@@ -5,6 +5,7 @@ import backend.entity.Booking;
 import backend.entity.Booking.BookingStatus;
 import backend.entity.Booking.ConfirmationStatus;
 import backend.entity.Booking.PaymentStatus;
+import backend.entity.Notification;
 import backend.entity.Promotion;
 import backend.entity.Tour;
 import backend.mapper.BookingMapper;
@@ -12,10 +13,10 @@ import backend.repository.BookingRepository;
 import backend.repository.PromotionRepository;
 import backend.repository.TourRepository;
 import backend.service.BookingService;
+import backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +38,7 @@ public class BookingServiceImpl implements BookingService {
     private final TourRepository tourRepository;
     private final PromotionRepository promotionRepository;
     private final BookingMapper bookingMapper;
+    private final NotificationService notificationService;
     
     @Override
     public Booking createBooking(Booking booking) {
@@ -73,6 +76,10 @@ public class BookingServiceImpl implements BookingService {
         Booking savedBooking = bookingRepository.save(booking);
         log.info("Booking created successfully with ID: {} and code: {}", 
                 savedBooking.getId(), savedBooking.getBookingCode());
+        
+        // Send success notification
+        sendBookingCreatedNotification(savedBooking);
+        
         return savedBooking;
     }
     
@@ -286,6 +293,9 @@ public class BookingServiceImpl implements BookingService {
         booking.setConfirmationStatus(ConfirmationStatus.Confirmed);
         Booking confirmedBooking = bookingRepository.save(booking);
         
+        // Send confirmation notification
+        sendBookingConfirmedNotification(confirmedBooking);
+        
         log.info("Booking confirmed successfully with ID: {}", bookingId);
         return confirmedBooking;
     }
@@ -307,6 +317,10 @@ public class BookingServiceImpl implements BookingService {
         }
         
         Booking cancelledBooking = bookingRepository.save(booking);
+        
+        // Send cancellation notification (Warning)
+        sendBookingCancelledNotification(cancelledBooking, reason);
+        
         log.info("Booking cancelled successfully with ID: {}", bookingId);
         return cancelledBooking;
     }
@@ -577,6 +591,92 @@ public class BookingServiceImpl implements BookingService {
         } catch (IllegalArgumentException e) {
             log.error("Invalid booking status: {}", status);
             return 0;
+        }
+    }
+    
+    // ==================== NOTIFICATION HELPERS ====================
+    
+    /**
+     * Send notification when booking is created successfully
+     */
+    private void sendBookingCreatedNotification(Booking booking) {
+        try {
+            String title = "Đặt tour thành công";
+            String message = String.format(
+                "Bạn đã đặt tour '%s' thành công! Mã đặt tour: %s. Vui lòng thanh toán trước %s.",
+                booking.getTour().getName(),
+                booking.getBookingCode(),
+                booking.getStartDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+            );
+            String link = "/bookings/" + booking.getId();
+            
+            notificationService.createNotificationForUser(
+                booking.getUser().getId(),
+                title,
+                message,
+                Notification.NotificationType.Success,
+                link
+            );
+            
+            log.info("Sent booking created notification for booking ID: {}", booking.getId());
+        } catch (Exception e) {
+            log.error("Failed to send booking created notification", e);
+        }
+    }
+    
+    /**
+     * Send notification when booking is confirmed by admin
+     */
+    private void sendBookingConfirmedNotification(Booking booking) {
+        try {
+            String title = "Booking đã được xác nhận";
+            String message = String.format(
+                "Booking %s của bạn đã được xác nhận. Tour '%s' sẽ khởi hành vào %s. Chuẩn bị hành lý và giấy tờ cần thiết!",
+                booking.getBookingCode(),
+                booking.getTour().getName(),
+                booking.getStartDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+            );
+            String link = "/bookings/" + booking.getId();
+            
+            notificationService.createNotificationForUser(
+                booking.getUser().getId(),
+                title,
+                message,
+                Notification.NotificationType.Success,
+                link
+            );
+            
+            log.info("Sent booking confirmed notification for booking ID: {}", booking.getId());
+        } catch (Exception e) {
+            log.error("Failed to send booking confirmed notification", e);
+        }
+    }
+    
+    /**
+     * Send notification when booking is cancelled
+     */
+    private void sendBookingCancelledNotification(Booking booking, String reason) {
+        try {
+            String title = "Booking đã bị hủy";
+            String message = String.format(
+                "Booking %s của bạn cho tour '%s' đã bị hủy. %s",
+                booking.getBookingCode(),
+                booking.getTour().getName(),
+                reason != null ? "Lý do: " + reason : "Vui lòng liên hệ để biết thêm chi tiết."
+            );
+            String link = "/bookings/" + booking.getId();
+            
+            notificationService.createNotificationForUser(
+                booking.getUser().getId(),
+                title,
+                message,
+                Notification.NotificationType.Warning,
+                link
+            );
+            
+            log.info("Sent booking cancelled notification for booking ID: {}", booking.getId());
+        } catch (Exception e) {
+            log.error("Failed to send booking cancelled notification", e);
         }
     }
 }

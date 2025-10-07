@@ -123,10 +123,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         <nav className="px-4 pt-6 pb-0 overflow-y-auto scrollbar-hide" style={{ maxHeight: 'calc(100vh - 180px)' }}>
           {/* Admin Navigation Groups */}
           {navigationGroups.map((group, groupIndex) => (
-            <div key={group.title} className={groupIndex === navigationGroups.length - 1 ? '' : 'mb-4'}>
+            <div key={group.title} className={groupIndex === navigationGroups.length - 1 ? '' : 'mb-1'}>
               {/* Group Title */}
               {!sidebarCollapsed && (
-                <h3 className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                <h3 className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
                   {group.title}
                 </h3>
               )}

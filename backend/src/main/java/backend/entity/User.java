@@ -164,6 +164,6 @@ public class User {
     }
     
     public enum UserStatus {
-        Active, Inactive
+        Active, Inactive, Banned
     }
 }

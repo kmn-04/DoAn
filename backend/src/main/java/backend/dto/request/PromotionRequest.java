@@ -35,6 +35,12 @@ public class PromotionRequest {
     @DecimalMin(value = "0.0", inclusive = false, message = "Value must be greater than 0")
     private BigDecimal value;
     
+    @DecimalMin(value = "0.0", message = "Minimum order amount cannot be negative")
+    private BigDecimal minOrderAmount;
+    
+    @DecimalMin(value = "0.0", message = "Maximum discount cannot be negative")
+    private BigDecimal maxDiscount;
+    
     @Min(value = 0, message = "Usage limit cannot be negative")
     private Integer usageLimit;
     

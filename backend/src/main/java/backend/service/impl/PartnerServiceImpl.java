@@ -78,8 +78,30 @@ public class PartnerServiceImpl implements PartnerService {
     @Override
     public Partner createPartner(Partner partner) {
         log.info("Creating new partner: {}", partner.getName());
+        
+        // Auto-generate slug if not provided
+        if (partner.getSlug() == null || partner.getSlug().trim().isEmpty()) {
+            partner.setSlug(generateSlug(partner.getName()));
+        }
+        
         // Set created/updated timestamps will be handled by @PrePersist
         return partnerRepository.save(partner);
+    }
+    
+    private String generateSlug(String name) {
+        // Simple slug generation: lowercase, replace spaces with hyphens, remove special chars
+        return name.toLowerCase()
+                .replaceAll("[àáạảãâầấậẩẫăằắặẳẵ]", "a")
+                .replaceAll("[èéẹẻẽêềếệểễ]", "e")
+                .replaceAll("[ìíịỉĩ]", "i")
+                .replaceAll("[òóọỏõôồốộổỗơờớợởỡ]", "o")
+                .replaceAll("[ùúụủũưừứựửữ]", "u")
+                .replaceAll("[ỳýỵỷỹ]", "y")
+                .replaceAll("[đ]", "d")
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .trim();
     }
 
     @Override
@@ -91,7 +113,14 @@ public class PartnerServiceImpl implements PartnerService {
         
         // Update fields
         existingPartner.setName(partner.getName());
-        existingPartner.setSlug(partner.getSlug());
+        
+        // Auto-generate slug if not provided or if name changed
+        if (partner.getSlug() == null || partner.getSlug().trim().isEmpty()) {
+            existingPartner.setSlug(generateSlug(partner.getName()));
+        } else {
+            existingPartner.setSlug(partner.getSlug());
+        }
+        
         existingPartner.setDescription(partner.getDescription());
         existingPartner.setType(partner.getType());
         existingPartner.setAddress(partner.getAddress());

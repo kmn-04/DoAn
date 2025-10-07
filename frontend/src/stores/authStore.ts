@@ -96,7 +96,6 @@ export const useAuthStore = create<AuthState>()(
 
         // If we have token and user, validate they're still valid
         if (token && user) {
-          console.log('Found existing token and user:', { token: token.substring(0, 20) + '...', user });
           set({ 
             isAuthenticated: true, 
             isInitialized: true,
@@ -119,12 +118,8 @@ export const useAuthStore = create<AuthState>()(
 
           if (response.ok) {
             const userData = await response.json();
-            console.log('Auth check response:', userData);
-            
             // Backend returns: { success: true, message: "...", data: {...} }
             const user = userData.data || userData;
-            console.log('Extracted user:', user);
-            
             set({ 
               user: user, 
               isAuthenticated: true,

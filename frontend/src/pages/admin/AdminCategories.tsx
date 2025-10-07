@@ -55,7 +55,6 @@ const AdminCategories: React.FC = () => {
     isFeatured: false
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -202,22 +201,25 @@ const AdminCategories: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (deleteConfirmId === id) {
-      try {
-        setLoading(true);
-        await categoryAdminService.deleteCategory(id);
-        setDeleteConfirmId(null);
-        await fetchCategories(currentPage);
-      } catch (error: any) {
-        console.error('Error deleting category:', error);
-        alert(error.response?.data?.message || 'Không thể xóa danh mục');
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setDeleteConfirmId(id);
-      setTimeout(() => setDeleteConfirmId(null), 3000);
+  const handleDelete = async (category: CategoryResponse) => {
+    const confirmed = window.confirm(
+      `Bạn có chắc chắn muốn xóa danh mục "${category.name}"?\n\n⚠️ Hành động này không thể hoàn tác!`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+      await categoryAdminService.deleteCategory(category.id);
+      await Promise.all([
+        fetchCategories(currentPage),
+        fetchGlobalStats()
+      ]);
+    } catch (error: any) {
+      console.error('Error deleting category:', error);
+      alert(error.response?.data?.message || 'Không thể xóa danh mục');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -240,9 +242,9 @@ const AdminCategories: React.FC = () => {
   const handleToggleFeatured = async (id: number, currentFeatured: boolean) => {
     try {
       setLoading(true);
-      console.log(`Toggling featured for category ${id}: ${currentFeatured} -> ${!currentFeatured}`);
+
       const response = await apiClient.patch(`/admin/categories/${id}/featured?featured=${!currentFeatured}`);
-      console.log('Toggle response:', response.data);
+
       await Promise.all([
         fetchCategories(currentPage),
         fetchGlobalStats()
@@ -454,7 +456,7 @@ const AdminCategories: React.FC = () => {
                     <td className="admin-table-td">
                       <button
                         onClick={() => {
-                          console.log('⭐ STAR CLICKED!', category.id, category.isFeatured);
+
                           handleToggleFeatured(category.id, category.isFeatured);
                         }}
                         className="hover:scale-110 transition-transform disabled:opacity-50"
@@ -485,13 +487,9 @@ const AdminCategories: React.FC = () => {
                           <PencilIcon className="h-5 w-5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(category.id)}
-                          className={
-                            deleteConfirmId === category.id
-                              ? 'admin-icon-btn-delete-confirm'
-                              : 'admin-icon-btn-delete'
-                          }
-                          title={deleteConfirmId === category.id ? 'Click lại để xác nhận' : 'Xóa'}
+                          onClick={() => handleDelete(category)}
+                          className="admin-icon-btn-delete"
+                          title="Xóa"
                         >
                           <TrashIcon className="h-5 w-5" />
                         </button>

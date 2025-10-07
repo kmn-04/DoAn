@@ -208,15 +208,8 @@ const TourDetailPage: React.FC = () => {
       
       try {
         setIsLoading(true);
-        console.log('🔍 Fetching tour by slug:', slug);
-        
         // Get tour by slug from API
         const tourResponse = await tourService.getTourBySlug(slug);
-        console.log('✅ Tour API response:', tourResponse);
-        console.log('📦 includedServices type:', typeof tourResponse.includedServices, tourResponse.includedServices);
-        console.log('📦 excludedServices type:', typeof tourResponse.excludedServices, tourResponse.excludedServices);
-        console.log('📌 highlights type:', typeof tourResponse.highlights, tourResponse.highlights);
-        
         // Parse included services
         let includedList = [];
         if (tourResponse.includedServices) {
@@ -265,10 +258,6 @@ const TourDetailPage: React.FC = () => {
             'Tip cho hướng dẫn viên'
           ];
         }
-        
-        console.log('✅ Final includedList:', includedList.length, 'items');
-        console.log('✅ Final excludedList:', excludedList.length, 'items');
-        
         // Map API response to TourDetail interface
         const mappedTour: TourDetail = {
           id: tourResponse.id,
@@ -411,7 +400,6 @@ const TourDetailPage: React.FC = () => {
               relatedToursList = [...relatedToursList, ...tier3];
             }
             
-            console.log(`✅ Found ${relatedToursList.length} related tours (Tier breakdown: ${tier1.length} tier1, ${relatedToursList.length - tier1.length} tier2+3)`);
             setRelatedTours(relatedToursList);
           } catch (relatedError) {
             console.error('❌ Error fetching related tours:', relatedError);
@@ -433,7 +421,6 @@ const TourDetailPage: React.FC = () => {
   }, [slug]);
 
   const handleBooking = (bookingData: any) => {
-    console.log('Booking data:', bookingData);
     // In real app, process booking
     alert('Đặt tour thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.');
   };

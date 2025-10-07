@@ -20,6 +20,8 @@ public class PromotionResponse {
     private String description;
     private String type; // Percentage or Fixed
     private BigDecimal value;
+    private BigDecimal minOrderAmount;
+    private BigDecimal maxDiscount;
     private Integer usageLimit;
     private Integer usageCount; // How many times this promotion has been used
     private LocalDateTime startDate;

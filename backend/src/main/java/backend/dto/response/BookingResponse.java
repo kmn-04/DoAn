@@ -73,6 +73,8 @@ public class BookingResponse {
         private Integer duration;
         private String departureLocation;
         private String destination;
+        private String tourType;
+        private java.math.BigDecimal price;
     }
     
     @Data
