@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeftIcon, 
   ChevronRightIcon,
@@ -9,106 +9,139 @@ import {
   UsersIcon
 } from '@heroicons/react/24/solid';
 import { Card } from '../ui';
+import { tourService } from '../../services';
 
 interface Tour {
   id: number;
   name: string;
   slug: string;
   description: string;
+  shortDescription?: string;
   price: number;
-  originalPrice?: number;
-  duration: string;
-  location: string;
-  rating: number;
-  reviewCount: number;
-  maxPeople: number;
-  image: string;
-  badge?: string;
+  salePrice?: number;
+  effectivePrice?: number;
+  duration: number;
+  destination?: string;
+  region?: string;
+  departureLocation?: string;
+  averageRating?: number;
+  totalReviews?: number;
+  maxPeople?: number;
+  mainImage: string;
+  isFeatured?: boolean;
+  isNew?: boolean;
 }
 
-// Mock data - sẽ thay bằng API call
-const mockTours: Tour[] = [
-  {
-    id: 1,
-    name: "Hạ Long Bay - Kỳ Quan Thế Giới",
-    slug: "ha-long-bay-ky-quan-the-gioi",
-    description: "Khám phá vẻ đẹp huyền bí của Vịnh Hạ Long với hàng ngàn đảo đá vôi kỳ thú",
-    price: 2500000,
-    originalPrice: 3000000,
-    duration: "2 ngày 1 đêm",
-    location: "Quảng Ninh",
-    rating: 4.8,
-    reviewCount: 245,
-    maxPeople: 20,
-    image: "https://images.unsplash.com/photo-1528127269322-539801943592?w=800",
-    badge: "Bán chạy"
-  },
-  {
-    id: 2,
-    name: "Sapa - Thiên Đường Mây Trắng",
-    slug: "sapa-thien-duong-may-trang",
-    description: "Chinh phục đỉnh Fansipan và khám phá văn hóa độc đáo của các dân tộc thiểu số",
-    price: 1800000,
-    duration: "3 ngày 2 đêm",
-    location: "Lào Cai",
-    rating: 4.9,
-    reviewCount: 189,
-    maxPeople: 15,
-    image: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800",
-    badge: "Mới"
-  },
-  {
-    id: 3,
-    name: "Phú Quốc - Đảo Ngọc Xanh",
-    slug: "phu-quoc-dao-ngoc-xanh",
-    description: "Thư giãn tại những bãi biển tuyệt đẹp và thưởng thức hải sản tươi ngon",
-    price: 3200000,
-    duration: "4 ngày 3 đêm",
-    location: "Kiên Giang",
-    rating: 4.7,
-    reviewCount: 312,
-    maxPeople: 25,
-    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800"
-  },
-  {
-    id: 4,
-    name: "Hội An - Phố Cổ Thơ Mộng",
-    slug: "hoi-an-pho-co-tho-mong",
-    description: "Dạo bước trong phố cổ Hội An với những ngôi nhà cổ kính và đèn lồng rực rỡ",
-    price: 1500000,
-    duration: "2 ngày 1 đêm",
-    location: "Quảng Nam",
-    rating: 4.6,
-    reviewCount: 156,
-    maxPeople: 18,
-    image: "https://images.unsplash.com/photo-1555618254-74e3f7d4f9b8?w=800"
-  },
-  {
-    id: 5,
-    name: "Đà Lạt - Thành Phố Ngàn Hoa",
-    slug: "da-lat-thanh-pho-ngan-hoa",
-    description: "Khám phá thành phố mộng mơ với khí hậu mát mẻ và cảnh quan lãng mạn",
-    price: 1200000,
-    duration: "3 ngày 2 đêm",
-    location: "Lâm Đồng",
-    rating: 4.5,
-    reviewCount: 203,
-    maxPeople: 20,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800"
-  }
-];
-
 const FeaturedTours: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const toursPerSlide = 3;
-  const maxSlides = Math.ceil(mockTours.length / toursPerSlide);
+  const navigate = useNavigate();
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [hasMoved, setHasMoved] = useState(false);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % maxSlides);
+  useEffect(() => {
+    const fetchFeaturedTours = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await tourService.getFeaturedTours();
+        setTours(data);
+      } catch (err) {
+        console.error('Error fetching featured tours:', err);
+        setError('Không thể tải tour nổi bật. Vui lòng thử lại sau.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFeaturedTours();
+  }, []);
+
+  const handleCardClick = (slug: string, e: React.MouseEvent) => {
+    // Prevent navigation if user was dragging (moved more than 5px)
+    if (hasMoved) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    
+    // Check if clicked element is a link (to avoid double navigation)
+    const target = e.target as HTMLElement;
+    if (target.tagName !== 'A' && !target.closest('a')) {
+      navigate(`/tours/${slug}`);
+    }
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + maxSlides) % maxSlides);
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 400; // Scroll by ~1 card width
+      const newScrollLeft = scrollContainerRef.current.scrollLeft + (direction === 'right' ? scrollAmount : -scrollAmount);
+      scrollContainerRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Mouse drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setHasMoved(false);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1; // Multiply by 1 for smooth, controlled scroll
+    
+    // Mark as moved if dragged more than 5px
+    if (Math.abs(walk) > 5) {
+      setHasMoved(true);
+    }
+    
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
+    // Reset hasMoved after a short delay to allow click handler to check it
+    setTimeout(() => setHasMoved(false), 100);
+  };
+
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setHasMoved(false);
+    setStartX(e.touches[0].pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1; // Multiply by 1 for smooth, controlled scroll
+    
+    // Mark as moved if dragged more than 5px
+    if (Math.abs(walk) > 5) {
+      setHasMoved(true);
+    }
+    
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    // Reset hasMoved after a short delay to allow click handler to check it
+    setTimeout(() => setHasMoved(false), 100);
   };
 
   const formatPrice = (price: number) => {
@@ -118,10 +151,72 @@ const FeaturedTours: React.FC = () => {
     }).format(price);
   };
 
-  const currentTours = mockTours.slice(
-    currentSlide * toursPerSlide,
-    (currentSlide + 1) * toursPerSlide
-  );
+  // Loading state
+  if (isLoading) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Tour Du Lịch Nổi Bật
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+                <div className="h-48 bg-gray-200"></div>
+                <div className="p-6">
+                  <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Tour Du Lịch Nổi Bật
+            </h2>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-lg mx-auto">
+              <p className="text-red-600">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
+              >
+                Tải lại
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Empty state
+  if (tours.length === 0) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Tour Du Lịch Nổi Bật
+            </h2>
+            <p className="text-gray-600">Chưa có tour nổi bật nào.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-12 bg-gray-50">
@@ -136,50 +231,75 @@ const FeaturedTours: React.FC = () => {
           </p>
         </div>
 
-        {/* Carousel Container */}
-        <div className="relative">
-          {/* Navigation Buttons */}
+        {/* Horizontal Scroll Container */}
+        <div className="relative group">
+          {/* Navigation Buttons - Show on hover */}
           <button
-            onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow"
-            disabled={currentSlide === 0}
+            onClick={() => scroll('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100"
           >
             <ChevronLeftIcon className="h-6 w-6 text-gray-600" />
           </button>
 
           <button
-            onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow"
-            disabled={currentSlide === maxSlides - 1}
+            onClick={() => scroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100"
           >
             <ChevronRightIcon className="h-6 w-6 text-gray-600" />
           </button>
 
-          {/* Tours Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
-            {currentTours.map((tour) => (
-              <Card key={tour.id} className="group cursor-pointer overflow-hidden hover:shadow-xl transition-shadow h-full flex flex-col">
-                <div className="relative">
-                  {/* Tour Image */}
-                  <img
-                    src={tour.image}
-                    alt={tour.name}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+          {/* Scrollable Tours */}
+          <div 
+            ref={scrollContainerRef}
+            className={`flex gap-6 overflow-x-auto scrollbar-hide pb-4 select-none ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              scrollBehavior: isDragging ? 'auto' : 'smooth',
+            }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {tours.map((tour) => (
+              <div 
+                key={tour.id} 
+                className="group cursor-pointer overflow-hidden hover:shadow-xl transition-shadow flex-shrink-0 flex flex-col bg-white rounded-xl border border-gray-200"
+                onClick={(e) => handleCardClick(tour.slug, e)}
+                style={{ width: '360px' }}
+              >
+                <div className="relative overflow-hidden rounded-t-xl">
+                    {/* Tour Image */}
+                    <img
+                      src={tour.mainImage}
+                      alt={tour.name}
+                      className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
                   
                   {/* Badge */}
-                  {tour.badge && (
+                  {tour.isNew && (
+                    <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      Mới
+                    </div>
+                  )}
+                  {tour.isFeatured && !tour.isNew && (
                     <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                      {tour.badge}
+                      Nổi bật
                     </div>
                   )}
 
                   {/* Price */}
                   <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-lg">
-                    <div className="text-sm font-bold">{formatPrice(tour.price)}</div>
-                    {tour.originalPrice && (
+                    <div className="text-sm font-bold">{formatPrice(tour.effectivePrice || tour.salePrice || tour.price)}</div>
+                    {tour.salePrice && tour.salePrice < tour.price && (
                       <div className="text-xs line-through text-gray-300">
-                        {formatPrice(tour.originalPrice)}
+                        {formatPrice(tour.price)}
                       </div>
                     )}
                   </div>
@@ -187,28 +307,26 @@ const FeaturedTours: React.FC = () => {
 
                 <div className="p-6 flex-1 flex flex-col">
                   {/* Tour Name */}
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 min-h-[3.5rem]">
-                    {tour.name}
-                  </h3>
+                  <Link to={`/tours/${tour.slug}`}>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors line-clamp-2 min-h-[3.5rem]">
+                      {tour.name}
+                    </h3>
+                  </Link>
 
                   {/* Description */}
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2 min-h-[2.5rem]">
-                    {tour.description}
+                    {tour.shortDescription || tour.description}
                   </p>
 
                   {/* Tour Details */}
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-4 min-h-[3rem]">
+                  <div className="flex gap-4 text-sm text-gray-500 mb-4">
                     <div className="flex items-center space-x-1">
                       <MapPinIcon className="h-4 w-4" />
-                      <span>{tour.location}</span>
+                      <span>{tour.destination || tour.region || 'Việt Nam'}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <ClockIcon className="h-4 w-4" />
-                      <span>{tour.duration}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <UsersIcon className="h-4 w-4" />
-                      <span>Max {tour.maxPeople}</span>
+                      <span>{tour.duration} ngày</span>
                     </div>
                   </div>
 
@@ -220,9 +338,9 @@ const FeaturedTours: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <div className="flex items-center space-x-1">
                         <StarIcon className="h-4 w-4 text-yellow-400" />
-                        <span className="font-semibold text-gray-900">{tour.rating}</span>
+                        <span className="font-semibold text-gray-900">{tour.averageRating?.toFixed(1) || '5.0'}</span>
                       </div>
-                      <span className="text-sm text-gray-500">({tour.reviewCount} đánh giá)</span>
+                      <span className="text-sm text-gray-500">({tour.totalReviews || 0} đánh giá)</span>
                     </div>
 
                     <Link
@@ -233,20 +351,7 @@ const FeaturedTours: React.FC = () => {
                     </Link>
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
-
-          {/* Dots Indicator */}
-          <div className="flex justify-center space-x-2 mt-8">
-            {Array.from({ length: maxSlides }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  index === currentSlide ? 'bg-blue-600' : 'bg-gray-300'
-                }`}
-              />
+              </div>
             ))}
           </div>
         </div>

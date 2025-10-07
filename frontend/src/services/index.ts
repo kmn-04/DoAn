@@ -13,6 +13,8 @@ export { default as contactService } from './contactService';
 export { default as reviewService } from './reviewService';
 export { default as paymentService } from './paymentService';
 export { default as partnerService } from './partnerService';
+export { default as promotionService } from './promotionService';
+export { default as destinationService } from './destinationService';
 export { apiClient } from './api';
 
 // Export types
@@ -47,3 +49,11 @@ export type {
   ContactRequest,
   ContactResponse
 } from './contactService';
+
+export type {
+  PromotionResponse
+} from './promotionService';
+
+export type {
+  PopularDestinationResponse
+} from './destinationService';

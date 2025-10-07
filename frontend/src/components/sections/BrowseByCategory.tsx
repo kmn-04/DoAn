@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   BeakerIcon,
   BuildingLibraryIcon,
@@ -8,23 +8,219 @@ import {
   HomeIcon,
   SparklesIcon,
   CurrencyDollarIcon,
-  CalendarDaysIcon
+  CalendarDaysIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
+import { categoryService } from '../../services';
 
-interface TourCategory {
+interface Category {
   id: number;
   name: string;
   slug: string;
-  icon: React.ComponentType<any>;
-  tourCount: number;
-  image: string;
-  description: string;
-  color: string;
-  bgColor: string;
+  description?: string;
+  icon?: string;
+  tourCount?: number;
 }
 
+// Icon mapping for categories
+const iconMap: Record<string, React.ComponentType<any>> = {
+  beach: BeakerIcon,
+  culture: BuildingLibraryIcon,
+  adventure: FireIcon,
+  family: HeartIcon,
+  domestic: HomeIcon,
+  luxury: SparklesIcon,
+  budget: CurrencyDollarIcon,
+  weekend: CalendarDaysIcon,
+};
+
+// Color mapping for categories
+const colorMap: Record<string, { text: string; bg: string }> = {
+  beach: { text: 'text-blue-600', bg: 'bg-blue-50 hover:bg-blue-100' },
+  culture: { text: 'text-purple-600', bg: 'bg-purple-50 hover:bg-purple-100' },
+  adventure: { text: 'text-red-600', bg: 'bg-red-50 hover:bg-red-100' },
+  family: { text: 'text-pink-600', bg: 'bg-pink-50 hover:bg-pink-100' },
+  domestic: { text: 'text-green-600', bg: 'bg-green-50 hover:bg-green-100' },
+  luxury: { text: 'text-yellow-600', bg: 'bg-yellow-50 hover:bg-yellow-100' },
+  budget: { text: 'text-orange-600', bg: 'bg-orange-50 hover:bg-orange-100' },
+  weekend: { text: 'text-indigo-600', bg: 'bg-indigo-50 hover:bg-indigo-100' },
+};
+
+// Default image mapping
+const imageMap: Record<string, string> = {
+  beach: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+  culture: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400&h=300&fit=crop',
+  adventure: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop',
+  family: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop',
+  domestic: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+  luxury: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400&h=300&fit=crop',
+  budget: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop',
+  weekend: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop',
+};
+
 const BrowseByCategory: React.FC = () => {
-  const categories: TourCategory[] = [
+  const navigate = useNavigate();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [hasMoved, setHasMoved] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await categoryService.getAllCategories();
+        setCategories(data);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        setError('Không thể tải danh mục. Vui lòng thử lại sau.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 400; // Scroll by ~1.5 card width
+      const newScrollLeft = scrollContainerRef.current.scrollLeft + (direction === 'right' ? scrollAmount : -scrollAmount);
+      scrollContainerRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Mouse drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setHasMoved(false);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1;
+    
+    // Mark as moved if dragged more than 5px
+    if (Math.abs(walk) > 5) {
+      setHasMoved(true);
+    }
+    
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
+    setTimeout(() => setHasMoved(false), 100);
+  };
+
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setHasMoved(false);
+    setStartX(e.touches[0].pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1;
+    
+    // Mark as moved if dragged more than 5px
+    if (Math.abs(walk) > 5) {
+      setHasMoved(true);
+    }
+    
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    setTimeout(() => setHasMoved(false), 100);
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Khám Phá Theo Chủ Đề
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-md overflow-hidden animate-pulse">
+                <div className="h-48 bg-gray-200"></div>
+                <div className="p-6">
+                  <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Khám Phá Theo Chủ Đề
+            </h2>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-lg mx-auto">
+              <p className="text-red-600">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
+              >
+                Tải lại
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Empty state
+  if (categories.length === 0) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Khám Phá Theo Chủ Đề
+            </h2>
+            <p className="text-gray-600">Chưa có danh mục nào.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const mockCategories = [
     {
       id: 1,
       name: 'Tour Biển Đảo',
@@ -128,21 +324,63 @@ const BrowseByCategory: React.FC = () => {
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categories.map((category) => {
-            const IconComponent = category.icon;
-            return (
-              <Link
-                key={category.id}
-                to={`/tours?category=${category.slug}`}
-                className="group"
-              >
-                <div className={`relative overflow-hidden rounded-2xl ${category.bgColor} border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-105`}>
+        {/* Horizontal Scroll Container */}
+        <div className="relative group">
+          {/* Navigation Buttons - Show on hover */}
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100"
+          >
+            <ChevronLeftIcon className="h-6 w-6 text-gray-600" />
+          </button>
+
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100"
+          >
+            <ChevronRightIcon className="h-6 w-6 text-gray-600" />
+          </button>
+
+          {/* Scrollable Categories */}
+          <div 
+            ref={scrollContainerRef}
+            className={`flex gap-6 overflow-x-auto scrollbar-hide pb-4 select-none ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+            style={{
+              scrollbarWidth: 'none', // Firefox
+              msOverflowStyle: 'none', // IE/Edge
+              scrollBehavior: isDragging ? 'auto' : 'smooth',
+            }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {categories.map((category) => {
+              const IconComponent = iconMap[category.slug] || HomeIcon;
+              const colors = colorMap[category.slug] || { text: 'text-gray-600', bg: 'bg-gray-50 hover:bg-gray-100' };
+              const image = imageMap[category.slug] || imageMap.domestic;
+              
+              return (
+                <div
+                  key={category.id}
+                  className="group flex-shrink-0 cursor-pointer"
+                  style={{ width: '280px' }}
+                  onClick={(e) => {
+                    if (!hasMoved) {
+                      navigate(`/tours?category=${category.slug}`);
+                    }
+                  }}
+                >
+                  <div className={`relative overflow-hidden rounded-2xl ${colors.bg} border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-105 h-full`}>
                   {/* Background Image */}
                   <div className="relative h-48 overflow-hidden">
                     <img
-                      src={category.image}
+                      src={image}
                       alt={category.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
@@ -150,7 +388,7 @@ const BrowseByCategory: React.FC = () => {
                     
                     {/* Icon Overlay */}
                     <div className="absolute top-4 right-4">
-                      <div className={`p-3 rounded-full bg-white/90 ${category.color}`}>
+                      <div className={`p-3 rounded-full bg-white/90 ${colors.text}`}>
                         <IconComponent className="h-6 w-6" />
                       </div>
                     </div>
@@ -158,34 +396,35 @@ const BrowseByCategory: React.FC = () => {
                     {/* Tour Count Badge */}
                     <div className="absolute bottom-4 left-4">
                       <div className="bg-white/90 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">
-                        {category.tourCount} tours
+                        {category.tourCount || 0} tours
                       </div>
                     </div>
                   </div>
 
                   {/* Content */}
-                  <div className="p-6">
-                    <h3 className={`text-xl font-bold ${category.color} mb-2 group-hover:text-opacity-80 transition-colors`}>
+                  <div className="p-6 flex flex-col">
+                    <h3 className={`text-xl font-bold ${colors.text} mb-2 group-hover:text-opacity-80 transition-colors`}>
                       {category.name}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      {category.description}
+                    <p className="text-gray-600 text-sm leading-relaxed h-16 overflow-hidden">
+                      {category.description || `Khám phá các tour ${category.name.toLowerCase()}`}
                     </p>
                     
                     {/* Hover Arrow */}
                     <div className="mt-4 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <span className={`text-sm font-medium ${category.color}`}>
+                      <span className="text-sm font-semibold text-blue-600">
                         Khám phá ngay
                       </span>
-                      <svg className={`h-4 w-4 ${category.color} transform group-hover:translate-x-1 transition-transform`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-4 w-4 text-blue-600 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
                   </div>
                 </div>
-              </Link>
-            );
-          })}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* View All Categories CTA */}

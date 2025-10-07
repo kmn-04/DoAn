@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ClockIcon, FireIcon, TagIcon } from '@heroicons/react/24/outline';
+import { Link, useNavigate } from 'react-router-dom';
+import { ClockIcon, FireIcon, TagIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Card, Button } from '../ui';
+import { tourService } from '../../services';
+import type { PromotionResponse } from '../../services';
 
 interface HotDeal {
   id: number;
+  tourId: number;
   title: string;
   originalPrice: number;
   discountPrice: number;
@@ -16,42 +19,76 @@ interface HotDeal {
   isLimited: boolean;
   soldCount: number;
   totalCount: number;
+  promotion: PromotionResponse;
 }
 
 const HotDeals: React.FC = () => {
+  const navigate = useNavigate();
+  const [hotDeals, setHotDeals] = useState<HotDeal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<{ [key: number]: string }>({});
 
-  // Mock data cho hot deals
-  const hotDeals: HotDeal[] = [
-    {
-      id: 1,
-      title: 'Phu Quoc Beach Paradise - 3N2D',
-      originalPrice: 2500000,
-      discountPrice: 1500000,
-      discountPercent: 40,
-      image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop',
-      endDate: '2025-09-30T23:59:59',
-      description: 'Tận hưởng bãi biển tuyệt đẹp với khu nghỉ dưỡng 4 sao',
-      slug: 'phu-quoc-beach-paradise-3n2d',
-      isLimited: true,
-      soldCount: 45,
-      totalCount: 50
-    },
-    {
-      id: 2,
-      title: 'Ha Long Bay Luxury Cruise - 2N1D',
-      originalPrice: 3200000,
-      discountPrice: 2200000,
-      discountPercent: 31,
-      image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop',
-      endDate: '2025-09-25T23:59:59',
-      description: 'Du thuyền sang trọng khám phá kỳ quan thiên nhiên',
-      slug: 'ha-long-bay-luxury-cruise-2n1d',
-      isLimited: false,
-      soldCount: 28,
-      totalCount: 30
-    }
-  ];
+  useEffect(() => {
+    const fetchHotDeals = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Fetch featured tours
+        const tours = await tourService.getFeaturedTours();
+
+        // Filter tours with significant discount (>= 20%) and take first 6
+        const deals: HotDeal[] = tours
+          .filter(tour => {
+            if (!tour.salePrice || tour.salePrice >= tour.price) return false;
+            const discountPercent = ((tour.price - tour.salePrice) / tour.price) * 100;
+            return discountPercent >= 20;
+          })
+          .slice(0, 6)
+          .map((tour) => {
+            const originalPrice = tour.price;
+            const discountPrice = tour.salePrice || tour.price;
+            const discountPercent = Math.round(((originalPrice - discountPrice) / originalPrice) * 100);
+            
+            // Generate a realistic end date (7-14 days from now)
+            const daysUntilEnd = Math.floor(Math.random() * 8) + 7; // 7-14 days
+            const endDate = new Date(Date.now() + daysUntilEnd * 24 * 60 * 60 * 1000).toISOString();
+            
+            // Generate realistic sold count based on discount
+            const maxUses = discountPercent >= 40 ? 50 : discountPercent >= 30 ? 70 : 100;
+            const soldPercentage = 0.5 + Math.random() * 0.4; // 50-90%
+            const soldCount = Math.floor(maxUses * soldPercentage);
+            
+            return {
+              id: tour.id,
+              tourId: tour.id,
+              title: tour.name,
+              originalPrice,
+              discountPrice,
+              discountPercent,
+              image: tour.mainImage,
+              endDate,
+              description: tour.shortDescription || tour.description || 'Tour du lịch đặc sắc với ưu đãi hấp dẫn',
+              slug: tour.slug,
+              isLimited: maxUses <= 50, // Tours with high discount are limited
+              soldCount,
+              totalCount: maxUses,
+              promotion: {} as PromotionResponse
+            };
+          });
+
+        setHotDeals(deals);
+      } catch (err) {
+        console.error('Error fetching hot deals:', err);
+        setError('Không thể tải ưu đãi. Vui lòng thử lại sau.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHotDeals();
+  }, []);
 
   // Countdown timer effect
   useEffect(() => {
@@ -88,6 +125,52 @@ const HotDeals: React.FC = () => {
     }).format(price);
   };
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <section className="py-12 bg-gradient-to-br from-red-50 to-orange-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ưu Đãi Sốc</h2>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white rounded-xl h-96 animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section className="py-12 bg-gradient-to-br from-red-50 to-orange-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ưu Đãi Sốc</h2>
+            <p className="text-red-600">{error}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Empty state
+  if (hotDeals.length === 0) {
+    return (
+      <section className="py-12 bg-gradient-to-br from-red-50 to-orange-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ưu Đãi Sốc</h2>
+            <p className="text-gray-600">Hiện chưa có ưu đãi nào.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-12 bg-gradient-to-br from-red-50 to-orange-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -96,7 +179,7 @@ const HotDeals: React.FC = () => {
           <div className="flex items-center justify-center space-x-2 mb-4">
             <FireIcon className="h-8 w-8 text-red-500" />
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Ưu Đại Sốc
+              Ưu Đãi Sốc
             </h2>
             <FireIcon className="h-8 w-8 text-red-500" />
           </div>
