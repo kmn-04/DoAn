@@ -23,7 +23,6 @@ export const ResponsiveTestTool: React.FC<ResponsiveTestToolProps> = ({ children
       try {
         window.resizeTo(device.width, device.height);
       } catch (e) {
-        console.log('Window resize not supported in this browser');
       }
     }
   };
@@ -33,7 +32,6 @@ export const ResponsiveTestTool: React.FC<ResponsiveTestToolProps> = ({ children
     try {
       window.resizeTo(1280, 720);
     } catch (e) {
-      console.log('Window resize not supported in this browser');
     }
   };
 

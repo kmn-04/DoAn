@@ -57,7 +57,6 @@ const Header: React.FC = () => {
   }, []);
 
   const handleLogout = () => {
-    console.log('Header: Logout button clicked');
     logout(); // This calls the logout from useAuth hook
     setIsUserMenuOpen(false);
   };
@@ -109,16 +108,9 @@ const Header: React.FC = () => {
 
   // Admin-only navigation item
   // Debug: Log user role
-  console.log('[Header] User:', user);
-  console.log('[Header] User role:', user?.role);
-  console.log('[Header] User role name:', user?.role?.name);
-  
   const adminNavigation = user?.role?.name?.toUpperCase() === 'ADMIN' 
     ? [{ name: 'Quay lại Admin', href: '/admin', icon: ShieldCheckIcon }] 
     : [];
-  
-  console.log('[Header] Admin navigation:', adminNavigation);
-
   return (
     <header className="bg-white shadow-lg relative z-50">
       {/* Top Row: Logo + Search + Hotline */}
@@ -269,7 +261,6 @@ const Header: React.FC = () => {
                 <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => {
-                    console.log('Avatar clicked, menu open:', !isUserMenuOpen);
                     setIsUserMenuOpen(!isUserMenuOpen);
                   }}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -329,7 +320,6 @@ const Header: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        console.log('Dropdown logout clicked!');
                         handleLogout();
                       }}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-t text-left"

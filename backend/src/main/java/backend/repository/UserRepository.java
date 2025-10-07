@@ -27,6 +27,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
     
     /**
+     * Check if email exists among non-deleted users
+     */
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.email = :email AND u.deletedAt IS NULL")
+    boolean existsByEmailAndNotDeleted(@Param("email") String email);
+    
+    /**
      * Find users by role ID
      */
     List<User> findByRoleId(Long roleId);
@@ -41,6 +47,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT u FROM User u WHERE u.deletedAt IS NULL")
     List<User> findActiveUsers();
+    
+    /**
+     * Find active users with pagination (not deleted)
+     */
+    @Query("SELECT u FROM User u WHERE u.deletedAt IS NULL")
+    Page<User> findByDeletedAtIsNull(Pageable pageable);
     
     /**
      * Find users by role name
@@ -71,6 +83,24 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * Count users by status
      */
     Long countByStatus(UserStatus status);
+    
+    /**
+     * Count non-deleted users by status
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.status = :status AND u.deletedAt IS NULL")
+    Long countByStatusAndNotDeleted(@Param("status") UserStatus status);
+    
+    /**
+     * Count total non-deleted users
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.deletedAt IS NULL")
+    Long countByDeletedAtIsNull();
+    
+    /**
+     * Count banned users (not deleted)
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.status = 'Banned' AND u.deletedAt IS NULL")
+    Long countBannedUsers();
     
     /**
      * Find verified users

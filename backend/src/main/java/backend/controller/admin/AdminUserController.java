@@ -3,9 +3,13 @@ package backend.controller.admin;
 import backend.controller.BaseController;
 import backend.dto.response.ApiResponse;
 import backend.dto.response.PageResponse;
+import backend.dto.response.UserResponse;
+import backend.entity.Role;
 import backend.entity.User;
 import backend.entity.UserActivity;
 import backend.entity.UserSession;
+import backend.mapper.EntityMapper;
+import backend.repository.RoleRepository;
 import backend.service.UserService;
 import backend.service.UserActivityService;
 import backend.service.UserSessionService;
@@ -40,6 +44,8 @@ public class AdminUserController extends BaseController {
     private final UserService userService;
     private final UserActivityService userActivityService;
     private final UserSessionService userSessionService;
+    private final EntityMapper mapper;
+    private final RoleRepository roleRepository;
     
     // ================================
     // USER MANAGEMENT
@@ -85,34 +91,135 @@ public class AdminUserController extends BaseController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
+    @PostMapping
+    @Operation(summary = "Create new user")
+    @Transactional
+    public ResponseEntity<ApiResponse<User>> createUser(@RequestBody Map<String, Object> requestData) {
+        try {
+            log.info("Creating new user with data: {}", requestData);
+            
+            User user = new User();
+            user.setName((String) requestData.get("name"));
+            user.setEmail((String) requestData.get("email"));
+            user.setPassword((String) requestData.get("password"));
+            user.setPhone((String) requestData.get("phone"));
+            
+            // Set role
+            if (requestData.containsKey("roleId")) {
+                Long roleId = Long.valueOf(requestData.get("roleId").toString());
+                Role role = roleRepository.findById(roleId)
+                        .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId));
+                user.setRole(role);
+            }
+            
+            // Set status
+            if (requestData.containsKey("status")) {
+                String statusStr = (String) requestData.get("status");
+                user.setStatus(User.UserStatus.valueOf(statusStr));
+            }
+            
+            User createdUser = userService.createUser(user);
+            
+            // Force load role to avoid LazyInitializationException
+            if (createdUser.getRole() != null) {
+                createdUser.getRole().getName();
+            }
+            
+            return ResponseEntity.ok(success("User created successfully", createdUser));
+        } catch (Exception e) {
+            log.error("Error creating user", e);
+            return ResponseEntity.badRequest().body(error("Failed to create user: " + e.getMessage()));
+        }
+    }
+    
     @PutMapping("/{id}")
     @Operation(summary = "Update user")
-    public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long id, @RequestBody User userUpdate) {
-        User updatedUser = userService.updateUser(id, userUpdate);
-        return ResponseEntity.ok(success("User updated successfully", updatedUser));
+    @Transactional
+    public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> requestData) {
+        try {
+            log.info("Updating user {} with data: {}", id, requestData);
+            
+            User user = userService.getUserById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+            
+            // Update basic fields
+            if (requestData.containsKey("name")) {
+                user.setName((String) requestData.get("name"));
+            }
+            if (requestData.containsKey("email")) {
+                user.setEmail((String) requestData.get("email"));
+            }
+            if (requestData.containsKey("password") && !((String) requestData.get("password")).isEmpty()) {
+                user.setPassword((String) requestData.get("password"));
+            }
+            if (requestData.containsKey("phone")) {
+                user.setPhone((String) requestData.get("phone"));
+            }
+            
+            // Set role
+            if (requestData.containsKey("roleId")) {
+                Long roleId = Long.valueOf(requestData.get("roleId").toString());
+                Role role = roleRepository.findById(roleId)
+                        .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId));
+                user.setRole(role);
+            }
+            
+            // Set status
+            if (requestData.containsKey("status")) {
+                String statusStr = (String) requestData.get("status");
+                user.setStatus(User.UserStatus.valueOf(statusStr));
+            }
+            
+            User updatedUser = userService.updateUser(id, user);
+            
+            // Force load role to avoid LazyInitializationException
+            if (updatedUser.getRole() != null) {
+                updatedUser.getRole().getName();
+            }
+            
+            return ResponseEntity.ok(success("User updated successfully", updatedUser));
+        } catch (Exception e) {
+            log.error("Error updating user", e);
+            return ResponseEntity.badRequest().body(error("Failed to update user: " + e.getMessage()));
+        }
     }
     
     @PatchMapping("/{id}/status")
     @Operation(summary = "Update user status")
-    public ResponseEntity<ApiResponse<User>> updateUserStatus(
+    @Transactional
+    public ResponseEntity<ApiResponse<UserResponse>> updateUserStatus(
             @PathVariable Long id,
             @RequestParam User.UserStatus status) {
         
-        User user;
-        if (status == User.UserStatus.Active) {
-            user = userService.activateUser(id);
-        } else {
-            user = userService.deactivateUser(id);
+        User user = userService.getUserById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+        
+        user.setStatus(status);
+        User updatedUser = userService.updateUser(id, user);
+        
+        // Force load role to avoid lazy loading
+        if (updatedUser.getRole() != null) {
+            updatedUser.getRole().getName(); // Initialize proxy
         }
         
-        return ResponseEntity.ok(success("User status updated successfully", user));
+        // Convert to DTO
+        UserResponse response = mapper.toUserResponse(updatedUser);
+        
+        return ResponseEntity.ok(success("User status updated successfully", response));
     }
     
     @DeleteMapping("/{id}")
     @Operation(summary = "Soft delete user")
+    @Transactional
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.ok(success("User deleted successfully"));
+        try {
+            log.info("Deleting user with ID: {}", id);
+            userService.deleteUser(id);
+            return ResponseEntity.ok(success("User deleted successfully"));
+        } catch (Exception e) {
+            log.error("Error deleting user ID: {}", id, e);
+            return ResponseEntity.badRequest().body(error("Failed to delete user: " + e.getMessage()));
+        }
     }
     
     @PatchMapping("/bulk/status")

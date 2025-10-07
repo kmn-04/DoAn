@@ -295,6 +295,10 @@ public class EntityMapper {
         // Tour info
         if (booking.getTour() != null) {
             Tour tour = booking.getTour();
+            log.debug("Mapping tour for booking {}: tour ID={}, name={}, tourType={}, departureLocation={}, destination={}, price={}", 
+                booking.getId(), tour.getId(), tour.getName(), tour.getTourType(), 
+                tour.getDepartureLocation(), tour.getDestination(), tour.getPrice());
+            
             BookingResponse.TourInfo tourInfo = new BookingResponse.TourInfo();
             tourInfo.setId(tour.getId());
             tourInfo.setName(tour.getName());
@@ -303,6 +307,13 @@ public class EntityMapper {
             tourInfo.setDuration(tour.getDuration());
             tourInfo.setDepartureLocation(tour.getDepartureLocation());
             tourInfo.setDestination(tour.getDestination());
+            tourInfo.setTourType(tour.getTourType() != null ? tour.getTourType().name() : null);
+            tourInfo.setPrice(tour.getPrice());
+            
+            log.debug("Mapped tourInfo: tourType={}, departureLocation={}, destination={}, price={}", 
+                tourInfo.getTourType(), tourInfo.getDepartureLocation(), 
+                tourInfo.getDestination(), tourInfo.getPrice());
+            
             response.setTour(tourInfo);
         }
         

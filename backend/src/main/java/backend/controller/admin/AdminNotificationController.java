@@ -32,6 +32,7 @@ public class AdminNotificationController extends BaseController {
     
     @GetMapping
     @Operation(summary = "Get all notifications", description = "Get all notifications with pagination (Admin only)")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAllNotifications(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -43,7 +44,13 @@ public class AdminNotificationController extends BaseController {
             Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
             
             Page<Notification> notifications = notificationService.getAllNotifications(pageable);
-            Page<NotificationResponse> response = notifications.map(this::toResponse);
+            Page<NotificationResponse> response = notifications.map(notification -> {
+                // Initialize lazy-loaded user within transaction
+                if (notification.getUser() != null) {
+                    notification.getUser().getName(); // Force initialization
+                }
+                return toResponse(notification);
+            });
             
             return ResponseEntity.ok(success("Notifications retrieved successfully", response));
         } catch (Exception e) {
@@ -55,10 +62,16 @@ public class AdminNotificationController extends BaseController {
     
     @GetMapping("/{id}")
     @Operation(summary = "Get notification by ID", description = "Get notification details by ID (Admin only)")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<NotificationResponse>> getNotificationById(@PathVariable Long id) {
         try {
             Notification notification = notificationService.getNotificationById(id)
                     .orElseThrow(() -> new RuntimeException("Notification not found with ID: " + id));
+            
+            // Initialize lazy-loaded user within transaction
+            if (notification.getUser() != null) {
+                notification.getUser().getName(); // Force initialization
+            }
             
             NotificationResponse response = toResponse(notification);
             return ResponseEntity.ok(success("Notification retrieved successfully", response));
@@ -73,30 +86,61 @@ public class AdminNotificationController extends BaseController {
     @Operation(summary = "Create notification", description = "Create new notification (Admin only)")
     public ResponseEntity<ApiResponse<String>> createNotification(@Valid @RequestBody NotificationRequest request) {
         try {
-            if (request.getUserId() == null) {
-                // Send to all users
-                notificationService.createNotificationForAllUsers(
-                    request.getTitle(),
-                    request.getMessage(),
-                    request.getType() != null ? request.getType() : Notification.NotificationType.Info
-                );
-                return ResponseEntity.ok(success("Notification sent to all users successfully", "All users notified"));
-            } else {
-                // Send to specific user
-                Notification notification = notificationService.createNotificationForUser(
-                    request.getUserId(),
-                    request.getTitle(),
-                    request.getMessage(),
-                    request.getType() != null ? request.getType() : Notification.NotificationType.Info,
-                    request.getLink()
-                );
-                NotificationResponse response = toResponse(notification);
-                return ResponseEntity.ok(success("Notification created successfully", "User " + request.getUserId() + " notified"));
-            }
+            String recipientType = request.getRecipientType() != null ? request.getRecipientType() : "ALL";
+            Notification.NotificationType type = request.getType() != null ? request.getType() : Notification.NotificationType.Info;
+            
+            // Always create a single notification with recipientType metadata
+            Notification notification = new Notification();
+            notification.setUser(null); // Always null - system notification
+            notification.setTitle(request.getTitle());
+            notification.setMessage(request.getMessage());
+            notification.setType(type);
+            notification.setLink(request.getLink());
+            notification.setRecipientType(recipientType); // Store recipient type
+            notification.setIsRead(false);
+            
+            notificationService.createNotification(notification);
+            
+            String message = switch (recipientType.toUpperCase()) {
+                case "ADMIN" -> "Notification sent to all admins successfully";
+                case "USER" -> "Notification sent to all users successfully";
+                default -> "Notification sent to all users successfully";
+            };
+            
+            log.info("System notification created with recipientType: {}", recipientType);
+            return ResponseEntity.ok(success(message, "Notification created"));
         } catch (Exception e) {
             log.error("Error creating notification", e);
             return ResponseEntity.internalServerError()
                     .body(error("Failed to create notification: " + e.getMessage()));
+        }
+    }
+    
+    @PutMapping("/{id}")
+    @Operation(summary = "Update notification", description = "Update notification by ID (Admin only)")
+    public ResponseEntity<ApiResponse<String>> updateNotification(
+            @PathVariable Long id,
+            @Valid @RequestBody NotificationRequest request
+    ) {
+        try {
+            Notification notification = notificationService.getNotificationById(id)
+                    .orElseThrow(() -> new RuntimeException("Notification not found with ID: " + id));
+            
+            // Update fields
+            notification.setTitle(request.getTitle());
+            notification.setMessage(request.getMessage());
+            notification.setType(request.getType() != null ? request.getType() : Notification.NotificationType.Info);
+            notification.setLink(request.getLink());
+            notification.setRecipientType(request.getRecipientType() != null ? request.getRecipientType() : "ALL");
+            
+            notificationService.createNotification(notification); // Save updates
+            
+            log.info("Notification updated: {}", id);
+            return ResponseEntity.ok(success("Notification updated successfully", "Updated"));
+        } catch (Exception e) {
+            log.error("Error updating notification with ID: {}", id, e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to update notification: " + e.getMessage()));
         }
     }
     
@@ -135,6 +179,7 @@ public class AdminNotificationController extends BaseController {
         response.setMessage(notification.getMessage());
         response.setType(notification.getType().name());
         response.setLink(notification.getLink());
+        response.setRecipientType(notification.getRecipientType());
         response.setIsRead(notification.getIsRead());
         response.setCreatedAt(notification.getCreatedAt());
         return response;

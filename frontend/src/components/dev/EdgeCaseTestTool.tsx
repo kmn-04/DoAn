@@ -63,14 +63,12 @@ export const EdgeCaseTestTool: React.FC = () => {
     await runner.runTest('Email Validation - Invalid Emails', () => {
       const invalidEmails = ['', 'invalid-email', '@domain.com', 'user@', 'user@domain'];
       const result = invalidEmails.every(email => !DebugValidation.isValidEmail(email));
-      console.log('Invalid emails test result:', result, invalidEmails);
       return result;
     });
 
     await runner.runTest('Email Validation - Valid Emails', () => {
       const validEmails = ['user@domain.com', 'test@example.org', 'user+tag@domain.co.uk'];
       const result = validEmails.every(email => DebugValidation.isValidEmail(email));
-      console.log('Valid emails test result:', result, validEmails);
       return result;
     });
 
@@ -78,14 +76,12 @@ export const EdgeCaseTestTool: React.FC = () => {
     await runner.runTest('Password Validation - Weak Passwords', () => {
       const weakPasswords = ['', '123', 'password', '12345678', 'Password'];
       const result = weakPasswords.every(password => !DebugValidation.isStrongPassword(password));
-      console.log('Weak passwords test result:', result, weakPasswords);
       return result;
     });
 
     await runner.runTest('Password Validation - Strong Passwords', () => {
       const strongPasswords = ['MyStr0ng!Pass', 'C0mplex@Password', 'Valid$Pass1'];
       const result = strongPasswords.every(password => DebugValidation.isStrongPassword(password));
-      console.log('Strong passwords test result:', result, strongPasswords);
       return result;
     });
 
@@ -93,14 +89,12 @@ export const EdgeCaseTestTool: React.FC = () => {
     await runner.runTest('Phone Validation - Invalid Phones', () => {
       const invalidPhones = ['', '123', 'abc123', '123-456'];
       const result = invalidPhones.every(phone => !DebugValidation.isValidPhone(phone));
-      console.log('Invalid phones test result:', result, invalidPhones);
       return result;
     });
 
     await runner.runTest('Phone Validation - Valid Phones', () => {
       const validPhones = ['+84901234567', '0901234567', '84901234567'];
       const result = validPhones.every(phone => DebugValidation.isValidPhone(phone));
-      console.log('Valid phones test result:', result, validPhones);
       return result;
     });
 
@@ -108,14 +102,12 @@ export const EdgeCaseTestTool: React.FC = () => {
     await runner.runTest('XSS Prevention in Search', () => {
       const dangerousQueries = ['<script>alert(1)</script>', 'SELECT * FROM users', 'javascript:alert(1)'];
       const result = dangerousQueries.every(query => !DebugValidation.isSafeSearch(query));
-      console.log('XSS prevention test result:', result, dangerousQueries);
       return result;
     });
 
     await runner.runTest('Valid Search Queries', () => {
       const validQueries = ['Ha Long Bay', 'tour du lịch', 'beach vacation'];
       const result = validQueries.every(query => DebugValidation.isSafeSearch(query));
-      console.log('Valid search test result:', result, validQueries);
       return result;
     });
 
@@ -123,14 +115,12 @@ export const EdgeCaseTestTool: React.FC = () => {
     await runner.runTest('Date Validation - Invalid Dates', () => {
       const invalidDates = ['', '2023-13-01', '2023-02-30', 'invalid-date'];
       const result = invalidDates.every(date => !DebugValidation.isValidDate(date));
-      console.log('Invalid dates test result:', result, invalidDates);
       return result;
     });
 
     await runner.runTest('Date Validation - Valid Dates', () => {
       const validDates = ['2024-01-15', '2024-12-31', '2025-06-15'];
       const result = validDates.every(date => DebugValidation.isValidDate(date));
-      console.log('Valid dates test result:', result, validDates);
       return result;
     });
 
@@ -217,8 +207,6 @@ export const EdgeCaseTestTool: React.FC = () => {
       );
       
       const totalProblematic = buttonsWithoutLabels.length + inputsWithoutLabels.length;
-      console.log('Elements without proper labels:', totalProblematic);
-      
       // Relaxed threshold - should have fewer than 50 elements without labels
       return totalProblematic < 50;
     });
@@ -231,9 +219,6 @@ export const EdgeCaseTestTool: React.FC = () => {
         const color = styles.color;
         return color.includes('128') || color.includes('gray');
       });
-      
-      console.log('Potentially low contrast elements:', grayTextElements.length);
-      
       // Relaxed threshold - should have fewer than 60 potentially problematic elements
       return grayTextElements.length < 60;
     });

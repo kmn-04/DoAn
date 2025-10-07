@@ -153,10 +153,8 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
   // Initialize data
   useEffect(() => {
     if (isOpen && user) {
-      console.log('🔄 Initializing form - preselectedBookingId:', preselectedBookingId);
       loadUserBookings();
       if (!preselectedBookingId) {
-        console.log('📝 No preselected booking - starting at step 1');
         setCurrentStep(1);
       }
     }
@@ -166,15 +164,12 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
   useEffect(() => {
     if (preselectedBookingId && userBookings.length > 0) {
       const booking = userBookings.find(b => b.id === Number(preselectedBookingId));
-      console.log('📋 Looking for booking with ID:', Number(preselectedBookingId), 'in bookings:', userBookings.map(b => b.id));
-      console.log('📋 Found preselected booking from real data:', booking);
+      , 'in bookings:', userBookings.map(b => b.id));
       if (booking) {
         setSelectedBooking(booking);
         setFormData(prev => ({ ...prev, bookingId: Number(preselectedBookingId) }));
-        console.log('⏭️ Skipping to step 2 for preselected booking');
         setCurrentStep(2);
       } else {
-        console.log('❌ Preselected booking not found in user bookings');
         setCurrentStep(1);
       }
     }
@@ -185,23 +180,12 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
     
     try {
       setIsLoading(true);
-      console.log('🔍 Loading user bookings for cancellation, user ID:', user.id);
-      
       // Get real bookings from API
       const bookings = await bookingService.getBookingsByUser(user.id);
-      console.log('📥 Received bookings for cancellation:', bookings);
-      
       // Convert to UserBooking format and filter cancelable bookings
       const userBookings: UserBooking[] = bookings
         .filter(booking => {
           // Debug each booking's cancellation eligibility
-          console.log('🔍 Checking booking for cancellation:', {
-            bookingCode: booking.bookingCode,
-            confirmationStatus: booking.confirmationStatus,
-            startDate: booking.startDate,
-            tourName: booking.tour?.name
-          });
-          
           // Allow cancellation for various booking statuses
           const validStatuses = ['Confirmed', 'Pending'];
           const isValidStatus = validStatuses.includes(booking.confirmationStatus || '');
@@ -212,12 +196,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           today.setHours(0, 0, 0, 0); // Reset to start of day
           const isFutureOrToday = bookingDate >= today;
           
-          console.log('📊 Cancellation check result:', {
-            isValidStatus,
-            validStatuses,
-            actualStatus: booking.confirmationStatus,
-            isFutureOrToday,
-            bookingDate: bookingDate.toISOString(),
+          ,
             today: today.toISOString(),
             canCancel: isValidStatus && isFutureOrToday
           });
@@ -233,12 +212,8 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           status: booking.confirmationStatus || 'Pending',
           canCancel: true
         }));
-      
-      console.log('✅ Converted user bookings for cancellation:', userBookings);
-      
       // If no bookings pass the filter, show all bookings for debugging
       if (userBookings.length === 0 && bookings.length > 0) {
-        console.log('⚠️ No bookings passed cancellation filter, showing all for debugging');
         const allUserBookings: UserBooking[] = bookings.map(booking => ({
           id: booking.id || Date.now(),
           bookingCode: booking.bookingCode,
@@ -273,12 +248,8 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
 
     try {
       setIsLoading(true);
-      console.log('🔍 Evaluating cancellation for booking:', selectedBooking.id);
-      
       // Use real API call
       const evaluation = await cancellationService.evaluateCancellation(selectedBooking.id, formData);
-      console.log('✅ Cancellation evaluation result:', evaluation);
-      
       setEvaluation(evaluation);
     } catch (error) {
       console.error('❌ Error evaluating cancellation:', error);
@@ -342,12 +313,8 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
 
     try {
       setIsLoading(true);
-      console.log('📤 Submitting cancellation request:', formData);
-      
       // Use real API call
       const result = await cancellationService.submitCancellationRequest(formData);
-      console.log('✅ Cancellation request submitted successfully:', result);
-      
       // Success response from API
       const apiResponse = {
         id: result.id,
@@ -368,7 +335,6 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           isEmergencyCase: formData.requestsExpediteProcessing
         }
       });
-      console.log('🚀 Dispatching cancellation event:', cancellationEvent.detail);
       window.dispatchEvent(cancellationEvent);
 
       onSuccess(apiResponse);
@@ -446,16 +412,12 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
   };
 
   const renderStepContent = () => {
-    console.log('🎯 Rendering step content for currentStep:', currentStep);
     switch (currentStep) {
       case 1:
-        console.log('📋 Rendering booking selection step');
         return renderBookingSelection();
       case 2:
-        console.log('📝 Rendering cancellation details step');
         return renderCancellationDetails();
       case 3:
-        console.log('✅ Rendering review and confirm step');
         return renderReviewAndConfirm();
       default:
         return null;

@@ -203,8 +203,6 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
   // Handle new cancellation data from parent
   useEffect(() => {
     if (newCancellationData) {
-      console.log('📥 Received new cancellation data:', newCancellationData);
-      
       // Create cancellation item from the data
       const cancellationItem: CancellationHistoryItem = {
         id: Date.now(),
@@ -222,11 +220,8 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
         policyName: 'Standard Policy',
         isEmergencyCase: false
       };
-
-      console.log('➕ Adding new cancellation item:', cancellationItem);
       setNewCancellations(prev => {
         const updated = [cancellationItem, ...prev];
-        console.log('📋 Updated newCancellations list:', updated);
         return updated;
       });
     }
@@ -235,7 +230,6 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
   // Listen for new cancellation requests from the form
   useEffect(() => {
     const handleNewCancellation = (event: CustomEvent) => {
-      console.log('📨 Received cancellation event:', event.detail);
       const newCancellation = event.detail;
       
       // Create new cancellation item from the form data
@@ -257,10 +251,8 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
       };
 
       // Add to new cancellations list
-      console.log('➕ Adding new cancellation to list:', cancellationItem);
       setNewCancellations(prev => {
         const updated = [cancellationItem, ...prev];
-        console.log('📋 Updated newCancellations:', updated);
         return updated;
       });
     };
@@ -278,8 +270,6 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
 
     try {
       setIsLoading(true);
-      console.log('🔍 Loading user cancellations:', { userId: user.id, currentPage, statusFilter, searchTerm });
-      
       // Use real API call
       const response = await cancellationService.getUserCancellations(user.id, currentPage - 1, pageSize);
       // Successfully loaded cancellations from API

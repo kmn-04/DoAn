@@ -84,7 +84,6 @@ const BookingCheckoutPageNew: React.FC = () => {
         try {
           prefilledData = JSON.parse(intendedBooking);
           sessionStorage.removeItem('intendedBooking'); // Clean up
-          console.log('📋 Loading intended booking from sessionStorage:', prefilledData);
         } catch (e) {
           console.error('Error parsing intended booking:', e);
         }
@@ -92,8 +91,6 @@ const BookingCheckoutPageNew: React.FC = () => {
     }
     
     if (prefilledData) {
-      console.log('📋 Loading prefilled booking data:', prefilledData);
-      
       if (prefilledData.adults) setNumAdults(prefilledData.adults);
       if (prefilledData.children) setNumChildren(prefilledData.children);
       if (prefilledData.specialRequests) {
@@ -142,7 +139,6 @@ const BookingCheckoutPageNew: React.FC = () => {
                 s => s.departureDate === prefilledStartDate
               );
               if (matchingSchedule) {
-                console.log('✅ Auto-selecting schedule:', matchingSchedule);
                 setSelectedSchedule(matchingSchedule);
               }
               sessionStorage.removeItem('prefilledStartDate');
@@ -332,14 +328,6 @@ const BookingCheckoutPageNew: React.FC = () => {
         contactPhone: cleanPhone,
         promotionCode: undefined
       };
-      
-      console.log('📤 Sending booking request:', bookingRequest);
-      console.log('📋 Contact person:', { 
-        name: contactPerson.fullName, 
-        email: contactPerson.email, 
-        phone: cleanPhone 
-      });
-
       const booking = await bookingService.createBooking(bookingRequest);
 
       // Initiate payment based on method

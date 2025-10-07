@@ -175,6 +175,7 @@ public class AdminStatisticsController extends BaseController {
     
     @GetMapping("/tours/top")
     @Operation(summary = "Get top tours", description = "Get top 10 tours by booking count")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getTopTours() {
         try {
             List<Booking> bookings = bookingRepository.findAll();
@@ -199,8 +200,10 @@ public class AdminStatisticsController extends BaseController {
                     
                     Map<String, Object> data = new HashMap<>();
                     if (sampleBooking != null && sampleBooking.getTour() != null) {
+                        // Force initialization of Tour proxy
+                        String tourName = sampleBooking.getTour().getName();
                         data.put("tourId", entry.getKey());
-                        data.put("tourName", sampleBooking.getTour().getName());
+                        data.put("tourName", tourName);
                         data.put("bookingCount", entry.getValue());
                         
                         BigDecimal totalRevenue = bookings.stream()

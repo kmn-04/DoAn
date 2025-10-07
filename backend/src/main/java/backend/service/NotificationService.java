@@ -22,6 +22,8 @@ public interface NotificationService {
     Notification createNotification(Notification notification);
     Notification createNotificationForUser(Long userId, String title, String message, Notification.NotificationType type, String link);
     void createNotificationForAllUsers(String title, String message, Notification.NotificationType type);
+    void createNotificationForAdmins(String title, String message, Notification.NotificationType type, String link);
+    void createNotificationForUsers(String title, String message, Notification.NotificationType type, String link);
     Optional<Notification> getNotificationById(Long id);
     void deleteNotification(Long id);
     long getTotalNotifications();

@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -30,6 +31,7 @@ public class AdminContactController extends BaseController {
     private final ContactRequestService contactRequestService;
     
     @GetMapping
+    @Transactional(readOnly = true)
     @Operation(summary = "Get all contact requests", description = "Get all contact requests with pagination (Admin only)")
     public ResponseEntity<ApiResponse<Page<ContactRequestResponse>>> getAllContactRequests(
             @RequestParam(defaultValue = "0") int page,
@@ -42,7 +44,14 @@ public class AdminContactController extends BaseController {
             Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
             
             Page<ContactRequest> contacts = contactRequestService.getAllContactRequests(pageable);
-            Page<ContactRequestResponse> response = contacts.map(this::toResponse);
+            
+            // Force initialize lazy-loaded User objects
+            Page<ContactRequestResponse> response = contacts.map(contact -> {
+                if (contact.getAssignedTo() != null) {
+                    contact.getAssignedTo().getName(); // Force init
+                }
+                return toResponse(contact);
+            });
             
             return ResponseEntity.ok(success("Contact requests retrieved successfully", response));
         } catch (Exception e) {
@@ -74,11 +83,17 @@ public class AdminContactController extends BaseController {
     }
     
     @GetMapping("/{id}")
+    @Transactional(readOnly = true)
     @Operation(summary = "Get contact request by ID", description = "Get contact request details by ID (Admin only)")
     public ResponseEntity<ApiResponse<ContactRequestResponse>> getContactRequestById(@PathVariable Long id) {
         try {
             ContactRequest contact = contactRequestService.getContactRequestById(id)
                     .orElseThrow(() -> new RuntimeException("Contact request not found with ID: " + id));
+            
+            // Force initialize lazy-loaded User
+            if (contact.getAssignedTo() != null) {
+                contact.getAssignedTo().getName();
+            }
             
             ContactRequestResponse response = toResponse(contact);
             return ResponseEntity.ok(success("Contact request retrieved successfully", response));

@@ -3,6 +3,7 @@ package backend.service.impl;
 import backend.dto.request.ReviewCreateRequest;
 import backend.dto.response.ReviewResponse;
 import backend.entity.Booking;
+import backend.entity.Notification;
 import backend.entity.Review;
 import backend.entity.Review.ReviewStatus;
 import backend.entity.Tour;
@@ -12,6 +13,7 @@ import backend.repository.BookingRepository;
 import backend.repository.ReviewRepository;
 import backend.repository.TourRepository;
 import backend.repository.UserRepository;
+import backend.service.NotificationService;
 import backend.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final TourRepository tourRepository;
     private final BookingRepository bookingRepository;
     private final EntityMapper mapper;
+    private final NotificationService notificationService;
     
     @Override
     @Transactional(readOnly = true)
@@ -352,13 +355,19 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
         
+        ReviewStatus oldStatus = review.getStatus();
         ReviewStatus newStatus = ReviewStatus.valueOf(status);
         review.setStatus(newStatus);
         Review updatedReview = reviewRepository.save(review);
         
         // Update tour rating if status is Approved or if it was Approved before
-        if (newStatus == ReviewStatus.Approved || review.getStatus() == ReviewStatus.Approved) {
+        if (newStatus == ReviewStatus.Approved || oldStatus == ReviewStatus.Approved) {
             updateTourRating(review.getTour().getId());
+        }
+        
+        // Send notification if status changed
+        if (oldStatus != newStatus) {
+            sendReviewStatusNotification(updatedReview, newStatus);
         }
         
         log.info("Review status updated successfully: {}", reviewId);
@@ -378,6 +387,9 @@ public class ReviewServiceImpl implements ReviewService {
         // For now, leaving it null or you can inject SecurityContext
         
         Review updatedReview = reviewRepository.save(review);
+        
+        // Send notification to user
+        sendAdminReplyNotification(updatedReview);
         
         log.info("Reply added successfully to review: {}", reviewId);
         return mapper.toReviewResponse(updatedReview);
@@ -425,6 +437,74 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional(readOnly = true)
     public long getPendingReviewsCount() {
         return reviewRepository.countByStatus(ReviewStatus.Pending);
+    }
+    
+    // ==================== NOTIFICATION HELPERS ====================
+    
+    /**
+     * Send notification when review status changes
+     */
+    private void sendReviewStatusNotification(Review review, ReviewStatus newStatus) {
+        try {
+            Long userId = review.getUser().getId();
+            String tourName = review.getTour().getName();
+            String link = "/tours/" + review.getTour().getId() + "/reviews";
+            
+            switch (newStatus) {
+                case Approved:
+                    notificationService.createNotificationForUser(
+                        userId,
+                        "Đánh giá đã được duyệt",
+                        String.format("Đánh giá của bạn về tour '%s' đã được phê duyệt và hiển thị công khai. Cảm ơn bạn đã chia sẻ!", 
+                            tourName),
+                        Notification.NotificationType.Success,
+                        link
+                    );
+                    log.info("Sent review approved notification for review ID: {}", review.getId());
+                    break;
+                    
+                case Rejected:
+                    notificationService.createNotificationForUser(
+                        userId,
+                        "Đánh giá bị từ chối",
+                        String.format("Đánh giá của bạn về tour '%s' không được phê duyệt. Vui lòng kiểm tra nội dung và gửi lại.", 
+                            tourName),
+                        Notification.NotificationType.Warning,
+                        link
+                    );
+                    log.info("Sent review rejected notification for review ID: {}", review.getId());
+                    break;
+                    
+                default:
+                    log.debug("No notification sent for review status: {}", newStatus);
+            }
+        } catch (Exception e) {
+            log.error("Failed to send review status notification for review ID: {}", review.getId(), e);
+        }
+    }
+    
+    /**
+     * Send notification when admin replies to review
+     */
+    private void sendAdminReplyNotification(Review review) {
+        try {
+            Long userId = review.getUser().getId();
+            String tourName = review.getTour().getName();
+            String link = "/tours/" + review.getTour().getId() + "/reviews";
+            
+            notificationService.createNotificationForUser(
+                userId,
+                "Quản trị viên đã phản hồi",
+                String.format("Quản trị viên đã phản hồi đánh giá của bạn về tour '%s'. Xem ngay!", 
+                    tourName),
+                Notification.NotificationType.Info,
+                link
+            );
+            
+            log.info("Sent admin reply notification for review ID: {}", review.getId());
+        } catch (Exception e) {
+            log.error("Failed to send admin reply notification for review ID: {}", review.getId(), e);
+        }
     }
 }
 

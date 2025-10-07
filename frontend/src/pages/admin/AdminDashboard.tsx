@@ -38,9 +38,12 @@ interface RecentBooking {
   id: number;
   bookingCode: string;
   customerName: string;
-  tourName: string;
+  tour?: {
+    id: number;
+    name: string;
+  };
   totalPrice: number;
-  status: string;
+  confirmationStatus: string;
   createdAt: string;
 }
 
@@ -259,7 +262,7 @@ const AdminDashboard: React.FC = () => {
                           {booking.customerName}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
-                          {booking.tourName}
+                          {booking.tour?.name || 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {formatPrice(booking.totalPrice)}
@@ -267,16 +270,16 @@ const AdminDashboard: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              booking.status === 'confirmed'
+                              booking.confirmationStatus === 'confirmed'
                                 ? 'bg-green-100 text-green-800'
-                                : booking.status === 'pending'
+                                : booking.confirmationStatus === 'pending'
                                 ? 'bg-yellow-100 text-yellow-800'
-                                : booking.status === 'cancelled'
+                                : booking.confirmationStatus === 'cancelled'
                                 ? 'bg-red-100 text-red-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {booking.status}
+                            {booking.confirmationStatus}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

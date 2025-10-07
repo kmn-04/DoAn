@@ -18,14 +18,14 @@ import ImageUpload from '../../components/admin/ImageUpload';
 
 interface PartnerFormData {
   name: string;
-  type: string;
+  type: 'Hotel' | 'Restaurant' | 'Transport' | 'TourOperator' | 'Insurance' | 'Other';
   email: string;
   phone: string;
   address: string;
   website: string;
   description: string;
   specialties: string;
-  logo?: string;
+  avatarUrl?: string;
   status: 'Active' | 'Inactive' | 'Suspended';
 }
 
@@ -52,18 +52,17 @@ const AdminPartners: React.FC = () => {
   const [viewingPartner, setViewingPartner] = useState<PartnerResponse | null>(null);
   const [formData, setFormData] = useState<PartnerFormData>({
     name: '',
-    type: 'HOTEL',
+    type: 'Hotel',
     email: '',
     phone: '',
     address: '',
     website: '',
     description: '',
     specialties: '',
-    logo: '',
+    avatarUrl: '',
     status: 'Active'
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,14 +136,14 @@ const AdminPartners: React.FC = () => {
     setEditingPartner(null);
     setFormData({
       name: '',
-      type: 'HOTEL',
+      type: 'Hotel',
       email: '',
       phone: '',
       address: '',
       website: '',
       description: '',
       specialties: '',
-      logo: '',
+      avatarUrl: '',
       status: 'Active'
     });
     setFormErrors({});
@@ -155,15 +154,15 @@ const AdminPartners: React.FC = () => {
     setEditingPartner(partner);
     setFormData({
       name: partner.name,
-      type: partner.type,
+      type: partner.type as 'Hotel' | 'Restaurant' | 'Transport' | 'TourOperator' | 'Insurance' | 'Other',
       email: partner.email || '',
       phone: partner.phone || '',
       address: partner.address || '',
       website: partner.website || '',
       description: partner.description || '',
       specialties: partner.specialties || '',
-      logo: partner.logo || '',
-      status: partner.status
+      avatarUrl: partner.avatarUrl || '',
+      status: partner.status as 'Active' | 'Inactive' | 'Suspended'
     });
     setFormErrors({});
     setIsModalOpen(true);
@@ -219,7 +218,10 @@ const AdminPartners: React.FC = () => {
       }
       
       closeModal();
-      await fetchPartners(currentPage);
+      await Promise.all([
+        fetchPartners(currentPage),
+        fetchGlobalStats()
+      ]);
     } catch (error) {
       console.error('Error saving partner:', error);
       const axiosError = error as AxiosError<{ message?: string }>;
@@ -229,23 +231,32 @@ const AdminPartners: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (deleteConfirmId === id) {
-      try {
-        setLoading(true);
-        await partnerAdminService.deletePartner(id);
-        setDeleteConfirmId(null);
-        await fetchPartners(currentPage);
-      } catch (error) {
-        console.error('Error deleting partner:', error);
-        const axiosError = error as AxiosError<{ message?: string }>;
-        alert(axiosError.response?.data?.message || 'Không thể xóa đối tác');
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setDeleteConfirmId(id);
-      setTimeout(() => setDeleteConfirmId(null), 3000);
+  const handleDelete = async (partner: PartnerResponse) => {
+    const partnerType = partner.type === 'Hotel' ? 'Khách sạn' :
+                       partner.type === 'Restaurant' ? 'Nhà hàng' :
+                       partner.type === 'Transport' ? 'Vận chuyển' :
+                       partner.type === 'TourOperator' ? 'Tour Operator' :
+                       partner.type === 'Insurance' ? 'Bảo hiểm' : 'Khác';
+    
+    const confirmed = window.confirm(
+      `Bạn có chắc chắn muốn xóa đối tác "${partner.name}" (${partnerType})?\n\n⚠️ Hành động này không thể hoàn tác!`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      setLoading(true);
+      await partnerAdminService.deletePartner(partner.id);
+      await Promise.all([
+        fetchPartners(currentPage),
+        fetchGlobalStats()
+      ]);
+    } catch (error) {
+      console.error('Error deleting partner:', error);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      alert(axiosError.response?.data?.message || 'Không thể xóa đối tác');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -253,7 +264,10 @@ const AdminPartners: React.FC = () => {
     try {
       setLoading(true);
       await apiClient.patch(`/admin/partners/${id}/status?status=${newStatus}`);
-      await fetchPartners(currentPage);
+      await Promise.all([
+        fetchPartners(currentPage),
+        fetchGlobalStats()
+      ]);
     } catch (error) {
       console.error('Error updating status:', error);
       const axiosError = error as AxiosError<{ message?: string }>;
@@ -372,10 +386,12 @@ const AdminPartners: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="HOTEL">Khách sạn</option>
-                <option value="RESTAURANT">Nhà hàng</option>
-                <option value="TRANSPORT">Vận chuyển</option>
-                <option value="TOUR_OPERATOR">Điều hành tour</option>
+                <option value="Hotel">Khách sạn</option>
+                <option value="Restaurant">Nhà hàng</option>
+                <option value="Transport">Vận chuyển</option>
+                <option value="TourOperator">Điều hành tour</option>
+                <option value="Insurance">Bảo hiểm</option>
+                <option value="Other">Khác</option>
               </select>
             </div>
 
@@ -404,6 +420,7 @@ const AdminPartners: React.FC = () => {
                 }}
                 className="admin-select"
               >
+                <option value="id-asc">Mặc định</option>
                 <option value="name-asc">Tên A-Z</option>
                 <option value="name-desc">Tên Z-A</option>
               </select>
@@ -419,8 +436,7 @@ const AdminPartners: React.FC = () => {
                 <th className="admin-table-th">ID</th>
                 <th className="admin-table-th">Tên đối tác</th>
                 <th className="admin-table-th">Loại</th>
-                <th className="admin-table-th">Email</th>
-                <th className="admin-table-th">Điện thoại</th>
+                <th className="admin-table-th">Địa chỉ</th>
                 <th className="admin-table-th">Trạng thái</th>
                 <th className="admin-table-th">Thao tác</th>
               </tr>
@@ -428,7 +444,7 @@ const AdminPartners: React.FC = () => {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="admin-loading">
+                  <td colSpan={6} className="admin-loading">
                     <div className="admin-spinner">
                       <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -439,7 +455,7 @@ const AdminPartners: React.FC = () => {
                 </tr>
               ) : partners.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="admin-empty">
+                  <td colSpan={6} className="admin-empty">
                     Không có dữ liệu
                   </td>
                 </tr>
@@ -450,16 +466,15 @@ const AdminPartners: React.FC = () => {
                     <td className="admin-table-td font-medium">{partner.name}</td>
                     <td className="admin-table-td">
                       <span className="admin-badge-blue">
-                        {(partner.type === 'HOTEL' || partner.type === 'Hotel') && 'Khách sạn'}
-                        {(partner.type === 'RESTAURANT' || partner.type === 'Restaurant') && 'Nhà hàng'}
-                        {(partner.type === 'TRANSPORT' || partner.type === 'Transport') && 'Vận chuyển'}
-                        {(partner.type === 'TOUR_OPERATOR' || partner.type === 'TourOperator') && 'Điều hành tour'}
-                        {(partner.type === 'INSURANCE' || partner.type === 'Insurance') && 'Bảo hiểm'}
-                        {(partner.type === 'OTHER' || partner.type === 'Other') && 'Khác'}
+                        {partner.type === 'Hotel' && 'Khách sạn'}
+                        {partner.type === 'Restaurant' && 'Nhà hàng'}
+                        {partner.type === 'Transport' && 'Vận chuyển'}
+                        {partner.type === 'TourOperator' && 'Điều hành tour'}
+                        {partner.type === 'Insurance' && 'Bảo hiểm'}
+                        {partner.type === 'Other' && 'Khác'}
                       </span>
                     </td>
-                    <td className="admin-table-td text-sm">{partner.email}</td>
-                    <td className="admin-table-td text-sm">{partner.phone}</td>
+                    <td className="admin-table-td text-sm">{partner.address || 'N/A'}</td>
                     <td className="admin-table-td">
                       <select
                         value={partner.status}
@@ -489,13 +504,9 @@ const AdminPartners: React.FC = () => {
                           <PencilIcon className="h-5 w-5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(partner.id)}
-                          className={
-                            deleteConfirmId === partner.id
-                              ? 'admin-icon-btn-delete-confirm'
-                              : 'admin-icon-btn-delete'
-                          }
-                          title={deleteConfirmId === partner.id ? 'Click lại để xác nhận' : 'Xóa'}
+                          onClick={() => handleDelete(partner)}
+                          className="admin-icon-btn-delete"
+                          title="Xóa"
                         >
                           <TrashIcon className="h-5 w-5" />
                         </button>
@@ -532,6 +543,17 @@ const AdminPartners: React.FC = () => {
               </div>
               <div className="admin-modal-body">
                 <div className="space-y-6">
+                  {/* Logo Section */}
+                  {viewingPartner.avatarUrl && (
+                    <div className="flex justify-center">
+                      <img 
+                        src={viewingPartner.avatarUrl} 
+                        alt={viewingPartner.name}
+                        className="h-24 w-24 object-contain rounded-lg border border-gray-200 bg-white p-2"
+                      />
+                    </div>
+                  )}
+
                   <div className="admin-view-section">
                     <h4 className="admin-view-section-title">Thông tin cơ bản</h4>
                     <div className="admin-view-grid">
@@ -547,10 +569,12 @@ const AdminPartners: React.FC = () => {
                         <p className="admin-view-label">Loại</p>
                         <p className="admin-view-value">
                           <span className="admin-badge-blue">
-                            {viewingPartner.type === 'HOTEL' && 'Khách sạn'}
-                            {viewingPartner.type === 'RESTAURANT' && 'Nhà hàng'}
-                            {viewingPartner.type === 'TRANSPORT' && 'Vận chuyển'}
-                            {viewingPartner.type === 'TOUR_OPERATOR' && 'Điều hành tour'}
+                            {viewingPartner.type === 'Hotel' && 'Khách sạn'}
+                            {viewingPartner.type === 'Restaurant' && 'Nhà hàng'}
+                            {viewingPartner.type === 'Transport' && 'Vận chuyển'}
+                            {viewingPartner.type === 'TourOperator' && 'Điều hành tour'}
+                            {viewingPartner.type === 'Insurance' && 'Bảo hiểm'}
+                            {viewingPartner.type === 'Other' && 'Khác'}
                           </span>
                         </p>
                       </div>
@@ -664,13 +688,15 @@ const AdminPartners: React.FC = () => {
                         <select
                           id="type"
                           value={formData.type}
-                          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, type: e.target.value as 'Hotel' | 'Restaurant' | 'Transport' | 'TourOperator' | 'Insurance' | 'Other' })}
                           className="admin-select"
                         >
-                          <option value="HOTEL">Khách sạn</option>
-                          <option value="RESTAURANT">Nhà hàng</option>
-                          <option value="TRANSPORT">Vận chuyển</option>
-                          <option value="TOUR_OPERATOR">Điều hành tour</option>
+                          <option value="Hotel">Khách sạn</option>
+                          <option value="Restaurant">Nhà hàng</option>
+                          <option value="Transport">Vận chuyển</option>
+                          <option value="TourOperator">Điều hành tour</option>
+                          <option value="Insurance">Bảo hiểm</option>
+                          <option value="Other">Khác</option>
                         </select>
                       </div>
                     </div>
@@ -763,8 +789,8 @@ const AdminPartners: React.FC = () => {
                     <div className="border-t pt-4">
                       <ImageUpload
                         label="🏢 Logo đối tác"
-                        value={formData.logo}
-                        onChange={(url) => setFormData({ ...formData, logo: url as string })}
+                        value={formData.avatarUrl}
+                        onChange={(url) => setFormData({ ...formData, avatarUrl: url as string })}
                         multiple={false}
                       />
                     </div>

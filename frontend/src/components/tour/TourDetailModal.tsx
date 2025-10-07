@@ -95,8 +95,6 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
   const fetchTourDetail = async () => {
     try {
       setIsLoading(true);
-      console.log('🔍 Fetching tour detail for modal:', { tourId, tourSlug });
-      
       let tourResponse;
       if (tourSlug) {
         // Try to get by slug first
@@ -105,9 +103,6 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
         // Fallback to get by ID (need to implement this endpoint)
         tourResponse = await tourService.getTourById(tourId);
       }
-      
-      console.log('✅ Tour detail response:', tourResponse);
-      
       // Parse highlights if it's a string
       let highlightsList: string[] = [];
       if (tourResponse.highlights) {
@@ -121,8 +116,6 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
           highlightsList = tourResponse.highlights;
         }
       }
-      console.log('📌 Parsed highlights:', highlightsList);
-      
       // Parse included/excluded services
       let includedList: string[] = [];
       let excludedList: string[] = [];
@@ -150,11 +143,6 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
           excludedList = tourResponse.excludedServices;
         }
       }
-      
-      console.log('📌 Parsed included services:', includedList);
-      console.log('📌 Parsed excluded services:', excludedList);
-      console.log('📌 Itinerary:', tourResponse.itinerary);
-      
       // Fallback data nếu không có
       if (includedList.length === 0) {
         includedList = [
@@ -286,12 +274,6 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
         accommodationInfo: tourResponse.accommodation,
         mealsInfo: tourResponse.mealsIncluded
       };
-      
-      console.log('🎯 Final mapped tour:', mappedTour);
-      console.log('📦 Includes count:', mappedTour.includes?.length);
-      console.log('📦 Excludes count:', mappedTour.excludes?.length);
-      console.log('📅 Itinerary count:', mappedTour.itinerary?.length);
-      
       setTour(mappedTour);
       
     } catch (error) {

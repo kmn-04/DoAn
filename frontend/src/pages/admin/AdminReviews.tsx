@@ -71,13 +71,24 @@ const AdminReviews: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
+    // Reset to page 1 when filters change
+    if (searchTerm || statusFilter !== 'all' || ratingFilter !== 'all') {
+      setCurrentPage(0);
+    }
+  }, [searchTerm, statusFilter, ratingFilter]);
+
+  useEffect(() => {
     fetchReviews(currentPage);
   }, [currentPage, searchTerm, statusFilter, ratingFilter, sortBy, sortDirection]);
 
   const fetchReviews = async (page: number) => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`/admin/reviews?page=${page}&size=10&sortBy=${sortBy}&sortDir=${sortDirection}`);
+      
+      // Fetch ALL when filtering, otherwise use pagination
+      const shouldFetchAll = searchTerm || statusFilter !== 'all' || ratingFilter !== 'all';
+      const pageSize = 10;
+      const response = await apiClient.get(`/admin/reviews?page=${shouldFetchAll ? 0 : page}&size=${shouldFetchAll ? 1000 : pageSize}&sortBy=${sortBy}&sortDir=${sortDirection}`);
       
       // Map nested structure to flat structure
       let filteredData = (response.data.data?.content || []).map((review: any) => ({
@@ -122,17 +133,36 @@ const AdminReviews: React.FC = () => {
         }
       });
       
-      setReviews(filteredData);
-      setTotalPages(response.data.data?.totalPages || 0);
-      setTotalElements(response.data.data?.totalElements || 0);
-      setFilteredCount(filteredData.length);
-      
-      // Calculate stats
-      const total = filteredData.length;
-      const approved = filteredData.filter((r: Review) => r.status === 'Approved').length;
-      const pending = filteredData.filter((r: Review) => r.status === 'Pending').length;
-      const rejected = filteredData.filter((r: Review) => r.status === 'Rejected').length;
-      setStats({ total, approved, pending, rejected });
+      // Client-side pagination when filtering
+      if (shouldFetchAll) {
+        const startIndex = page * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedData = filteredData.slice(startIndex, endIndex);
+        
+        setReviews(paginatedData);
+        setTotalPages(Math.ceil(filteredData.length / pageSize));
+        setTotalElements(filteredData.length);
+        setFilteredCount(filteredData.length);
+        
+        // Calculate stats from ALL filtered data
+        const total = filteredData.length;
+        const approved = filteredData.filter((r: Review) => r.status === 'Approved').length;
+        const pending = filteredData.filter((r: Review) => r.status === 'Pending').length;
+        const rejected = filteredData.filter((r: Review) => r.status === 'Rejected').length;
+        setStats({ total, approved, pending, rejected });
+      } else {
+        setReviews(filteredData);
+        setTotalPages(response.data.data?.totalPages || 0);
+        setTotalElements(response.data.data?.totalElements || 0);
+        setFilteredCount(response.data.data?.totalElements || 0);
+        
+        // Calculate stats from current page
+        const total = filteredData.length;
+        const approved = filteredData.filter((r: Review) => r.status === 'Approved').length;
+        const pending = filteredData.filter((r: Review) => r.status === 'Pending').length;
+        const rejected = filteredData.filter((r: Review) => r.status === 'Rejected').length;
+        setStats({ total, approved, pending, rejected });
+      }
       
     } catch (error) {
       console.error('Error fetching reviews:', error);
@@ -157,7 +187,7 @@ const AdminReviews: React.FC = () => {
   const handleUpdateStatus = async (reviewId: number, newStatus: string) => {
     try {
       setLoading(true);
-      console.log(`Updating review ${reviewId} status to:`, newStatus);
+
       
       let endpoint = '';
       if (newStatus === 'Approved') {
@@ -175,7 +205,7 @@ const AdminReviews: React.FC = () => {
         await apiClient.patch(endpoint);
       }
       
-      console.log('Status updated successfully');
+
       await fetchReviews(currentPage);
     } catch (error) {
       console.error('Error updating review status:', error);
@@ -195,13 +225,13 @@ const AdminReviews: React.FC = () => {
 
     try {
       setLoading(true);
-      console.log(`Replying to review ${selectedReview.id}:`, replyText);
+
       
       await apiClient.post(`/admin/reviews/${selectedReview.id}/reply`, {
         reply: replyText
       });
       
-      console.log('Reply submitted successfully');
+
       alert('Đã gửi phản hồi thành công!');
       setIsReplying(false);
       await fetchReviews(currentPage);
@@ -224,11 +254,11 @@ const AdminReviews: React.FC = () => {
 
     try {
       setLoading(true);
-      console.log(`Deleting reply from review ${selectedReview.id}`);
+
       
       await apiClient.delete(`/admin/reviews/${selectedReview.id}/reply`);
       
-      console.log('Reply deleted successfully');
+
       alert('Đã xóa phản hồi thành công!');
       await fetchReviews(currentPage);
       closeDetailModal();
@@ -481,7 +511,7 @@ const AdminReviews: React.FC = () => {
                         key={`status-${review.id}-${review.status}`}
                         value={review.status}
                         onChange={(e) => {
-                          console.log(`🔄 Changing review ${review.id} status from ${review.status} to ${e.target.value}`);
+
                           handleUpdateStatus(review.id, e.target.value);
                         }}
                         className={`admin-table-select ${getStatusBadge(review.status)}`}

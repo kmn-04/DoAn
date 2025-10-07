@@ -147,7 +147,6 @@ class NotificationService {
       this.eventSource = new EventSource(`http://localhost:8080/api/notifications/stream/${userId}`);
 
       this.eventSource.onopen = () => {
-        console.log('✅ Real-time notifications connected');
         this.isConnected = true;
         this.notifyConnectionListeners(true);
       };
@@ -155,8 +154,6 @@ class NotificationService {
       this.eventSource.onmessage = (event) => {
         try {
           const notification: Notification = JSON.parse(event.data);
-          console.log('🔔 New notification:', notification);
-          
           // Show browser notification
           this.showBrowserNotification(notification);
           
@@ -179,7 +176,6 @@ class NotificationService {
         // Reconnect after 5 seconds
         setTimeout(() => {
           if (!this.isConnected) {
-            console.log('🔄 Attempting to reconnect...');
             this.connectRealtime(userId);
           }
         }, 5000);
@@ -197,7 +193,6 @@ class NotificationService {
       this.eventSource = null;
       this.isConnected = false;
       this.notifyConnectionListeners(false);
-      console.log('🔌 Real-time notifications disconnected');
     }
   }
 

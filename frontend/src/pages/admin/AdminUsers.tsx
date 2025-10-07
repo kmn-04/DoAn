@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   PlusIcon, 
   EyeIcon,
+  PencilIcon,
+  TrashIcon,
   ShieldCheckIcon,
   LockClosedIcon,
   LockOpenIcon,
@@ -18,7 +20,7 @@ interface User {
   name: string;
   email: string;
   phone?: string;
-  status: 'Active' | 'Suspended' | 'Disabled';
+  status: 'Active' | 'Inactive' | 'Banned';
   avatarUrl?: string;
   role: {
     id: number;
@@ -45,16 +47,30 @@ const AdminUsers: React.FC = () => {
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
-    suspended: 0,
+    inactive: 0,
+    banned: 0,
     admin: 0
   });
   
   // Modal states
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [viewingUser, setViewingUser] = useState<User | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [newRoleId, setNewRoleId] = useState<number>(0);
+  
+  // Form data
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    roleId: 3, // Default to Customer
+    status: 'Active' as 'Active' | 'Inactive' | 'Banned'
+  });
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,6 +83,13 @@ const AdminUsers: React.FC = () => {
     fetchRoles();
     fetchGlobalStats();
   }, []);
+
+  useEffect(() => {
+    // Reset to page 1 when filters change
+    if (searchTerm || statusFilter !== 'all' || roleFilter !== 'all') {
+      setCurrentPage(0);
+    }
+  }, [searchTerm, statusFilter, roleFilter]);
 
   useEffect(() => {
     fetchUsers(currentPage);
@@ -95,7 +118,8 @@ const AdminUsers: React.FC = () => {
       setStats({
         total: statsData.totalUsers || 0,
         active: statsData.activeUsers || 0,
-        suspended: statsData.inactiveUsers || 0,
+        inactive: statsData.inactiveUsers || 0,
+        banned: statsData.bannedUsers || 0,
         admin
       });
     } catch (error) {
@@ -106,7 +130,11 @@ const AdminUsers: React.FC = () => {
   const fetchUsers = async (page: number) => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`/admin/users?page=${page}&size=10&sortBy=${sortBy}&sortDir=${sortDirection}`);
+      
+      // Fetch ALL when filtering, otherwise use pagination
+      const shouldFetchAll = searchTerm || statusFilter !== 'all' || roleFilter !== 'all';
+      const pageSize = 10;
+      const response = await apiClient.get(`/admin/users?page=${shouldFetchAll ? 0 : page}&size=${shouldFetchAll ? 1000 : pageSize}&sortBy=${sortBy}&sortDir=${sortDirection}`);
       
       let filteredData = response.data.data?.content || [];
       
@@ -141,10 +169,22 @@ const AdminUsers: React.FC = () => {
         }
       });
       
-      setUsers(filteredData);
-      setTotalPages(response.data.data?.totalPages || 0);
-      setTotalElements(response.data.data?.totalElements || 0);
-      setFilteredCount(filteredData.length);
+      // Client-side pagination when filtering
+      if (shouldFetchAll) {
+        const startIndex = page * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedData = filteredData.slice(startIndex, endIndex);
+        
+        setUsers(paginatedData);
+        setTotalPages(Math.ceil(filteredData.length / pageSize));
+        setTotalElements(filteredData.length);
+        setFilteredCount(filteredData.length);
+      } else {
+        setUsers(filteredData);
+        setTotalPages(response.data.data?.totalPages || 0);
+        setTotalElements(response.data.data?.totalElements || 0);
+        setFilteredCount(response.data.data?.totalElements || 0);
+      }
       
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -189,7 +229,7 @@ const AdminUsers: React.FC = () => {
   };
 
   const handleToggleUserStatus = async (userId: number, currentStatus: string) => {
-    const newStatus = currentStatus === 'Active' ? 'Suspended' : 'Active';
+    const newStatus = currentStatus === 'Active' ? 'Banned' : 'Active';
     
     try {
       setLoading(true);
@@ -204,11 +244,14 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (userId: number, newStatus: 'Active' | 'Suspended' | 'Disabled') => {
+  const handleStatusChange = async (userId: number, newStatus: 'Active' | 'Inactive' | 'Banned') => {
     try {
       setLoading(true);
       await apiClient.patch(`/admin/users/${userId}/status?status=${newStatus}`);
-      await fetchUsers(currentPage);
+      await Promise.all([
+        fetchUsers(currentPage),
+        fetchGlobalStats()
+      ]);
     } catch (error) {
       console.error('Error updating status:', error);
       const axiosError = error as AxiosError<{ message?: string }>;
@@ -218,14 +261,150 @@ const AdminUsers: React.FC = () => {
     }
   };
 
+  // Helper function to check if user is Admin
+  const isAdmin = (user: User) => user.role?.name?.toUpperCase() === 'ADMIN';
+
+  // CREATE
+  const openCreateModal = () => {
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      phone: '',
+      roleId: 3,
+      status: 'Active'
+    });
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreate = async () => {
+    try {
+      if (!formData.name || !formData.email || !formData.password) {
+        alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+        return;
+      }
+
+      setLoading(true);
+      await apiClient.post('/admin/users', {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        roleId: formData.roleId,
+        status: formData.status
+      });
+      
+      setIsCreateModalOpen(false);
+      await Promise.all([
+        fetchUsers(currentPage),
+        fetchGlobalStats()
+      ]);
+      alert('Thêm người dùng thành công!');
+    } catch (error) {
+      console.error('Error creating user:', error);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      alert(axiosError.response?.data?.message || 'Không thể thêm người dùng');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // EDIT
+  const openEditModal = (user: User) => {
+    if (isAdmin(user)) {
+      alert('Không thể chỉnh sửa tài khoản Admin');
+      return;
+    }
+    
+    setEditingUser(user);
+    setFormData({
+      name: user.name,
+      email: user.email,
+      password: '', // Don't show password
+      phone: user.phone || '',
+      roleId: user.role?.id || 3,
+      status: user.status
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEdit = async () => {
+    if (!editingUser) return;
+
+    try {
+      if (!formData.name || !formData.email) {
+        alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+        return;
+      }
+
+      setLoading(true);
+      const updateData: any = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        roleId: formData.roleId,
+        status: formData.status
+      };
+
+      // Only include password if provided
+      if (formData.password) {
+        updateData.password = formData.password;
+      }
+
+      await apiClient.put(`/admin/users/${editingUser.id}`, updateData);
+      
+      setIsEditModalOpen(false);
+      await Promise.all([
+        fetchUsers(currentPage),
+        fetchGlobalStats()
+      ]);
+      alert('Cập nhật người dùng thành công!');
+    } catch (error) {
+      console.error('Error updating user:', error);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      alert(axiosError.response?.data?.message || 'Không thể cập nhật người dùng');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // DELETE
+  const handleDelete = async (user: User) => {
+    if (isAdmin(user)) {
+      alert('Không thể xóa tài khoản Admin');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Bạn có chắc chắn muốn xóa người dùng "${user.name}" (${user.email})?\n\n⚠️ Hành động này không thể hoàn tác!`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+      await apiClient.delete(`/admin/users/${user.id}`);
+      await Promise.all([
+        fetchUsers(currentPage),
+        fetchGlobalStats()
+      ]);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      alert(axiosError.response?.data?.message || 'Không thể xóa người dùng');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusClassName = (status: string) => {
     switch (status) {
       case 'Active':
         return 'admin-table-select-active';
-      case 'Suspended':
-        return 'admin-table-select-suspended';
-      case 'Disabled':
+      case 'Inactive':
         return 'admin-table-select-inactive';
+      case 'Banned':
+        return 'admin-table-select-rejected';
       default:
         return 'admin-table-select-inactive';
     }
@@ -242,6 +421,13 @@ const AdminUsers: React.FC = () => {
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Quản lý người dùng</h1>
+          <button
+            onClick={openCreateModal}
+            className="admin-btn-primary flex items-center gap-2"
+          >
+            <PlusIcon className="h-5 w-5" />
+            Thêm người dùng
+          </button>
         </div>
       </div>
 
@@ -275,8 +461,8 @@ const AdminUsers: React.FC = () => {
           <div className="admin-stat-card">
             <div className="flex items-center justify-between">
               <div>
-                <p className="admin-stat-label">Tạm khóa</p>
-                <p className="admin-stat-value">{stats.suspended}</p>
+                <p className="admin-stat-label">Không hoạt động</p>
+                <p className="admin-stat-value">{stats.inactive}</p>
               </div>
               <div className="admin-stat-icon bg-yellow-100">
                 <LockClosedIcon className="h-6 w-6 text-yellow-600" />
@@ -287,11 +473,11 @@ const AdminUsers: React.FC = () => {
           <div className="admin-stat-card">
             <div className="flex items-center justify-between">
               <div>
-                <p className="admin-stat-label">Quản trị viên</p>
-                <p className="admin-stat-value">{stats.admin}</p>
+                <p className="admin-stat-label">Bị cấm</p>
+                <p className="admin-stat-value">{stats.banned}</p>
               </div>
-              <div className="admin-stat-icon bg-purple-100">
-                <ShieldCheckIcon className="h-6 w-6 text-purple-600" />
+              <div className="admin-stat-icon bg-red-100">
+                <XCircleIcon className="h-6 w-6 text-red-600" />
               </div>
             </div>
           </div>
@@ -343,8 +529,8 @@ const AdminUsers: React.FC = () => {
               >
                 <option value="all">Tất cả</option>
                 <option value="Active">Hoạt động</option>
-                <option value="Suspended">Tạm khóa</option>
-                <option value="Disabled">Vô hiệu hóa</option>
+                <option value="Inactive">Không hoạt động</option>
+                <option value="Banned">Bị cấm</option>
               </select>
             </div>
 
@@ -432,13 +618,13 @@ const AdminUsers: React.FC = () => {
                     <td className="admin-table-td">
                       <select
                         value={user.status}
-                        onChange={(e) => handleStatusChange(user.id, e.target.value as 'Active' | 'Suspended' | 'Disabled')}
+                        onChange={(e) => handleStatusChange(user.id, e.target.value as 'Active' | 'Inactive' | 'Banned')}
                         className={getStatusClassName(user.status)}
-                        disabled={loading}
+                        disabled={loading || isAdmin(user)}
                       >
                         <option value="Active">Hoạt động</option>
-                        <option value="Suspended">Tạm khóa</option>
-                        <option value="Disabled">Vô hiệu hóa</option>
+                        <option value="Inactive">Không hoạt động</option>
+                        <option value="Banned">Bị cấm</option>
                       </select>
                     </td>
                     <td className="admin-table-td">
@@ -450,13 +636,24 @@ const AdminUsers: React.FC = () => {
                         >
                           <EyeIcon className="h-5 w-5" />
                         </button>
-                        <button
-                          onClick={() => openRoleModal(user)}
-                          className="admin-icon-btn-edit"
-                          title="Đổi vai trò"
-                        >
-                          <ShieldCheckIcon className="h-5 w-5" />
-                        </button>
+                        {!isAdmin(user) && (
+                          <>
+                            <button
+                              onClick={() => openEditModal(user)}
+                              className="admin-icon-btn-edit"
+                              title="Chỉnh sửa"
+                            >
+                              <PencilIcon className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(user)}
+                              className="admin-icon-btn-delete"
+                              title="Xóa"
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -537,12 +734,12 @@ const AdminUsers: React.FC = () => {
                         <p className="admin-view-value">
                           <span className={
                             viewingUser.status === 'Active' ? 'admin-badge-green' :
-                            viewingUser.status === 'Suspended' ? 'admin-badge-yellow' :
-                            'admin-badge-gray'
+                            viewingUser.status === 'Inactive' ? 'admin-badge-gray' :
+                            'admin-badge-red'
                           }>
                             {viewingUser.status === 'Active' ? 'Hoạt động' :
-                             viewingUser.status === 'Suspended' ? 'Tạm khóa' :
-                             'Vô hiệu hóa'}
+                             viewingUser.status === 'Inactive' ? 'Không hoạt động' :
+                             'Bị cấm'}
                           </span>
                         </p>
                       </div>
@@ -635,6 +832,230 @@ const AdminUsers: React.FC = () => {
                   className="admin-btn-primary"
                 >
                   {loading ? 'Đang lưu...' : 'Xác nhận'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      {isCreateModalOpen && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-backdrop" onClick={() => setIsCreateModalOpen(false)} />
+          <div className="admin-modal-container">
+            <div className="admin-modal">
+              <div className="admin-modal-header">
+                <h2 className="admin-modal-title">Thêm người dùng mới</h2>
+              </div>
+              <div className="admin-modal-body max-h-[70vh] overflow-y-auto">
+                <div className="space-y-6 p-1">
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Họ tên <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="admin-input w-full"
+                      placeholder="Nhập họ tên"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="admin-input w-full"
+                      placeholder="Nhập email"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Mật khẩu <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="admin-input w-full"
+                      placeholder="Nhập mật khẩu"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Số điện thoại
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="admin-input w-full"
+                      placeholder="Nhập số điện thoại"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Vai trò
+                    </label>
+                    <select
+                      value={formData.roleId}
+                      onChange={(e) => setFormData({ ...formData, roleId: parseInt(e.target.value) })}
+                      className="admin-select w-full"
+                    >
+                      {roles.map(role => (
+                        <option key={role.id} value={role.id}>
+                          {role.name === 'Admin' ? 'Quản trị viên' :
+                           role.name === 'Staff' ? 'Nhân viên' :
+                           role.name === 'Customer' ? 'Khách hàng' :
+                           role.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Trạng thái
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' | 'Banned' })}
+                      className="admin-select w-full"
+                    >
+                      <option value="Active">Hoạt động</option>
+                      <option value="Inactive">Không hoạt động</option>
+                      <option value="Banned">Bị cấm</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-modal-footer">
+                <button onClick={() => setIsCreateModalOpen(false)} className="admin-btn-secondary">
+                  Hủy
+                </button>
+                <button onClick={handleCreate} disabled={loading} className="admin-btn-primary">
+                  {loading ? 'Đang tạo...' : 'Tạo người dùng'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {isEditModalOpen && editingUser && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-backdrop" onClick={() => setIsEditModalOpen(false)} />
+          <div className="admin-modal-container">
+            <div className="admin-modal">
+              <div className="admin-modal-header">
+                <h2 className="admin-modal-title">Chỉnh sửa người dùng: {editingUser.name}</h2>
+              </div>
+              <div className="admin-modal-body max-h-[70vh] overflow-y-auto">
+                <div className="space-y-6 p-1">
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Họ tên <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="admin-input w-full"
+                      placeholder="Nhập họ tên"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="admin-input w-full"
+                      placeholder="Nhập email"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Mật khẩu mới <span className="text-gray-500">(để trống nếu không đổi)</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="admin-input w-full"
+                      placeholder="Nhập mật khẩu mới"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Số điện thoại
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="admin-input w-full"
+                      placeholder="Nhập số điện thoại"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Vai trò
+                    </label>
+                    <select
+                      value={formData.roleId}
+                      onChange={(e) => setFormData({ ...formData, roleId: parseInt(e.target.value) })}
+                      className="admin-select w-full"
+                    >
+                      {roles.map(role => (
+                        <option key={role.id} value={role.id}>
+                          {role.name === 'Admin' ? 'Quản trị viên' :
+                           role.name === 'Staff' ? 'Nhân viên' :
+                           role.name === 'Customer' ? 'Khách hàng' :
+                           role.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="w-full">
+                    <label className="admin-label" style={{ display: 'block', marginBottom: '8px' }}>
+                      Trạng thái
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' | 'Banned' })}
+                      className="admin-select w-full"
+                    >
+                      <option value="Active">Hoạt động</option>
+                      <option value="Inactive">Không hoạt động</option>
+                      <option value="Banned">Bị cấm</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-modal-footer">
+                <button onClick={() => setIsEditModalOpen(false)} className="admin-btn-secondary">
+                  Hủy
+                </button>
+                <button onClick={handleEdit} disabled={loading} className="admin-btn-primary">
+                  {loading ? 'Đang cập nhật...' : 'Cập nhật'}
                 </button>
               </div>
             </div>

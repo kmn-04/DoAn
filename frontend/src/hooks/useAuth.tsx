@@ -50,17 +50,13 @@ export const useAuth = () => {
 
   // Logout function
   const handleLogout = useCallback(async () => {
-    console.log('useAuth: handleLogout called');
     try {
       await authService.logout();
-      console.log('useAuth: authService.logout completed');
     } catch (error) {
       // Ignore logout API errors, still logout locally
       console.warn('Logout API failed, but continuing with local logout');
     } finally {
-      console.log('useAuth: calling store logout');
       logout();
-      console.log('useAuth: showing toast and navigating');
       showToast.success('Đã đăng xuất', 'Hẹn gặp lại bạn!');
       navigate('/dashboard');
     }

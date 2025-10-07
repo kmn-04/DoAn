@@ -93,15 +93,17 @@ public interface UserService {
         private long totalUsers;
         private long activeUsers;
         private long inactiveUsers;
+        private long bannedUsers;
         private long verifiedUsers;
         private long newUsersThisMonth;
         
         // Constructor and getters
         public UserStatistics(long totalUsers, long activeUsers, long inactiveUsers, 
-                            long verifiedUsers, long newUsersThisMonth) {
+                            long bannedUsers, long verifiedUsers, long newUsersThisMonth) {
             this.totalUsers = totalUsers;
             this.activeUsers = activeUsers;
             this.inactiveUsers = inactiveUsers;
+            this.bannedUsers = bannedUsers;
             this.verifiedUsers = verifiedUsers;
             this.newUsersThisMonth = newUsersThisMonth;
         }
@@ -110,6 +112,7 @@ public interface UserService {
         public long getTotalUsers() { return totalUsers; }
         public long getActiveUsers() { return activeUsers; }
         public long getInactiveUsers() { return inactiveUsers; }
+        public long getBannedUsers() { return bannedUsers; }
         public long getVerifiedUsers() { return verifiedUsers; }
         public long getNewUsersThisMonth() { return newUsersThisMonth; }
     }

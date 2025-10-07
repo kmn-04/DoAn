@@ -19,6 +19,7 @@ public class NotificationResponse {
     private String message;
     private String type;
     private String link;
+    private String recipientType; // ALL, ADMIN, USER
     private Boolean isRead;
     private LocalDateTime createdAt;
 }

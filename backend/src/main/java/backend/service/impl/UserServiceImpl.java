@@ -32,8 +32,8 @@ public class UserServiceImpl implements UserService {
     public User createUser(User user) {
         log.info("Creating new user with email: {}", user.getEmail());
         
-        // Check if email already exists
-        if (userRepository.existsByEmail(user.getEmail())) {
+        // Check if email already exists among non-deleted users
+        if (userRepository.existsByEmailAndNotDeleted(user.getEmail())) {
             throw new RuntimeException("Email already exists: " + user.getEmail());
         }
         
@@ -68,6 +68,17 @@ public class UserServiceImpl implements UserService {
         if (user.getName() != null) {
             existingUser.setName(user.getName());
         }
+        if (user.getEmail() != null && !user.getEmail().equals(existingUser.getEmail())) {
+            // Check if new email already exists among non-deleted users
+            if (userRepository.existsByEmailAndNotDeleted(user.getEmail())) {
+                throw new RuntimeException("Email already exists: " + user.getEmail());
+            }
+            existingUser.setEmail(user.getEmail());
+        }
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            // Encode new password
+            existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         if (user.getPhone() != null) {
             existingUser.setPhone(user.getPhone());
         }
@@ -79,6 +90,12 @@ public class UserServiceImpl implements UserService {
         }
         if (user.getAvatarUrl() != null) {
             existingUser.setAvatarUrl(user.getAvatarUrl());
+        }
+        if (user.getRole() != null) {
+            existingUser.setRole(user.getRole());
+        }
+        if (user.getStatus() != null) {
+            existingUser.setStatus(user.getStatus());
         }
         
         User updatedUser = userRepository.save(existingUser);
@@ -101,7 +118,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Page<User> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable);
+        // Only return users that are not soft deleted
+        return userRepository.findByDeletedAtIsNull(pageable);
     }
     
     @Override
@@ -206,15 +224,17 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserStatistics getUserStatistics() {
-        long totalUsers = userRepository.count();
-        long activeUsers = userRepository.countByStatus(UserStatus.Active);
-        long inactiveUsers = userRepository.countByStatus(UserStatus.Inactive);
+        // Only count non-deleted users
+        long totalUsers = userRepository.countByDeletedAtIsNull();
+        long activeUsers = userRepository.countByStatusAndNotDeleted(UserStatus.Active);
+        long inactiveUsers = userRepository.countByStatusAndNotDeleted(UserStatus.Inactive);
+        long bannedUsers = userRepository.countBannedUsers();
         long verifiedUsers = userRepository.findVerifiedUsers().size();
         
         LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         long newUsersThisMonth = userRepository.findByCreatedAtAfter(startOfMonth).size();
         
-        return new UserStatistics(totalUsers, activeUsers, inactiveUsers, verifiedUsers, newUsersThisMonth);
+        return new UserStatistics(totalUsers, activeUsers, inactiveUsers, bannedUsers, verifiedUsers, newUsersThisMonth);
     }
     
     @Override

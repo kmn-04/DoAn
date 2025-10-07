@@ -24,5 +24,7 @@ public class NotificationRequest {
     private NotificationType type;
     
     private String link;
+    
+    private String recipientType; // ALL, ADMIN, USER
 }
 

@@ -121,7 +121,7 @@ export const useRenderPerformance = (componentName: string) => {
     const renderTime = endTime - startTime.current;
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`${componentName} render #${renderCount.current} took ${renderTime.toFixed(2)}ms`);
+      // Performance logging removed
     }
   });
 
@@ -223,7 +223,6 @@ export const usePreload = (resources: string[]) => {
     Promise.allSettled(preloadPromises).then((results) => {
       if (process.env.NODE_ENV === 'development') {
         const successful = results.filter(r => r.status === 'fulfilled').length;
-        console.log(`Preloaded ${successful}/${resources.length} resources`);
       }
     });
   }, [resources]);

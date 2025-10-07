@@ -18,19 +18,43 @@ interface Booking {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerAddress?: string;
+  contactPhone?: string;
   totalPrice: number;
   confirmationStatus: string;
   paymentStatus: string;
   createdAt: string;
   startDate: string;
   totalPeople: number;
+  numAdults?: number;
+  numChildren?: number;
+  numInfants?: number;
+  unitPrice?: number;
+  discountAmount?: number;
+  finalAmount?: number;
+  promotionId?: number;
+  promotionCode?: string;
+  specialRequests?: string;
+  cancellationReason?: string;
+  cancelledAt?: string;
+  updatedAt?: string;
+  // Tour nested object
+  tour?: {
+    id: number;
+    name: string;
+    slug?: string;
+    destination?: string;
+    departureLocation?: string;
+    duration?: number;
+    tourType?: string;
+    mainImage?: string;
+    price?: number;
+  };
 }
 
 interface BookingDetail extends Booking {
   tourLocation?: string;
   tourDuration?: string;
-  specialRequests?: string;
-  participants?: any[];
 }
 
 const AdminBookings: React.FC = () => {
@@ -103,7 +127,6 @@ const AdminBookings: React.FC = () => {
       
       const response = await apiClient.get(`/admin/bookings?${params.toString()}`);
       
-      console.log('📋 Fetched bookings:', response.data.data?.content);
       const bookingsData = (response.data.data?.content || []).map((booking: any) => ({
         ...booking,
         // Normalize status to PascalCase
@@ -115,12 +138,6 @@ const AdminBookings: React.FC = () => {
           : booking.paymentStatus
       }));
       
-      if (bookingsData.length > 0) {
-        console.log('First booking status (normalized):', {
-          confirmationStatus: bookingsData[0].confirmationStatus,
-          paymentStatus: bookingsData[0].paymentStatus
-        });
-      }
       
       setBookings(bookingsData);
       setTotalPages(response.data.data?.totalPages || 0);
@@ -161,17 +178,14 @@ const AdminBookings: React.FC = () => {
     
     try {
       setLoading(true);
-      console.log(`Updating booking ${id} confirmation status to:`, newStatus);
       const response = await apiClient.patch(`/admin/bookings/${id}/status`, { 
         status: newStatus 
       });
-      console.log('Update response:', response.data);
       if (typeof bookingId !== 'number') closeDetailModal();
       await Promise.all([
         fetchBookings(currentPage),
         fetchGlobalStats()
       ]);
-      console.log('Refreshed bookings and stats');
     } catch (error) {
       console.error('Error updating confirmation status:', error);
       const axiosError = error as AxiosError<{ message?: string }>;
@@ -187,15 +201,12 @@ const AdminBookings: React.FC = () => {
     
     try {
       setLoading(true);
-      console.log(`Updating booking ${id} payment status to:`, newStatus);
       const response = await apiClient.patch(`/admin/bookings/${id}/payment-status?paymentStatus=${newStatus}`);
-      console.log('Update response:', response.data);
       if (typeof bookingId !== 'number') closeDetailModal();
       await Promise.all([
         fetchBookings(currentPage),
         fetchGlobalStats()
       ]);
-      console.log('Refreshed bookings and stats');
     } catch (error) {
       console.error('Error updating payment status:', error);
       const axiosError = error as AxiosError<{ message?: string }>;
@@ -452,12 +463,7 @@ const AdminBookings: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                bookings.map((booking) => {
-                  console.log(`🎨 Rendering booking ${booking.id}:`, {
-                    confirmationStatus: booking.confirmationStatus,
-                    paymentStatus: booking.paymentStatus
-                  });
-                  return (
+                bookings.map((booking) => (
                   <tr key={booking.id} className="admin-table-row">
                     <td className="admin-table-td">
                       <span className="font-mono text-sm font-semibold text-blue-600">{booking.bookingCode}</span>
@@ -475,10 +481,7 @@ const AdminBookings: React.FC = () => {
                       <select
                         key={`conf-${booking.id}-${booking.confirmationStatus}`}
                         value={booking.confirmationStatus}
-                        onChange={(e) => {
-                          console.log(`🔄 Changing booking ${booking.id} confirmation from ${booking.confirmationStatus} to ${e.target.value}`);
-                          handleUpdateConfirmationStatus(booking.id, e.target.value);
-                        }}
+                        onChange={(e) => handleUpdateConfirmationStatus(booking.id, e.target.value)}
                         className={`admin-table-select ${getConfirmationStatusBadge(booking.confirmationStatus)}`}
                         disabled={loading}
                       >
@@ -493,10 +496,7 @@ const AdminBookings: React.FC = () => {
                       <select
                         key={`pay-${booking.id}-${booking.paymentStatus}`}
                         value={booking.paymentStatus}
-                        onChange={(e) => {
-                          console.log(`💰 Changing booking ${booking.id} payment from ${booking.paymentStatus} to ${e.target.value}`);
-                          handleUpdatePaymentStatus(booking.id, e.target.value);
-                        }}
+                        onChange={(e) => handleUpdatePaymentStatus(booking.id, e.target.value)}
                         className={`admin-table-select ${getPaymentStatusBadge(booking.paymentStatus)}`}
                         disabled={loading}
                       >
@@ -516,8 +516,7 @@ const AdminBookings: React.FC = () => {
                       </button>
                     </td>
                   </tr>
-                  );
-                })
+                ))
               )}
             </tbody>
           </table>
@@ -557,15 +556,15 @@ const AdminBookings: React.FC = () => {
                       </div>
                       <div className="admin-view-item">
                         <p className="admin-view-label">Ngày đặt</p>
-                        <p className="admin-view-value">{formatDate(selectedBooking.bookingDate)}</p>
+                        <p className="admin-view-value">{formatDate(selectedBooking.createdAt)}</p>
                       </div>
                       <div className="admin-view-item">
                         <p className="admin-view-label">Ngày khởi hành</p>
-                        <p className="admin-view-value">{formatDate(selectedBooking.tourDate)}</p>
+                        <p className="admin-view-value">{formatDate(selectedBooking.startDate)}</p>
                       </div>
                       <div className="admin-view-item">
-                        <p className="admin-view-label">Số người</p>
-                        <p className="admin-view-value">{selectedBooking.numberOfPeople} người</p>
+                        <p className="admin-view-label">Cập nhật lần cuối</p>
+                        <p className="admin-view-value">{formatDate(selectedBooking.updatedAt || selectedBooking.createdAt)}</p>
                       </div>
                     </div>
                   </div>
@@ -576,15 +575,47 @@ const AdminBookings: React.FC = () => {
                     <div className="admin-view-grid">
                       <div className="admin-view-item col-span-2">
                         <p className="admin-view-label">Tên tour</p>
-                        <p className="admin-view-value font-semibold">{selectedBooking.tourName}</p>
+                        <p className="admin-view-value font-semibold">{selectedBooking.tour?.name || selectedBooking.tourName}</p>
+                      </div>
+                      {selectedBooking.tour?.mainImage && (
+                        <div className="admin-view-item col-span-2">
+                          <p className="admin-view-label">Hình ảnh</p>
+                          <img 
+                            src={selectedBooking.tour.mainImage} 
+                            alt={selectedBooking.tour.name}
+                            className="w-full h-32 object-cover rounded-lg"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Loại tour</p>
+                        <p className="admin-view-value">
+                          {selectedBooking.tour?.tourType === 'Domestic' ? '🇻🇳 Trong nước' : 
+                           selectedBooking.tour?.tourType === 'International' ? '🌍 Quốc tế' : 'N/A'}
+                        </p>
                       </div>
                       <div className="admin-view-item">
-                        <p className="admin-view-label">Địa điểm</p>
-                        <p className="admin-view-value">{selectedBooking.tourLocation || 'N/A'}</p>
+                        <p className="admin-view-label">Điểm khởi hành</p>
+                        <p className="admin-view-value">{selectedBooking.tour?.departureLocation || 'N/A'}</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Điểm đến</p>
+                        <p className="admin-view-value">{selectedBooking.tour?.destination || 'N/A'}</p>
                       </div>
                       <div className="admin-view-item">
                         <p className="admin-view-label">Thời gian</p>
-                        <p className="admin-view-value">{selectedBooking.tourDuration || 'N/A'}</p>
+                        <p className="admin-view-value">
+                          {selectedBooking.tour?.duration ? `${selectedBooking.tour.duration} ngày` : 'N/A'}
+                        </p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Giá niêm yết</p>
+                        <p className="admin-view-value font-semibold text-blue-600">
+                          {selectedBooking.tour?.price ? formatPrice(selectedBooking.tour.price) : 'N/A'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -594,7 +625,7 @@ const AdminBookings: React.FC = () => {
                     <h4 className="admin-view-section-title">Thông tin khách hàng</h4>
                     <div className="admin-view-grid">
                       <div className="admin-view-item">
-                        <p className="admin-view-label">Tên</p>
+                        <p className="admin-view-label">Tên khách hàng</p>
                         <p className="admin-view-value">{selectedBooking.customerName}</p>
                       </div>
                       <div className="admin-view-item">
@@ -605,6 +636,41 @@ const AdminBookings: React.FC = () => {
                         <p className="admin-view-label">Số điện thoại</p>
                         <p className="admin-view-value">{selectedBooking.customerPhone}</p>
                       </div>
+                      {selectedBooking.contactPhone && (
+                        <div className="admin-view-item">
+                          <p className="admin-view-label">SĐT liên hệ khác</p>
+                          <p className="admin-view-value">{selectedBooking.contactPhone}</p>
+                        </div>
+                      )}
+                      {selectedBooking.customerAddress && (
+                        <div className="admin-view-item col-span-2">
+                          <p className="admin-view-label">Địa chỉ</p>
+                          <p className="admin-view-value">{selectedBooking.customerAddress}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Participants Info */}
+                  <div className="admin-view-section">
+                    <h4 className="admin-view-section-title">Số lượng hành khách</h4>
+                    <div className="admin-view-grid">
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Người lớn</p>
+                        <p className="admin-view-value font-semibold">{selectedBooking.numAdults || 0} người</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Trẻ em</p>
+                        <p className="admin-view-value font-semibold">{selectedBooking.numChildren || 0} người</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Em bé</p>
+                        <p className="admin-view-value font-semibold">{selectedBooking.numInfants || 0} người</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Tổng số người</p>
+                        <p className="admin-view-value font-bold text-blue-600">{selectedBooking.totalPeople} người</p>
+                      </div>
                     </div>
                   </div>
 
@@ -613,8 +679,28 @@ const AdminBookings: React.FC = () => {
                     <h4 className="admin-view-section-title">Thông tin thanh toán</h4>
                     <div className="admin-view-grid">
                       <div className="admin-view-item">
-                        <p className="admin-view-label">Tổng tiền</p>
-                        <p className="admin-view-value font-bold text-green-600 text-lg">{formatPrice(selectedBooking.totalPrice)}</p>
+                        <p className="admin-view-label">Đơn giá</p>
+                        <p className="admin-view-value">{formatPrice(selectedBooking.unitPrice || 0)}</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Tổng tiền (chưa giảm)</p>
+                        <p className="admin-view-value">{formatPrice(selectedBooking.totalPrice)}</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Giảm giá</p>
+                        <p className="admin-view-value text-red-600">
+                          {selectedBooking.discountAmount ? `-${formatPrice(selectedBooking.discountAmount)}` : '0 ₫'}
+                        </p>
+                      </div>
+                      {selectedBooking.promotionCode && (
+                        <div className="admin-view-item">
+                          <p className="admin-view-label">Mã khuyến mãi</p>
+                          <p className="admin-view-value font-mono text-green-600">{selectedBooking.promotionCode}</p>
+                        </div>
+                      )}
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Thành tiền</p>
+                        <p className="admin-view-value font-bold text-green-600 text-lg">{formatPrice(selectedBooking.finalAmount || selectedBooking.totalPrice)}</p>
                       </div>
                       <div className="admin-view-item">
                         <p className="admin-view-label">Trạng thái thanh toán</p>
@@ -639,7 +725,30 @@ const AdminBookings: React.FC = () => {
                   {selectedBooking.specialRequests && (
                     <div className="admin-view-section">
                       <h4 className="admin-view-section-title">Yêu cầu đặc biệt</h4>
-                      <p className="text-sm text-gray-700">{selectedBooking.specialRequests}</p>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-700 whitespace-pre-line">{selectedBooking.specialRequests}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Cancellation Info */}
+                  {selectedBooking.cancellationReason && (
+                    <div className="admin-view-section">
+                      <h4 className="admin-view-section-title text-red-600">Thông tin hủy booking</h4>
+                      <div className="admin-view-grid">
+                        {selectedBooking.cancelledAt && (
+                          <div className="admin-view-item">
+                            <p className="admin-view-label">Thời gian hủy</p>
+                            <p className="admin-view-value">{formatDate(selectedBooking.cancelledAt)}</p>
+                          </div>
+                        )}
+                        <div className="admin-view-item col-span-2">
+                          <p className="admin-view-label">Lý do hủy</p>
+                          <div className="bg-red-50 p-4 rounded-lg">
+                            <p className="text-sm text-red-700 whitespace-pre-line">{selectedBooking.cancellationReason}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 
