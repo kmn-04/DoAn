@@ -37,17 +37,18 @@ public class CategoryController extends BaseController {
     @Operation(summary = "Get all categories")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
         try {
-            List<Category> categories = categoryService.getAllCategories();
+            // Use the method that includes tour count
+            List<CategoryService.CategoryWithTourCount> categoriesWithCount = categoryService.getCategoriesWithTourCount();
             
             // If no categories found, return mock data
-            if (categories == null || categories.isEmpty()) {
+            if (categoriesWithCount == null || categoriesWithCount.isEmpty()) {
                 log.warn("No categories found in database, returning mock data");
                 return ResponseEntity.ok(success("Mock categories retrieved", createMockCategoryResponses()));
             }
             
-            // Use simple mapping without accessing lazy-loaded tours collection
-            List<CategoryResponse> categoryResponses = categories.stream()
-                .map(this::mapToSimpleCategoryResponse)
+            // Map to CategoryResponse with actual tour count
+            List<CategoryResponse> categoryResponses = categoriesWithCount.stream()
+                .map(cwc -> mapToCategoryResponseWithCount(cwc.getCategory(), cwc.getTourCount()))
                 .collect(java.util.stream.Collectors.toList());
             return ResponseEntity.ok(success("Categories retrieved successfully", categoryResponses));
             
@@ -93,6 +94,21 @@ public class CategoryController extends BaseController {
         response.setCreatedAt(category.getCreatedAt());
         response.setUpdatedAt(category.getUpdatedAt());
         response.setTourCount(0L); // Don't access lazy-loaded tours here
+        return response;
+    }
+    
+    private CategoryResponse mapToCategoryResponseWithCount(Category category, long tourCount) {
+        CategoryResponse response = new CategoryResponse();
+        response.setId(category.getId());
+        response.setName(category.getName());
+        response.setSlug(category.getSlug());
+        response.setDescription(category.getDescription());
+        response.setImageUrl(category.getImageUrl());
+        response.setIsFeatured(category.getIsFeatured());
+        response.setStatus(category.getStatus() != null ? category.getStatus().toString() : null);
+        response.setCreatedAt(category.getCreatedAt());
+        response.setUpdatedAt(category.getUpdatedAt());
+        response.setTourCount(tourCount); // Use actual tour count from query
         return response;
     }
     

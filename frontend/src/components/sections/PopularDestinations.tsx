@@ -1,30 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   MapPinIcon, 
   StarIcon, 
   PhotoIcon,
-  ClockIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
-
-interface Destination {
-  id: number;
-  name: string;
-  country: string;
-  slug: string;
-  image: string;
-  tourCount: number;
-  averageRating: number;
-  averagePrice: number;
-  bestTime: string;
-  highlights: string[];
-  isPopular: boolean;
-  climate: string;
-}
+import { destinationService } from '../../services';
+import type { PopularDestinationResponse } from '../../services';
 
 const PopularDestinations: React.FC = () => {
-  const destinations: Destination[] = [
+  const [destinations, setDestinations] = useState<PopularDestinationResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchDestinations = async () => {
+      try {
+        setIsLoading(true);
+        const data = await destinationService.getPopularDestinations(4, 1); // Get top 4 destinations with min 1 tour
+        setDestinations(data);
+      } catch (err) {
+        console.error('Error fetching destinations:', err);
+        setError('Không thể tải điểm đến. Vui lòng thử lại sau.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchDestinations();
+  }, []);
+  
+  // Keep mock data for reference but don't use it
+  const mockDestinations: PopularDestinationResponse[] = [
     {
       id: 1,
       name: 'Phú Quốc',
@@ -118,8 +126,59 @@ const PopularDestinations: React.FC = () => {
     }).format(price);
   };
 
-  // Filter only popular destinations
-  const popularDestinations = destinations.filter(dest => dest.isPopular);
+  // Loading state
+  if (isLoading) {
+    return (
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Điểm Đến Phổ Biến
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-gray-200 h-96 rounded-2xl"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Điểm Đến Phổ Biến
+            </h2>
+            <p className="text-red-600">{error}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Empty state
+  if (destinations.length === 0) {
+    return (
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Điểm Đến Phổ Biến
+            </h2>
+            <p className="text-gray-600">Chưa có điểm đến nào.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-12 bg-white">
@@ -136,9 +195,9 @@ const PopularDestinations: React.FC = () => {
 
         {/* Popular Destinations - Large Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {popularDestinations.map((destination) => (
+          {destinations.map((destination, index) => (
             <Link
-              key={destination.id}
+              key={index}
               to={`/tours?destination=${destination.slug}`}
               className="group block"
             >
@@ -193,30 +252,21 @@ const PopularDestinations: React.FC = () => {
 
                 {/* Content */}
                 <div className="p-6">
-                  {/* Best Time & Climate */}
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                    <div className="flex items-center space-x-1">
-                      <ClockIcon className="h-4 w-4" />
-                      <span>Thời gian tốt nhất: {destination.bestTime}</span>
-                    </div>
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                      {destination.climate}
-                    </span>
-                  </div>
-
                   {/* Highlights */}
-                  <div className="mb-4">
-                    <div className="flex flex-wrap gap-2">
-                      {destination.highlights.map((highlight, index) => (
-                        <span
-                          key={index}
-                          className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
-                        >
-                          {highlight}
-                        </span>
-                      ))}
+                  {destination.highlights && destination.highlights.length > 0 && (
+                    <div className="mb-4">
+                      <div className="flex flex-wrap gap-2">
+                        {destination.highlights.map((highlight, idx) => (
+                          <span
+                            key={idx}
+                            className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+                          >
+                            {highlight}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* CTA */}
                   <div className="flex items-center justify-between">

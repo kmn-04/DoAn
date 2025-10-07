@@ -181,4 +181,35 @@ public interface TourRepository extends JpaRepository<Tour, Long> {
      */
     @Query("SELECT COUNT(b) FROM Booking b WHERE b.tour.id = :tourId")
     long countBookingsByTourId(@Param("tourId") Long tourId);
+    
+    /**
+     * Get popular destinations based on booking count
+     * Groups by destination and calculates aggregates
+     */
+    @Query("SELECT " +
+           "t.destination, " +
+           "COUNT(DISTINCT t), " +
+           "AVG(COALESCE(t.salePrice, t.price)), " +
+           "t.countryCode, " +
+           "COUNT(DISTINCT b) " +
+           "FROM Tour t " +
+           "LEFT JOIN Booking b ON b.tour.id = t.id " +
+           "WHERE t.status = :status AND t.deletedAt IS NULL " +
+           "AND t.destination IS NOT NULL " +
+           "GROUP BY t.destination, t.countryCode " +
+           "HAVING COUNT(DISTINCT t) >= :minTourCount " +
+           "ORDER BY COUNT(DISTINCT b) DESC, COUNT(DISTINCT t) DESC")
+    List<Object[]> findPopularDestinations(@Param("status") TourStatus status, 
+                                          @Param("minTourCount") int minTourCount, 
+                                          Pageable pageable);
+    
+    /**
+     * Find tours by destination name for getting average rating and images
+     */
+    @Query("SELECT t FROM Tour t WHERE " +
+           "LOWER(t.destination) = LOWER(:destination) " +
+           "AND t.status = :status AND t.deletedAt IS NULL " +
+           "ORDER BY t.isFeatured DESC, t.id DESC")
+    List<Tour> findByDestination(@Param("destination") String destination, 
+                                 @Param("status") TourStatus status);
 }
