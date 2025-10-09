@@ -10,9 +10,20 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PartnerRepository extends JpaRepository<Partner, Long> {
+    
+    /**
+     * Find partner by slug
+     */
+    Optional<Partner> findBySlug(String slug);
+    
+    /**
+     * Find partners by status
+     */
+    List<Partner> findByStatusOrderByNameAsc(Partner.PartnerStatus status);
     
     /**
      * Find partners by type

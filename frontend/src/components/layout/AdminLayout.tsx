@@ -19,7 +19,8 @@ import {
   StarIcon,
   BuildingOffice2Icon,
   EnvelopeIcon,
-  PresentationChartBarIcon
+  PresentationChartBarIcon,
+  PhotoIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -65,6 +66,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     {
       title: 'MARKETING',
       items: [
+        { name: 'Banner', href: '/admin/banners', icon: PhotoIcon },
         { name: 'Khuyến mãi', href: '/admin/promotions', icon: TagIcon },
         { name: 'Thông báo', href: '/admin/notifications', icon: BellIcon },
       ]

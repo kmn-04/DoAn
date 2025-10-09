@@ -1,51 +1,104 @@
 package backend.controller;
 
 import backend.dto.response.ApiResponse;
+import backend.dto.response.TourResponse;
+import backend.entity.Tour;
+import backend.mapper.EntityMapper;
+import backend.repository.BookingRepository;
+import backend.repository.TourRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/recommendations")
 @Slf4j
+@RequiredArgsConstructor
 @Tag(name = "Recommendation Management", description = "APIs for tour recommendations")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
 public class RecommendationController {
+    
+    private final TourRepository tourRepository;
+    private final BookingRepository bookingRepository;
+    private final EntityMapper entityMapper;
 
     @PostMapping("/personalized")
     @Operation(summary = "Get personalized tour recommendations")
-    public ResponseEntity<ApiResponse<List<Object>>> getPersonalizedRecommendations(
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<List<TourResponse>>> getPersonalizedRecommendations(
             @RequestBody(required = false) Map<String, Object> request) {
         
         try {
-            log.info("Getting personalized recommendations");
+            log.info("Getting personalized recommendations with request: {}", request);
             
-            // Return mock recommendations
-            List<Object> recommendations = List.of(
-                Map.of(
-                    "id", 1L,
-                    "name", "Ha Long Bay Adventure",
-                    "price", 2500000,
-                    "score", 95.5,
-                    "reason", "Based on your beach preferences"
-                ),
-                Map.of(
-                    "id", 2L,
-                    "name", "Sapa Mountain Trek", 
-                    "price", 1800000,
-                    "score", 88.2,
-                    "reason", "You love mountain activities"
-                )
-            );
+            // Extract userId from request
+            Long userId = null;
+            int limit = 8;
             
-            return ResponseEntity.ok(ApiResponse.success("Personalized recommendations retrieved", recommendations));
+            if (request != null) {
+                Object userIdObj = request.get("userId");
+                if (userIdObj != null) {
+                    userId = ((Number) userIdObj).longValue();
+                }
+                Object limitObj = request.get("limit");
+                if (limitObj != null) {
+                    limit = ((Number) limitObj).intValue();
+                }
+            }
+            
+            List<Tour> tours = new ArrayList<>();
+            
+            if (userId != null) {
+                // Get categories from user's booking history
+                List<Long> categoryIds = bookingRepository.findCategoryIdsByUserId(userId);
+                log.info("Found {} categories from user {} booking history", categoryIds.size(), userId);
+                
+                if (!categoryIds.isEmpty()) {
+                    // Get tours from these categories
+                    tours = tourRepository.findByCategoryIds(
+                        categoryIds, 
+                        Tour.TourStatus.Active, 
+                        PageRequest.of(0, limit)
+                    );
+                    log.info("Found {} tours from user's preferred categories", tours.size());
+                }
+            }
+            
+            // Fallback to featured tours if no personalized tours found
+            if (tours.isEmpty()) {
+                log.info("No personalized tours found, falling back to featured tours");
+                tours = tourRepository.findFeaturedTours(Tour.TourStatus.Active);
+                if (tours.size() > limit) {
+                    tours = tours.subList(0, limit);
+                }
+            }
+            
+            // Force initialization of lazy-loaded entities
+            tours.forEach(tour -> {
+                if (tour.getCategory() != null) {
+                    tour.getCategory().getName();
+                }
+            });
+            
+            List<TourResponse> responses = tours.stream()
+                .map(entityMapper::toTourResponse)
+                .collect(Collectors.toList());
+            
+            log.info("Returning {} personalized recommendations", responses.size());
+            return ResponseEntity.ok(ApiResponse.success("Personalized recommendations retrieved", responses));
             
         } catch (Exception e) {
             log.error("Error getting personalized recommendations", e);
@@ -55,20 +108,40 @@ public class RecommendationController {
 
     @GetMapping("/trending")
     @Operation(summary = "Get trending tours")
-    public ResponseEntity<ApiResponse<List<Object>>> getTrendingTours(
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<List<TourResponse>>> getTrendingTours(
             @Parameter(description = "Number of tours to return") @RequestParam(defaultValue = "6") int limit) {
         
         try {
             log.info("Getting trending tours with limit: {}", limit);
             
-            // Return mock trending tours
-            List<Object> trendingTours = List.of(
-                Map.of("id", 1L, "name", "Ha Long Bay Cruise", "price", 2500000, "image", "/images/halong.jpg"),
-                Map.of("id", 2L, "name", "Sapa Adventure", "price", 1800000, "image", "/images/sapa.jpg"),
-                Map.of("id", 3L, "name", "Hoi An Ancient Town", "price", 1200000, "image", "/images/hoian.jpg")
+            // Get tours with most bookings in last 30 days
+            LocalDateTime since = LocalDateTime.now().minusDays(30);
+            List<Object[]> results = tourRepository.findTrendingTours(
+                Tour.TourStatus.Active, 
+                since, 
+                PageRequest.of(0, limit)
             );
             
-            return ResponseEntity.ok(ApiResponse.success("Trending tours retrieved", trendingTours));
+            log.info("Found {} trending tours", results.size());
+            
+            List<Tour> tours = results.stream()
+                .map(row -> (Tour) row[0])
+                .collect(Collectors.toList());
+            
+            // Force initialization of lazy-loaded entities
+            tours.forEach(tour -> {
+                if (tour.getCategory() != null) {
+                    tour.getCategory().getName();
+                }
+            });
+            
+            List<TourResponse> responses = tours.stream()
+                .map(entityMapper::toTourResponse)
+                .collect(Collectors.toList());
+            
+            log.info("Returning {} trending tours", responses.size());
+            return ResponseEntity.ok(ApiResponse.success("Trending tours retrieved", responses));
             
         } catch (Exception e) {
             log.error("Error getting trending tours", e);

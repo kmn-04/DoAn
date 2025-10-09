@@ -381,34 +381,34 @@ const BookingCheckoutPageNew: React.FC = () => {
 
   if (!tour) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải thông tin tour...</p>
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="animate-spin rounded-none h-16 w-16 border-b-2 mx-auto mb-4" style={{ borderColor: '#D4AF37' }}></div>
+          <p className="text-gray-600 font-normal">Đang tải thông tin tour...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-stone-50 py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-10 animate-fade-in">
           <button
             onClick={handleBack}
-            className="flex items-center text-blue-600 hover:text-blue-700 font-medium mb-4"
+            className="flex items-center text-slate-700 hover:text-slate-900 font-medium mb-6 transition-colors duration-300 group"
           >
-            <ArrowLeftIcon className="h-5 w-5 mr-1" />
+            <ArrowLeftIcon className="h-5 w-5 mr-2 transition-transform group-hover:-translate-x-1" />
             {currentStep > 1 ? 'Quay lại bước trước' : 'Quay lại trang tour'}
           </button>
           
-          <h1 className="text-3xl font-bold text-gray-900">Đặt Tour</h1>
-          <p className="text-gray-600 mt-2">{tour.name}</p>
+          <h1 className="text-4xl font-normal text-slate-900 mb-3 tracking-tight">Đặt Tour</h1>
+          <p className="text-base text-gray-600 font-normal">{tour.name}</p>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8 bg-white rounded-lg shadow-sm p-6">
+        <div className="mb-8 bg-white border border-stone-200 rounded-none p-8 animate-fade-in-up opacity-0 delay-100">
           <div className="flex items-center justify-between">
             {[
               { step: 1, label: 'Chọn lịch & Số người' },
@@ -417,21 +417,27 @@ const BookingCheckoutPageNew: React.FC = () => {
             ].map(({ step, label }, index) => (
               <React.Fragment key={step}>
                 <div className="flex items-center">
-                  <div className={`
-                    w-10 h-10 rounded-full flex items-center justify-center font-bold
-                    ${currentStep >= step 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-200 text-gray-500'
-                    }
-                  `}>
+                  <div 
+                    className={`
+                      w-12 h-12 rounded-none flex items-center justify-center font-medium tracking-wide transition-all duration-300
+                      ${currentStep >= step 
+                        ? 'text-white shadow-lg' 
+                        : 'bg-stone-100 text-gray-500'
+                      }
+                    `}
+                    style={currentStep >= step ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
+                  >
                     {currentStep > step ? <CheckCircleIcon className="h-6 w-6" /> : step}
                   </div>
-                  <span className={`ml-3 font-medium ${currentStep >= step ? 'text-gray-900' : 'text-gray-500'}`}>
+                  <span className={`ml-4 font-normal text-sm md:text-base ${currentStep >= step ? 'text-slate-900' : 'text-gray-500'}`}>
                     {label}
                   </span>
                 </div>
                 {index < 2 && (
-                  <div className={`flex-1 h-1 mx-4 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                  <div 
+                    className="flex-1 h-0.5 mx-6 transition-all duration-300" 
+                    style={currentStep > step ? { background: 'linear-gradient(90deg, #D4AF37 0%, #C5A028 100%)' } : { backgroundColor: '#e7e5e4' }}
+                  />
                 )}
               </React.Fragment>
             ))}
@@ -456,18 +462,18 @@ const BookingCheckoutPageNew: React.FC = () => {
                   )}
                 </div>
 
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Số lượng hành khách</h3>
+                <div className="bg-white border border-stone-200 rounded-none p-6">
+                  <h3 className="text-xl font-normal text-slate-900 mb-6 tracking-tight">Số lượng hành khách</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
                         Người lớn (&gt; 12 tuổi)
                       </label>
                       <select
                         value={numAdults}
                         onChange={(e) => setNumAdults(parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                       >
                         {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
                           <option key={num} value={num}>{num} người</option>
@@ -476,13 +482,13 @@ const BookingCheckoutPageNew: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
                         Trẻ em (&lt; 12 tuổi)
                       </label>
                       <select
                         value={numChildren}
                         onChange={(e) => setNumChildren(parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                       >
                         {[0, 1, 2, 3, 4, 5].map(num => (
                           <option key={num} value={num}>{num} trẻ</option>
@@ -505,10 +511,10 @@ const BookingCheckoutPageNew: React.FC = () => {
             {currentStep === 2 && (
               <>
                 {/* Thông tin hành khách */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <div className="mb-4 pb-4 border-b">
-                    <p className="text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
-                      💡 <strong>Lưu ý:</strong> Thông tin của <strong>Người lớn 1</strong> sẽ được dùng làm thông tin liên hệ (nhận email xác nhận & gọi điện)
+                <div className="bg-white border border-stone-200 rounded-none p-6">
+                  <div className="mb-6 pb-4 border-b border-stone-200">
+                    <p className="text-sm text-slate-900 bg-amber-50 border border-amber-200 p-4 rounded-none font-normal">
+                      💡 <strong className="font-medium">Lưu ý:</strong> Thông tin của <strong className="font-medium">Người lớn 1</strong> sẽ được dùng làm thông tin liên hệ (nhận email xác nhận & gọi điện)
                     </p>
                   </div>
                   
@@ -526,16 +532,16 @@ const BookingCheckoutPageNew: React.FC = () => {
                 </div>
 
                 {/* Yêu cầu đặc biệt */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Yêu cầu đặc biệt</h3>
+                <div className="bg-white border border-stone-200 rounded-none p-6">
+                  <h3 className="text-lg font-normal text-slate-900 mb-4 tracking-tight">Yêu cầu đặc biệt</h3>
                   <textarea
                     value={specialRequests}
                     onChange={(e) => setSpecialRequests(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                     rows={4}
                     placeholder="Ví dụ: Ăn chay, dị ứng hải sản, cần xe lăn, phòng gần thang máy..."
                   />
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-gray-500 mt-2 font-normal">
                     Chúng tôi sẽ cố gắng đáp ứng yêu cầu của bạn (không đảm bảo 100%)
                   </p>
                 </div>
@@ -544,8 +550,8 @@ const BookingCheckoutPageNew: React.FC = () => {
 
             {/* Step 3: Payment */}
             {currentStep === 3 && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Phương thức thanh toán</h3>
+              <div className="bg-white border border-stone-200 rounded-none p-6">
+                <h3 className="text-xl font-normal text-slate-900 mb-6 tracking-tight">Phương thức thanh toán</h3>
                 
                 <PaymentMethodSelection
                   selectedMethod={selectedPaymentMethod}
@@ -559,12 +565,12 @@ const BookingCheckoutPageNew: React.FC = () => {
                   <p className="text-red-500 text-sm mt-2">{errors.payment}</p>
                 )}
 
-                <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="mt-6 bg-stone-50 border border-stone-200 rounded-none p-5">
                   <div className="flex items-start">
-                    <ShieldCheckIcon className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
-                    <div className="text-sm text-blue-800">
-                      <p className="font-semibold">Thanh toán an toàn & bảo mật</p>
-                      <p>Thông tin thanh toán của bạn được mã hóa và bảo mật tuyệt đối.</p>
+                    <ShieldCheckIcon className="h-5 w-5 mr-3 mt-0.5" style={{ color: '#D4AF37' }} />
+                    <div className="text-sm text-slate-900">
+                      <p className="font-medium tracking-tight">Thanh toán an toàn & bảo mật</p>
+                      <p className="font-normal mt-1">Thông tin thanh toán của bạn được mã hóa và bảo mật tuyệt đối.</p>
                     </div>
                   </div>
                 </div>
@@ -576,7 +582,8 @@ const BookingCheckoutPageNew: React.FC = () => {
               <div className="flex justify-end">
                 <Button
                   onClick={handleNext}
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white"
+                  className="px-8 py-3 text-white rounded-none hover:opacity-90 transition-all duration-300 font-medium tracking-wide"
+                  style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                 >
                   Tiếp tục
                 </Button>
@@ -586,56 +593,56 @@ const BookingCheckoutPageNew: React.FC = () => {
 
           {/* Sidebar: Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Tóm tắt đơn hàng</h3>
+            <div className="bg-white border border-stone-200 rounded-none p-6 sticky top-4 animate-fade-in-up opacity-0 delay-200">
+              <h3 className="text-lg font-medium text-slate-900 mb-6 tracking-tight">Tóm tắt đơn hàng</h3>
               
               {/* Tour Image */}
               {tour.mainImage && (
                 <img
                   src={tour.mainImage}
                   alt={tour.name}
-                  className="w-full h-40 object-cover rounded-lg mb-4"
+                  className="w-full h-48 object-cover rounded-none mb-6 border border-stone-200"
                 />
               )}
 
               {/* Tour Name */}
-              <h4 className="font-semibold text-gray-900 mb-4">{tour.name}</h4>
+              <h4 className="font-medium text-slate-900 mb-6 text-base tracking-tight">{tour.name}</h4>
 
               {/* Schedule */}
               {selectedSchedule && (
-                <div className="mb-4 pb-4 border-b border-gray-200">
-                  <p className="text-sm text-gray-600">Khởi hành</p>
-                  <p className="font-medium">{new Date(selectedSchedule.departureDate).toLocaleDateString('vi-VN')}</p>
+                <div className="mb-6 pb-4 border-b border-stone-200">
+                  <p className="text-sm text-gray-600 font-normal">Khởi hành</p>
+                  <p className="font-medium text-slate-900 mt-1">{new Date(selectedSchedule.departureDate).toLocaleDateString('vi-VN')}</p>
                 </div>
               )}
 
               {/* Price Breakdown */}
-              <div className="space-y-2 mb-4">
+              <div className="space-y-3 mb-6">
                 {numAdults > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span>Người lớn ({numAdults})</span>
-                    <span>{(adultPrice * numAdults).toLocaleString('vi-VN')}đ</span>
+                    <span className="text-gray-600 font-normal">Người lớn ({numAdults})</span>
+                    <span className="font-medium text-slate-900">{(adultPrice * numAdults).toLocaleString('vi-VN')}đ</span>
                   </div>
                 )}
                 {numChildren > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span>Trẻ em ({numChildren})</span>
-                    <span>{(childPrice * numChildren).toLocaleString('vi-VN')}đ</span>
+                    <span className="text-gray-600 font-normal">Trẻ em ({numChildren})</span>
+                    <span className="font-medium text-slate-900">{(childPrice * numChildren).toLocaleString('vi-VN')}đ</span>
                   </div>
                 )}
               </div>
 
               {discount > 0 && (
-                <div className="flex justify-between text-sm text-green-600 mb-2">
-                  <span>Giảm giá</span>
-                  <span>-{discount.toLocaleString('vi-VN')}đ</span>
+                <div className="flex justify-between text-sm mb-4" style={{ color: '#D4AF37' }}>
+                  <span className="font-normal">Giảm giá</span>
+                  <span className="font-medium">-{discount.toLocaleString('vi-VN')}đ</span>
                 </div>
               )}
 
-              <div className="border-t border-gray-200 pt-4">
+              <div className="border-t border-stone-200 pt-5">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">Tổng cộng</span>
-                  <span className="text-2xl font-bold text-blue-600">
+                  <span className="text-lg font-medium text-slate-900 tracking-tight">Tổng cộng</span>
+                  <span className="text-2xl font-normal tracking-tight" style={{ color: '#D4AF37' }}>
                     {total.toLocaleString('vi-VN')}đ
                   </span>
                 </div>

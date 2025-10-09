@@ -112,22 +112,22 @@ const Header: React.FC = () => {
     ? [{ name: 'Quay lại Admin', href: '/admin', icon: ShieldCheckIcon }] 
     : [];
   return (
-    <header className="bg-white shadow-lg relative z-50">
+    <header className="bg-white shadow-sm border-b border-stone-200 relative z-50">
       {/* Top Row: Logo + Search + Hotline */}
-      <div className="bg-gray-50 border-b border-gray-200">
+      <div className="bg-slate-900 border-b border-slate-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3">
+          <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/dashboard" className="flex items-center">
-              <div className="bg-blue-600 text-white p-2 rounded-lg mr-3">
+            <Link to="/dashboard" className="flex items-center group">
+              <div className="bg-gradient-to-br from-yellow-600 to-yellow-700 text-white p-2 rounded-none mr-3 group-hover:from-yellow-500 group-hover:to-yellow-600 transition-all shadow-lg" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                 <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
                 </svg>
               </div>
               <div>
-                  <h1 className="text-xl font-bold text-blue-700">TourBooking</h1>
-                  <p className="text-xs text-gray-600">Khám phá vẻ đẹp thế giới</p>
+                  <h1 className="text-xl font-semibold text-white tracking-wide">TourBooking</h1>
+                  <p className="text-xs text-gray-300 font-normal tracking-wider">Khám phá vẻ đẹp thế giới</p>
               </div>
             </Link>
           </div>
@@ -135,16 +135,17 @@ const Header: React.FC = () => {
             {/* Search Bar */}
             <div className="hidden md:flex items-center flex-1 max-w-lg mx-8">
               <div className="relative w-full">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-500" />
                 </div>
                 <input
                   type="text"
                   placeholder="Bạn muốn đi đâu?"
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-full leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full pl-12 pr-3 py-2.5 border border-slate-700 rounded-none leading-5 bg-slate-800 text-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-500 focus:ring-1 focus:border-[#D4AF37] font-normal text-sm"
+                  style={{ focusRingColor: '#D4AF37' }}
                 />
-                <button className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                  <div className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors">
+                <button className="absolute inset-y-0 right-0 pr-2 flex items-center">
+                  <div className="text-white p-2 rounded-none transition-all shadow-md" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                     <MagnifyingGlassIcon className="h-4 w-4" />
                   </div>
                 </button>
@@ -152,19 +153,19 @@ const Header: React.FC = () => {
             </div>
 
             {/* Hotline */}
-            <div className="hidden lg:flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-full">
+            <div className="hidden lg:flex items-center space-x-3 text-white px-5 py-2.5 rounded-none transition-all border shadow-lg" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)', borderColor: '#C5A028' }}>
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M2 3.5A1.5 1.5 0 013.5 2h1.148a1.5 1.5 0 011.465 1.175l.716 3.223a1.5 1.5 0 01-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 006.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 011.767-1.052l3.223.716A1.5 1.5 0 0118 15.352V16.5a1.5 1.5 0 01-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 012.43 8.326 13.019 13.019 0 012 5V3.5z" clipRule="evenodd" />
               </svg>
               <div className="text-sm">
-                <div className="font-medium">Hotline</div>
-                <div className="font-bold">(+84) 868.541.104</div>
+                <div className="font-normal text-xs tracking-wide">Hotline</div>
+                <div className="font-semibold tracking-wider">(+84) 868.541.104</div>
               </div>
             </div>
 
             {/* Mobile Search Icon */}
             <button 
-              className={`md:hidden p-3 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-md transition-colors ${touchTargets.button}`}
+              className={`md:hidden p-3 text-gray-300 hover:text-white hover:bg-slate-800 rounded-none transition-colors ${touchTargets.button}`}
               aria-label="Tìm kiếm"
             >
               <MagnifyingGlassIcon className="h-6 w-6" />
@@ -177,7 +178,7 @@ const Header: React.FC = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-1">
             {navigation.map((item) => {
               if (item.hasDropdown) {
                 return (
@@ -190,11 +191,12 @@ const Header: React.FC = () => {
                   >
                     <Link
                       to={item.href}
-                      className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      className={`flex items-center space-x-1 px-4 py-2 rounded-none text-base font-medium tracking-wide transition-all ${
                         item.current
-                          ? 'text-blue-600 bg-blue-50'
-                          : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                          ? 'text-slate-900 bg-stone-100 border-b-2'
+                          : 'text-gray-700 hover:text-slate-900 hover:bg-stone-50'
                       }`}
+                      style={item.current ? { borderBottomColor: '#D4AF37' } : {}}
                     >
                       <span>{item.name}</span>
                       <ChevronDownIcon 
@@ -206,22 +208,23 @@ const Header: React.FC = () => {
                     
                     {/* Tour Categories Dropdown */}
                     {isTourDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                        <div className="py-2">
+                      <div className="absolute top-full left-0 mt-0 w-56 bg-white rounded-none shadow-lg border border-stone-200 z-50">
+                        <div className="py-1">
                           {tourCategories.map((category) => (
                             <Link
                               key={category.name}
                               to={category.href}
-                              className="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                              className="block px-4 py-3 text-sm text-gray-700 hover:bg-stone-50 hover:text-slate-900 transition-colors font-normal"
                               onClick={() => setIsTourDropdownOpen(false)}
                             >
                               {category.name}
                             </Link>
                           ))}
-                          <div className="border-t mt-2 pt-2">
+                          <div className="border-t border-stone-200 mt-1 pt-1">
                             <Link
                               to="/tours"
-                              className="block px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                              className="block px-4 py-3 text-sm font-medium hover:bg-stone-50 transition-colors"
+                              style={{ color: '#D4AF37' }}
                               onClick={() => setIsTourDropdownOpen(false)}
                             >
                               Xem tất cả tour
@@ -238,11 +241,12 @@ const Header: React.FC = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-none text-base font-medium tracking-wide transition-all ${
                   item.current
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                    ? 'text-slate-900 bg-stone-100 border-b-2'
+                    : 'text-gray-700 hover:text-slate-900 hover:bg-stone-50'
                 }`}
+                style={item.current ? { borderBottomColor: '#D4AF37' } : {}}
               >
                 {item.name}
               </Link>
@@ -263,22 +267,23 @@ const Header: React.FC = () => {
                   onClick={() => {
                     setIsUserMenuOpen(!isUserMenuOpen);
                   }}
-                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="flex items-center space-x-2 text-sm rounded-none focus:outline-none focus:ring-1 focus:ring-offset-2"
+                  style={{ focusRingColor: '#D4AF37' }}
                 >
-                  <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                  <div className="h-9 w-9 rounded-none bg-slate-900 border flex items-center justify-center" style={{ borderColor: '#D4AF37' }}>
                     {user?.avatarUrl ? (
                       <img 
                         src={user.avatarUrl} 
                         alt={user.name}
-                        className="h-8 w-8 rounded-full object-cover"
+                        className="h-9 w-9 rounded-none object-cover"
                       />
                     ) : (
-                      <span className="text-xs font-medium text-white">
+                      <span className="text-xs font-medium tracking-wider" style={{ color: '#D4AF37' }}>
                         {getUserInitials()}
                       </span>
                     )}
                   </div>
-                  <span className="hidden md:block text-gray-700 font-medium">
+                  <span className="hidden md:block text-slate-900 font-medium tracking-wide">
                     {user?.name || 'User'}
                   </span>
                 </button>
@@ -286,19 +291,19 @@ const Header: React.FC = () => {
                 {/* ✅ FIXED: User dropdown positioning - removed inline styles */}
                 {isUserMenuOpen && (
                   <div 
-                    className="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50"
+                    className="absolute right-0 top-full mt-2 w-52 bg-white rounded-none shadow-lg py-1 border border-stone-200 z-50"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                      <p className="font-medium">{user?.name}</p>
-                      <p className="text-gray-500">{user?.email}</p>
+                    <div className="px-4 py-3 text-sm text-gray-700 border-b border-stone-200">
+                      <p className="font-semibold text-slate-900">{user?.name}</p>
+                      <p className="text-gray-500 font-normal text-xs">{user?.email}</p>
                     </div>
                     {/* Admin Panel link (if admin) */}
                     {adminNavigation.map((item) => (
                       <Link
                         key={item.name}
                         to={item.href}
-                        className="flex items-center px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 font-medium"
+                        className="flex items-center px-4 py-2.5 text-sm text-white bg-slate-900 hover:bg-slate-800 font-medium"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <item.icon className="h-4 w-4 mr-3" />
@@ -310,7 +315,7 @@ const Header: React.FC = () => {
                       <Link
                         key={item.name}
                         to={item.href}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-stone-50 hover:text-slate-900 font-normal"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <item.icon className="h-4 w-4 mr-3" />
@@ -322,7 +327,7 @@ const Header: React.FC = () => {
                       onClick={() => {
                         handleLogout();
                       }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-t text-left"
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-stone-50 hover:text-slate-900 border-t border-stone-200 text-left font-normal"
                     >
                       <ArrowRightOnRectangleIcon className="h-4 w-4 mr-3" />
                       Đăng xuất
@@ -333,16 +338,19 @@ const Header: React.FC = () => {
               </>
             ) : (
               // Guest Actions
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-700 hover:text-slate-900 px-4 py-2 rounded-none text-base font-medium tracking-wide transition-colors"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-none text-sm font-medium tracking-wider transition-all border border-slate-900"
+                  style={{ '--hover-border-color': '#D4AF37' } as React.CSSProperties}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = '#D4AF37'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = '#0f172a'}
                 >
                   Đăng ký
                 </Link>

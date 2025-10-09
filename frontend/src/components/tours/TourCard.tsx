@@ -1,6 +1,5 @@
 import React, { memo, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { TourImage } from '../ui';
 import { 
   StarIcon,
   ClockIcon,
@@ -70,22 +69,23 @@ const TourCard: React.FC<TourCardProps> = memo(({
   }, [onToggleWishlist, tour.id]);
 
   return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group h-full flex flex-col">
+    <div className="bg-white rounded-none shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group h-full flex flex-col border border-stone-200 hover:border-slate-700">
       {/* Image Container */}
-      <div className="relative">
+      <div className="relative overflow-hidden">
         <Link to={`/tours/${tour.slug}`}>
-          <TourImage
+          <img
             src={tour.image}
             alt={tour.name}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </Link>
         
         {/* Wishlist Button */}
         {onToggleWishlist && (
           <button
             onClick={handleWishlistToggle}
-            className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+            className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-none hover:bg-white transition-all shadow-md hover:scale-110"
           >
             {isWishlisted ? (
               <HeartSolidIcon className="h-5 w-5 text-red-500" />
@@ -97,77 +97,81 @@ const TourCard: React.FC<TourCardProps> = memo(({
 
         {/* Badge */}
         {tour.badge && (
-          <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
+          <div className="absolute top-4 left-4 text-white px-3 py-1.5 rounded-none text-xs font-medium tracking-wider uppercase shadow-lg" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
             {tour.badge}
           </div>
         )}
 
         {/* Discount Badge */}
         {discountPercentage > 0 && (
-          <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
+          <div className="absolute top-4 left-4 bg-slate-900 text-white px-3 py-1.5 rounded-none text-xs font-medium tracking-wider shadow-lg">
             -{discountPercentage}%
           </div>
         )}
 
         {/* Category */}
         {tour.category && (
-          <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs">
+          <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-none text-xs font-normal tracking-wide">
             {typeof tour.category === 'string' ? tour.category : tour.category.name}
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-4 flex-1 flex flex-col">
+      <div className="p-5 flex-1 flex flex-col">
         {/* Tour Name */}
         <Link to={`/tours/${tour.slug}`}>
-          <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors line-clamp-2 min-h-[3.5rem]">
+          <h3 className="text-lg font-medium text-slate-900 mb-3 hover:text-slate-700 transition-colors line-clamp-2 min-h-[3.5rem] tracking-tight">
             {tour.name}
           </h3>
         </Link>
 
         {/* Description */}
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2 min-h-[2.5rem]">
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2 min-h-[2.5rem] font-normal leading-relaxed">
           {tour.description}
         </p>
 
         {/* Tour Details */}
-        <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-3 min-h-[3rem]">
-          <div className="flex items-center space-x-1">
-            <MapPinIcon className="h-3 w-3" />
-            <span>{tour.location}</span>
+        <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-4 min-h-[3rem]">
+          <div className="flex items-center space-x-1.5 font-normal">
+            <MapPinIcon className="h-4 w-4 flex-shrink-0" style={{ color: '#D4AF37' }} />
+            <span className="truncate">
+              {tour.tourType === 'international' && tour.country 
+                ? tour.country.name 
+                : tour.location || 'Việt Nam'}
+            </span>
           </div>
-          <div className="flex items-center space-x-1">
-            <ClockIcon className="h-3 w-3" />
+          <div className="flex items-center space-x-1.5 font-normal">
+            <ClockIcon className="h-4 w-4" style={{ color: '#D4AF37' }} />
             <span>{tour.duration}</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <UsersIcon className="h-3 w-3" />
+          <div className="flex items-center space-x-1.5 font-normal">
+            <UsersIcon className="h-4 w-4" style={{ color: '#D4AF37' }} />
             <span>Max {tour.maxPeople}</span>
           </div>
         </div>
 
         {/* International Tour Info */}
         {tour.tourType === 'international' && tour.country && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            <div className="flex items-center space-x-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs">
-              <GlobeAltIcon className="h-3 w-3" />
+          <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex items-center space-x-1.5 bg-stone-100 text-slate-700 px-3 py-1.5 rounded-none text-xs font-normal">
+              <GlobeAltIcon className="h-3.5 w-3.5" />
               <span>{tour.country.name}</span>
             </div>
             {tour.flightIncluded && (
-              <div className="flex items-center space-x-1 bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs">
-                <PaperAirplaneIcon className="h-3 w-3" />
+              <div className="flex items-center space-x-1.5 text-white px-3 py-1.5 rounded-none text-xs font-normal shadow-md" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
+                <PaperAirplaneIcon className="h-3.5 w-3.5" />
                 <span>Có vé bay</span>
               </div>
             )}
             {tour.country.visaRequired ? (
-              <div className="flex items-center space-x-1 bg-yellow-50 text-yellow-700 px-2 py-1 rounded-full text-xs">
-                <DocumentTextIcon className="h-3 w-3" />
+              <div className="flex items-center space-x-1.5 bg-slate-900 text-white px-3 py-1.5 rounded-none text-xs font-normal">
+                <DocumentTextIcon className="h-3.5 w-3.5" />
                 <span>Cần visa</span>
               </div>
             ) : (
-              <div className="flex items-center space-x-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full text-xs">
-                <DocumentTextIcon className="h-3 w-3" />
+              <div className="flex items-center space-x-1.5 bg-stone-100 text-slate-700 px-3 py-1.5 rounded-none text-xs font-normal">
+                <DocumentTextIcon className="h-3.5 w-3.5" />
                 <span>Miễn visa</span>
               </div>
             )}
@@ -175,35 +179,38 @@ const TourCard: React.FC<TourCardProps> = memo(({
         )}
 
         {/* Rating */}
-        <div className="flex items-center space-x-2 mb-3 min-h-[1.5rem]">
+        <div className="flex items-center space-x-2 mb-4 min-h-[1.5rem]">
           <div className="flex items-center space-x-1">
-            <StarIcon className="h-4 w-4 text-yellow-400 fill-current" />
-            <span className="font-semibold text-sm text-gray-900">{tour.rating}</span>
+            <StarIcon className="h-4 w-4 fill-current" style={{ color: '#D4AF37' }} />
+            <span className="font-medium text-sm text-slate-900">{tour.rating}</span>
           </div>
-          <span className="text-xs text-gray-500">({tour.reviewCount} đánh giá)</span>
+          <span className="text-xs text-gray-500 font-normal">({tour.reviewCount} đánh giá)</span>
         </div>
 
         {/* Spacer to push price & action to bottom */}
         <div className="flex-1"></div>
 
         {/* Price & Action */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-4 border-t border-stone-200">
           <div className="flex flex-col">
             {tour.originalPrice && (
-              <span className="text-xs text-gray-400 line-through">
+              <span className="text-xs text-gray-400 line-through font-normal">
                 {formatPrice(tour.originalPrice)}
               </span>
             )}
-            <span className="text-lg font-bold text-blue-600">
+            <span className="text-xl font-normal text-slate-900 tracking-tight">
               {formatPrice(tour.price)}
             </span>
           </div>
 
           <Link
             to={`/tours/${tour.slug}`}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+            className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-none text-xs font-medium tracking-wider uppercase transition-all duration-300 border border-slate-900 hover:shadow-lg"
+            style={{ '--hover-border': '#D4AF37' } as React.CSSProperties}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = '#D4AF37'}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = '#0f172a'}
           >
-            Xem Chi Tiết
+            Chi Tiết
           </Link>
         </div>
       </div>

@@ -128,4 +128,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * Count bookings by confirmation status
      */
     long countByConfirmationStatus(ConfirmationStatus confirmationStatus);
+    
+    /**
+     * Get category IDs from user's booking history
+     * Returns distinct category IDs ordered by booking count
+     */
+    @Query("SELECT DISTINCT t.category.id FROM Booking b " +
+           "JOIN b.tour t " +
+           "WHERE b.user.id = :userId " +
+           "AND t.category.id IS NOT NULL " +
+           "GROUP BY t.category.id " +
+           "ORDER BY COUNT(b) DESC")
+    List<Long> findCategoryIdsByUserId(@Param("userId") Long userId);
 }

@@ -219,33 +219,39 @@ const FeaturedTours: React.FC = () => {
   }
 
   return (
-    <section className="py-12 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-24 bg-stone-50 relative overflow-hidden">
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 opacity-[0.02]" style={{
+        backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(15 23 42) 1px, transparent 0)',
+        backgroundSize: '40px 40px'
+      }}></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Tour Du Lịch Nổi Bật
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <div className="text-center mb-20 animate-fade-in-up opacity-0">
+          <div className="inline-block px-8 py-3 border border-slate-800 rounded-none mb-6">
+            <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">Tour Nổi Bật</span>
+          </div>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed">
             Khám phá những điểm đến tuyệt vời nhất Việt Nam với các tour du lịch được yêu thích nhất
           </p>
         </div>
 
         {/* Horizontal Scroll Container */}
         <div className="relative group">
-          {/* Navigation Buttons - Show on hover */}
+          {/* Navigation Buttons - Minimalist */}
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-none p-3 shadow-lg hover:shadow-xl transition-all duration-300 opacity-0 group-hover:opacity-100 border border-gray-200 hover:border-gray-900"
           >
-            <ChevronLeftIcon className="h-6 w-6 text-gray-600" />
+            <ChevronLeftIcon className="h-5 w-5 text-gray-900" />
           </button>
 
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-none p-3 shadow-lg hover:shadow-xl transition-all duration-300 opacity-0 group-hover:opacity-100 border border-gray-200 hover:border-gray-900"
           >
-            <ChevronRightIcon className="h-6 w-6 text-gray-600" />
+            <ChevronRightIcon className="h-5 w-5 text-gray-900" />
           </button>
 
           {/* Scrollable Tours */}
@@ -270,35 +276,40 @@ const FeaturedTours: React.FC = () => {
             {tours.map((tour) => (
               <div 
                 key={tour.id} 
-                className="group cursor-pointer overflow-hidden hover:shadow-xl transition-shadow flex-shrink-0 flex flex-col bg-white rounded-xl border border-gray-200"
+                className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 flex-shrink-0 flex flex-col bg-white rounded-none border border-stone-200 hover:border-slate-700"
                 onClick={(e) => handleCardClick(tour.slug, e)}
                 style={{ width: '360px' }}
               >
-                <div className="relative overflow-hidden rounded-t-xl">
+                <div className="relative overflow-hidden">
                     {/* Tour Image */}
-                    <img
-                      src={tour.mainImage}
-                      alt={tour.name}
-                      className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
+                    <div className="relative overflow-hidden aspect-[4/3]">
+                      <img
+                        src={tour.mainImage}
+                        alt={tour.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
+                    </div>
                   
-                  {/* Badge */}
+                  {/* Badge - Minimalist */}
                   {tour.isNew && (
-                    <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    <div className="absolute top-4 left-4 bg-slate-900 text-white px-3 py-1.5 rounded-none text-xs font-medium tracking-wider uppercase">
                       Mới
                     </div>
                   )}
                   {tour.isFeatured && !tour.isNew && (
-                    <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                      Nổi bật
+                    <div className="absolute top-4 left-4 bg-amber-700 text-white px-3 py-1.5 rounded-none text-xs font-medium tracking-wider uppercase">
+                      Nổi Bật
                     </div>
                   )}
 
-                  {/* Price */}
-                  <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-lg">
-                    <div className="text-sm font-bold">{formatPrice(tour.effectivePrice || tour.salePrice || tour.price)}</div>
+                  {/* Price - Clean Style */}
+                  <div className="absolute bottom-4 right-4 bg-white px-4 py-2 rounded-none shadow-lg border border-gray-200">
+                    <div className="text-sm font-semibold text-gray-900">
+                      {formatPrice(tour.effectivePrice || tour.salePrice || tour.price)}
+                    </div>
                     {tour.salePrice && tour.salePrice < tour.price && (
-                      <div className="text-xs line-through text-gray-300">
+                      <div className="text-xs line-through text-gray-500">
                         {formatPrice(tour.price)}
                       </div>
                     )}
@@ -308,46 +319,45 @@ const FeaturedTours: React.FC = () => {
                 <div className="p-6 flex-1 flex flex-col">
                   {/* Tour Name */}
                   <Link to={`/tours/${tour.slug}`}>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors line-clamp-2 min-h-[3.5rem]">
+                    <h3 className="text-lg font-medium text-gray-900 mb-3 hover:text-gray-600 transition-colors duration-300 line-clamp-2 min-h-[3.5rem]">
                       {tour.name}
                     </h3>
                   </Link>
 
                   {/* Description */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2 min-h-[2.5rem]">
+                  <p className="text-gray-500 text-sm mb-5 line-clamp-2 min-h-[2.5rem] leading-relaxed font-normal">
                     {tour.shortDescription || tour.description}
                   </p>
 
                   {/* Tour Details */}
-                  <div className="flex gap-4 text-sm text-gray-500 mb-4">
-                    <div className="flex items-center space-x-1">
+                  <div className="flex gap-4 text-xs text-gray-600 mb-5">
+                    <div className="flex items-center space-x-1.5">
                       <MapPinIcon className="h-4 w-4" />
-                      <span>{tour.destination || tour.region || 'Việt Nam'}</span>
+                      <span className="font-normal">{tour.destination || tour.region || 'Việt Nam'}</span>
                     </div>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-1.5">
                       <ClockIcon className="h-4 w-4" />
-                      <span>{tour.duration} ngày</span>
+                      <span className="font-normal">{tour.duration} ngày</span>
                     </div>
                   </div>
 
-                  {/* Spacer to push rating & button to bottom */}
+                  {/* Spacer */}
                   <div className="flex-1"></div>
 
-                  {/* Rating & Reviews */}
-                  <div className="flex items-center justify-between">
+                  {/* Rating & CTA */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                     <div className="flex items-center space-x-2">
-                      <div className="flex items-center space-x-1">
-                        <StarIcon className="h-4 w-4 text-yellow-400" />
-                        <span className="font-semibold text-gray-900">{tour.averageRating?.toFixed(1) || '5.0'}</span>
-                      </div>
-                      <span className="text-sm text-gray-500">({tour.totalReviews || 0} đánh giá)</span>
+                      <StarIcon className="h-4 w-4 text-gray-900 fill-gray-900" />
+                      <span className="text-sm font-medium text-gray-900">{tour.averageRating?.toFixed(1) || '5.0'}</span>
+                      <span className="text-xs text-gray-400">({tour.totalReviews || 0})</span>
                     </div>
 
                     <Link
                       to={`/tours/${tour.slug}`}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                      className="text-xs font-medium text-gray-900 hover:text-gray-600 tracking-wider uppercase transition-colors duration-300 flex items-center space-x-1 group"
                     >
-                      Xem Chi Tiết
+                      <span>Xem</span>
+                      <ChevronRightIcon className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </div>
                 </div>
@@ -356,14 +366,14 @@ const FeaturedTours: React.FC = () => {
           </div>
         </div>
 
-        {/* View All Button */}
-        <div className="text-center mt-12">
+        {/* View All Button - Minimalist */}
+        <div className="text-center mt-20">
           <Link
             to="/tours"
-            className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+            className="inline-flex items-center bg-slate-900 text-white hover:bg-slate-800 px-8 py-3 rounded-none text-xs font-medium tracking-[0.2em] uppercase transition-all duration-300 border border-slate-900 hover:border-amber-600 group"
           >
-            Xem Tất Cả Tour Du Lịch
-            <ChevronRightIcon className="ml-2 h-5 w-5" />
+            <span>Khám Phá Tất Cả</span>
+            <ChevronRightIcon className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
         </div>
       </div>

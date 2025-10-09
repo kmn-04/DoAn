@@ -294,24 +294,25 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Thông tin cá nhân</h1>
-        <p className="text-gray-600">Quản lý thông tin tài khoản và cài đặt cá nhân của bạn</p>
-      </div>
+    <div className="min-h-screen bg-stone-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-3xl font-normal text-slate-900 mb-2 tracking-tight">Thông tin cá nhân</h1>
+          <p className="text-gray-600 font-normal">Quản lý thông tin tài khoản và cài đặt cá nhân của bạn</p>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Avatar & Basic Info */}
-        <div className="lg:col-span-1">
-          <Card className="p-6 text-center">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Avatar & Basic Info */}
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="p-6 text-center bg-white border border-stone-200 rounded-none hover:border-slate-700 transition-all duration-300 animate-fade-in-up opacity-0">
             <div className="relative inline-block mb-4">
-              <div className="w-32 h-32 rounded-full bg-blue-600 flex items-center justify-center mx-auto">
+              <div className="w-32 h-32 rounded-none flex items-center justify-center mx-auto" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                 {user?.avatarUrl ? (
                   <img 
                     src={user.avatarUrl} 
                     alt={profileData.name}
-                    className="w-32 h-32 rounded-full object-cover"
+                    className="w-32 h-32 rounded-none object-cover"
                   />
                 ) : (
                   <span className="text-4xl font-bold text-white">
@@ -322,30 +323,30 @@ const ProfilePage: React.FC = () => {
               
               <button
                 onClick={handleAvatarUpload}
-                className="absolute bottom-0 right-0 bg-white border-2 border-gray-300 rounded-full p-2 hover:bg-gray-50 transition-colors"
+                className="absolute bottom-0 right-0 bg-white border-2 rounded-none p-2 hover:bg-stone-100 transition-colors" style={{ borderColor: '#D4AF37' }}
               >
-                <CameraIcon className="h-5 w-5 text-gray-600" />
+                <CameraIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
               </button>
             </div>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-1">{profileData.name}</h2>
-            <p className="text-gray-600 mb-4">{profileData.email}</p>
+            <h2 className="text-2xl font-medium text-slate-900 mb-1 tracking-tight">{profileData.name}</h2>
+            <p className="text-gray-600 mb-6 font-normal">{profileData.email}</p>
             
-            <div className="text-sm text-gray-600 space-y-1">
+            <div className="text-sm text-gray-600 space-y-3 border-t border-stone-200 pt-4">
               <p className="flex items-center justify-center space-x-2">
-                <PhoneIcon className="h-4 w-4" />
-                <span>{profileData.phone}</span>
+                <PhoneIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                <span className="font-normal">{profileData.phone || 'Chưa cập nhật'}</span>
               </p>
               <p className="flex items-center justify-center space-x-2">
-                <MapPinIcon className="h-4 w-4" />
-                <span>{profileData.address}</span>
+                <MapPinIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                <span className="font-normal">{profileData.address || 'Chưa cập nhật'}</span>
               </p>
             </div>
 
             {!isEditing && (
               <Button
                 onClick={() => setIsEditing(true)}
-                className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="mt-6 w-full text-white rounded-none hover:opacity-90 transition-all duration-300" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
               >
                 <PencilIcon className="h-4 w-4 mr-2" />
                 Chỉnh sửa thông tin
@@ -353,35 +354,35 @@ const ProfilePage: React.FC = () => {
             )}
           </Card>
 
-          {/* Stats */}
-          <Card className="p-6 mt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Thống kê</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tours đã đặt</span>
-                <span className="font-semibold">8</span>
+            {/* Stats */}
+            <Card className="p-6 bg-white border border-stone-200 rounded-none hover:border-slate-700 transition-all duration-300 animate-fade-in-up opacity-0 delay-100">
+              <h3 className="text-xl font-medium text-slate-900 mb-6 tracking-tight">Thống kê</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center pb-3 border-b border-stone-100">
+                  <span className="text-gray-600 font-normal">Tours đã đặt</span>
+                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>8</span>
+                </div>
+                <div className="flex justify-between items-center pb-3 border-b border-stone-100">
+                  <span className="text-gray-600 font-normal">Tours hoàn thành</span>
+                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>5</span>
+                </div>
+                <div className="flex justify-between items-center pb-3 border-b border-stone-100">
+                  <span className="text-gray-600 font-normal">Đánh giá đã viết</span>
+                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>3</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 font-normal">Thành viên từ</span>
+                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>2023</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tours hoàn thành</span>
-                <span className="font-semibold">5</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Đánh giá đã viết</span>
-                <span className="font-semibold">3</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Thành viên từ</span>
-                <span className="font-semibold">2023</span>
-              </div>
-            </div>
-          </Card>
-        </div>
+            </Card>
+          </div>
 
-        {/* Profile Form */}
-        <div className="lg:col-span-2">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Chi tiết thông tin</h3>
+          {/* Profile Form */}
+          <div className="lg:col-span-2">
+            <Card className="p-8 bg-white border border-stone-200 rounded-none hover:border-slate-700 transition-all duration-300 animate-fade-in-up opacity-0 delay-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-normal text-slate-900 tracking-tight">Chi tiết thông tin</h3>
               
               {isEditing && (
                 <div className="flex space-x-2">
@@ -389,6 +390,7 @@ const ProfilePage: React.FC = () => {
                     variant="outline"
                     onClick={handleCancel}
                     disabled={isLoading}
+                    className="border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none"
                   >
                     <XMarkIcon className="h-4 w-4 mr-1" />
                     Hủy
@@ -397,7 +399,7 @@ const ProfilePage: React.FC = () => {
                   <Button
                     onClick={handleSave}
                     disabled={isLoading}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="text-white rounded-none hover:opacity-90 transition-all duration-300" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                   >
                     {isLoading ? (
                       <>
@@ -418,7 +420,7 @@ const ProfilePage: React.FC = () => {
             <div className="space-y-6">
               {/* Personal Information */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Thông tin cá nhân</h4>
+                <h4 className="font-medium text-slate-900 mb-6 tracking-tight text-lg">Thông tin cá nhân</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Họ và tên *"
@@ -463,14 +465,14 @@ const ProfilePage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
                       Giới tính
                     </label>
                     <select
                       value={isEditing ? editData.gender : profileData.gender}
                       onChange={(e) => handleInputChange('gender', e.target.value)}
                       disabled={!isEditing}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 disabled:bg-stone-50 disabled:cursor-not-allowed font-normal transition-all duration-300"
                     >
                       <option value="male">Nam</option>
                       <option value="female">Nữ</option>
@@ -480,7 +482,7 @@ const ProfilePage: React.FC = () => {
                 </div>
 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
                     Giới thiệu bản thân
                   </label>
                   <textarea
@@ -488,15 +490,15 @@ const ProfilePage: React.FC = () => {
                     onChange={(e) => handleInputChange('bio', e.target.value)}
                     disabled={!isEditing}
                     rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
+                    className="w-full border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 disabled:bg-stone-50 disabled:cursor-not-allowed resize-none font-normal transition-all duration-300"
                     placeholder="Chia sẻ về sở thích du lịch của bạn..."
                   />
                 </div>
               </div>
 
               {/* Emergency Contact */}
-              <div className="border-t pt-6">
-                <h4 className="font-semibold text-gray-900 mb-4">Liên hệ khẩn cấp</h4>
+              <div className="border-t border-stone-200 pt-6">
+                <h4 className="font-medium text-slate-900 mb-6 tracking-tight text-lg">Liên hệ khẩn cấp</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Tên người liên hệ"
@@ -515,32 +517,33 @@ const ProfilePage: React.FC = () => {
               </div>
 
               {/* Account Security */}
-              <div className="border-t pt-6">
-                <h4 className="font-semibold text-gray-900 mb-4">Bảo mật tài khoản</h4>
+              <div className="border-t border-stone-200 pt-6">
+                <h4 className="font-medium text-slate-900 mb-6 tracking-tight text-lg">Bảo mật tài khoản</h4>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-stone-50 rounded-none border border-stone-200">
                     <div>
-                      <h5 className="font-medium text-gray-900">Mật khẩu</h5>
-                      <p className="text-sm text-gray-600">Cập nhật lần cuối: 30 ngày trước</p>
+                      <h5 className="font-medium text-slate-900 tracking-tight">Mật khẩu</h5>
+                      <p className="text-sm text-gray-600 font-normal">Cập nhật lần cuối: 30 ngày trước</p>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none">
                       Đổi mật khẩu
                     </Button>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-stone-50 rounded-none border border-stone-200">
                     <div>
-                      <h5 className="font-medium text-gray-900">Xác thực 2 bước</h5>
-                      <p className="text-sm text-gray-600">Tăng cường bảo mật cho tài khoản</p>
+                      <h5 className="font-medium text-slate-900 tracking-tight">Xác thực 2 bước</h5>
+                      <p className="text-sm text-gray-600 font-normal">Tăng cường bảo mật cho tài khoản</p>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none">
                       Kích hoạt
                     </Button>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

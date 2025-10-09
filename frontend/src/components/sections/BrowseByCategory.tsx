@@ -312,33 +312,33 @@ const BrowseByCategory: React.FC = () => {
   ];
 
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-24 bg-stone-50 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Khám Phá Theo Chủ Đề
-          </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        <div className="text-center mb-20 animate-fade-in-up opacity-0">
+          <div className="inline-block px-8 py-3 border border-slate-800 rounded-none mb-6">
+            <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">Khám Phá Theo Chủ Đề</span>
+          </div>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed">
             Tìm kiếm tour phù hợp với sở thích và phong cách du lịch của bạn
           </p>
         </div>
 
         {/* Horizontal Scroll Container */}
         <div className="relative group">
-          {/* Navigation Buttons - Show on hover */}
+          {/* Navigation Buttons - Minimalist */}
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-none p-3 shadow-lg hover:shadow-xl transition-all duration-300 opacity-0 group-hover:opacity-100 border border-gray-200 hover:border-gray-900"
           >
-            <ChevronLeftIcon className="h-6 w-6 text-gray-600" />
+            <ChevronLeftIcon className="h-5 w-5 text-gray-900" />
           </button>
 
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-none p-3 shadow-lg hover:shadow-xl transition-all duration-300 opacity-0 group-hover:opacity-100 border border-gray-200 hover:border-gray-900"
           >
-            <ChevronRightIcon className="h-6 w-6 text-gray-600" />
+            <ChevronRightIcon className="h-5 w-5 text-gray-900" />
           </button>
 
           {/* Scrollable Categories */}
@@ -376,26 +376,19 @@ const BrowseByCategory: React.FC = () => {
                     }
                   }}
                 >
-                  <div className={`relative overflow-hidden rounded-2xl ${colors.bg} border border-gray-200 transition-all duration-300 hover:shadow-lg hover:scale-105 h-full`}>
+                  <div className="relative overflow-hidden rounded-none bg-white border border-stone-200 hover:border-slate-700 transition-all duration-300 hover:shadow-lg h-full">
                   {/* Background Image */}
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-56 overflow-hidden">
                     <img
                       src={image}
                       alt={category.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out grayscale group-hover:grayscale-0"
                     />
-                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-all duration-300"></div>
-                    
-                    {/* Icon Overlay */}
-                    <div className="absolute top-4 right-4">
-                      <div className={`p-3 rounded-full bg-white/90 ${colors.text}`}>
-                        <IconComponent className="h-6 w-6" />
-                      </div>
-                    </div>
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300"></div>
                     
                     {/* Tour Count Badge */}
-                    <div className="absolute bottom-4 left-4">
-                      <div className="bg-white/90 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">
+                    <div className="absolute top-4 right-4">
+                      <div className="bg-white text-gray-900 px-3 py-1.5 rounded-none text-xs font-medium shadow-lg">
                         {category.tourCount || 0} tours
                       </div>
                     </div>
@@ -403,21 +396,19 @@ const BrowseByCategory: React.FC = () => {
 
                   {/* Content */}
                   <div className="p-6 flex flex-col">
-                    <h3 className={`text-xl font-bold ${colors.text} mb-2 group-hover:text-opacity-80 transition-colors`}>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2 group-hover:text-gray-600 transition-colors">
                       {category.name}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed h-16 overflow-hidden">
+                    <p className="text-gray-500 text-sm leading-relaxed font-normal h-12 overflow-hidden">
                       {category.description || `Khám phá các tour ${category.name.toLowerCase()}`}
                     </p>
                     
-                    {/* Hover Arrow */}
-                    <div className="mt-4 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <span className="text-sm font-semibold text-blue-600">
-                        Khám phá ngay
+                    {/* Arrow Icon */}
+                    <div className="mt-4 flex items-center space-x-2 text-gray-900 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                      <span className="text-xs font-medium tracking-wider uppercase">
+                        Khám Phá
                       </span>
-                      <svg className="h-4 w-4 text-blue-600 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      <ChevronRightIcon className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </div>
@@ -428,15 +419,13 @@ const BrowseByCategory: React.FC = () => {
         </div>
 
         {/* View All Categories CTA */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-20">
           <Link
             to="/tours"
-            className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-colors duration-300"
+            className="inline-flex items-center bg-slate-900 text-white hover:bg-slate-800 px-8 py-3 rounded-none text-xs font-medium tracking-[0.2em] uppercase transition-all duration-300 border border-slate-900 hover:border-amber-600 group"
           >
             <span>Xem Tất Cả Tour</span>
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <ChevronRightIcon className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
         </div>
       </div>

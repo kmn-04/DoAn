@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import TourCard from '../components/tours/TourCard';
 import TourFilters from '../components/tours/TourFilters';
@@ -83,13 +83,16 @@ const ToursListingPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tours, setTours] = useState<Tour[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0); // 0-based indexing to match Pagination component
   const [isLoading, setIsLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [totalTours, setTotalTours] = useState(0);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   
   const toursPerPage = 12;
+  
+  // Ref to scroll to tours section when page changes
+  const toursGridRef = useRef<HTMLDivElement>(null);
 
   // Initialize filters from URL params
   const [filters, setFilters] = useState<FilterState>({
@@ -132,14 +135,13 @@ const ToursListingPage: React.FC = () => {
   }, [categories]);
 
   // Fetch tours from API
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchTours = useCallback(async () => {
     try {
       setIsLoading(true);
       
       // Build search request from filters
       const searchRequest: TourSearchRequest = {
-        page: currentPage - 1, // API uses 0-based indexing
+        page: currentPage, // Already 0-based indexing
         size: toursPerPage,
         sortBy: filters.sortBy === 'popular' ? 'viewCount' :  // Sort by view count for popular
                 filters.sortBy === 'newest' ? 'createdAt' :
@@ -212,7 +214,7 @@ const ToursListingPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, filters, toursPerPage, categories, getCategoryId]);
+  }, [currentPage, filters, toursPerPage, getCategoryId]); // Removed 'categories' from deps
 
   // Update URL when filters change
   useEffect(() => {
@@ -229,15 +231,28 @@ const ToursListingPage: React.FC = () => {
     setSearchParams(params);
   }, [filters, setSearchParams]);
 
-  // Reset to page 1 when filters change
+  // Reset to page 0 when filters change (except initial mount)
   useEffect(() => {
-    setCurrentPage(1);
+    setCurrentPage(0);
   }, [filters]);
 
   // Fetch tours when component mounts, filters change, or page changes
   useEffect(() => {
     fetchTours();
   }, [fetchTours]);
+  
+  // Scroll to tours grid when page changes
+  useEffect(() => {
+    if (toursGridRef.current) {
+      // Get the position of the tours grid
+      const yOffset = -100; // Offset to show some space above (adjust as needed)
+      const element = toursGridRef.current;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      
+      // Smooth scroll to the tours grid
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }, [currentPage]);
 
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
@@ -273,25 +288,38 @@ const ToursListingPage: React.FC = () => {
   const currentTours = tours;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative h-96 lg:h-[500px] bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
+    <div className="min-h-screen bg-stone-50">
+      {/* Hero Section - Navy & Gold Theme */}
+      <div className="relative h-96 lg:h-[500px] bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&h=800&fit=crop"
             alt="Du lịch Việt Nam"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover opacity-30"
           />
-          <div className="absolute inset-0 bg-blue-900/60"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90"></div>
         </div>
+        
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-10" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-10" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}></div>
         
         {/* Content Overlay */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center">
-          <div className="text-white text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">Tours Du Lịch</h1>
-            <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto">
-              Khám phá vẻ đẹp Việt Nam với hơn {totalTours} tour đa dạng từ biển đảo đến miền núi
+          <div className="text-white text-center animate-fade-in-up opacity-0">
+            {/* Label */}
+            <div className="inline-block px-6 py-2 border rounded-none mb-6" style={{ borderColor: '#D4AF37' }}>
+              <span className="text-xs font-medium tracking-[0.3em] uppercase" style={{ color: '#D4AF37' }}>Khám Phá Việt Nam</span>
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-normal mb-6 tracking-tight">Tours Du Lịch</h1>
+            
+            {/* Divider */}
+            <div className="w-20 h-px mx-auto mb-6" style={{ background: 'linear-gradient(to right, transparent, #D4AF37, transparent)' }}></div>
+            
+            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto font-normal leading-relaxed">
+              Khám phá vẻ đẹp Việt Nam với hơn <span className="font-medium" style={{ color: '#D4AF37' }}>{totalTours}</span> tour đa dạng từ biển đảo đến miền núi
             </p>
           </div>
         </div>
@@ -309,7 +337,7 @@ const ToursListingPage: React.FC = () => {
         </div>
 
         {/* Tours Content */}
-        <div className="w-full">
+        <div className="w-full relative" ref={toursGridRef}>
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
                 {Array.from({ length: 12 }).map((_, index) => (
@@ -317,17 +345,20 @@ const ToursListingPage: React.FC = () => {
                 ))}
               </div>
             ) : tours.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <div className="text-center py-16 animate-fade-in bg-white rounded-none border border-stone-200 shadow-lg">
+                <div className="text-6xl mb-6 animate-bounce">🔍</div>
+                <h3 className="text-2xl font-normal text-slate-900 mb-3 tracking-tight">
                   Không tìm thấy tour nào
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 mb-8 font-normal">
                   Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
                 </p>
                 <button
                   onClick={handleClearFilters}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                  className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-none font-medium text-xs tracking-[0.2em] uppercase transition-all duration-300 border border-slate-900 shadow-lg hover:shadow-xl"
+                  style={{ '--hover-border': '#D4AF37' } as React.CSSProperties}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = '#D4AF37'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = '#0f172a'}
                 >
                   Xóa tất cả bộ lọc
                 </button>
@@ -336,13 +367,14 @@ const ToursListingPage: React.FC = () => {
               <>
                 {/* Tours Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8 items-stretch">
-                  {currentTours.map((tour) => (
-                    <TourCard
-                      key={tour.id}
-                      tour={tour}
-                      isWishlisted={wishlist.includes(tour.id)}
-                      onToggleWishlist={handleToggleWishlist}
-                    />
+                  {currentTours.map((tour, index) => (
+                    <div key={tour.id} className="stagger-animation opacity-0">
+                      <TourCard
+                        tour={tour}
+                        isWishlisted={wishlist.includes(tour.id)}
+                        onToggleWishlist={handleToggleWishlist}
+                      />
+                    </div>
                   ))}
                 </div>
 

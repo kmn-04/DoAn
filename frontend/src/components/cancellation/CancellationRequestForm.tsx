@@ -164,7 +164,6 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
   useEffect(() => {
     if (preselectedBookingId && userBookings.length > 0) {
       const booking = userBookings.find(b => b.id === Number(preselectedBookingId));
-      , 'in bookings:', userBookings.map(b => b.id));
       if (booking) {
         setSelectedBooking(booking);
         setFormData(prev => ({ ...prev, bookingId: Number(preselectedBookingId) }));
@@ -195,11 +194,6 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           const today = new Date();
           today.setHours(0, 0, 0, 0); // Reset to start of day
           const isFutureOrToday = bookingDate >= today;
-          
-          ,
-            today: today.toISOString(),
-            canCancel: isValidStatus && isFutureOrToday
-          });
           
           return isValidStatus && isFutureOrToday;
         })
@@ -840,22 +834,28 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
         <div className="flex items-center justify-between mb-8">
           {[1, 2, 3].map((step) => (
             <div key={step} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              <div className={`w-8 h-8 rounded-none flex items-center justify-center text-sm font-bold ${
                 step <= currentStep 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-500'
-              }`}>
+                  ? 'text-white' 
+                  : 'bg-stone-200 text-gray-600'
+              }`}
+              style={step <= currentStep ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
+              >
                 {step}
               </div>
-              <span className={`ml-2 text-sm font-medium ${
-                step <= currentStep ? 'text-blue-600' : 'text-gray-500'
-              }`}>
+              <span className={`ml-2 text-sm font-semibold ${
+                step <= currentStep ? 'text-slate-900' : 'text-gray-600'
+              }`}
+              style={step <= currentStep ? { color: '#D4AF37' } : {}}
+              >
                 {step === 1 ? 'Chọn booking' : step === 2 ? 'Chi tiết hủy' : 'Xác nhận'}
               </span>
               {step < 3 && (
                 <div className={`w-20 h-0.5 mx-4 ${
-                  step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                }`} />
+                  step < currentStep ? '' : 'bg-stone-200'
+                }`}
+                style={step < currentStep ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
+                />
               )}
             </div>
           ))}
@@ -867,45 +867,46 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
         </div>
 
         {/* Footer Actions */}
-        <div className="flex justify-between pt-6 border-t border-gray-200">
+        <div className="flex justify-between pt-6 border-t border-stone-200">
           <div>
             {currentStep > 1 && (
-              <Button
-                variant="outline"
+              <button
                 onClick={() => setCurrentStep(prev => prev - 1)}
                 disabled={isLoading}
+                className="px-6 py-2.5 border-2 border-slate-900 rounded-none text-sm font-semibold text-slate-900 bg-white hover:bg-slate-900 hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Quay lại
-              </Button>
+              </button>
             )}
           </div>
           
           <div className="flex space-x-3">
-            <Button
-              variant="outline"
+            <button
               onClick={onClose}
               disabled={isLoading}
+              className="px-6 py-2.5 border-2 border-stone-300 rounded-none text-sm font-semibold text-gray-700 bg-white hover:bg-stone-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Hủy bỏ
-            </Button>
+            </button>
             
             {currentStep < 3 ? (
-              <Button
+              <button
                 onClick={() => setCurrentStep(prev => prev + 1)}
                 disabled={!canProceedToNext() || isLoading}
-                loading={isLoading}
+                className="px-6 py-2.5 text-white rounded-none text-sm font-semibold transition-all duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
               >
-                Tiếp tục
-              </Button>
+                {isLoading ? 'Đang xử lý...' : 'Tiếp tục'}
+              </button>
             ) : (
-              <Button
+              <button
                 onClick={handleSubmit}
                 disabled={!canProceedToNext() || isLoading || !evaluation?.isEligible}
-                loading={isLoading}
-variant="default"
+                className="px-6 py-2.5 text-white rounded-none text-sm font-semibold transition-all duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
               >
-                Gửi yêu cầu hủy
-              </Button>
+                {isLoading ? 'Đang gửi...' : 'Gửi yêu cầu hủy'}
+              </button>
             )}
           </div>
         </div>

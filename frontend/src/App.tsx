@@ -8,9 +8,8 @@ import AdminLayout from './components/layout/AdminLayout';
 import { ToastContainer, PageLoader, TourPageLoader, BookingPageLoader, DashboardPageLoader, AuthPageLoader } from './components/ui';
 import { ProtectedRoute } from './components/auth';
 import { ErrorBoundary, PageErrorBoundary } from './components/error';
-import { ResponsiveTestTool, ResponsiveDebugInfo } from './components/dev/ResponsiveTestTool';
-import { EdgeCaseTestTool } from './components/dev/EdgeCaseTestTool';
 import AppInitializer from './components/AppInitializer';
+import ScrollToTop from './components/ScrollToTop';
 
 // Lazy import pages for better performance
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
@@ -49,6 +48,7 @@ const AdminNotifications = React.lazy(() => import('./pages/admin/AdminNotificat
 const AdminContacts = React.lazy(() => import('./pages/admin/AdminContacts'));
 const AdminStatistics = React.lazy(() => import('./pages/admin/AdminStatistics'));
 const AdminSettings = React.lazy(() => import('./pages/admin/AdminSettings'));
+const AdminBanners = React.lazy(() => import('./pages/admin/AdminBanners'));
 
 // Create a client
 const queryClient = new QueryClient({
@@ -65,8 +65,8 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AppInitializer>
-          <ResponsiveTestTool>
             <Router>
+              <ScrollToTop />
             <Routes>
             {/* Redirect root to dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -348,6 +348,15 @@ function App() {
                 </AdminLayout>
               </ProtectedRoute>
             } />
+            <Route path="/admin/banners" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminBanners />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
 
             {/* Auth routes without main layout */}
             <Route path="/login" element={
@@ -381,12 +390,7 @@ function App() {
 
           {/* Toast notifications */}
           <ToastContainer />
-          
-          {/* Responsive debugging tools (development only) */}
-          <EdgeCaseTestTool />
-          <ResponsiveDebugInfo />
         </Router>
-          </ResponsiveTestTool>
         </AppInitializer>
       </QueryClientProvider>
     </ErrorBoundary>

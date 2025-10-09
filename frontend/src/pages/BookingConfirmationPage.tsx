@@ -46,70 +46,73 @@ const BookingConfirmationPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-stone-50 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Success Header */}
-        <div className="text-center mb-8">
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-            <CheckCircleIcon className="h-8 w-8 text-green-600" />
+        <div className="text-center mb-10 animate-fade-in">
+          <div 
+            className="mx-auto flex items-center justify-center h-20 w-20 rounded-none mb-6 animate-fade-in-scale opacity-0 delay-100"
+            style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
+          >
+            <CheckCircleIcon className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl md:text-5xl font-normal text-slate-900 mb-4 tracking-tight animate-fade-in-up opacity-0 delay-200">
             Đặt tour thành công!
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 font-normal animate-fade-in-up opacity-0 delay-300">
             Cảm ơn bạn đã tin tưởng và đặt tour với chúng tôi
           </p>
         </div>
 
         {/* Booking Details Card */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <div className="border-b border-gray-200 pb-4 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <div className="bg-white border border-stone-200 rounded-none p-8 mb-6 animate-fade-in-up opacity-0 delay-400">
+          <div className="border-b border-stone-200 pb-6 mb-8">
+            <h2 className="text-2xl font-normal text-slate-900 mb-4 tracking-tight">
               Chi tiết đặt tour
             </h2>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Mã booking:</span>
-              <span className="font-mono font-semibold text-blue-600 text-lg">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm text-gray-600 font-normal">Mã booking:</span>
+              <span className="font-mono font-medium text-lg tracking-wider" style={{ color: '#D4AF37' }}>
                 {bookingCode || bookingResult?.bookingCode}
               </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <span className="inline-flex items-center px-3 py-1 rounded-none text-xs font-medium bg-amber-100 border border-amber-300 text-amber-800">
                 Đã xác nhận
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Tour Info */}
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Thông tin tour</h3>
-              <div className="space-y-3">
+              <h3 className="font-medium text-slate-900 mb-4 tracking-tight">Thông tin tour</h3>
+              <div className="space-y-4">
                 <div className="flex items-start space-x-3">
-                  <MapPinIcon className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <MapPinIcon className="h-5 w-5 mt-1" style={{ color: '#D4AF37' }} />
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-slate-900">
                       {bookingData?.tourName || bookingResult?.tour?.name}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 font-normal mt-1">
                       {bookingData?.tourLocation || bookingResult?.tour?.location}
                     </p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <CalendarDaysIcon className="h-5 w-5 text-gray-400" />
+                  <CalendarDaysIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
                   <div>
-                    <p className="font-medium text-gray-900">Ngày khởi hành</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium text-slate-900">Ngày khởi hành</p>
+                    <p className="text-sm text-gray-600 font-normal mt-1">
                       {formatDate(bookingData?.startDate || bookingResult?.startDate)}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <UsersIcon className="h-5 w-5 text-gray-400" />
+                  <UsersIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
                   <div>
-                    <p className="font-medium text-gray-900">Số người tham gia</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium text-slate-900">Số người tham gia</p>
+                    <p className="text-sm text-gray-600 font-normal mt-1">
                       {(bookingData?.adults || bookingResult?.numAdults)} người lớn
                       {(bookingData?.children || bookingResult?.numChildren) > 0 && 
                         `, ${bookingData?.children || bookingResult?.numChildren} trẻ em`
@@ -122,37 +125,40 @@ const BookingConfirmationPage: React.FC = () => {
 
             {/* Customer Info */}
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Thông tin liên hệ</h3>
-              <div className="space-y-3">
+              <h3 className="font-medium text-slate-900 mb-4 tracking-tight">Thông tin liên hệ</h3>
+              <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <div className="h-5 w-5 bg-gray-400 rounded-full flex items-center justify-center">
-                    <span className="text-xs text-white font-medium">
+                  <div 
+                    className="h-10 w-10 rounded-none flex items-center justify-center"
+                    style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
+                  >
+                    <span className="text-sm text-white font-medium">
                       {customerInfo?.fullName?.charAt(0) || 'U'}
                     </span>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{customerInfo?.fullName}</p>
+                    <p className="font-medium text-slate-900">{customerInfo?.fullName}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <EnvelopeIcon className="h-5 w-5 text-gray-400" />
-                  <p className="text-sm text-gray-600">{customerInfo?.email}</p>
+                  <EnvelopeIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                  <p className="text-sm text-gray-600 font-normal">{customerInfo?.email}</p>
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <PhoneIcon className="h-5 w-5 text-gray-400" />
-                  <p className="text-sm text-gray-600">{customerInfo?.phone}</p>
+                  <PhoneIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                  <p className="text-sm text-gray-600 font-normal">{customerInfo?.phone}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Price Summary */}
-          <div className="border-t border-gray-200 pt-4 mt-6">
+          <div className="border-t border-stone-200 pt-6 mt-8">
             <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold text-gray-900">Tổng thanh toán:</span>
-              <span className="text-2xl font-bold text-green-600">
+              <span className="text-lg font-medium text-slate-900 tracking-tight">Tổng thanh toán:</span>
+              <span className="text-3xl font-normal tracking-tight" style={{ color: '#D4AF37' }}>
                 {formatPrice(bookingData?.totalPrice || bookingResult?.totalPrice || 0)}
               </span>
             </div>
@@ -160,25 +166,31 @@ const BookingConfirmationPage: React.FC = () => {
         </div>
 
         {/* Next Steps */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-          <h3 className="font-semibold text-blue-900 mb-3">Các bước tiếp theo</h3>
-          <div className="space-y-2 text-sm text-blue-800">
+        <div className="bg-amber-50 border border-amber-200 rounded-none p-6 mb-8 animate-fade-in-up opacity-0 delay-500">
+          <h3 className="font-medium text-slate-900 mb-4 tracking-tight">Các bước tiếp theo</h3>
+          <div className="space-y-3 text-sm text-slate-900 font-normal">
             <p>• Chúng tôi sẽ gửi email xác nhận chi tiết trong vòng 15 phút</p>
             <p>• Nhân viên sẽ liên hệ với bạn trong vòng 24h để xác nhận thông tin</p>
             <p>• Vui lòng chuẩn bị giấy tờ tùy thân trước ngày khởi hành 3 ngày</p>
-            <p>• Hotline hỗ trợ 24/7: <span className="font-semibold">1900 1234</span></p>
+            <p>• Hotline hỗ trợ 24/7: <span className="font-medium" style={{ color: '#D4AF37' }}>1900 1234</span></p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up opacity-0 delay-600">
           <Link to="/bookings">
-            <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3">
+            <Button 
+              className="w-full sm:w-auto text-white px-8 py-3 rounded-none hover:opacity-90 transition-all duration-300 font-medium tracking-wide"
+              style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
+            >
               Xem booking của tôi
             </Button>
           </Link>
           <Link to="/tours">
-            <Button variant="outline" className="w-full sm:w-auto px-6 py-3">
+            <Button 
+              variant="outline" 
+              className="w-full sm:w-auto px-8 py-3 border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none transition-all duration-300 font-medium tracking-wide"
+            >
               Khám phá tour khác
             </Button>
           </Link>

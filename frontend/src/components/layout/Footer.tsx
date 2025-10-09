@@ -77,60 +77,60 @@ const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="bg-slate-900 text-white border-t border-slate-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 py-16">
           {/* Company Info */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center">
-              <div className="bg-blue-600 text-white p-2 rounded-lg mr-3">
+              <div className="text-white p-2 rounded-none mr-3 shadow-lg" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                 <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
                 </svg>
               </div>
               <div>
-                <h3 className="text-xl font-bold">TourBooking</h3>
-                <p className="text-sm text-gray-400">Khám phá thế giới</p>
+                <h3 className="text-xl font-normal tracking-wide">TourBooking</h3>
+                <p className="text-xs text-gray-400 font-normal tracking-wider">Khám phá thế giới</p>
               </div>
             </div>
             
-            <p className="text-gray-300 text-sm leading-relaxed">
+            <p className="text-gray-300 text-sm leading-relaxed font-normal">
               Chúng tôi chuyên cung cấp các tour du lịch chất lượng cao, 
               mang đến cho bạn những trải nghiệm đáng nhớ và an toàn trên 
               khắp Việt Nam và thế giới.
             </p>
 
             {/* Contact Info */}
-            <div className="space-y-2">
-              <div className="flex items-center text-gray-300 text-sm">
-                <MapPinIcon className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span>123 Đường ABC, Quận 1, TP.HCM</span>
+            <div className="space-y-3 border-t border-slate-800 pt-6">
+              <div className="flex items-center text-gray-400 text-sm font-normal transition-colors cursor-pointer group">
+                <MapPinIcon className="h-4 w-4 mr-3 flex-shrink-0 group-hover:text-[#D4AF37]" />
+                <span className="group-hover:text-[#D4AF37]">123 Đường ABC, Quận 1, TP.HCM</span>
               </div>
-              <div className="flex items-center text-gray-300 text-sm">
-                <PhoneIcon className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span>+84 (0) 123 456 789</span>
+              <div className="flex items-center text-gray-400 text-sm font-normal transition-colors cursor-pointer group">
+                <PhoneIcon className="h-4 w-4 mr-3 flex-shrink-0 group-hover:text-[#D4AF37]" />
+                <span className="group-hover:text-[#D4AF37]">+84 (0) 123 456 789</span>
               </div>
-              <div className="flex items-center text-gray-300 text-sm">
-                <EnvelopeIcon className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span>info@tourbooking.com</span>
+              <div className="flex items-center text-gray-400 text-sm font-normal transition-colors cursor-pointer group">
+                <EnvelopeIcon className="h-4 w-4 mr-3 flex-shrink-0 group-hover:text-[#D4AF37]" />
+                <span className="group-hover:text-[#D4AF37]">info@tourbooking.com</span>
               </div>
-              <div className="flex items-center text-gray-300 text-sm">
-                <GlobeAltIcon className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span>www.tourbooking.com</span>
+              <div className="flex items-center text-gray-400 text-sm font-normal transition-colors cursor-pointer group">
+                <GlobeAltIcon className="h-4 w-4 mr-3 flex-shrink-0 group-hover:text-[#D4AF37]" />
+                <span className="group-hover:text-[#D4AF37]">www.tourbooking.com</span>
               </div>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Liên kết nhanh</h3>
-            <ul className="space-y-2">
+            <h3 className="text-base font-medium mb-6 tracking-wider uppercase" style={{ color: '#C0C0C0' }}>Liên kết nhanh</h3>
+            <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="text-gray-300 hover:text-white text-sm transition-colors"
+                    className="text-gray-400 hover:text-white text-sm font-normal transition-colors hover:translate-x-1 inline-block"
                   >
                     {link.name}
                   </Link>
@@ -141,13 +141,13 @@ const Footer: React.FC = () => {
 
           {/* Popular Destinations */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Điểm đến phổ biến</h3>
-            <ul className="space-y-2">
+            <h3 className="text-base font-medium mb-6 tracking-wider uppercase" style={{ color: '#D4AF37' }}>Điểm đến phổ biến</h3>
+            <ul className="space-y-3">
               {destinations.map((destination) => (
                 <li key={destination.name}>
                   <Link
                     to={destination.href}
-                    className="text-gray-300 hover:text-white text-sm transition-colors"
+                    className="text-gray-400 hover:text-white text-sm font-normal transition-colors hover:translate-x-1 inline-block"
                   >
                     {destination.name}
                   </Link>
@@ -158,13 +158,13 @@ const Footer: React.FC = () => {
 
           {/* Services */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Dịch vụ</h3>
-            <ul className="space-y-2">
+            <h3 className="text-base font-medium mb-6 tracking-wider uppercase" style={{ color: '#D4AF37' }}>Dịch vụ</h3>
+            <ul className="space-y-3">
               {services.map((service) => (
                 <li key={service.name}>
                   <Link
                     to={service.href}
-                    className="text-gray-300 hover:text-white text-sm transition-colors"
+                    className="text-gray-400 hover:text-white text-sm font-normal transition-colors hover:translate-x-1 inline-block"
                   >
                     {service.name}
                   </Link>
@@ -175,19 +175,20 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Newsletter Signup */}
-        <div className="border-t border-gray-800 py-8">
+        <div className="border-t border-slate-800 py-12">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2">Đăng ký nhận tin tức</h3>
-            <p className="text-gray-400 text-sm mb-4">
+            <h3 className="text-xl font-normal mb-3 tracking-wide">Đăng ký nhận tin tức</h3>
+            <p className="text-gray-400 text-sm mb-6 font-normal">
               Nhận thông tin về các tour mới và ưu đãi đặc biệt
             </p>
             <div className="max-w-md mx-auto flex">
               <input
                 type="email"
                 placeholder="Nhập email của bạn"
-                className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-l-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-5 py-3 bg-slate-800 border border-slate-700 rounded-none text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:border-[#D4AF37] font-normal text-sm"
+                style={{ '--focus-ring-color': '#D4AF37' } as React.CSSProperties}
               />
-              <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-r-md transition-colors">
+              <button className="px-8 py-3 text-white rounded-none transition-all text-sm font-medium tracking-wider uppercase shadow-md" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                 Đăng ký
               </button>
             </div>
@@ -195,15 +196,24 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Social Links & Copyright */}
-        <div className="border-t border-gray-800 py-6">
+        <div className="border-t border-slate-800 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             {/* Social Links */}
-            <div className="flex space-x-4 mb-4 md:mb-0">
+            <div className="flex space-x-4 mb-6 md:mb-0">
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
                   href={social.href}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 transition-all hover:scale-110 p-2 border border-transparent rounded-none group"
+                  style={{ '--hover-color': '#D4AF37', '--hover-border': '#D4AF37' } as React.CSSProperties}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#D4AF37';
+                    e.currentTarget.style.borderColor = '#D4AF37';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#9ca3af';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
                   aria-label={social.name}
                 >
                   {social.icon}
@@ -212,10 +222,10 @@ const Footer: React.FC = () => {
             </div>
 
             {/* Copyright */}
-            <div className="text-center md:text-right text-gray-400 text-sm">
+            <div className="text-center md:text-right text-gray-400 text-sm font-normal">
               <p>&copy; {currentYear} TourBooking. Tất cả quyền được bảo lưu.</p>
-              <p className="mt-1">
-                Được phát triển với ❤️ tại Việt Nam
+              <p className="mt-2 text-xs">
+                Được phát triển với <span style={{ color: '#D4AF37' }}>❤</span> tại Việt Nam
               </p>
             </div>
           </div>

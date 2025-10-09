@@ -61,34 +61,41 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-0 left-0 w-96 h-96 rounded-full" style={{ background: 'radial-gradient(circle, #D4AF37 0%, transparent 70%)' }}></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full" style={{ background: 'radial-gradient(circle, #D4AF37 0%, transparent 70%)' }}></div>
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         {/* Logo */}
-        <div className="flex justify-center">
-          <div className="bg-blue-600 text-white p-3 rounded-lg">
-            <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+        <div className="flex justify-center animate-fade-in">
+          <div className="text-white p-3 rounded-none" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
+            <svg className="h-10 w-10" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
             </svg>
           </div>
         </div>
         
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+        <h2 className="mt-8 text-center text-4xl font-normal text-white tracking-tight animate-fade-in-up opacity-0 delay-100">
           Đăng nhập vào TourBooking
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-3 text-center text-sm text-gray-300 font-normal animate-fade-in-up opacity-0 delay-200">
           Hoặc{' '}
           <Link
             to="/register"
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="font-medium hover:opacity-80 transition-opacity"
+            style={{ color: '#D4AF37' }}
           >
             tạo tài khoản mới
           </Link>
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <Card>
-          <CardContent className="py-8 px-6">
+      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <Card className="bg-white border border-stone-200 rounded-none shadow-2xl animate-fade-in-up opacity-0 delay-300">
+          <CardContent className="py-10 px-8">
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               {/* Email Input */}
               <Input
@@ -134,10 +141,11 @@ const LoginPage: React.FC = () => {
                     {...register('rememberMe')}
                     id="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 border-gray-300 rounded-none focus:ring-0"
+                    style={{ accentColor: '#D4AF37' }}
                     disabled={isLoading}
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-900 font-normal">
                     Ghi nhớ đăng nhập
                   </label>
                 </div>
@@ -145,7 +153,8 @@ const LoginPage: React.FC = () => {
                 <div className="text-sm">
                   <Link
                     to="/forgot-password"
-                    className="font-medium text-blue-600 hover:text-blue-500"
+                    className="font-medium hover:opacity-80 transition-opacity"
+                    style={{ color: '#D4AF37' }}
                   >
                     Quên mật khẩu?
                   </Link>
@@ -155,7 +164,8 @@ const LoginPage: React.FC = () => {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full text-white rounded-none hover:opacity-90 transition-all duration-300 font-medium tracking-wide"
+                style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                 loading={isLoading}
                 disabled={isLoading}
               >
@@ -163,23 +173,23 @@ const LoginPage: React.FC = () => {
               </Button>
 
               {/* Divider */}
-              <div className="mt-6">
+              <div className="mt-8">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
+                    <div className="w-full border-t border-stone-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Hoặc đăng nhập với</span>
+                    <span className="px-3 bg-white text-gray-500 font-normal">Hoặc đăng nhập với</span>
                   </div>
                 </div>
 
                 {/* Social Login Buttons */}
-                <div className="mt-6 grid grid-cols-2 gap-3">
+                <div className="mt-6 grid grid-cols-2 gap-4">
                   <Button
                     type="button"
                     variant="outline"
                     disabled={isLoading}
-                    className="w-full"
+                    className="w-full border-2 border-stone-300 hover:border-slate-900 rounded-none transition-all duration-300"
                   >
                     <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
                       <path
@@ -206,7 +216,7 @@ const LoginPage: React.FC = () => {
                     type="button"
                     variant="outline"
                     disabled={isLoading}
-                    className="w-full"
+                    className="w-full border-2 border-stone-300 hover:border-slate-900 rounded-none transition-all duration-300"
                   >
                     <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -220,14 +230,14 @@ const LoginPage: React.FC = () => {
         </Card>
 
         {/* Footer Links */}
-        <div className="mt-6 text-center text-sm text-gray-600">
+        <div className="mt-8 text-center text-sm text-gray-300 font-normal animate-fade-in opacity-0 delay-400">
           <p>
             Bằng cách đăng nhập, bạn đồng ý với{' '}
-            <Link to="/terms" className="text-blue-600 hover:text-blue-500">
+            <Link to="/terms" className="hover:opacity-80 transition-opacity" style={{ color: '#D4AF37' }}>
               Điều khoản dịch vụ
             </Link>{' '}
             và{' '}
-            <Link to="/privacy" className="text-blue-600 hover:text-blue-500">
+            <Link to="/privacy" className="hover:opacity-80 transition-opacity" style={{ color: '#D4AF37' }}>
               Chính sách bảo mật
             </Link>{' '}
             của chúng tôi.

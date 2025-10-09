@@ -167,42 +167,42 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
 
 
   return (
-    <div className="bg-white rounded-lg shadow-lg border p-6 sticky top-4">
-      <div className="mb-6">
+    <div className="bg-white rounded-none shadow-xl border border-stone-200 p-8 sticky top-4">
+      <div className="mb-8 pb-6 border-b border-stone-200">
         {/* Price Display */}
-        <div className="flex items-baseline space-x-2 mb-2">
-          <span className="text-3xl font-bold text-blue-600">
+        <div className="flex items-baseline space-x-3 mb-3">
+          <span className="text-5xl font-normal tracking-tight" style={{ color: '#D4AF37' }}>
             {formatPrice(tour.price)}
           </span>
           {tour.originalPrice && (
             <>
-              <span className="text-lg text-gray-400 line-through">
+              <span className="text-lg text-gray-400 line-through font-normal">
                 {formatPrice(tour.originalPrice)}
               </span>
-              <span className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">
-                Tiết kiệm {discountPercentage}%
+              <span className="text-white text-xs font-medium px-3 py-1.5 rounded-none tracking-wider uppercase shadow-md" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
+                -{discountPercentage}%
               </span>
             </>
           )}
         </div>
-        <p className="text-sm text-gray-600">/ người lớn</p>
+        <p className="text-base text-gray-700">/ người lớn</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Schedule Selection - Responsive */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-900 mb-3 tracking-wide">
             📅 Chọn lịch khởi hành
           </label>
           
           {loadingSchedules ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-sm text-gray-500 mt-2">Đang tải lịch trình...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderColor: '#D4AF37' }}></div>
+              <p className="text-sm text-gray-500 mt-2 font-normal">Đang tải lịch trình...</p>
             </div>
           ) : availableSchedules.length === 0 ? (
-            <div className="text-center py-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-gray-600">Hiện chưa có lịch khởi hành.</p>
+            <div className="text-center py-6 bg-amber-50 border-l-4 rounded-none" style={{ borderLeftColor: '#D4AF37' }}>
+              <p className="text-sm text-gray-600 font-normal">Hiện chưa có lịch khởi hành.</p>
             </div>
           ) : (
             <>
@@ -219,11 +219,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
                         key={schedule.id}
                         type="button"
                         onClick={() => setSelectedSchedule(schedule)}
-                        className={`text-left p-3 rounded-lg border-2 transition-all ${
+                        className={`text-left p-4 rounded-none border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${
                           isSelected 
-                            ? 'border-blue-600 bg-blue-50' 
-                            : 'border-gray-200 hover:border-blue-300'
+                            ? 'bg-amber-50 shadow-md scale-[1.02]' 
+                            : 'border-stone-200 hover:border-slate-700 bg-white'
                         }`}
+                        style={isSelected ? { borderColor: '#D4AF37' } : {}}
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="font-semibold text-gray-900">
@@ -319,34 +320,36 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
         {/* People Selection */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <UsersIcon className="h-4 w-4 inline mr-1" />
+            <label className="block text-sm font-medium text-slate-900 mb-3 tracking-wide">
+              <UsersIcon className="h-4 w-4 inline mr-1" style={{ color: '#D4AF37' }} />
               Người lớn
             </label>
             <select
               value={formData.adults}
               onChange={(e) => handleInputChange('adults', parseInt(e.target.value))}
-              className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.adults ? 'border-red-500' : 'border-gray-300'
+              className={`w-full border rounded-none px-4 py-3 focus:ring-1 focus:border-slate-700 font-normal transition-all ${
+                errors.adults ? 'border-red-500' : 'border-stone-300'
               }`}
+              style={{ accentColor: '#D4AF37' }}
             >
               {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
                 <option key={num} value={num}>{num} người</option>
               ))}
             </select>
             {errors.adults && (
-              <p className="text-red-500 text-xs mt-1">{errors.adults}</p>
+              <p className="text-red-500 text-xs mt-1 font-normal">{errors.adults}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-900 mb-3 tracking-wide">
               Trẻ em (&lt; 12 tuổi)
             </label>
             <select
               value={formData.children}
               onChange={(e) => handleInputChange('children', parseInt(e.target.value))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-stone-300 rounded-none px-4 py-3 focus:ring-1 focus:border-slate-700 font-normal transition-all"
+              style={{ accentColor: '#D4AF37' }}
             >
               {[0, 1, 2, 3, 4].map(num => (
                 <option key={num} value={num}>{num} trẻ</option>
@@ -364,7 +367,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
 
         {/* Special Requests */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-900 mb-3 tracking-wide">
             Yêu cầu đặc biệt (tùy chọn)
           </label>
           <textarea
@@ -372,57 +375,66 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
             onChange={(e) => handleInputChange('specialRequests', e.target.value)}
             placeholder="Ví dụ: Ăn chay, khuyết tật, dị ứng thực phẩm..."
             rows={3}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className="w-full border border-stone-300 rounded-none px-4 py-3 focus:ring-1 focus:border-slate-700 resize-none font-normal transition-all"
           />
         </div>
 
         {/* Price Breakdown */}
         {totalPeople > 0 && selectedSchedule && (
-          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-            <h4 className="font-semibold text-gray-900">Chi tiết giá</h4>
+          <div className="bg-stone-50 rounded-none p-6 space-y-3 border border-stone-200">
+            <h4 className="font-medium text-slate-900 tracking-tight">Chi tiết giá</h4>
             
-            <div className="flex justify-between text-sm">
-              <span>Người lớn ({formData.adults})</span>
-              <span>{formatPrice(formData.adults * adultPrice)}</span>
+            <div className="flex justify-between text-sm font-normal">
+              <span className="text-gray-700">Người lớn ({formData.adults})</span>
+              <span className="text-slate-900">{formatPrice(formData.adults * adultPrice)}</span>
             </div>
             
             {formData.children > 0 && (
-              <div className="flex justify-between text-sm">
-                <span>Trẻ em ({formData.children})</span>
-                <span>{formatPrice(formData.children * childPrice)}</span>
+              <div className="flex justify-between text-sm font-normal">
+                <span className="text-gray-700">Trẻ em ({formData.children})</span>
+                <span className="text-slate-900">{formatPrice(formData.children * childPrice)}</span>
               </div>
             )}
             
-            <hr className="border-gray-300" />
+            <hr className="border-stone-300" />
             
-            <div className="flex justify-between font-semibold text-lg">
-              <span>Tổng cộng</span>
-              <span className="text-blue-600">{formatPrice(totalPrice)}</span>
+            <div className="flex justify-between font-medium text-xl tracking-tight">
+              <span className="text-slate-900">Tổng cộng</span>
+              <span style={{ color: '#D4AF37' }}>{formatPrice(totalPrice)}</span>
             </div>
           </div>
         )}
 
         {/* Security Notice */}
-        <div className="flex items-start space-x-2 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-          <ShieldCheckIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start space-x-3 text-sm text-gray-700 bg-stone-50 p-4 rounded-none border-l-2" style={{ borderLeftColor: '#D4AF37' }}>
+          <ShieldCheckIcon className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: '#D4AF37' }} />
           <div>
-            <p className="font-medium text-blue-900">Đặt tour an toàn</p>
-            <p>Thông tin của bạn được bảo mật và có thể hủy miễn phí trong 24h</p>
+            <p className="font-medium text-slate-900 mb-1">Đặt tour an toàn</p>
+            <p className="font-normal">Thông tin của bạn được bảo mật và có thể hủy miễn phí trong 24h</p>
           </div>
         </div>
 
         {/* Book Button */}
         <Button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center space-x-2"
+          className="w-full text-white py-4 rounded-none font-medium text-sm tracking-[0.2em] uppercase transition-all flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl border border-slate-900 hover:scale-105 active:scale-95"
+          style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = '#C5A028';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = '#1e293b';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
         >
           <CreditCardIcon className="h-5 w-5" />
           <span>Đặt Tour Ngay</span>
         </Button>
 
         {/* Contact Info */}
-        <div className="text-center text-sm text-gray-600">
-          <p>Cần hỗ trợ? Gọi <span className="font-semibold text-blue-600">1900 1234</span></p>
+        <div className="text-center text-sm text-gray-600 font-normal">
+          <p>Cần hỗ trợ? Gọi <span className="font-medium" style={{ color: '#D4AF37' }}>1900 1234</span></p>
         </div>
       </form>
     </div>

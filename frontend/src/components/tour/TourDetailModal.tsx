@@ -319,9 +319,9 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
         {/* Custom Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-50 p-3 bg-white/95 hover:bg-white rounded-full shadow-lg transition-all duration-200 hover:scale-110 border border-gray-200"
+          className="absolute top-4 right-4 z-50 p-3 bg-white/95 hover:bg-white rounded-none shadow-lg transition-all duration-200 hover:scale-110 border border-stone-200"
         >
-          <XMarkIcon className="h-5 w-5 text-gray-600 hover:text-gray-800" />
+          <XMarkIcon className="h-5 w-5 text-slate-900 hover:text-slate-700" style={{ color: '#D4AF37' }} />
         </button>
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -335,30 +335,30 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
               <div className="pr-16">
                 <div className="flex items-center gap-2 mb-3">
                   {tour.isFeatured && (
-                    <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
-                      Nổi bật
+                    <span className="text-white text-xs font-semibold px-3 py-1.5 rounded-none" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
+                      ⭐ Nổi bật
                     </span>
                   )}
-                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+                  <span className="bg-slate-900 text-white text-xs font-medium px-3 py-1.5 rounded-none">
                     {tour.category.name}
                   </span>
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">{tour.name}</h1>
+                <h1 className="text-3xl font-bold text-slate-900 mb-4">{tour.name}</h1>
                 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-700 mb-3 font-normal">
                   <div className="flex items-center">
-                    <MapPinIcon className="h-4 w-4 mr-1" />
+                    <MapPinIcon className="h-4 w-4 mr-1" style={{ color: '#D4AF37' }} />
                     {tour.departureLocation && tour.destination ? 
                       `${tour.departureLocation} → ${tour.destination}` : 
                       tour.location
                     }
                   </div>
                   <div className="flex items-center">
-                    <ClockIcon className="h-4 w-4 mr-1" />
+                    <ClockIcon className="h-4 w-4 mr-1" style={{ color: '#D4AF37' }} />
                     {tour.duration} ngày
                   </div>
                   <div className="flex items-center">
-                    <UsersIcon className="h-4 w-4 mr-1" />
+                    <UsersIcon className="h-4 w-4 mr-1" style={{ color: '#D4AF37' }} />
                     Tối đa {tour.maxGroupSize} người
                   </div>
                 </div>
@@ -367,20 +367,20 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
                 {(tour.tourType === 'INTERNATIONAL' || tour.country) && (
                   <div className="flex flex-wrap items-center gap-3 text-sm">
                     {tour.country && (
-                      <div className="flex items-center px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full">
+                      <div className="flex items-center px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-none">
                         {tour.country.flagUrl && (
-                          <img src={tour.country.flagUrl} alt={tour.country.name} className="h-4 w-5 mr-2 rounded" />
+                          <img src={tour.country.flagUrl} alt={tour.country.name} className="h-4 w-5 mr-2 rounded-none" />
                         )}
-                        <span className="font-medium">{tour.country.name}</span>
+                        <span className="font-semibold text-slate-900">{tour.country.name}</span>
                       </div>
                     )}
                     {tour.flightIncluded && (
-                      <span className="px-3 py-1.5 bg-green-50 text-green-700 rounded-full font-medium">
+                      <span className="px-3 py-1.5 bg-green-50 border border-green-200 text-green-800 rounded-none font-semibold">
                         ✈️ Bao gồm vé máy bay
                       </span>
                     )}
                     {tour.visaRequired && (
-                      <span className="px-3 py-1.5 bg-yellow-50 text-yellow-700 rounded-full font-medium">
+                      <span className="px-3 py-1.5 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-none font-semibold">
                         📝 Yêu cầu visa
                       </span>
                     )}
@@ -390,8 +390,8 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
             </div>
 
             {/* Image Gallery */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-xl overflow-hidden">
-              <div className="aspect-video rounded-lg overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-none overflow-hidden">
+              <div className="aspect-video rounded-none overflow-hidden border border-stone-200">
                 <img
                   src={tour.images[activeImageIndex]?.imageUrl || '/default-tour.jpg'}
                   alt={tour.name}
@@ -403,9 +403,10 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
                   <button
                     key={index}
                     onClick={() => setActiveImageIndex(index + 1)}
-                    className={`aspect-video rounded-lg overflow-hidden border-2 transition-colors ${
-                      activeImageIndex === index + 1 ? 'border-blue-500' : 'border-transparent'
+                    className={`aspect-video rounded-none overflow-hidden border-2 transition-colors ${
+                      activeImageIndex === index + 1 ? 'border-slate-900' : 'border-stone-200'
                     }`}
+                    style={activeImageIndex === index + 1 ? { borderColor: '#D4AF37' } : {}}
                   >
                     <img
                       src={image.imageUrl}
@@ -418,35 +419,35 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
             </div>
 
             {/* Price and Rating */}
-            <div className="flex justify-between items-center py-4 border-t border-b">
+            <div className="flex justify-between items-center py-4 border-t border-b border-stone-200">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-3xl font-bold text-blue-600">
+                  <span className="text-3xl font-bold" style={{ color: '#D4AF37' }}>
                     {formatPrice(tour.price)}
                   </span>
                   {tour.originalPrice && tour.originalPrice > tour.price && (
-                    <span className="text-lg text-gray-500 line-through">
+                    <span className="text-lg text-gray-500 line-through font-normal">
                       {formatPrice(tour.originalPrice)}
                     </span>
                   )}
-                  <span className="text-sm text-gray-600">/ người</span>
+                  <span className="text-sm text-gray-700 font-normal">/ người</span>
                 </div>
               </div>
               <div className="text-right">
                 <div className="flex items-center gap-1 mb-1">
                   {renderStars(tour.averageRating)}
-                  <span className="text-sm font-medium text-gray-700 ml-1">
+                  <span className="text-sm font-semibold text-slate-900 ml-1">
                     {tour.averageRating.toFixed(1)}
                   </span>
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-600 font-normal">
                   {tour.totalReviews} đánh giá
                 </div>
               </div>
             </div>
 
             {/* Tabs */}
-            <div className="border-b border-gray-200 mb-6">
+            <div className="border-b border-stone-200 mb-6">
               <nav className="-mb-px flex space-x-8 overflow-x-auto">
                 {[
                   { id: 'overview', label: 'Tổng quan' },
@@ -457,11 +458,12 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    className={`py-2 px-1 border-b-2 font-semibold text-sm whitespace-nowrap transition-colors ${
                       activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'text-slate-900'
+                        : 'border-transparent text-gray-600 hover:text-slate-900 hover:border-stone-300'
                     }`}
+                    style={activeTab === tab.id ? { borderBottomColor: '#D4AF37' } : {}}
                   >
                     {tab.label}
                   </button>
@@ -474,18 +476,18 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-semibold mb-3">Mô tả tour</h3>
-                    <p className="text-gray-700 leading-relaxed text-base">{tour.description}</p>
+                    <h3 className="text-xl font-semibold mb-3 text-slate-900">Mô tả tour</h3>
+                    <p className="text-gray-700 leading-relaxed text-base font-normal">{tour.description}</p>
                   </div>
                   
                   {tour.highlights && tour.highlights.length > 0 && (
                     <div>
-                      <h3 className="text-xl font-semibold mb-3">Điểm nổi bật</h3>
+                      <h3 className="text-xl font-semibold mb-3 text-slate-900">Điểm nổi bật</h3>
                       <ul className="space-y-2">
                         {tour.highlights.map((highlight, index) => (
                           <li key={index} className="flex items-start">
-                            <TagIcon className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-600">{highlight}</span>
+                            <TagIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" style={{ color: '#D4AF37' }} />
+                            <span className="text-gray-700 font-normal">{highlight}</span>
                           </li>
                         ))}
                       </ul>
@@ -496,7 +498,7 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
 
               {activeTab === 'itinerary' && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-semibold">Lịch trình chi tiết</h3>
+                  <h3 className="text-xl font-semibold text-slate-900">Lịch trình chi tiết</h3>
                   
                   {tour.itinerary && tour.itinerary.length > 0 ? (
                   <div className="space-y-4">
@@ -504,18 +506,18 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
                       const isExpanded = expandedDays[day.day] || false;
                       
                       return (
-                        <div key={day.day} className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow bg-white">
+                        <div key={day.day} className="border border-stone-200 rounded-none p-6 hover:shadow-md transition-shadow bg-white">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                              <div className="w-8 h-8 rounded-none flex items-center justify-center text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                                 {day.day}
                               </div>
-                              <h4 className="font-semibold text-gray-900 text-lg">{day.title}</h4>
+                              <h4 className="font-semibold text-slate-900 text-lg">{day.title}</h4>
                             </div>
                             {day.activities && day.activities.length > 0 && (
                               <button
                                 onClick={() => setExpandedDays(prev => ({ ...prev, [day.day]: !isExpanded }))}
-                                className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-slate-900 hover:text-slate-700 hover:bg-amber-50 rounded-none transition-colors border border-stone-200"
                               >
                                 {isExpanded ? (
                                   <>
@@ -532,15 +534,15 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
                             )}
                           </div>
                           
-                          <p className="text-gray-600 mb-4 leading-relaxed">{day.description}</p>
+                          <p className="text-gray-700 mb-4 leading-relaxed font-normal">{day.description}</p>
                           
                           {day.activities && day.activities.length > 0 && isExpanded && (
-                            <div className="bg-gray-50 rounded-lg p-4">
-                              <h5 className="font-medium text-gray-900 mb-2">Hoạt động trong ngày:</h5>
+                            <div className="bg-amber-50 rounded-none p-4 border border-amber-200">
+                              <h5 className="font-semibold text-slate-900 mb-2">Hoạt động trong ngày:</h5>
                               <ul className="space-y-2">
                                 {day.activities.map((activity, index) => (
-                                  <li key={index} className="flex items-start text-sm text-gray-600">
-                                    <span className="text-blue-500 mr-2 mt-1">•</span>
+                                  <li key={index} className="flex items-start text-sm text-gray-700 font-normal">
+                                    <span className="mr-2 mt-1" style={{ color: '#D4AF37' }}>•</span>
                                     <span>{activity}</span>
                                   </li>
                                 ))}
@@ -552,8 +554,8 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
                     })}
                   </div>
                   ) : (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg">
-                      <p className="text-gray-500">Lịch trình chi tiết sẽ được cập nhật sau</p>
+                    <div className="text-center py-8 bg-stone-50 rounded-none border border-stone-200">
+                      <p className="text-gray-600 font-normal">Lịch trình chi tiết sẽ được cập nhật sau</p>
                     </div>
                   )}
                 </div>
@@ -564,54 +566,54 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
                   {tour.includes && tour.includes.length > 0 && tour.excludes && tour.excludes.length > 0 ? (
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <h3 className="text-lg font-semibold text-green-600 mb-3">Bao gồm</h3>
+                      <h3 className="text-lg font-semibold text-green-700 mb-3">Bao gồm</h3>
                       <ul className="space-y-2">
                         {tour.includes.map((item, index) => (
                           <li key={index} className="flex items-start">
-                            <span className="text-green-500 mr-2">✓</span>
-                            <span className="text-gray-600">{item}</span>
+                            <span className="text-green-600 mr-2 font-bold">✓</span>
+                            <span className="text-gray-700 font-normal">{item}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                     
                     <div>
-                      <h3 className="text-lg font-semibold text-red-600 mb-3">Không bao gồm</h3>
+                      <h3 className="text-lg font-semibold text-red-700 mb-3">Không bao gồm</h3>
                       <ul className="space-y-2">
                         {tour.excludes.map((item, index) => (
                           <li key={index} className="flex items-start">
-                            <span className="text-red-500 mr-2">✗</span>
-                            <span className="text-gray-600">{item}</span>
+                            <span className="text-red-600 mr-2 font-bold">✗</span>
+                            <span className="text-gray-700 font-normal">{item}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   </div>
                   ) : (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg">
-                      <p className="text-gray-500">Thông tin chi tiết sẽ được cập nhật sau</p>
+                    <div className="text-center py-8 bg-stone-50 rounded-none border border-stone-200">
+                      <p className="text-gray-600 font-normal">Thông tin chi tiết sẽ được cập nhật sau</p>
                     </div>
                   )}
                   
                   {/* Additional Info */}
                   {(tour.accommodationInfo || tour.mealsInfo) && (
-                    <div className="grid md:grid-cols-2 gap-6 pt-4 border-t">
+                    <div className="grid md:grid-cols-2 gap-6 pt-4 border-t border-stone-200">
                       {tour.accommodationInfo && (
-                        <div className="bg-blue-50 p-4 rounded-lg">
+                        <div className="bg-amber-50 p-4 rounded-none border border-amber-200">
                           <div className="flex items-center mb-2">
-                            <IoBedOutline className="h-5 w-5 text-blue-600 mr-2" />
-                            <h4 className="font-semibold text-blue-900">Khách sạn</h4>
+                            <IoBedOutline className="h-5 w-5 mr-2" style={{ color: '#D4AF37' }} />
+                            <h4 className="font-semibold text-slate-900">Khách sạn</h4>
                           </div>
-                          <p className="text-sm text-blue-800">{tour.accommodationInfo}</p>
+                          <p className="text-sm text-gray-700 font-normal">{tour.accommodationInfo}</p>
                         </div>
                       )}
                       {tour.mealsInfo && (
-                        <div className="bg-orange-50 p-4 rounded-lg">
+                        <div className="bg-amber-50 p-4 rounded-none border border-amber-200">
                           <div className="flex items-center mb-2">
-                            <IoRestaurantOutline className="h-5 w-5 text-orange-600 mr-2" />
-                            <h4 className="font-semibold text-orange-900">Bữa ăn</h4>
+                            <IoRestaurantOutline className="h-5 w-5 mr-2" style={{ color: '#D4AF37' }} />
+                            <h4 className="font-semibold text-slate-900">Bữa ăn</h4>
                           </div>
-                          <p className="text-sm text-orange-800">{tour.mealsInfo}</p>
+                          <p className="text-sm text-gray-700 font-normal">{tour.mealsInfo}</p>
                         </div>
                       )}
                     </div>
@@ -623,54 +625,54 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
                 <div className="space-y-6">
                   {/* Visa Information */}
                   {tour.visaInfo && (
-                    <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4 rounded-r-lg">
+                    <div className="border-l-4 bg-yellow-50 p-4 rounded-none border border-yellow-200" style={{ borderLeftColor: '#D4AF37', borderLeftWidth: '4px' }}>
                       <div className="flex items-center mb-2">
-                        <InformationCircleIcon className="h-5 w-5 text-yellow-600 mr-2" />
-                        <h3 className="text-lg font-semibold text-yellow-900">Thông tin Visa</h3>
+                        <InformationCircleIcon className="h-5 w-5 mr-2" style={{ color: '#D4AF37' }} />
+                        <h3 className="text-lg font-semibold text-slate-900">Thông tin Visa</h3>
                       </div>
-                      <div className="text-gray-700 whitespace-pre-line">{tour.visaInfo}</div>
+                      <div className="text-gray-700 whitespace-pre-line font-normal">{tour.visaInfo}</div>
                     </div>
                   )}
                   
                   {/* Cancellation Policy */}
                   {tour.cancellationPolicy && (
-                    <div className="border-l-4 border-red-400 bg-red-50 p-4 rounded-r-lg">
+                    <div className="bg-red-50 p-4 rounded-none border border-red-200" style={{ borderLeftColor: '#ef4444', borderLeftWidth: '4px' }}>
                       <div className="flex items-center mb-2">
                         <XCircleIcon className="h-5 w-5 text-red-600 mr-2" />
-                        <h3 className="text-lg font-semibold text-red-900">Chính sách hủy tour</h3>
+                        <h3 className="text-lg font-semibold text-slate-900">Chính sách hủy tour</h3>
                       </div>
-                      <div className="text-gray-700 whitespace-pre-line">{tour.cancellationPolicy}</div>
+                      <div className="text-gray-700 whitespace-pre-line font-normal">{tour.cancellationPolicy}</div>
                     </div>
                   )}
                   
                   {/* Important Notes */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="bg-stone-50 p-4 rounded-none border border-stone-200">
                     <div className="flex items-center mb-3">
-                      <InformationCircleIcon className="h-5 w-5 text-gray-600 mr-2" />
-                      <h3 className="text-lg font-semibold text-gray-900">Lưu ý quan trọng</h3>
+                      <InformationCircleIcon className="h-5 w-5 mr-2" style={{ color: '#D4AF37' }} />
+                      <h3 className="text-lg font-semibold text-slate-900">Lưu ý quan trọng</h3>
                     </div>
-                    <ul className="space-y-2 text-sm text-gray-700">
+                    <ul className="space-y-2 text-sm text-gray-700 font-normal">
                       <li className="flex items-start">
-                        <span className="text-blue-500 mr-2 mt-1">•</span>
+                        <span className="mr-2 mt-1" style={{ color: '#D4AF37' }}>•</span>
                         <span>Vui lòng mang theo giấy tờ tùy thân (CMND/CCCD/Hộ chiếu) khi tham gia tour</span>
                       </li>
                       <li className="flex items-start">
-                        <span className="text-blue-500 mr-2 mt-1">•</span>
+                        <span className="mr-2 mt-1" style={{ color: '#D4AF37' }}>•</span>
                         <span>Thời gian có thể thay đổi tùy vào tình hình thực tế</span>
                       </li>
                       <li className="flex items-start">
-                        <span className="text-blue-500 mr-2 mt-1">•</span>
+                        <span className="mr-2 mt-1" style={{ color: '#D4AF37' }}>•</span>
                         <span>Quý khách vui lòng có mặt đúng giờ tại điểm tập trung</span>
                       </li>
                       {tour.tourType === 'INTERNATIONAL' && (
                         <>
                           <li className="flex items-start">
-                            <span className="text-blue-500 mr-2 mt-1">•</span>
+                            <span className="mr-2 mt-1" style={{ color: '#D4AF37' }}>•</span>
                             <span>Hộ chiếu còn hạn ít nhất 6 tháng kể từ ngày khởi hành</span>
                           </li>
                           {tour.visaRequired && (
                             <li className="flex items-start">
-                              <span className="text-blue-500 mr-2 mt-1">•</span>
+                              <span className="mr-2 mt-1" style={{ color: '#D4AF37' }}>•</span>
                               <span>Quý khách tự lo visa hoặc liên hệ với chúng tôi để được hỗ trợ</span>
                             </li>
                           )}
@@ -683,28 +685,27 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t">
-              <Button
+            <div className="flex gap-3 pt-4 border-t border-stone-200">
+              <button
                 onClick={onClose}
-                variant="outline"
-                className="flex-1"
+                className="flex-1 px-6 py-3 border-2 border-slate-900 rounded-none text-sm font-semibold text-slate-900 bg-white hover:bg-slate-900 hover:text-white transition-all duration-300"
               >
                 Đóng
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={() => {
-                  // Could add booking action here
                   window.open(`/tours/${tour.slug}`, '_blank');
                 }}
-                className="flex-1"
+                className="flex-1 px-6 py-3 text-white rounded-none text-sm font-semibold transition-all duration-300 hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
               >
                 Xem chi tiết đầy đủ
-              </Button>
+              </button>
             </div>
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-500">Không tìm thấy thông tin tour.</p>
+            <p className="text-gray-600 font-normal">Không tìm thấy thông tin tour.</p>
           </div>
         )}
       </div>

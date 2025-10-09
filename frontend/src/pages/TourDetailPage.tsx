@@ -493,89 +493,91 @@ const TourDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-stone-50">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Tour Header */}
-            <div>
+            <div className="animate-fade-in-up opacity-0">
               {/* Back Button */}
-              <div className="mb-4">
+              <div className="mb-6">
                 <button
                   onClick={() => window.history.back()}
-                  className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  className="inline-flex items-center space-x-2 text-slate-700 hover:text-slate-900 transition-colors group"
                 >
-                  <ArrowLeftIcon className="h-5 w-5" />
-                  <span className="text-sm font-medium">Quay lại</span>
+                  <ArrowLeftIcon className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                  <span className="text-sm font-normal tracking-wide">Quay lại</span>
                 </button>
               </div>
 
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <div className="flex items-center space-x-2 mb-3">
+                  <div className="flex items-center space-x-3 mb-4">
                     {tour.badge && (
-                      <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      <span className="text-white px-4 py-1.5 rounded-none text-xs font-medium tracking-wider uppercase shadow-lg animate-fade-in opacity-0 delay-100" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                         {tour.badge}
                       </span>
                     )}
-                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold capitalize">
+                    <span className="bg-stone-100 text-slate-700 px-4 py-1.5 rounded-none text-xs font-normal tracking-wide capitalize border border-stone-200 animate-fade-in opacity-0 delay-200">
                       {tour.category || 'Tour du lịch'}
                     </span>
                   </div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{tour.name}</h1>
+                  <h1 className="text-5xl md:text-6xl font-normal text-slate-900 mb-4 tracking-tight leading-tight">{tour.name}</h1>
                 </div>
                 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <button
                     onClick={() => setIsWishlisted(!isWishlisted)}
-                    className="p-2 rounded-full border border-gray-300 hover:bg-gray-50"
+                    className="p-3 rounded-none border border-stone-300 hover:bg-stone-50 hover:border-slate-700 transition-all shadow-md hover:shadow-lg"
                   >
                     {isWishlisted ? (
                       <HeartSolidIcon className="h-6 w-6 text-red-500" />
                     ) : (
-                      <HeartIcon className="h-6 w-6 text-gray-600" />
+                      <HeartIcon className="h-6 w-6 text-slate-600" />
                     )}
                   </button>
                   
                   <button
                     onClick={handleShare}
-                    className="p-2 rounded-full border border-gray-300 hover:bg-gray-50"
+                    className="p-3 rounded-none border border-stone-300 hover:bg-stone-50 hover:border-slate-700 transition-all shadow-md hover:shadow-lg"
                   >
-                    <ShareIcon className="h-6 w-6 text-gray-600" />
+                    <ShareIcon className="h-6 w-6 text-slate-600" />
                   </button>
                 </div>
               </div>
 
               {/* Tour Meta */}
-              <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 mb-6">
-                <div className="flex items-center space-x-1">
-                  <StarIcon className="h-4 w-4 text-yellow-400 fill-current" />
-                  <span className="font-semibold text-gray-900">{tour.rating}</span>
-                  <span>({tour.reviewCount} đánh giá)</span>
+              <div className="flex flex-wrap items-center gap-8 text-base text-gray-700 mb-8 pb-6 border-b border-stone-200 animate-fade-in opacity-0 delay-300">
+                <div className="flex items-center space-x-2">
+                  <StarIcon className="h-6 w-6 fill-current" style={{ color: '#D4AF37' }} />
+                  <span className="font-semibold text-slate-900 text-lg">{tour.rating}</span>
+                  <span className="font-normal">({tour.reviewCount} đánh giá)</span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <MapPinIcon className="h-4 w-4" />
-                  <span>{tour.location}</span>
+                <div className="flex items-center space-x-2">
+                  <MapPinIcon className="h-6 w-6" style={{ color: '#D4AF37' }} />
+                  <span className="font-normal">{tour.location}</span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <ClockIcon className="h-4 w-4" />
-                  <span>{tour.duration}</span>
+                <div className="flex items-center space-x-2">
+                  <ClockIcon className="h-6 w-6" style={{ color: '#D4AF37' }} />
+                  <span className="font-normal">{tour.duration}</span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <UsersIcon className="h-4 w-4" />
-                  <span>Max {tour.maxPeople} người</span>
+                <div className="flex items-center space-x-2">
+                  <UsersIcon className="h-6 w-6" style={{ color: '#D4AF37' }} />
+                  <span className="font-normal">Max {tour.maxPeople} người</span>
                 </div>
               </div>
             </div>
 
             {/* Image Gallery */}
-            <ImageGallery images={tour.images} title={tour.name} />
+            <div className="animate-fade-in-up opacity-0 delay-400">
+              <ImageGallery images={tour.images} title={tour.name} />
+            </div>
 
             {/* Tabs Navigation */}
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8">
+            <div className="border-b border-stone-200 bg-white rounded-none shadow-sm animate-slide-in-left opacity-0 delay-500">
+              <nav className="flex space-x-1 p-1">
                 {[
                   { key: 'overview', label: 'Tổng quan' },
                   { key: 'itinerary', label: 'Lịch trình' },
@@ -585,11 +587,12 @@ const TourDetailPage: React.FC = () => {
                   <button
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key as any)}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    className={`flex-1 py-3 px-4 font-medium text-sm tracking-wide transition-all rounded-none ${
                       activeTab === tab.key
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'bg-slate-900 text-white shadow-md'
+                        : 'text-slate-700 hover:bg-stone-50 hover:text-slate-900'
                     }`}
+                    style={activeTab === tab.key ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
                   >
                     {tab.label}
                   </button>
@@ -598,49 +601,49 @@ const TourDetailPage: React.FC = () => {
             </div>
 
             {/* Tab Content */}
-            <div>
+            <div className="bg-white rounded-none shadow-lg p-8 border border-stone-200 animate-fade-in opacity-0 delay-600">
               {activeTab === 'overview' && (
-                <div className="space-y-8">
+                <div className="space-y-10">
                   {/* Description */}
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Mô tả tour</h3>
-                    <p className="text-gray-700 leading-relaxed">{tour.description}</p>
+                  <div className="animate-fade-in-up opacity-0 delay-100">
+                    <h3 className="text-3xl font-normal text-slate-900 mb-5 tracking-tight">Mô tả tour</h3>
+                    <p className="text-gray-800 leading-relaxed text-base">{tour.description}</p>
                   </div>
 
                   {/* Highlights */}
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Điểm nổi bật</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="animate-fade-in-up opacity-0 delay-200">
+                    <h3 className="text-3xl font-normal text-slate-900 mb-6 tracking-tight">Điểm nổi bật</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {tour.highlights.map((highlight, index) => (
-                        <div key={index} className="flex items-start space-x-3">
-                          <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-700">{highlight}</span>
+                        <div key={index} className="flex items-start space-x-3 p-4 bg-stone-50 rounded-none border-l-2 hover:bg-stone-100 transition-all duration-300 hover:shadow-md hover:translate-x-1" style={{ borderLeftColor: '#D4AF37' }}>
+                          <CheckCircleIcon className="h-6 w-6 mt-0.5 flex-shrink-0" style={{ color: '#D4AF37' }} />
+                          <span className="text-gray-800 text-base">{highlight}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Included/Excluded */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">Bao gồm</h3>
-                      <div className="space-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in-up opacity-0 delay-300">
+                    <div className="bg-stone-50 p-6 rounded-none border border-stone-200 hover:border-slate-700 transition-all duration-300 hover:shadow-lg">
+                      <h3 className="text-2xl font-medium text-slate-900 mb-5 tracking-tight">Bao gồm</h3>
+                      <div className="space-y-3">
                         {tour.included.map((item, index) => (
-                          <div key={index} className="flex items-start space-x-3">
-                            <CheckCircleIcon className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-gray-700">{item}</span>
+                          <div key={index} className="flex items-start space-x-3 hover:translate-x-1 transition-transform duration-200">
+                            <CheckCircleIcon className="h-5 w-5 mt-1 flex-shrink-0" style={{ color: '#D4AF37' }} />
+                            <span className="text-base text-gray-800">{item}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">Không bao gồm</h3>
-                      <div className="space-y-2">
+                    <div className="bg-stone-50 p-6 rounded-none border border-stone-200 hover:border-slate-700 transition-all duration-300 hover:shadow-lg">
+                      <h3 className="text-2xl font-medium text-slate-900 mb-5 tracking-tight">Không bao gồm</h3>
+                      <div className="space-y-3">
                         {tour.excluded.map((item, index) => (
-                          <div key={index} className="flex items-start space-x-3">
-                            <XCircleIcon className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-gray-700">{item}</span>
+                          <div key={index} className="flex items-start space-x-3 hover:translate-x-1 transition-transform duration-200">
+                            <XCircleIcon className="h-5 w-5 mt-1 flex-shrink-0 text-slate-400" />
+                            <span className="text-base text-gray-800">{item}</span>
                           </div>
                         ))}
                       </div>
@@ -651,19 +654,21 @@ const TourDetailPage: React.FC = () => {
 
               {activeTab === 'itinerary' && (
                 <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-gray-900">Lịch trình chi tiết</h3>
-                    <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-3xl font-normal text-slate-900 tracking-tight">Lịch trình chi tiết</h3>
+                    <div className="flex items-center space-x-3">
                       <button
                         onClick={expandAllDays}
-                        className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        className="text-xs text-slate-700 hover:text-slate-900 font-medium tracking-wide uppercase"
+                        style={{ color: '#D4AF37' }}
                       >
                         Mở rộng tất cả
                       </button>
-                      <span className="text-gray-300">|</span>
+                      <span className="text-stone-300">|</span>
                       <button
                         onClick={collapseAllDays}
-                        className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        className="text-xs text-slate-700 hover:text-slate-900 font-medium tracking-wide uppercase"
+                        style={{ color: '#D4AF37' }}
                       >
                         Thu gọn tất cả
                       </button>
@@ -674,28 +679,28 @@ const TourDetailPage: React.FC = () => {
                     {tour.itinerary.map((day, index) => {
                       const isExpanded = expandedDays.includes(day.day);
                       return (
-                        <div key={`day-${index}`} className="bg-white rounded-lg border overflow-hidden">
+                        <div key={`day-${index}`} className="bg-stone-50 rounded-none border border-stone-200 overflow-hidden hover:border-slate-700 transition-all hover:shadow-lg stagger-animation opacity-0">
                           {/* Day Header - Always visible */}
                           <div 
-                            className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            className="p-5 cursor-pointer hover:bg-white transition-colors group"
                             onClick={() => toggleDayExpanded(day.day)}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-4">
-                                <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-semibold text-sm">
+                                <div className="text-white rounded-none w-10 h-10 flex items-center justify-center font-medium text-sm shadow-md group-hover:scale-110 transition-transform duration-300" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                                   {day.day}
                                 </div>
                                 <div>
-                                  <h4 className="text-lg font-bold text-gray-900">{day.title}</h4>
+                                  <h4 className="text-xl font-medium text-slate-900 tracking-tight group-hover:text-slate-700 transition-colors">{day.title}</h4>
                                   <div 
-                                    className="text-sm text-gray-600 mt-1 prose prose-sm max-w-none"
+                                    className="text-base text-gray-700 mt-2 prose prose-base max-w-none"
                                     dangerouslySetInnerHTML={{ __html: day.description }}
                                   />
                                 </div>
                               </div>
                               <div className="flex-shrink-0">
                                 {isExpanded ? (
-                                  <ChevronUpIcon className="h-5 w-5 text-gray-400" />
+                                  <ChevronUpIcon className="h-5 w-5 text-slate-400" />
                                 ) : (
                                   <ChevronDownIcon className="h-5 w-5 text-gray-400" />
                                 )}
@@ -761,13 +766,13 @@ const TourDetailPage: React.FC = () => {
                 <div className="space-y-8">
                   {/* Important Info */}
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Thông tin quan trọng</h3>
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <div className="space-y-2">
+                    <h3 className="text-3xl font-normal text-slate-900 mb-6 tracking-tight">Thông tin quan trọng</h3>
+                    <div className="bg-amber-50 border-l-4 rounded-none p-6" style={{ borderLeftColor: '#D4AF37' }}>
+                      <div className="space-y-3">
                         {tour.importantInfo.map((info, index) => (
                           <div key={index} className="flex items-start space-x-3">
-                            <InformationCircleIcon className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-gray-700">{info}</span>
+                            <InformationCircleIcon className="h-6 w-6 mt-0.5 flex-shrink-0" style={{ color: '#D4AF37' }} />
+                            <span className="text-base text-gray-800">{info}</span>
                           </div>
                         ))}
                       </div>
@@ -776,9 +781,9 @@ const TourDetailPage: React.FC = () => {
 
                   {/* Cancellation Policy */}
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Chính sách hủy tour</h3>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <p className="text-sm text-gray-700">{tour.cancellationPolicy}</p>
+                    <h3 className="text-3xl font-normal text-slate-900 mb-6 tracking-tight">Chính sách hủy tour</h3>
+                    <div className="bg-stone-50 border border-stone-200 rounded-none p-6">
+                      <p className="text-base text-gray-800 leading-relaxed">{tour.cancellationPolicy}</p>
                     </div>
                   </div>
                 </div>
@@ -787,18 +792,27 @@ const TourDetailPage: React.FC = () => {
           </div>
 
           {/* Booking Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 animate-slide-in-right opacity-0 delay-700">
             <BookingForm tour={tour} onBooking={handleBooking} />
           </div>
         </div>
 
         {/* Related Tours */}
         {relatedTours.length > 0 && (
-          <div className="mt-16">
-            <h3 className="text-2xl font-bold text-gray-900 mb-8">Tour liên quan</h3>
+          <div className="mt-16 pt-12 border-t border-stone-200 animate-fade-in-up opacity-0 delay-800">
+            <div className="text-center mb-12">
+              <div className="inline-block px-8 py-3 border border-slate-800 rounded-none mb-6 hover:border-slate-600 transition-all hover:shadow-md">
+                <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">Tour Liên Quan</span>
+              </div>
+              <p className="text-gray-600 max-w-2xl mx-auto font-normal">
+                Khám phá những tour tương tự có thể bạn quan tâm
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedTours.map((relatedTour) => (
-                <TourCard key={relatedTour.id} tour={relatedTour} />
+              {relatedTours.map((relatedTour, index) => (
+                <div key={relatedTour.id} className="stagger-animation opacity-0" style={{ animationDelay: `${index * 150}ms` }}>
+                  <TourCard tour={relatedTour} />
+                </div>
               ))}
             </div>
           </div>

@@ -12,3 +12,311 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Fade-in animation for content */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Stagger animation for grid items */
+.stagger-animation {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.stagger-animation:nth-child(1) { animation-delay: 0.05s; }
+.stagger-animation:nth-child(2) { animation-delay: 0.1s; }
+.stagger-animation:nth-child(3) { animation-delay: 0.15s; }
+.stagger-animation:nth-child(4) { animation-delay: 0.2s; }
+.stagger-animation:nth-child(5) { animation-delay: 0.25s; }
+.stagger-animation:nth-child(6) { animation-delay: 0.3s; }
+.stagger-animation:nth-child(7) { animation-delay: 0.35s; }
+.stagger-animation:nth-child(8) { animation-delay: 0.4s; }
+.stagger-animation:nth-child(9) { animation-delay: 0.45s; }
+.stagger-animation:nth-child(10) { animation-delay: 0.5s; }
+.stagger-animation:nth-child(11) { animation-delay: 0.55s; }
+.stagger-animation:nth-child(12) { animation-delay: 0.6s; }
+
+/* Page transition */
+.page-transition {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.page-transition-enter {
+  opacity: 0;
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+}
+
+/* Slide in animations */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slideInFromLeft 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-slide-in-top {
+  animation: slideInFromTop 0.5s ease-out forwards;
+}
+
+.animate-slide-in-bottom {
+  animation: slideInFromBottom 0.5s ease-out forwards;
+}
+
+/* Hero text animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 1s ease-out forwards;
+}
+
+/* Delayed animations */
+.delay-100 { animation-delay: 0.2s; }
+.delay-200 { animation-delay: 0.4s; }
+.delay-300 { animation-delay: 0.6s; }
+.delay-400 { animation-delay: 0.8s; }
+.delay-500 { animation-delay: 1s; }
+.delay-600 { animation-delay: 1.2s; }
+.delay-700 { animation-delay: 1.4s; }
+.delay-800 { animation-delay: 1.6s; }
+
+/* Scroll-triggered animations - Premium effects */
+@keyframes fadeInUpBig {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeftBig {
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRightBig {
+  from {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Instant zoom animation (no scroll trigger) */
+.animate-zoom-in {
+  animation: zoomIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes rotateIn {
+  from {
+    opacity: 0;
+    transform: rotate(-10deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+/* Scroll animation classes */
+.scroll-fade-in-up {
+  animation: fadeInUpBig 0.8s ease-out forwards;
+}
+
+.scroll-fade-in-left {
+  animation: fadeInLeftBig 0.8s ease-out forwards;
+}
+
+.scroll-fade-in-right {
+  animation: fadeInRightBig 0.8s ease-out forwards;
+}
+
+.scroll-slide-in {
+  animation: fadeInUpBig 0.8s ease-out forwards;
+}
+
+.scroll-zoom-in {
+  animation: zoomIn 0.6s ease-out forwards;
+}
+
+.scroll-rotate-in {
+  animation: rotateIn 0.7s ease-out forwards;
+}
+
+/* Initial state for scroll animations */
+.scroll-animate {
+  opacity: 0;
+}
+
+/* Premium Utility Classes - Navy & Champagne Gold Theme */
+.glass-effect {
+  @apply backdrop-blur-md bg-white/10 border border-white/20;
+}
+
+.gradient-text-primary {
+  @apply bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent;
+}
+
+.gradient-text-accent {
+  background: linear-gradient(135deg, #D4AF37 0%, #C5A028 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-bg-primary {
+  @apply bg-gradient-to-r from-slate-900 to-slate-800;
+}
+
+.gradient-bg-accent {
+  background: linear-gradient(135deg, #D4AF37 0%, #C5A028 100%);
+}
+
+.card-premium {
+  @apply bg-white rounded-none shadow-lg border border-stone-200 hover:border-slate-700 transition-all duration-300 hover:shadow-xl;
+}
+
+.btn-premium {
+  @apply bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-none font-medium text-xs tracking-[0.2em] uppercase transition-all duration-300 border border-slate-900;
+}
+
+.btn-premium:hover {
+  border-color: #D4AF37;
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, #D4AF37 0%, #C5A028 100%);
+  @apply text-white px-8 py-3 rounded-none font-medium text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-lg hover:shadow-xl;
+}
+
+.section-header {
+  @apply text-4xl md:text-6xl font-normal text-slate-900 mb-6 tracking-tight;
+}
+
+/* Decorative background elements */
+.bg-decoration {
+  @apply absolute rounded-full blur-3xl opacity-20;
+}
+
+/* Premium reveal animation */
+@keyframes revealFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.scroll-reveal {
+  animation: revealFromBottom 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}

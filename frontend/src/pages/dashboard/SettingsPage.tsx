@@ -137,59 +137,61 @@ const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6">
-      {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-2">
-          <Cog6ToothIcon className="h-8 w-8 text-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Cài đặt</h1>
-        </div>
-        <p className="text-gray-600">Quản lý tùy chọn tài khoản và cài đặt cá nhân của bạn</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Sidebar */}
-        <div className="lg:col-span-1">
-          <Card className="p-4">
-            <nav className="space-y-1">
-              {tabs.map((tab) => {
-                const IconComponent = tab.icon;
-                const isActive = activeTab === tab.id;
-                
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <IconComponent className={`mr-3 h-5 w-5 ${
-                      isActive ? 'text-blue-600' : 'text-gray-400'
-                    }`} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </nav>
-          </Card>
+    <div className="min-h-screen bg-stone-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-8 animate-fade-in">
+          <div className="flex items-center space-x-3 mb-2">
+            <Cog6ToothIcon className="h-8 w-8" style={{ color: '#D4AF37' }} />
+            <h1 className="text-3xl font-normal text-slate-900 tracking-tight">Cài đặt</h1>
+          </div>
+          <p className="text-gray-600 font-normal">Quản lý tùy chọn tài khoản và cài đặt cá nhân của bạn</p>
         </div>
 
-        {/* Main Content */}
-        <div className="lg:col-span-3">
-          {/* Notifications Settings */}
-          {activeTab === 'notifications' && (
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Cài đặt thông báo</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <Card className="p-4 bg-white border border-stone-200 rounded-none sticky top-6 animate-fade-in-up opacity-0 delay-100">
+              <nav className="space-y-2">
+                {tabs.map((tab) => {
+                  const IconComponent = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-none transition-all duration-300 ${
+                        isActive
+                          ? 'text-white shadow-sm'
+                          : 'text-slate-600 hover:bg-stone-50 hover:text-slate-900'
+                      }`}
+                      style={isActive ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
+                    >
+                      <IconComponent className={`mr-3 h-5 w-5 ${
+                        isActive ? 'text-white' : 'text-gray-400'
+                      }`} />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </Card>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {/* Notifications Settings */}
+            {activeTab === 'notifications' && (
+              <Card className="p-8 bg-white border border-stone-200 rounded-none animate-fade-in-up opacity-0 delay-200">
+                <h2 className="text-2xl font-normal text-slate-900 mb-8 tracking-tight">Cài đặt thông báo</h2>
               
               <div className="space-y-8">
                 {/* Email Notifications */}
                 <div>
                   <div className="flex items-center space-x-2 mb-4">
-                    <EnvelopeIcon className="h-5 w-5 text-gray-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Email</h3>
+                    <EnvelopeIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                    <h3 className="text-lg font-medium text-slate-900 tracking-tight">Email</h3>
                   </div>
                   
                   <div className="space-y-4">
@@ -199,19 +201,20 @@ const SettingsPage: React.FC = () => {
                       { key: 'emailTourUpdates', label: 'Cập nhật tour', desc: 'Nhận email khi có thay đổi về tour đã đặt' },
                       { key: 'emailPromotions', label: 'Khuyến mãi & ưu đãi', desc: 'Nhận email về các chương trình khuyến mãi' }
                     ].map((item) => (
-                      <div key={item.key} className="flex items-start space-x-3">
+                      <div key={item.key} className="flex items-start space-x-3 p-3 rounded-none hover:bg-stone-50 transition-colors duration-200">
                         <input
                           type="checkbox"
                           id={item.key}
                           checked={notificationSettings[item.key as keyof NotificationSettings] as boolean}
                           onChange={(e) => handleNotificationChange(item.key as keyof NotificationSettings, e.target.checked)}
-                          className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="mt-1 h-4 w-4 border-gray-300 rounded-none focus:ring-0"
+                          style={{ accentColor: '#D4AF37' }}
                         />
                         <div className="flex-1">
-                          <label htmlFor={item.key} className="text-sm font-medium text-gray-900 cursor-pointer">
+                          <label htmlFor={item.key} className="text-sm font-medium text-slate-900 cursor-pointer tracking-tight">
                             {item.label}
                           </label>
-                          <p className="text-xs text-gray-600 mt-1">{item.desc}</p>
+                          <p className="text-xs text-gray-600 mt-1 font-normal">{item.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -219,10 +222,10 @@ const SettingsPage: React.FC = () => {
                 </div>
 
                 {/* Push Notifications */}
-                <div className="border-t pt-6">
+                <div className="border-t border-stone-200 pt-6">
                   <div className="flex items-center space-x-2 mb-4">
-                    <BellIcon className="h-5 w-5 text-gray-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Thông báo đẩy</h3>
+                    <BellIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                    <h3 className="text-lg font-medium text-slate-900 tracking-tight">Thông báo đẩy</h3>
                   </div>
                   
                   <div className="space-y-4">
@@ -231,19 +234,20 @@ const SettingsPage: React.FC = () => {
                       { key: 'pushPaymentReminder', label: 'Nhắc nhở thanh toán', desc: 'Nhận thông báo nhắc nhở thanh toán' },
                       { key: 'pushTourReminder', label: 'Nhắc nhở tour', desc: 'Nhận thông báo trước khi tour khởi hành' }
                     ].map((item) => (
-                      <div key={item.key} className="flex items-start space-x-3">
+                      <div key={item.key} className="flex items-start space-x-3 p-3 rounded-none hover:bg-stone-50 transition-colors duration-200">
                         <input
                           type="checkbox"
                           id={item.key}
                           checked={notificationSettings[item.key as keyof NotificationSettings] as boolean}
                           onChange={(e) => handleNotificationChange(item.key as keyof NotificationSettings, e.target.checked)}
-                          className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="mt-1 h-4 w-4 border-gray-300 rounded-none focus:ring-0"
+                          style={{ accentColor: '#D4AF37' }}
                         />
                         <div className="flex-1">
-                          <label htmlFor={item.key} className="text-sm font-medium text-gray-900 cursor-pointer">
+                          <label htmlFor={item.key} className="text-sm font-medium text-slate-900 cursor-pointer tracking-tight">
                             {item.label}
                           </label>
-                          <p className="text-xs text-gray-600 mt-1">{item.desc}</p>
+                          <p className="text-xs text-gray-600 mt-1 font-normal">{item.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -251,10 +255,10 @@ const SettingsPage: React.FC = () => {
                 </div>
 
                 {/* SMS Notifications */}
-                <div className="border-t pt-6">
+                <div className="border-t border-stone-200 pt-6">
                   <div className="flex items-center space-x-2 mb-4">
-                    <DevicePhoneMobileIcon className="h-5 w-5 text-gray-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">SMS</h3>
+                    <DevicePhoneMobileIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                    <h3 className="text-lg font-medium text-slate-900 tracking-tight">SMS</h3>
                   </div>
                   
                   <div className="space-y-4">
@@ -262,19 +266,20 @@ const SettingsPage: React.FC = () => {
                       { key: 'smsBookingConfirmation', label: 'Xác nhận booking', desc: 'Nhận SMS khi booking được xác nhận' },
                       { key: 'smsPaymentReminder', label: 'Nhắc nhở thanh toán', desc: 'Nhận SMS nhắc nhở thanh toán' }
                     ].map((item) => (
-                      <div key={item.key} className="flex items-start space-x-3">
+                      <div key={item.key} className="flex items-start space-x-3 p-3 rounded-none hover:bg-stone-50 transition-colors duration-200">
                         <input
                           type="checkbox"
                           id={item.key}
                           checked={notificationSettings[item.key as keyof NotificationSettings] as boolean}
                           onChange={(e) => handleNotificationChange(item.key as keyof NotificationSettings, e.target.checked)}
-                          className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="mt-1 h-4 w-4 border-gray-300 rounded-none focus:ring-0"
+                          style={{ accentColor: '#D4AF37' }}
                         />
                         <div className="flex-1">
-                          <label htmlFor={item.key} className="text-sm font-medium text-gray-900 cursor-pointer">
+                          <label htmlFor={item.key} className="text-sm font-medium text-slate-900 cursor-pointer tracking-tight">
                             {item.label}
                           </label>
-                          <p className="text-xs text-gray-600 mt-1">{item.desc}</p>
+                          <p className="text-xs text-gray-600 mt-1 font-normal">{item.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -286,31 +291,32 @@ const SettingsPage: React.FC = () => {
 
           {/* Privacy Settings */}
           {activeTab === 'privacy' && (
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Cài đặt quyền riêng tư</h2>
+            <Card className="p-8 bg-white border border-stone-200 rounded-none animate-fade-in-up opacity-0 delay-200">
+              <h2 className="text-2xl font-normal text-slate-900 mb-8 tracking-tight">Cài đặt quyền riêng tư</h2>
               
               <div className="space-y-6">
                 {/* Profile Visibility */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Hiển thị hồ sơ</h3>
+                  <h3 className="text-lg font-medium text-slate-900 mb-4 tracking-tight">Hiển thị hồ sơ</h3>
                   <div className="space-y-2">
                     {[
                       { value: 'public', label: 'Công khai', desc: 'Mọi người có thể xem hồ sơ của bạn' },
                       { value: 'friends', label: 'Bạn bè', desc: 'Chỉ bạn bè có thể xem hồ sơ' },
                       { value: 'private', label: 'Riêng tư', desc: 'Chỉ bạn có thể xem hồ sơ' }
                     ].map((option) => (
-                      <label key={option.value} className="flex items-start space-x-3 cursor-pointer">
+                      <label key={option.value} className="flex items-start space-x-3 cursor-pointer p-3 rounded-none hover:bg-stone-50 transition-colors duration-200">
                         <input
                           type="radio"
                           name="profileVisibility"
                           value={option.value}
                           checked={privacySettings.profileVisibility === option.value}
                           onChange={(e) => handlePrivacyChange('profileVisibility', e.target.value)}
-                          className="mt-1 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          className="mt-1 h-4 w-4 border-gray-300 focus:ring-0"
+                          style={{ accentColor: '#D4AF37' }}
                         />
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{option.label}</div>
-                          <div className="text-xs text-gray-600">{option.desc}</div>
+                          <div className="text-sm font-medium text-slate-900 tracking-tight">{option.label}</div>
+                          <div className="text-xs text-gray-600 font-normal">{option.desc}</div>
                         </div>
                       </label>
                     ))}
@@ -318,8 +324,8 @@ const SettingsPage: React.FC = () => {
                 </div>
 
                 {/* Data Sharing */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Chia sẻ dữ liệu</h3>
+                <div className="border-t border-stone-200 pt-6">
+                  <h3 className="text-lg font-medium text-slate-900 mb-4 tracking-tight">Chia sẻ dữ liệu</h3>
                   <div className="space-y-4">
                     {[
                       { key: 'showBookingHistory', label: 'Hiển thị lịch sử booking', desc: 'Cho phép người khác xem các tour bạn đã đặt' },
@@ -327,19 +333,20 @@ const SettingsPage: React.FC = () => {
                       { key: 'allowDataCollection', label: 'Cho phép thu thập dữ liệu', desc: 'Giúp cải thiện trải nghiệm dịch vụ' },
                       { key: 'allowMarketing', label: 'Cho phép sử dụng dữ liệu marketing', desc: 'Nhận đề xuất tour phù hợp với sở thích' }
                     ].map((item) => (
-                      <div key={item.key} className="flex items-start space-x-3">
+                      <div key={item.key} className="flex items-start space-x-3 p-3 rounded-none hover:bg-stone-50 transition-colors duration-200">
                         <input
                           type="checkbox"
                           id={item.key}
                           checked={privacySettings[item.key as keyof PrivacySettings] as boolean}
                           onChange={(e) => handlePrivacyChange(item.key as keyof PrivacySettings, e.target.checked)}
-                          className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="mt-1 h-4 w-4 border-gray-300 rounded-none focus:ring-0"
+                          style={{ accentColor: '#D4AF37' }}
                         />
                         <div className="flex-1">
-                          <label htmlFor={item.key} className="text-sm font-medium text-gray-900 cursor-pointer">
+                          <label htmlFor={item.key} className="text-sm font-medium text-slate-900 cursor-pointer tracking-tight">
                             {item.label}
                           </label>
-                          <p className="text-xs text-gray-600 mt-1">{item.desc}</p>
+                          <p className="text-xs text-gray-600 mt-1 font-normal">{item.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -351,20 +358,20 @@ const SettingsPage: React.FC = () => {
 
           {/* Account Settings */}
           {activeTab === 'account' && (
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Cài đặt tài khoản</h2>
+            <Card className="p-8 bg-white border border-stone-200 rounded-none animate-fade-in-up opacity-0 delay-200">
+              <h2 className="text-2xl font-normal text-slate-900 mb-8 tracking-tight">Cài đặt tài khoản</h2>
               
               <div className="space-y-6">
                 {/* Language */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <GlobeAltIcon className="h-4 w-4 inline mr-1" />
+                  <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
+                    <GlobeAltIcon className="h-4 w-4 inline mr-1" style={{ color: '#D4AF37' }} />
                     Ngôn ngữ
                   </label>
                   <select
                     value={accountSettings.language}
                     onChange={(e) => handleAccountChange('language', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
                   >
                     <option value="vi">Tiếng Việt</option>
                     <option value="en">English</option>
@@ -373,13 +380,13 @@ const SettingsPage: React.FC = () => {
 
                 {/* Currency */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
                     Tiền tệ
                   </label>
                   <select
                     value={accountSettings.currency}
                     onChange={(e) => handleAccountChange('currency', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
                   >
                     <option value="VND">VND (Việt Nam Đồng)</option>
                     <option value="USD">USD (US Dollar)</option>
@@ -388,13 +395,13 @@ const SettingsPage: React.FC = () => {
 
                 {/* Timezone */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
                     Múi giờ
                   </label>
                   <select
                     value={accountSettings.timezone}
                     onChange={(e) => handleAccountChange('timezone', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
                   >
                     <option value="Asia/Ho_Chi_Minh">Việt Nam (UTC+7)</option>
                     <option value="Asia/Bangkok">Bangkok (UTC+7)</option>
@@ -404,13 +411,13 @@ const SettingsPage: React.FC = () => {
 
                 {/* Date Format */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
                     Định dạng ngày
                   </label>
                   <select
                     value={accountSettings.dateFormat}
                     onChange={(e) => handleAccountChange('dateFormat', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
                   >
                     <option value="DD/MM/YYYY">DD/MM/YYYY</option>
                     <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -424,48 +431,48 @@ const SettingsPage: React.FC = () => {
           {/* Security Settings */}
           {activeTab === 'security' && (
             <div className="space-y-6">
-              <Card className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Bảo mật tài khoản</h2>
+              <Card className="p-8 bg-white border border-stone-200 rounded-none animate-fade-in-up opacity-0 delay-200">
+                <h2 className="text-2xl font-normal text-slate-900 mb-8 tracking-tight">Bảo mật tài khoản</h2>
                 
                 <div className="space-y-6">
                   {/* Change Password */}
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-5 bg-stone-50 rounded-none border border-stone-200">
                     <div className="flex items-center space-x-3">
-                      <KeyIcon className="h-6 w-6 text-gray-600" />
+                      <KeyIcon className="h-6 w-6" style={{ color: '#D4AF37' }} />
                       <div>
-                        <h3 className="font-semibold text-gray-900">Đổi mật khẩu</h3>
-                        <p className="text-sm text-gray-600">Cập nhật lần cuối: 30 ngày trước</p>
+                        <h3 className="font-medium text-slate-900 tracking-tight">Đổi mật khẩu</h3>
+                        <p className="text-sm text-gray-600 font-normal">Cập nhật lần cuối: 30 ngày trước</p>
                       </div>
                     </div>
-                    <Button variant="outline">
+                    <Button variant="outline" className="border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none">
                       Đổi mật khẩu
                     </Button>
                   </div>
 
                   {/* Two-Factor Authentication */}
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-5 bg-stone-50 rounded-none border border-stone-200">
                     <div className="flex items-center space-x-3">
-                      <ShieldCheckIcon className="h-6 w-6 text-gray-600" />
+                      <ShieldCheckIcon className="h-6 w-6" style={{ color: '#D4AF37' }} />
                       <div>
-                        <h3 className="font-semibold text-gray-900">Xác thực 2 bước</h3>
-                        <p className="text-sm text-gray-600">Tăng cường bảo mật cho tài khoản</p>
+                        <h3 className="font-medium text-slate-900 tracking-tight">Xác thực 2 bước</h3>
+                        <p className="text-sm text-gray-600 font-normal">Tăng cường bảo mật cho tài khoản</p>
                       </div>
                     </div>
-                    <Button variant="outline">
+                    <Button variant="outline" className="border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none">
                       Kích hoạt
                     </Button>
                   </div>
 
                   {/* Login Sessions */}
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-5 bg-stone-50 rounded-none border border-stone-200">
                     <div className="flex items-center space-x-3">
-                      <DevicePhoneMobileIcon className="h-6 w-6 text-gray-600" />
+                      <DevicePhoneMobileIcon className="h-6 w-6" style={{ color: '#D4AF37' }} />
                       <div>
-                        <h3 className="font-semibold text-gray-900">Phiên đăng nhập</h3>
-                        <p className="text-sm text-gray-600">Quản lý các thiết bị đã đăng nhập</p>
+                        <h3 className="font-medium text-slate-900 tracking-tight">Phiên đăng nhập</h3>
+                        <p className="text-sm text-gray-600 font-normal">Quản lý các thiết bị đã đăng nhập</p>
                       </div>
                     </div>
-                    <Button variant="outline">
+                    <Button variant="outline" className="border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none">
                       Xem chi tiết
                     </Button>
                   </div>
@@ -473,23 +480,23 @@ const SettingsPage: React.FC = () => {
               </Card>
 
               {/* Danger Zone */}
-              <Card className="p-6 border-red-200">
-                <div className="flex items-center space-x-2 mb-4">
+              <Card className="p-8 bg-white border-2 border-red-300 rounded-none">
+                <div className="flex items-center space-x-2 mb-6">
                   <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
-                  <h2 className="text-xl font-bold text-red-900">Vùng nguy hiểm</h2>
+                  <h2 className="text-2xl font-normal text-red-900 tracking-tight">Vùng nguy hiểm</h2>
                 </div>
                 
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="bg-red-50 border border-red-200 rounded-none p-5">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-red-900 mb-1">Xóa tài khoản</h3>
-                      <p className="text-sm text-red-700">
+                      <h3 className="font-medium text-red-900 mb-1 tracking-tight">Xóa tài khoản</h3>
+                      <p className="text-sm text-red-700 font-normal">
                         Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn. Hành động này không thể hoàn tác.
                       </p>
                     </div>
                     <Button
                       onClick={handleDeleteAccount}
-                      className="ml-4 bg-red-600 hover:bg-red-700 text-white"
+                      className="ml-4 bg-red-600 hover:bg-red-700 text-white rounded-none"
                     >
                       <TrashIcon className="h-4 w-4 mr-1" />
                       Xóa tài khoản
@@ -506,7 +513,7 @@ const SettingsPage: React.FC = () => {
               <Button
                 onClick={saveSettings}
                 disabled={isLoading}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+                className="text-white px-8 py-3 rounded-none hover:opacity-90 transition-all duration-300" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
               >
                 {isLoading ? (
                   <>
@@ -519,6 +526,7 @@ const SettingsPage: React.FC = () => {
               </Button>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

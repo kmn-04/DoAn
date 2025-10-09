@@ -62,86 +62,90 @@ const PaymentMethodSelection: React.FC<PaymentMethodSelectionProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="p-6">
+      <div className="bg-white border border-stone-200 rounded-none p-6">
         <div className="flex items-center justify-center py-8">
           <Loading size="md" />
-          <span className="ml-2">Đang tải phương thức thanh toán...</span>
+          <span className="ml-3 text-gray-600 font-normal">Đang tải phương thức thanh toán...</span>
         </div>
-      </Card>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="p-6">
+      <div className="bg-white border border-stone-200 rounded-none p-6">
         <div className="text-center py-8">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-red-600 mb-4 font-normal">{error}</p>
           <Button 
             variant="outline" 
             onClick={() => window.location.reload()}
+            className="border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none"
           >
             Thử lại
           </Button>
         </div>
-      </Card>
+      </div>
     );
   }
 
   const enabledMethods = Object.entries(paymentMethods).filter(([_, method]) => method.enabled);
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Chọn phương thức thanh toán</h3>
+    <div>
+      <h3 className="text-lg font-normal text-slate-900 mb-6 tracking-tight">Chọn phương thức thanh toán</h3>
       
       {/* Payment Amount */}
-      <div className="bg-blue-50 p-4 rounded-lg mb-6">
+      <div className="bg-stone-50 border border-stone-200 p-5 rounded-none mb-6">
         <div className="flex justify-between items-center">
-          <span className="text-gray-600">Tổng thanh toán:</span>
-          <span className="text-xl font-bold text-blue-600">
+          <span className="text-gray-600 font-normal">Tổng thanh toán:</span>
+          <span className="text-2xl font-normal tracking-tight" style={{ color: '#D4AF37' }}>
             {paymentService.formatAmount(amount)}
           </span>
         </div>
       </div>
 
       {/* Payment Methods */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-4 mb-8">
         {enabledMethods.map(([code, method]) => (
           <div
             key={code}
-            className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+            className={`border-2 rounded-none p-5 cursor-pointer transition-all ${
               selectedMethod === code
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-slate-700 bg-amber-50'
+                : 'border-stone-200 hover:border-stone-400'
             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={() => !disabled && onMethodSelect(code)}
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+              <div className="flex items-center space-x-4">
+                <div className="w-14 h-14 bg-slate-900 rounded-none flex items-center justify-center">
                   {/* Placeholder for payment method logo */}
-                  <span className="text-xs font-bold text-gray-600">
+                  <span className="text-sm font-bold text-white tracking-wider">
                     {method.name.substring(0, 2).toUpperCase()}
                   </span>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">{method.name}</h4>
-                  <p className="text-sm text-gray-600">{method.description}</p>
+                  <h4 className="font-medium text-slate-900 tracking-tight">{method.name}</h4>
+                  <p className="text-sm text-gray-600 font-normal mt-1">{method.description}</p>
                   {method.testMode && (
-                    <span className="inline-block px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded mt-1">
+                    <span className="inline-block px-2 py-1 text-xs bg-amber-100 border border-amber-300 text-amber-800 rounded-none mt-2 font-medium">
                       Test Mode
                     </span>
                   )}
                 </div>
               </div>
               
-              <div className={`w-5 h-5 rounded-full border-2 ${
-                selectedMethod === code
-                  ? 'border-blue-500 bg-blue-500'
-                  : 'border-gray-300'
-              }`}>
+              <div 
+                className={`w-6 h-6 rounded-full border-2 transition-all ${
+                  selectedMethod === code
+                    ? 'border-transparent'
+                    : 'border-stone-300'
+                }`}
+                style={selectedMethod === code ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
+              >
                 {selectedMethod === code && (
                   <div className="w-full h-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                    <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
                   </div>
                 )}
               </div>
@@ -151,9 +155,9 @@ const PaymentMethodSelection: React.FC<PaymentMethodSelectionProps> = ({
       </div>
 
       {enabledMethods.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-600 mb-4">Hiện tại chưa có phương thức thanh toán nào khả dụng</p>
-          <p className="text-sm text-gray-500">Vui lòng liên hệ hỗ trợ để được trợ giúp</p>
+        <div className="text-center py-12">
+          <p className="text-gray-600 mb-2 font-normal">Hiện tại chưa có phương thức thanh toán nào khả dụng</p>
+          <p className="text-sm text-gray-500 font-normal">Vui lòng liên hệ hỗ trợ để được trợ giúp</p>
         </div>
       )}
 
@@ -162,13 +166,14 @@ const PaymentMethodSelection: React.FC<PaymentMethodSelectionProps> = ({
         <Button
           onClick={onPaymentInitiate}
           disabled={disabled || !selectedMethod}
-          className="w-full py-3 text-lg"
+          className="w-full py-4 text-lg text-white rounded-none hover:opacity-90 transition-all duration-300 font-medium tracking-wide"
+          style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
           size="lg"
         >
           {disabled ? 'Đang xử lý...' : `Thanh toán qua ${paymentMethods[selectedMethod]?.name}`}
         </Button>
       )}
-    </Card>
+    </div>
   );
 };
 
