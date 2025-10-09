@@ -50,9 +50,8 @@ const MyReviewsPage: React.FC = () => {
         {[1, 2, 3, 4, 5].map((star) => (
           <StarIcon
             key={star}
-            className={`h-4 w-4 ${
-              star <= rating ? 'text-yellow-400' : 'text-gray-300'
-            }`}
+            className={`h-5 w-5`}
+            style={{ color: star <= rating ? '#D4AF37' : '#e5e7eb' }}
           />
         ))}
       </div>
@@ -61,7 +60,7 @@ const MyReviewsPage: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      Pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Chờ duyệt' },
+      Pending: { bg: 'bg-amber-100', text: 'text-amber-800', label: 'Chờ duyệt' },
       Approved: { bg: 'bg-green-100', text: 'text-green-800', label: 'Đã duyệt' },
       Rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Bị từ chối' },
     };
@@ -69,7 +68,7 @@ const MyReviewsPage: React.FC = () => {
     const badge = badges[status as keyof typeof badges] || badges.Pending;
 
     return (
-      <span className={`${badge.bg} ${badge.text} text-xs px-2 py-1 rounded-full font-medium`}>
+      <span className={`${badge.bg} ${badge.text} text-xs px-3 py-1 rounded-none font-medium border border-${badge.bg.replace('bg-', '')}`}>
         {badge.label}
       </span>
     );
@@ -108,21 +107,22 @@ const MyReviewsPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Đánh giá của tôi</h1>
-          <p className="mt-2 text-gray-600">
+        <div className="animate-fade-in">
+          <h1 className="text-3xl font-normal text-slate-900 tracking-tight">Đánh giá của tôi</h1>
+          <p className="mt-2 text-gray-600 font-normal">
             Quản lý các đánh giá của bạn về các tour đã tham gia
           </p>
         </div>
 
         {/* Reviews List */}
         <div className="space-y-4">
-          {reviews.map((review) => (
+          {reviews.map((review, index) => (
             <div
               key={review.id}
-              className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow"
+              className="bg-white rounded-none border border-stone-200 p-6 hover:border-slate-700 hover:shadow-lg transition-all animate-fade-in-up opacity-0"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -132,19 +132,19 @@ const MyReviewsPage: React.FC = () => {
                       <img
                         src={review.tour.mainImage}
                         alt={review.tour.name}
-                        className="h-16 w-16 rounded-lg object-cover"
+                        className="h-20 w-20 rounded-none object-cover border border-stone-200"
                       />
                     )}
                     <div>
                       <Link
                         to={`/tours/${review.tour.slug}`}
-                        className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+                        className="text-lg font-semibold text-slate-900 hover:opacity-80 transition-opacity tracking-tight"
                       >
                         {review.tour.name}
                       </Link>
                       <div className="flex items-center space-x-3 mt-1">
                         {renderStars(review.rating)}
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 font-normal">
                           {formatDate(review.createdAt)}
                         </span>
                         {getStatusBadge(review.status)}
@@ -153,19 +153,19 @@ const MyReviewsPage: React.FC = () => {
                   </div>
 
                   {/* Review Content */}
-                  <p className="text-gray-700 leading-relaxed mb-3">
+                  <p className="text-gray-700 leading-relaxed mb-4 font-normal">
                     {review.comment}
                   </p>
 
                   {/* Admin Reply */}
                   {review.adminReply && (
-                    <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mt-3">
-                      <p className="text-sm font-medium text-blue-900 mb-1">
+                    <div className="bg-amber-50 border-l-4 p-5 mt-4 rounded-none" style={{ borderColor: '#D4AF37' }}>
+                      <p className="text-sm font-semibold text-slate-900 mb-2 tracking-tight">
                         Phản hồi từ quản trị viên:
                       </p>
-                      <p className="text-sm text-blue-800">{review.adminReply}</p>
+                      <p className="text-sm text-gray-700 font-normal leading-relaxed">{review.adminReply}</p>
                       {review.repliedAt && (
-                        <p className="text-xs text-blue-600 mt-1">
+                        <p className="text-xs text-gray-500 mt-2 font-normal">
                           {formatDate(review.repliedAt)}
                         </p>
                       )}
@@ -173,8 +173,11 @@ const MyReviewsPage: React.FC = () => {
                   )}
 
                   {/* Stats */}
-                  <div className="flex items-center space-x-4 mt-3 text-sm text-gray-600">
-                    <span>{review.helpfulCount} người thấy hữu ích</span>
+                  <div className="flex items-center space-x-4 mt-4 text-sm text-gray-600 font-normal">
+                    <span className="flex items-center">
+                      <span className="font-semibold" style={{ color: '#D4AF37' }}>{review.helpfulCount}</span>
+                      <span className="ml-1">người thấy hữu ích</span>
+                    </span>
                   </div>
                 </div>
 
@@ -184,7 +187,7 @@ const MyReviewsPage: React.FC = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="w-full"
+                      className="w-full border-2 border-stone-300 hover:border-slate-900 rounded-none"
                     >
                       <EyeIcon className="h-4 w-4 mr-1" />
                       Xem tour
@@ -196,6 +199,7 @@ const MyReviewsPage: React.FC = () => {
                       <Button
                         size="sm"
                         variant="outline"
+                        className="border-2 border-stone-300 hover:border-slate-900 rounded-none"
                         onClick={() => {
                           // TODO: Implement edit functionality
                           toast.info('Chức năng chỉnh sửa đang được phát triển');
@@ -208,7 +212,7 @@ const MyReviewsPage: React.FC = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+                        className="text-red-600 hover:text-red-700 border-2 border-red-300 hover:border-red-400 rounded-none"
                         onClick={() => handleDelete(review.id)}
                       >
                         <TrashIcon className="h-4 w-4 mr-1" />

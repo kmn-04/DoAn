@@ -171,59 +171,60 @@ const successStories = [
 
 const PartnershipPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-stone-50">
       {/* Navigation Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="bg-white border-b border-stone-200 animate-fade-in opacity-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <Link 
             to="/partners"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center text-sm text-slate-700 hover:text-slate-900 transition-colors group font-normal tracking-wide"
           >
-            <ArrowLeftIcon className="h-4 w-4 mr-2" />
+            <ArrowLeftIcon className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
             Quay lại danh sách đối tác
           </Link>
         </div>
       </div>
 
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 overflow-hidden">
+      <div className="relative bg-slate-900 overflow-hidden animate-fade-in-up opacity-0 delay-100">
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1600&h=800&fit=crop"
             alt="Partnership"
-            className="w-full h-full object-cover opacity-20"
+            className="w-full h-full object-cover opacity-10"
           />
         </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90"></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
           <div className="text-center text-white">
-            <div className="flex items-center justify-center mb-6">
-              <SparklesIcon className="h-12 w-12 text-blue-300 mr-4" />
-              <h1 className="text-4xl md:text-6xl font-bold">
+            <div className="flex items-center justify-center mb-6 animate-fade-in opacity-0 delay-200">
+              <SparklesIcon className="h-10 w-10 mr-4" style={{ color: '#D4AF37' }} />
+              <h1 className="text-4xl md:text-6xl font-normal tracking-tight">
                 Trở thành Đối tác
               </h1>
             </div>
-            <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-8">
-              Cùng xây dựng hệ sinh thái du lịch Việt Nam với hơn <span className="font-bold text-white">1,250+</span> đối tác tin cậy
+            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-12 font-normal leading-relaxed animate-fade-in opacity-0 delay-300">
+              Cùng xây dựng hệ sinh thái du lịch Việt Nam với hơn <span className="font-medium" style={{ color: '#D4AF37' }}>1,250+</span> đối tác tin cậy
             </p>
             
             {/* Quick Benefits */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">50K+</div>
-                <div className="text-sm text-blue-200">Khách hàng/tháng</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto animate-fade-in opacity-0 delay-400">
+              <div className="text-center bg-white/5 backdrop-blur-sm p-6 rounded-none border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <div className="text-3xl font-normal mb-2" style={{ color: '#D4AF37' }}>50K+</div>
+                <div className="text-sm text-gray-400 font-normal tracking-wide">Khách hàng/tháng</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">15-20%</div>
-                <div className="text-sm text-blue-200">Hoa hồng</div>
+              <div className="text-center bg-white/5 backdrop-blur-sm p-6 rounded-none border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <div className="text-3xl font-normal mb-2" style={{ color: '#D4AF37' }}>15-20%</div>
+                <div className="text-sm text-gray-400 font-normal tracking-wide">Hoa hồng</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">24/7</div>
-                <div className="text-sm text-blue-200">Hỗ trợ</div>
+              <div className="text-center bg-white/5 backdrop-blur-sm p-6 rounded-none border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <div className="text-3xl font-normal mb-2" style={{ color: '#D4AF37' }}>24/7</div>
+                <div className="text-sm text-gray-400 font-normal tracking-wide">Hỗ trợ</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">1,250+</div>
-                <div className="text-sm text-blue-200">Đối tác hiện tại</div>
+              <div className="text-center bg-white/5 backdrop-blur-sm p-6 rounded-none border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <div className="text-3xl font-normal mb-2" style={{ color: '#D4AF37' }}>1,250+</div>
+                <div className="text-sm text-gray-400 font-normal tracking-wide">Đối tác hiện tại</div>
               </div>
             </div>
           </div>
@@ -233,32 +234,32 @@ const PartnershipPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Benefits Section */}
         <section className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12 animate-fade-in opacity-0 delay-100">
+            <h2 className="text-3xl md:text-4xl font-normal text-slate-900 mb-4 tracking-tight">
               Tại sao chọn chúng tôi?
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto font-normal leading-relaxed">
               Những lợi ích vượt trội khi trở thành đối tác chiến lược
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {benefits.map((benefit, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+              <div key={index} className="bg-white rounded-none p-6 border border-stone-200 hover:border-slate-700 hover:shadow-lg transition-all duration-300 group animate-fade-in-up opacity-0" style={{ animationDelay: `${(index + 2) * 100}ms` }}>
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                    <benefit.icon className="h-6 w-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-stone-100 rounded-none flex items-center justify-center group-hover:bg-stone-200 transition-colors">
+                    <benefit.icon className="h-6 w-6" style={{ color: '#D4AF37' }} />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 text-sm">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-slate-900 text-base tracking-tight">
                         {benefit.title}
                       </h3>
-                      <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                      <span className="text-sm font-medium text-white px-3 py-1 rounded-none whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                         {benefit.stats}
                       </span>
                     </div>
-                    <p className="text-gray-600 text-sm leading-relaxed">
+                    <p className="text-gray-600 text-sm leading-relaxed font-normal">
                       {benefit.description}
                     </p>
                   </div>
@@ -270,45 +271,45 @@ const PartnershipPage: React.FC = () => {
 
         {/* Partner Types Section */}
         <section className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12 animate-fade-in opacity-0 delay-100">
+            <h2 className="text-3xl md:text-4xl font-normal text-slate-900 mb-4 tracking-tight">
               Chúng tôi đang tìm kiếm
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-lg text-gray-600 font-normal leading-relaxed">
               Các đối tác trong những lĩnh vực sau
             </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {partnerTypes.map((type, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <div key={index} className="bg-white rounded-none p-6 border border-stone-200 hover:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in-up opacity-0" style={{ animationDelay: `${(index + 2) * 100}ms` }}>
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                    <type.icon className="h-6 w-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-stone-100 rounded-none flex items-center justify-center">
+                    <type.icon className="h-6 w-6" style={{ color: '#D4AF37' }} />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-medium text-slate-900 tracking-tight">
                         {type.title}
                       </h3>
                       <div className="text-right">
-                        <div className="text-sm text-blue-600 font-medium">
+                        <div className="text-sm font-medium mb-1" style={{ color: '#D4AF37' }}>
                           Hoa hồng: {type.commission}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 font-normal">
                           {type.count} đối tác
                         </div>
                       </div>
                     </div>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-gray-600 mb-4 font-normal text-sm leading-relaxed">
                       {type.description}
                     </p>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Yêu cầu cơ bản:</h4>
-                      <ul className="text-sm text-gray-600 space-y-1">
+                      <h4 className="text-sm font-medium text-slate-900 mb-2">Yêu cầu cơ bản:</h4>
+                      <ul className="text-sm text-gray-600 space-y-1.5">
                         {type.requirements.map((req, idx) => (
-                          <li key={idx} className="flex items-center">
-                            <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                          <li key={idx} className="flex items-center font-normal">
+                            <CheckCircleIcon className="h-4 w-4 mr-2 flex-shrink-0" style={{ color: '#D4AF37' }} />
                             {req}
                           </li>
                         ))}
@@ -323,46 +324,46 @@ const PartnershipPage: React.FC = () => {
 
         {/* Process Timeline */}
         <section className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12 animate-fade-in opacity-0 delay-100">
+            <h2 className="text-3xl md:text-4xl font-normal text-slate-900 mb-4 tracking-tight">
               Quy trình hợp tác
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-lg text-gray-600 font-normal leading-relaxed">
               4 bước đơn giản để trở thành đối tác
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {processSteps.map((step, index) => (
               <div key={index} className="relative">
                 {/* Connector Line */}
                 {index < processSteps.length - 1 && (
-                  <div className="hidden lg:block absolute top-6 left-full w-full h-0.5 bg-blue-200 z-0"></div>
+                  <div className="hidden lg:block absolute top-6 left-full w-full h-0.5 z-0" style={{ background: 'linear-gradient(90deg, #D4AF37 0%, #C5A028 100%)' }}></div>
                 )}
                 
-                <div className="relative z-10 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="relative z-10 bg-white rounded-none p-6 border border-stone-200 hover:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in-up opacity-0" style={{ animationDelay: `${(index + 2) * 100}ms` }}>
                   <div className="text-center mb-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-white font-bold">{step.step}</span>
+                    <div className="w-12 h-12 rounded-none flex items-center justify-center mx-auto mb-3" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
+                      <span className="text-white font-medium">{step.step}</span>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">
+                    <h3 className="font-medium text-slate-900 mb-2 tracking-tight">
                       {step.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-sm text-gray-600 mb-3 font-normal leading-relaxed">
                       {step.description}
                     </p>
-                    <div className="flex items-center justify-center text-xs text-blue-600 mb-3">
+                    <div className="flex items-center justify-center text-xs mb-3" style={{ color: '#D4AF37' }}>
                       <ClockIcon className="h-4 w-4 mr-1" />
-                      {step.time}
+                      <span className="font-normal">{step.time}</span>
                     </div>
                   </div>
                   
                   <div>
-                    <h4 className="text-xs font-medium text-gray-900 mb-2">Bao gồm:</h4>
-                    <ul className="text-xs text-gray-600 space-y-1">
+                    <h4 className="text-xs font-medium text-slate-900 mb-2">Bao gồm:</h4>
+                    <ul className="text-xs text-gray-600 space-y-1.5">
                       {step.details.map((detail, idx) => (
-                        <li key={idx} className="flex items-center">
-                          <div className="w-1 h-1 bg-blue-400 rounded-full mr-2"></div>
+                        <li key={idx} className="flex items-center font-normal">
+                          <div className="w-1.5 h-1.5 rounded-full mr-2" style={{ background: '#D4AF37' }}></div>
                           {detail}
                         </li>
                       ))}
@@ -376,34 +377,34 @@ const PartnershipPage: React.FC = () => {
 
         {/* Success Stories */}
         <section className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12 animate-fade-in opacity-0 delay-100">
+            <h2 className="text-3xl md:text-4xl font-normal text-slate-900 mb-4 tracking-tight">
               Câu chuyện thành công
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-lg text-gray-600 font-normal leading-relaxed">
               Những đối tác đã thành công cùng chúng tôi
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {successStories.map((story, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div key={index} className="bg-white rounded-none p-6 border border-stone-200 hover:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in-up opacity-0" style={{ animationDelay: `${(index + 2) * 100}ms` }}>
                 <div className="flex items-center mb-4">
                   <img
                     src={story.avatar}
                     alt={story.name}
-                    className="w-12 h-12 rounded-full mr-4"
+                    className="w-12 h-12 rounded-none mr-4 border border-stone-200"
                   />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{story.name}</h3>
-                    <p className="text-sm text-gray-600">{story.type}</p>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-slate-900 tracking-tight">{story.name}</h3>
+                    <p className="text-sm text-gray-600 font-normal">{story.type}</p>
                   </div>
-                  <div className="ml-auto">
-                    <div className="text-lg font-bold text-green-600">{story.growth}</div>
-                    <div className="text-xs text-gray-500">tăng trưởng</div>
+                  <div className="text-right">
+                    <div className="text-lg font-medium" style={{ color: '#D4AF37' }}>{story.growth}</div>
+                    <div className="text-xs text-gray-500 font-normal">tăng trưởng</div>
                   </div>
                 </div>
-                <blockquote className="text-gray-700 italic">
+                <blockquote className="text-gray-700 italic font-normal text-sm leading-relaxed">
                   "{story.quote}"
                 </blockquote>
               </div>
@@ -413,31 +414,31 @@ const PartnershipPage: React.FC = () => {
 
         {/* Requirements & Contact Form */}
         <section>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Requirements */}
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+            <div className="animate-fade-in-up opacity-0 delay-200">
+              <h3 className="text-2xl font-normal text-slate-900 mb-6 tracking-tight">
                 Yêu cầu đối tác
               </h3>
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
-                <ul className="space-y-4">
+              <div className="bg-white rounded-none p-6 border border-stone-200 mb-6">
+                <ul className="space-y-3.5">
                   {requirements.map((requirement, index) => (
                     <li key={index} className="flex items-start">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{requirement}</span>
+                      <CheckCircleIcon className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" style={{ color: '#D4AF37' }} />
+                      <span className="text-gray-700 font-normal text-sm leading-relaxed">{requirement}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6">
+              <div className="bg-stone-100 rounded-none p-6 border border-stone-200">
                 <div className="flex items-start">
-                  <HeartIcon className="h-6 w-6 text-blue-600 mr-3 mt-1" />
+                  <HeartIcon className="h-6 w-6 mr-3 mt-1 flex-shrink-0" style={{ color: '#D4AF37' }} />
                   <div>
-                    <h4 className="font-semibold text-blue-900 mb-2">
+                    <h4 className="font-medium text-slate-900 mb-2 tracking-tight">
                       💡 Cam kết của chúng tôi
                     </h4>
-                    <p className="text-sm text-blue-800 leading-relaxed">
+                    <p className="text-sm text-gray-700 leading-relaxed font-normal">
                       Chúng tôi cam kết hỗ trợ đối tác phát triển bền vững thông qua 
                       công nghệ hiện đại, marketing hiệu quả và dịch vụ khách hàng xuất sắc. 
                       Thành công của bạn chính là thành công của chúng tôi!
@@ -448,7 +449,7 @@ const PartnershipPage: React.FC = () => {
             </div>
 
             {/* Contact Form */}
-            <div>
+            <div className="animate-fade-in-up opacity-0 delay-300">
               <PartnerContactForm />
             </div>
           </div>

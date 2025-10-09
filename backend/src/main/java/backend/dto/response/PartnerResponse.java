@@ -25,9 +25,13 @@ public class PartnerResponse {
     private Integer establishedYear;
     private String avatarUrl;
     private Double rating;
+    private Integer totalReviews;
+    private Integer totalTours;
+    private Integer totalBookings;
     private String status;
-    private String specialties;
+    private List<String> specialties;
     private List<PartnerImageResponse> images;
+    private List<PartnerTourResponse> tours;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -40,5 +44,37 @@ public class PartnerResponse {
         private String imageType;
         private String altText;
         private Integer displayOrder;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class PartnerTourResponse {
+        private Long id;
+        private String title;
+        private String slug;
+        private String description;
+        private java.math.BigDecimal price;
+        private java.math.BigDecimal salePrice;
+        private Integer duration;
+        private String location;
+        private List<String> images;
+        private Double rating;
+        private Integer totalReviews;
+        private Integer maxGroupSize;
+        private String difficulty;
+        private CategoryResponse category;
+        private List<String> highlights;
+        private String status;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CategoryResponse {
+        private Long id;
+        private String name;
+        private String slug;
     }
 }

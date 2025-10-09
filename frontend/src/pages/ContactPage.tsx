@@ -216,15 +216,21 @@ const ContactPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-stone-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-      <div className="container mx-auto px-4 max-w-6xl">
+      <div className="bg-slate-900 text-white py-20 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full translate-x-32 -translate-y-32" style={{ background: '#D4AF37' }}></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full -translate-x-48 translate-y-48" style={{ background: '#D4AF37' }}></div>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95"></div>
+        
+      <div className="container mx-auto px-4 max-w-6xl relative">
         <div className="text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl font-normal mb-4 tracking-tight animate-fade-in-up opacity-0">
             Liên Hệ Với Chúng Tôi
           </h1>
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-300 max-w-2xl mx-auto font-normal leading-relaxed animate-fade-in-up opacity-0 delay-200">
             Chúng tôi luôn sẵn sàng hỗ trợ bạn tạo ra những chuyến đi tuyệt vời nhất
           </p>
         </div>
@@ -236,7 +242,7 @@ const ContactPage: React.FC = () => {
           
           {/* Contact Information */}
           <div className="lg:col-span-1">
-            <div className="space-y-6">
+            <div className="space-y-6 animate-slide-in-left opacity-0">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
                   Thông Tin Liên Hệ
@@ -249,58 +255,57 @@ const ContactPage: React.FC = () => {
               {/* Contact Cards */}
               <div className="space-y-4">
                 {contactInfo.map((info, index) => (
-                  <Card key={index} className="p-4 hover:shadow-md transition-shadow">
+                  <div key={index} className="bg-white border border-stone-200 rounded-none p-5 hover:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in opacity-0" style={{ animationDelay: `${0.2 + index * 0.1}s` }}>
                     <div className="flex items-start space-x-4">
-                      <div className={`${info.color} text-white p-3 rounded-lg flex-shrink-0`}>
+                      <div className="text-white p-3 rounded-none flex-shrink-0" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                         {info.icon}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">
+                        <h3 className="font-medium text-slate-900 mb-2 tracking-tight">
                           {info.title}
                         </h3>
                         {info.details.map((detail, idx) => (
-                          <p key={idx} className="text-gray-600 text-sm">
+                          <p key={idx} className="text-gray-600 text-sm font-normal leading-relaxed">
                             {detail}
                           </p>
                         ))}
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
 
               {/* Quick Contact */}
-              <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+              <div className="bg-stone-100 border border-stone-200 rounded-none p-6">
                 <div className="text-center">
-                  <ChatBubbleLeftRightIcon className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <ChatBubbleLeftRightIcon className="h-12 w-12 mx-auto mb-4" style={{ color: '#D4AF37' }} />
+                  <h3 className="text-lg font-medium text-slate-900 mb-2 tracking-tight">
                     Cần Hỗ Trợ Ngay?
                   </h3>
-                  <p className="text-gray-600 text-sm mb-4">
+                  <p className="text-gray-600 text-sm mb-4 font-normal leading-relaxed">
                     Gọi hotline để được tư vấn trực tiếp
                   </p>
-                  <Button 
-                    variant="primary" 
-                    size="sm"
-                    className="w-full"
+                  <button 
+                    className="w-full text-white px-6 py-3 rounded-none transition-all duration-300 hover:opacity-90 text-sm font-medium tracking-wide inline-flex items-center justify-center"
+                    style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                     onClick={() => window.open('tel:19001234')}
                   >
                     <PhoneIcon className="h-4 w-4 mr-2" />
                     Gọi Ngay: 1900 1234
-                  </Button>
+                  </button>
                 </div>
-              </Card>
+              </div>
             </div>
           </div>
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card className="p-8" id="contact-form">
+            <div className="bg-white border border-stone-200 rounded-none p-8 animate-slide-in-right opacity-0" id="contact-form">
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-normal text-slate-900 mb-2 tracking-tight">
                   Gửi Tin Nhắn
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-gray-600 font-normal leading-relaxed">
                   Điền thông tin dưới đây và chúng tôi sẽ phản hồi sớm nhất có thể.
                 </p>
               </div>
@@ -352,13 +357,13 @@ const ContactPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
                       Quan tâm đến tour
                     </label>
                     <select
                       value={formData.tourInterest}
                       onChange={(e) => handleInputChange('tourInterest', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
                     >
                       <option value="">Chọn loại tour quan tâm</option>
                       {tourInterests.map((interest) => (
@@ -387,7 +392,7 @@ const ContactPage: React.FC = () => {
 
                 {/* Message */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
                     Nội dung tin nhắn *
                   </label>
                   <textarea
@@ -395,26 +400,25 @@ const ContactPage: React.FC = () => {
                     onChange={(e) => handleInputChange('message', e.target.value)}
                     placeholder="Nhập nội dung tin nhắn của bạn..."
                     rows={6}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${
-                      errors.message ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-none focus:ring-0 focus:border-slate-700 transition-colors resize-none font-normal ${
+                      errors.message ? 'border-red-500' : 'border-stone-300'
                     }`}
                   />
                   {errors.message && (
-                    <p className="mt-1 text-sm text-red-600">{errors.message}</p>
+                    <p className="mt-1 text-sm text-red-600 font-normal">{errors.message}</p>
                   )}
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 font-normal">
                     Tối thiểu 10 ký tự ({formData.message.length}/10)
                   </p>
                 </div>
 
                 {/* Submit Button */}
                 <div className="flex justify-end">
-                  <Button
+                  <button
                     type="submit"
-                    variant="primary"
-                    size="lg"
                     disabled={isSubmitting}
-                    className="min-w-[200px]"
+                    className="min-w-[200px] text-white px-8 py-3 rounded-none transition-all duration-300 hover:opacity-90 text-sm font-medium tracking-wide inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                   >
                     {isSubmitting ? (
                       <>
@@ -427,21 +431,21 @@ const ContactPage: React.FC = () => {
                         Gửi Tin Nhắn
                       </>
                     )}
-                  </Button>
+                  </button>
                 </div>
               </form>
-            </Card>
+            </div>
           </div>
         </div>
 
         {/* Map Section */}
         <div className="mt-12 max-w-6xl mx-auto">
-          <Card className="overflow-hidden">
-            <div className="p-6 bg-gray-50 border-b">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="bg-white border border-stone-200 rounded-none overflow-hidden">
+            <div className="p-6 bg-stone-50 border-b border-stone-200">
+              <h2 className="text-2xl font-normal text-slate-900 mb-2 tracking-tight">
                 Vị Trí Văn Phòng
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 font-normal leading-relaxed">
                 Ghé thăm văn phòng của chúng tôi để được tư vấn trực tiếp
               </p>
             </div>
@@ -460,14 +464,14 @@ const ContactPage: React.FC = () => {
               />
               
               {/* Map Overlay Info */}
-              <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-xs">
+              <div className="absolute top-4 left-4 bg-white rounded-none shadow-lg p-4 max-w-xs border border-stone-200">
                 <div className="flex items-start space-x-3">
-                  <MapPinIcon className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <MapPinIcon className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: '#D4AF37' }} />
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-sm">
+                    <h3 className="font-medium text-slate-900 text-sm tracking-tight">
                       Văn Phòng Chính
                     </h3>
-                    <p className="text-gray-600 text-xs mt-1">
+                    <p className="text-gray-600 text-xs mt-1 font-normal leading-relaxed">
                       123 Đường ABC, Quận 1<br />
                       TP. Hồ Chí Minh
                     </p>
@@ -475,29 +479,29 @@ const ContactPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         </div>
 
         {/* FAQ Section */}
         <div className="mt-12 max-w-4xl mx-auto">
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+          <div className="bg-white border border-stone-200 rounded-none p-8">
+            <h2 className="text-2xl font-normal text-slate-900 mb-8 text-center tracking-tight">
               Câu Hỏi Thường Gặp
             </h2>
             
-            <div className="space-y-4">
-              {faqItems.map((item) => (
-                <div key={item.id} className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="space-y-3">
+              {faqItems.map((item, index) => (
+                <div key={item.id} className="border border-stone-200 rounded-none overflow-hidden animate-fade-in opacity-0 hover:border-slate-700 transition-all duration-300" style={{ animationDelay: `${index * 0.1}s` }}>
                   <button
                     onClick={() => toggleFAQ(item.id)}
-                    className="w-full px-6 py-4 text-left bg-white hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors duration-200 flex items-center justify-between"
+                    className="w-full px-6 py-4 text-left bg-white hover:bg-stone-50 focus:bg-stone-50 focus:outline-none transition-all duration-200 flex items-center justify-between"
                   >
-                    <h3 className="font-semibold text-gray-900 pr-4">
+                    <h3 className="font-medium text-slate-900 pr-4 tracking-tight">
                       {item.question}
                     </h3>
                     <div className="flex-shrink-0">
                       {expandedFAQ === item.id ? (
-                        <ChevronUpIcon className="h-5 w-5 text-gray-500" />
+                        <ChevronUpIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
                       ) : (
                         <ChevronDownIcon className="h-5 w-5 text-gray-500" />
                       )}
@@ -507,8 +511,8 @@ const ContactPage: React.FC = () => {
                   <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
                     expandedFAQ === item.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
                   }`}>
-                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                      <p className="text-gray-700 leading-relaxed">
+                    <div className="px-6 py-4 bg-stone-50 border-t border-stone-200">
+                      <p className="text-gray-700 leading-relaxed font-normal text-sm">
                         {item.answer}
                       </p>
                     </div>
@@ -518,35 +522,32 @@ const ContactPage: React.FC = () => {
             </div>
             
             {/* Contact CTA */}
-            <div className="mt-8 text-center p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="mt-8 text-center p-6 bg-stone-100 rounded-none border border-stone-200">
+              <h3 className="text-lg font-medium text-slate-900 mb-2 tracking-tight">
                 Không tìm thấy câu trả lời?
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 mb-4 font-normal leading-relaxed">
                 Liên hệ trực tiếp với chúng tôi để được hỗ trợ chi tiết hơn
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button 
-                  variant="primary" 
-                  size="sm"
+                <button 
                   onClick={() => window.open('tel:19001234')}
-                  className="flex items-center justify-center"
+                  className="inline-flex items-center justify-center text-white px-6 py-2.5 rounded-none transition-all duration-300 hover:opacity-90 text-sm font-medium tracking-wide"
+                  style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                 >
                   <PhoneIcon className="h-4 w-4 mr-2" />
                   Gọi Hotline
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
+                </button>
+                <button 
                   onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="flex items-center justify-center"
+                  className="inline-flex items-center justify-center bg-white text-slate-900 px-6 py-2.5 rounded-none border-2 border-slate-900 hover:bg-slate-900 hover:text-white transition-all duration-300 text-sm font-medium tracking-wide"
                 >
                   <ChatBubbleLeftRightIcon className="h-4 w-4 mr-2" />
                   Gửi Tin Nhắn
-                </Button>
+                </button>
               </div>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>

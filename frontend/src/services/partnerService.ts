@@ -1,126 +1,205 @@
-import { apiClient } from './api';
-import type { Partner, PartnerFilters } from '../types/partner';
+import apiClient from './api';
+import type { ApiResponse } from '../types';
+
+export interface PartnerImage {
+  id: number;
+  imageUrl: string;
+  imageType: 'cover' | 'logo' | 'gallery';
+  displayOrder: number;
+  altText?: string;
+}
+
+export interface PartnerTour {
+  id: number;
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  duration: string;
+  location: string;
+  images: string[];
+  rating: number;
+  totalReviews: number;
+  maxGroupSize: number;
+  difficulty: 'easy' | 'moderate' | 'challenging';
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+  };
+  highlights: string[];
+  includes: string[];
+  excludes: string[];
+  itinerary: any[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface PartnerResponse {
   id: number;
   name: string;
   slug: string;
-  description: string;
-  type: 'Hotel' | 'Restaurant';
-  address?: string;
+  description?: string;
+  type: 'Hotel' | 'Restaurant' | 'Transportation' | 'Guide' | 'Other';
+  website?: string;
   phone?: string;
   email?: string;
-  website?: string;
+  address?: string;
   establishedYear?: number;
-  avatarUrl?: string;
   rating: number;
   totalReviews: number;
+  totalTours: number;
+  totalBookings: number;
   specialties: string[];
+  images: PartnerImage[];
+  tours: PartnerTour[];
+  status: 'Active' | 'Inactive' | 'Suspended';
   createdAt: string;
   updatedAt: string;
 }
 
-export interface PartnerPageResponse {
-  content: PartnerResponse[];
-  totalElements: number;
+export interface PartnerSearchRequest {
+  keyword?: string;
+  type?: string;
+  location?: string;
+  minRating?: number;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDirection?: string;
+}
+
+export interface PageResponse<T> {
+  content: T[];
   totalPages: number;
+  totalElements: number;
   size: number;
   number: number;
-  first: boolean;
-  last: boolean;
-  empty: boolean;
 }
 
 const partnerService = {
-  // Get all partners with pagination
-  getAllPartners: async (params: {
-    page?: number;
-    size?: number;
-    sortBy?: string;
-    sortDirection?: string;
-  } = {}): Promise<PartnerPageResponse> => {
-    const response = await apiClient.get<{
-      success: boolean;
-      message: string;
-      data: PartnerPageResponse;
-    }>('/partners', {
-      params: {
-        page: params.page || 0,
-        size: params.size || 20,
-        sortBy: params.sortBy || 'name',
-        sortDirection: params.sortDirection || 'asc'
+  getAllPartners: async (): Promise<PartnerResponse[]> => {
+    try {
+      const response = await apiClient.get<ApiResponse<PartnerResponse[]>>('/partners');
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+      return [];
+    }
+  },
+
+  getPartnerBySlug: async (slug: string): Promise<PartnerResponse | null> => {
+    try {
+      const response = await apiClient.get<ApiResponse<PartnerResponse>>(`/partners/${slug}`);
+      return response.data.data || null;
+    } catch (error) {
+      console.error(`Error fetching partner ${slug}:`, error);
+      return null;
+    }
+  },
+
+  searchPartners: async (params: PartnerSearchRequest): Promise<PageResponse<PartnerResponse>> => {
+    try {
+      // For now, use getAllPartners and do client-side filtering
+      const allPartners = await partnerService.getAllPartners();
+      
+      let filtered = [...allPartners];
+      
+      // Apply filters
+      if (params.keyword) {
+        const keyword = params.keyword.toLowerCase();
+        filtered = filtered.filter(p => 
+          p.name.toLowerCase().includes(keyword) ||
+          p.description?.toLowerCase().includes(keyword)
+        );
       }
-    });
-    return response.data.data;
-  },
-
-  // Get partner by ID
-  getPartnerById: async (id: number): Promise<PartnerResponse> => {
-    const response = await apiClient.get<{
-      success: boolean;
-      message: string;
-      data: PartnerResponse;
-    }>(`/partners/${id}`);
-    return response.data.data;
-  },
-
-  // Search partners with filters
-  searchPartners: async (params: {
-    keyword?: string;
-    type?: string;
-    location?: string;
-    minRating?: number;
-    page?: number;
-    size?: number;
-    sortBy?: string;
-    sortDirection?: string;
-  } = {}): Promise<PartnerPageResponse> => {
-    const response = await apiClient.get<{
-      success: boolean;
-      message: string;
-      data: PartnerPageResponse;
-    }>('/partners/search', {
-      params: {
-        keyword: params.keyword,
-        type: params.type,
-        location: params.location,
-        minRating: params.minRating,
-        page: params.page || 0,
+      
+      if (params.type && params.type !== 'all') {
+        filtered = filtered.filter(p => p.type === params.type);
+      }
+      
+      if (params.location) {
+        const location = params.location.toLowerCase();
+        filtered = filtered.filter(p => 
+          p.address?.toLowerCase().includes(location)
+        );
+      }
+      
+      if (params.minRating) {
+        filtered = filtered.filter(p => p.rating >= params.minRating!);
+      }
+      
+      // Apply sorting
+      const sortBy = params.sortBy || 'name';
+      const sortDirection = params.sortDirection || 'asc';
+      
+      filtered.sort((a, b) => {
+        let aVal: any = a[sortBy as keyof PartnerResponse];
+        let bVal: any = b[sortBy as keyof PartnerResponse];
+        
+        if (typeof aVal === 'string') {
+          aVal = aVal.toLowerCase();
+          bVal = bVal.toLowerCase();
+        }
+        
+        if (sortDirection === 'asc') {
+          return aVal > bVal ? 1 : -1;
+        } else {
+          return aVal < bVal ? 1 : -1;
+        }
+      });
+      
+      // Apply pagination
+      const page = params.page || 0;
+      const size = params.size || 12;
+      const start = page * size;
+      const end = start + size;
+      const content = filtered.slice(start, end);
+      
+      return {
+        content,
+        totalPages: Math.ceil(filtered.length / size),
+        totalElements: filtered.length,
+        size,
+        number: page
+      };
+    } catch (error) {
+      console.error('Error searching partners:', error);
+      return {
+        content: [],
+        totalPages: 0,
+        totalElements: 0,
         size: params.size || 12,
-        sortBy: params.sortBy || 'name',
-        sortDirection: params.sortDirection || 'asc'
-      }
-    });
-    return response.data.data;
+        number: params.page || 0
+      };
+    }
   },
 
-  // Convert API response to frontend Partner type
-  mapToPartner: (partnerResponse: PartnerResponse): Partner => ({
-    id: partnerResponse.id,
-    name: partnerResponse.name,
-    slug: partnerResponse.slug,
-    description: partnerResponse.description,
-    type: partnerResponse.type,
-    address: partnerResponse.address,
-    phone: partnerResponse.phone,
-    email: partnerResponse.email,
-    website: partnerResponse.website,
-    establishedYear: partnerResponse.establishedYear,
-    avatarUrl: partnerResponse.avatarUrl,
-    rating: partnerResponse.rating,
-    totalReviews: partnerResponse.totalReviews,
-    totalTours: 0, // Backend doesn't provide this yet
-    totalBookings: 0, // Backend doesn't provide this yet
-    specialties: Array.isArray(partnerResponse.specialties) 
-      ? partnerResponse.specialties 
-      : (typeof partnerResponse.specialties === 'string' 
-          ? JSON.parse(partnerResponse.specialties) 
-          : []),
-    images: [], // Backend doesn't provide this yet
-    tours: [], // Backend doesn't provide this yet
-    createdAt: partnerResponse.createdAt,
-    updatedAt: partnerResponse.updatedAt
-  })
+  mapToPartner: (response: PartnerResponse): any => {
+    return {
+      id: response.id,
+      name: response.name,
+      slug: response.slug,
+      description: response.description,
+      type: response.type,
+      address: response.address,
+      phone: response.phone,
+      email: response.email,
+      website: response.website,
+      rating: response.rating,
+      totalReviews: response.totalReviews,
+      totalTours: response.totalTours,
+      totalBookings: response.totalBookings,
+      establishedYear: response.establishedYear,
+      specialties: response.specialties,
+      images: response.images,
+      status: response.status,
+      logo: response.images?.find(img => img.imageType === 'logo')?.imageUrl,
+      coverImage: response.images?.find(img => img.imageType === 'cover')?.imageUrl || response.images?.[0]?.imageUrl
+    };
+  }
 };
 
 export default partnerService;

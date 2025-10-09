@@ -285,20 +285,6 @@ const bookingService = {
     const response = await apiClient.get<BookingStatistics>('/bookings/statistics');
     return response.data.data!;
   },
-
-  // Create new booking
-  createBooking: async (data: {
-    tourId: number;
-    startDate: string;
-    numAdults: number;
-    numChildren?: number;
-    specialRequests?: string;
-    contactPhone?: string;
-    promotionCode?: string;
-  }): Promise<BookingResponse> => {
-    const response = await apiClient.post<BookingResponse>('/bookings', data);
-    return response.data.data!;
-  },
 };
 
 export default bookingService;

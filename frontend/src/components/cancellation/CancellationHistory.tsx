@@ -4,7 +4,7 @@ import { cancellationService } from '../../services';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Pagination } from '../ui/Pagination';
+import Pagination from '../ui/Pagination';
 import { CancellationRequestForm } from './CancellationRequestForm';
 import { CancellationDetails } from './CancellationDetails';
 
@@ -79,7 +79,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0); // 0-based indexing to match Pagination component
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedCancellation, setSelectedCancellation] = useState<CancellationHistoryItem | null>(null);
@@ -270,8 +270,8 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
 
     try {
       setIsLoading(true);
-      // Use real API call
-      const response = await cancellationService.getUserCancellations(user.id, currentPage - 1, pageSize);
+      // Use real API call (currentPage is already 0-based)
+      const response = await cancellationService.getUserCancellations(user.id, currentPage, pageSize);
       // Successfully loaded cancellations from API
       
       // Convert API response to CancellationHistoryItem format
@@ -435,7 +435,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                 onClick={() => {
                   setSearchTerm('');
                   setStatusFilter('');
-                  setCurrentPage(1);
+                  setCurrentPage(0);
                 }}
                 className="w-full"
               >

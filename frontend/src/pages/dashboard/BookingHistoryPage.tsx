@@ -135,7 +135,7 @@ const BookingHistoryPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0); // 0-based indexing to match Pagination component
   
   // Tab state
   const [activeTab, setActiveTab] = useState<'bookings' | 'cancellations'>(
@@ -312,7 +312,7 @@ const BookingHistoryPage: React.FC = () => {
     filtered.sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime());
 
     setFilteredBookings(filtered);
-    setCurrentPage(1);
+    setCurrentPage(0);
   }, [filters, bookings, activeTab, setSearchParams]);
 
   const formatPrice = (price: number) => {
@@ -332,23 +332,23 @@ const BookingHistoryPage: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { label: string; className: string; icon: React.ComponentType<any> }> = {
-      confirmed: { label: 'Đã xác nhận', className: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircleIcon },
-      pending: { label: 'Chờ xác nhận', className: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: ClockIcon },
-      completed: { label: 'Hoàn thành', className: 'bg-blue-100 text-blue-800 border-blue-200', icon: CheckCircleIcon },
-      cancelled: { label: 'Đã hủy', className: 'bg-red-100 text-red-800 border-red-200', icon: XCircleIcon }
+      confirmed: { label: 'Đã xác nhận', className: 'bg-amber-50 text-amber-800 border-amber-200', icon: CheckCircleIcon },
+      pending: { label: 'Chờ xác nhận', className: 'bg-stone-100 text-slate-700 border-stone-300', icon: ClockIcon },
+      completed: { label: 'Hoàn thành', className: 'bg-slate-900 text-white border-slate-700', icon: CheckCircleIcon },
+      cancelled: { label: 'Đã hủy', className: 'bg-stone-200 text-slate-600 border-stone-400', icon: XCircleIcon }
     };
     return badges[status] || { label: status, className: 'bg-gray-100 text-gray-800 border-gray-200', icon: ClockIcon };
   };
 
   const getPaymentStatusBadge = (status: string) => {
     const badges: Record<string, { label: string; className: string }> = {
-      paid: { label: 'Đã thanh toán', className: 'bg-green-100 text-green-800' },
-      pending: { label: 'Chờ thanh toán', className: 'bg-orange-100 text-orange-800' },
-      unpaid: { label: 'Chờ thanh toán', className: 'bg-orange-100 text-orange-800' },
-      partiallypaid: { label: 'Thanh toán một phần', className: 'bg-yellow-100 text-yellow-800' },
-      refunding: { label: 'Đang hoàn tiền', className: 'bg-blue-100 text-blue-800' },
-      refunded: { label: 'Đã hoàn tiền', className: 'bg-gray-100 text-gray-800' },
-      failed: { label: 'Thất bại', className: 'bg-red-100 text-red-800' }
+      paid: { label: 'Đã thanh toán', className: 'bg-amber-50 text-amber-800' },
+      pending: { label: 'Chờ thanh toán', className: 'bg-stone-100 text-slate-700' },
+      unpaid: { label: 'Chờ thanh toán', className: 'bg-stone-100 text-slate-700' },
+      partiallypaid: { label: 'Thanh toán một phần', className: 'bg-amber-100 text-amber-700' },
+      refunding: { label: 'Đang hoàn tiền', className: 'bg-slate-100 text-slate-700' },
+      refunded: { label: 'Đã hoàn tiền', className: 'bg-slate-900 text-white' },
+      failed: { label: 'Thất bại', className: 'bg-stone-200 text-slate-600' }
     };
     return badges[status.toLowerCase()] || { label: status, className: 'bg-gray-100 text-gray-800' };
   };
@@ -471,9 +471,9 @@ const BookingHistoryPage: React.FC = () => {
     setFilters({ search: '', status: 'all', dateRange: 'all' });
   };
 
-  // Pagination
+  // Pagination (0-based indexing)
   const totalPages = Math.ceil(filteredBookings.length / bookingsPerPage);
-  const startIndex = (currentPage - 1) * bookingsPerPage;
+  const startIndex = currentPage * bookingsPerPage;
   const endIndex = startIndex + bookingsPerPage;
   const currentBookings = filteredBookings.slice(startIndex, endIndex);
 
@@ -493,106 +493,109 @@ const BookingHistoryPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Quản lý booking</h1>
-        <p className="text-gray-600">Theo dõi tất cả booking và yêu cầu hủy của bạn</p>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => handleTabChange('bookings')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'bookings'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Booking của tôi ({bookings.length})
-            </button>
-            <button
-              onClick={() => handleTabChange('cancellations')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'cancellations'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Lịch sử hủy booking
-            </button>
-          </nav>
+    <div className="min-h-screen bg-stone-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-3xl font-normal text-slate-900 mb-2 tracking-tight">Quản lý booking</h1>
+          <p className="text-gray-600 font-normal">Theo dõi tất cả booking và yêu cầu hủy của bạn</p>
         </div>
-      </div>
+
+        {/* Tab Navigation */}
+        <div className="mb-6 animate-fade-in-up opacity-0 delay-100">
+          <div className="bg-white border border-stone-200 rounded-none p-2">
+            <nav className="flex space-x-2">
+              <button
+                onClick={() => handleTabChange('bookings')}
+                className={`flex-1 py-3 px-6 font-medium text-sm rounded-none transition-all duration-300 ${
+                  activeTab === 'bookings'
+                    ? 'text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-stone-50 hover:text-slate-900'
+                }`}
+                style={activeTab === 'bookings' ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
+              >
+                Booking của tôi ({bookings.length})
+              </button>
+              <button
+                onClick={() => handleTabChange('cancellations')}
+                className={`flex-1 py-3 px-6 font-medium text-sm rounded-none transition-all duration-300 ${
+                  activeTab === 'cancellations'
+                    ? 'text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-stone-50 hover:text-slate-900'
+                }`}
+                style={activeTab === 'cancellations' ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
+              >
+                Lịch sử hủy booking
+              </button>
+            </nav>
+          </div>
+        </div>
 
       {/* Tab Content */}
       {activeTab === 'bookings' ? (
         <>
           {/* Filters */}
-          <Card className="p-6 mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-            <FunnelIcon className="h-5 w-5 mr-2" />
-            Bộ lọc
-          </h2>
-          
-          <div className="text-sm text-gray-600">
-            Hiển thị {filteredBookings.length} / {bookings.length} booking
-          </div>
-        </div>
+          <Card className="p-6 mb-6 bg-white border border-stone-200 rounded-none animate-fade-in-up opacity-0 delay-200">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+              <h2 className="text-xl font-medium text-slate-900 flex items-center tracking-tight">
+                <FunnelIcon className="h-5 w-5 mr-2" style={{ color: '#D4AF37' }} />
+                Bộ lọc
+              </h2>
+              
+              <div className="text-sm font-normal" style={{ color: '#D4AF37' }}>
+                Hiển thị {filteredBookings.length} / {bookings.length} booking
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Search */}
-          <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Tìm theo tên tour, mã booking..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Search */}
+              <div className="relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-3 h-5 w-5" style={{ color: '#D4AF37' }} />
+                <input
+                  type="text"
+                  placeholder="Tìm theo tên tour, mã booking..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
+                />
+              </div>
 
-          {/* Status Filter */}
-          <select
-            value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="upcoming">Sắp diễn ra</option>
-            <option value="confirmed">Đã xác nhận</option>
-            <option value="pending">Chờ xác nhận</option>
-            <option value="completed">Hoàn thành</option>
-            <option value="cancelled">Đã hủy</option>
-          </select>
+              {/* Status Filter */}
+              <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+                className="border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="upcoming">Sắp diễn ra</option>
+                <option value="confirmed">Đã xác nhận</option>
+                <option value="pending">Chờ xác nhận</option>
+                <option value="completed">Hoàn thành</option>
+                <option value="cancelled">Đã hủy</option>
+              </select>
 
-          {/* Date Range Filter */}
-          <select
-            value={filters.dateRange}
-            onChange={(e) => handleFilterChange('dateRange', e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">Tất cả thời gian</option>
-            <option value="last_month">Tháng trước</option>
-            <option value="last_3_months">3 tháng trước</option>
-            <option value="last_year">Năm trước</option>
-          </select>
+              {/* Date Range Filter */}
+              <select
+                value={filters.dateRange}
+                onChange={(e) => handleFilterChange('dateRange', e.target.value)}
+                className="border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
+              >
+                <option value="all">Tất cả thời gian</option>
+                <option value="last_month">Tháng trước</option>
+                <option value="last_3_months">3 tháng trước</option>
+                <option value="last_year">Năm trước</option>
+              </select>
 
-          {/* Clear Filters */}
-          <Button
-            variant="outline"
-            onClick={clearFilters}
-            className="whitespace-nowrap"
-          >
-            Xóa bộ lọc
-          </Button>
-        </div>
-      </Card>
+              {/* Clear Filters */}
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="whitespace-nowrap border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none"
+              >
+                Xóa bộ lọc
+              </Button>
+            </div>
+          </Card>
 
       {/* Bookings List */}
       <div className="space-y-4 mb-8">
@@ -603,15 +606,15 @@ const BookingHistoryPage: React.FC = () => {
           ))
         ) : currentBookings.length === 0 ? (
           // Empty state
-          <Card className="p-12 text-center">
+          <Card className="p-12 text-center bg-white border border-stone-200 rounded-none">
             <div className="text-6xl mb-4">📋</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-2xl font-normal text-slate-900 mb-2 tracking-tight">
               Chưa có booking nào
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-6 font-normal">
               Hãy đặt tour đầu tiên của bạn để bắt đầu hành trình!
             </p>
-            <a href="/tours" className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+            <a href="/tours" className="inline-flex items-center justify-center px-6 py-3 text-white rounded-none font-medium transition-all duration-300 hover:opacity-90" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
               Khám phá tours
             </a>
           </Card>
@@ -634,35 +637,35 @@ const BookingHistoryPage: React.FC = () => {
           };
 
           return (
-            <Card key={booking.id} className="p-6 hover:shadow-md transition-shadow">
+            <Card key={booking.id} className="p-6 bg-white border border-stone-200 rounded-none hover:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in opacity-0">
               <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                 {/* Tour Image & Info */}
                 <div className="flex space-x-4 flex-1">
                   <img
                     src={booking.tourImage}
                     alt={booking.tourName}
-                    className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                    className="w-24 h-24 object-cover rounded-none flex-shrink-0 border border-stone-200"
                   />
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-1">
+                        <h3 className="text-lg font-medium text-slate-900 mb-1 tracking-tight">
                           {booking.tourName}
                         </h3>
-                        <p className="text-sm text-gray-600 mb-2">
-                          Mã booking: <span className="font-mono font-semibold">{booking.id}</span>
+                        <p className="text-sm text-gray-600 font-normal">
+                          Mã booking: <span className="font-mono font-medium" style={{ color: '#D4AF37' }}>{booking.id}</span>
                         </p>
                       </div>
                       
                       <div className="flex flex-col items-end space-y-2">
                         {/* Confirmation Status Badge */}
-                        <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border ${statusBadge.className}`}>
+                        <div className={`inline-flex items-center px-3 py-1.5 rounded-none text-xs font-medium border ${statusBadge.className}`}>
                           <StatusIcon className="h-3.5 w-3.5 mr-1.5" />
                           {statusBadge.label}
                         </div>
                         {/* Payment Status Badge */}
-                        <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${paymentBadge.className}`}>
+                        <div className={`inline-flex items-center px-3 py-1.5 rounded-none text-xs font-medium ${paymentBadge.className}`}>
                           <CreditCardIcon className="h-3.5 w-3.5 mr-1.5" />
                           {paymentBadge.label}
                         </div>
@@ -670,21 +673,21 @@ const BookingHistoryPage: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
-                      <div className="flex items-center space-x-1">
-                        <MapPinIcon className="h-4 w-4" />
-                        <span>{booking.location}</span>
+                      <div className="flex items-center space-x-2">
+                        <MapPinIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                        <span className="font-normal">{booking.location}</span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <CalendarDaysIcon className="h-4 w-4" />
-                        <span>{formatDate(booking.startDate)}</span>
+                      <div className="flex items-center space-x-2">
+                        <CalendarDaysIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                        <span className="font-normal">{formatDate(booking.startDate)}</span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <ClockIcon className="h-4 w-4" />
-                        <span>{booking.duration}</span>
+                      <div className="flex items-center space-x-2">
+                        <ClockIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                        <span className="font-normal">{booking.duration}</span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <UsersIcon className="h-4 w-4" />
-                        <span>
+                      <div className="flex items-center space-x-2">
+                        <UsersIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                        <span className="font-normal">
                           {booking.adults} người lớn
                           {booking.children > 0 && `, ${booking.children} trẻ em`}
                         </span>
@@ -693,10 +696,10 @@ const BookingHistoryPage: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-2xl font-bold text-blue-600">
+                        <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>
                           {formatPrice(booking.totalPrice)}
                         </span>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-600 font-normal">
                           Đặt ngày {formatDate(booking.bookingDate)}
                         </p>
                       </div>
@@ -709,7 +712,7 @@ const BookingHistoryPage: React.FC = () => {
                   {/* Nút Xem chi tiết - Hiển thị cho TẤT CẢ booking */}
                   <button 
                     onClick={() => handleViewTourDetail(booking.tourId, booking.tourSlug)}
-                    className="inline-flex items-center justify-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    className="inline-flex items-center justify-center px-3 py-2 text-white rounded-none text-sm font-medium transition-all duration-300 hover:opacity-90" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                   >
                     <EyeIcon className="h-4 w-4 mr-1" />
                     Xem
@@ -719,7 +722,7 @@ const BookingHistoryPage: React.FC = () => {
                   {booking.paymentStatus === 'paid' && canCancelBooking(booking) && (
                     <button 
                       onClick={() => handleCancelBooking(Number(booking.id))}
-                      className="inline-flex items-center justify-center px-3 py-2 border border-orange-300 rounded-lg text-sm font-medium text-orange-700 bg-white hover:bg-orange-50 transition-colors"
+                      className="inline-flex items-center justify-center px-3 py-2 border-2 border-slate-900 rounded-none text-sm font-medium text-slate-900 bg-white hover:bg-slate-900 hover:text-white transition-all duration-300"
                     >
                       <XCircleIcon className="h-4 w-4 mr-1" />
                       Yêu cầu hủy
@@ -730,7 +733,7 @@ const BookingHistoryPage: React.FC = () => {
                   {booking.paymentStatus === 'pending' && (
                     <button 
                       onClick={() => handleRetryPayment(booking)}
-                      className="inline-flex items-center justify-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      className="inline-flex items-center justify-center px-3 py-2 text-white rounded-none text-sm font-medium transition-all duration-300 hover:opacity-90" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                     >
                       <CreditCardIcon className="h-4 w-4 mr-1" />
                       Thanh toán
@@ -752,11 +755,11 @@ const BookingHistoryPage: React.FC = () => {
               {/* Upcoming Tour Alert */}
               {shouldShowWarning() && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex items-start space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <ExclamationTriangleIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex items-start space-x-2 p-3 bg-amber-50 border border-amber-200 rounded-none">
+                    <ExclamationTriangleIcon className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: '#D4AF37' }} />
                     <div className="text-sm">
-                      <p className="font-medium text-blue-900">Tour sắp diễn ra</p>
-                      <p className="text-blue-700">
+                      <p className="font-medium text-slate-900 tracking-tight">Tour sắp diễn ra</p>
+                      <p className="text-gray-700 font-normal">
                         {(() => {
                           const now = new Date();
                           const startDate = new Date(booking.startDate);
@@ -793,7 +796,7 @@ const BookingHistoryPage: React.FC = () => {
               </Button>
             )}
             <Link to="/tours">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="text-white rounded-none hover:opacity-90 transition-all duration-300" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                 Khám phá tours
               </Button>
             </Link>
@@ -845,7 +848,7 @@ const BookingHistoryPage: React.FC = () => {
           tourSlug={selectedTourForDetail.slug}
         />
       )}
-
+      </div>
     </div>
   );
 };

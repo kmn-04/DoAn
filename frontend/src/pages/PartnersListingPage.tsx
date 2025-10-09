@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // import { Helmet } from 'react-helmet-async';
 import { 
   BuildingOffice2Icon
@@ -17,9 +17,12 @@ const PartnersListingPage: React.FC = () => {
     sortBy: 'name',
     sortOrder: 'asc'
   });
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0); // 0-based indexing to match Pagination component
   const [totalPages, setTotalPages] = useState(1);
   const [totalPartners, setTotalPartners] = useState(0);
+  
+  // Ref to scroll to partners grid when page changes
+  const partnersGridRef = useRef<HTMLDivElement>(null);
 
   // Removed mock data - fetching from API only
 
@@ -32,7 +35,7 @@ const PartnersListingPage: React.FC = () => {
           type: filters.type,
           location: filters.location,
           minRating: filters.rating,
-          page: currentPage - 1, // API uses 0-based indexing
+          page: currentPage, // Already 0-based indexing
           size: 12, // 3x4 grid
           sortBy: filters.sortBy || 'name',
           sortDirection: filters.sortOrder || 'asc'
@@ -55,10 +58,23 @@ const PartnersListingPage: React.FC = () => {
 
     loadPartners();
   }, [filters, currentPage]);
+  
+  // Scroll to partners grid when page changes
+  useEffect(() => {
+    if (partnersGridRef.current) {
+      // Get the position of the partners grid
+      const yOffset = -100; // Offset to show some space above
+      const element = partnersGridRef.current;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      
+      // Smooth scroll to the partners grid
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }, [currentPage]);
 
   const handleFiltersChange = (newFilters: PartnerFilters) => {
     setFilters(newFilters);
-    setCurrentPage(1);
+    setCurrentPage(0);
   };
 
   const handleClearFilters = () => {
@@ -139,34 +155,38 @@ const PartnersListingPage: React.FC = () => {
           </div>
 
           {/* Partners Grid - 4 rows x 3 columns */}
-          {isInitialLoading ? (
-            <div className="py-12">
-              <Loading />
-            </div>
-          ) : partners.length > 0 ? (
-            <div className="relative">
-              {loading && (
-                <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                </div>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 items-stretch">
-                {partners.map((partner) => (
-                  <PartnerCard key={partner.id} partner={partner} />
-                ))}
+          <div ref={partnersGridRef}>
+            {isInitialLoading ? (
+              <div className="py-12">
+                <Loading />
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <BuildingOffice2Icon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">
-                Không tìm thấy đối tác nào
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Thử điều chỉnh bộ lọc để tìm kiếm đối tác phù hợp
-              </p>
-            </div>
-          )}
+            ) : partners.length > 0 ? (
+              <div className="relative">
+                {loading && (
+                  <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 items-stretch">
+                  {partners.map((partner, index) => (
+                    <div key={partner.id} className="stagger-animation opacity-0">
+                      <PartnerCard partner={partner} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12 animate-fade-in">
+                <BuildingOffice2Icon className="h-16 w-16 text-gray-400 mx-auto mb-4 animate-pulse" />
+                <h3 className="text-xl font-medium text-gray-900 mb-2">
+                  Không tìm thấy đối tác nào
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Thử điều chỉnh bộ lọc để tìm kiếm đối tác phù hợp
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Pagination */}
           {totalPages > 1 && (

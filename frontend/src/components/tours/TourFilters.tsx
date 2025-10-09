@@ -219,31 +219,32 @@ const TourFilters: React.FC<TourFiltersProps> = ({
 
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white rounded-none shadow-lg border border-stone-200">
       {/* Filters Bar */}
-      <div className="p-4">
+      <div className="p-6">
         {/* Search */}
-        <div className="mb-4">
+        <div className="mb-6">
           <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
             <input
               type="text"
               placeholder="Tìm kiếm tour..."
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="w-full pl-12 pr-4 py-3 border border-stone-300 rounded-none focus:ring-1 focus:border-slate-700 text-sm font-normal tracking-wide transition-all"
+              style={{ '--focus-ring-color': '#D4AF37' } as React.CSSProperties}
             />
           </div>
         </div>
 
         {/* Filter Dropdowns - Horizontal layout with scroll */}
-        <div className="flex gap-3 mb-4 overflow-x-auto pb-2">
+        <div className="flex gap-3 mb-6 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-stone-100">
           {/* Tour Type */}
           <div className="flex-shrink-0 min-w-[160px]">
             <select
               value={filters.tourType}
               onChange={(e) => handleFilterChange('tourType', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-stone-300 rounded-none text-sm focus:ring-1 focus:border-slate-700 bg-white font-normal tracking-wide transition-all"
             >
               {TOUR_TYPES.map(type => (
                 <option key={type.value} value={type.value}>{type.label}</option>
@@ -256,7 +257,7 @@ const TourFilters: React.FC<TourFiltersProps> = ({
             <select
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-stone-300 rounded-none text-sm focus:ring-1 focus:border-slate-700 bg-white font-normal tracking-wide transition-all"
             >
               {getCategoriesForTourType(filters.tourType).map(category => (
                 <option key={category.value} value={category.value}>{category.label}</option>
@@ -269,7 +270,7 @@ const TourFilters: React.FC<TourFiltersProps> = ({
             <select
               value={getCurrentPriceRange()}
               onChange={(e) => handlePriceRangeChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-stone-300 rounded-none text-sm focus:ring-1 focus:border-slate-700 bg-white font-normal tracking-wide transition-all"
             >
               {PRICE_RANGES.map(range => (
                 <option key={range.value} value={range.value}>{range.label}</option>
@@ -282,7 +283,7 @@ const TourFilters: React.FC<TourFiltersProps> = ({
             <select
               value={filters.duration}
               onChange={(e) => handleFilterChange('duration', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-stone-300 rounded-none text-sm focus:ring-1 focus:border-slate-700 bg-white font-normal tracking-wide transition-all"
             >
               {DURATIONS.map(duration => (
                 <option key={duration.value} value={duration.value}>{duration.label}</option>
@@ -295,7 +296,7 @@ const TourFilters: React.FC<TourFiltersProps> = ({
             <select
               value={filters.location}
               onChange={(e) => handleFilterChange('location', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-stone-300 rounded-none text-sm focus:ring-1 focus:border-slate-700 bg-white font-normal tracking-wide transition-all"
             >
               {getLocationsForTourType(filters.tourType).map(location => (
                 <option key={location.value} value={location.value}>{location.label}</option>
@@ -308,7 +309,7 @@ const TourFilters: React.FC<TourFiltersProps> = ({
             <select
               value={filters.rating}
               onChange={(e) => handleFilterChange('rating', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-stone-300 rounded-none text-sm focus:ring-1 focus:border-slate-700 bg-white font-normal tracking-wide transition-all"
             >
               {RATINGS.map(rating => (
                 <option key={rating.value} value={rating.value}>{rating.label}</option>
@@ -321,7 +322,7 @@ const TourFilters: React.FC<TourFiltersProps> = ({
             <select
               value={filters.sortBy}
               onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-stone-300 rounded-none text-sm focus:ring-1 focus:border-slate-700 bg-white font-normal tracking-wide transition-all"
             >
               {SORT_OPTIONS.map(option => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -332,38 +333,37 @@ const TourFilters: React.FC<TourFiltersProps> = ({
           {/* Flight Included - for international */}
           {filters.tourType === 'international' && (
             <div className="flex-shrink-0 min-w-[140px]">
-              <label className="flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:bg-gray-50 h-full">
+              <label className="flex items-center px-4 py-2.5 border border-stone-300 rounded-none bg-white cursor-pointer hover:bg-stone-50 h-full transition-colors">
                 <input
                   type="checkbox"
                   checked={filters.flightIncluded}
                   onChange={(e) => handleFilterChange('flightIncluded', e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
+                  className="h-4 w-4 text-slate-900 focus:ring-1 border-stone-300 rounded-none mr-2"
+                  style={{ accentColor: '#D4AF37' }}
                 />
-                <span className="text-sm text-gray-700 whitespace-nowrap">✈️ Vé máy bay</span>
+                <span className="text-sm text-slate-700 whitespace-nowrap font-normal">✈️ Vé máy bay</span>
               </label>
             </div>
           )}
         </div>
 
         {/* Results and Clear */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-4 border-t border-stone-200">
           <div className="flex items-center space-x-2">
-            <FunnelIcon className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">{totalResults}</span> kết quả
+            <FunnelIcon className="h-4 w-4" style={{ color: '#D4AF37' }} />
+            <span className="text-sm text-gray-600 font-normal">
+              <span className="font-medium text-slate-900">{totalResults}</span> kết quả
             </span>
           </div>
           
           {hasActiveFilters() && (
-            <Button
+            <button
               onClick={onClearFilters}
-              variant="outline"
-              size="sm"
-              className="text-red-600 border-red-300 hover:bg-red-50"
+              className="flex items-center px-4 py-2 text-slate-700 border border-stone-300 rounded-none hover:bg-stone-50 transition-all text-xs font-medium tracking-wider uppercase"
             >
-              <XMarkIcon className="h-4 w-4 mr-1" />
+              <XMarkIcon className="h-4 w-4 mr-1.5" />
               Xóa bộ lọc
-            </Button>
+            </button>
           )}
         </div>
       </div>

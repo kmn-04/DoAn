@@ -15,6 +15,7 @@ export { default as paymentService } from './paymentService';
 export { default as partnerService } from './partnerService';
 export { default as promotionService } from './promotionService';
 export { default as destinationService } from './destinationService';
+export { default as bannerService } from './bannerService';
 export { apiClient } from './api';
 
 // Export types
@@ -57,3 +58,8 @@ export type {
 export type {
   PopularDestinationResponse
 } from './destinationService';
+
+export type {
+  Banner,
+  BannerFormData
+} from './bannerService';

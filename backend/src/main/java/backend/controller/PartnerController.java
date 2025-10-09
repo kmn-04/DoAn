@@ -1,106 +1,128 @@
 package backend.controller;
 
 import backend.dto.response.ApiResponse;
-import backend.dto.response.PageResponse;
 import backend.dto.response.PartnerResponse;
 import backend.entity.Partner;
-import backend.service.PartnerService;
+import backend.mapper.EntityMapper;
+import backend.repository.PartnerRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/partners")
 @Slf4j
 @RequiredArgsConstructor
-@Tag(name = "Partner Management", description = "APIs for managing partners")
+@Tag(name = "Partner Management (Public)", description = "Public APIs for partners")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
-public class PartnerController extends BaseController {
+public class PartnerController {
 
-    private final PartnerService partnerService;
-    private final backend.mapper.EntityMapper mapper;
-
-
-    @GetMapping("/test")
-    @Operation(summary = "Test simple response")
-    public ResponseEntity<ApiResponse<String>> testConnection() {
-        return ResponseEntity.ok(ApiResponse.success("Test endpoint working"));
-    }
+    private final PartnerRepository partnerRepository;
+    private final EntityMapper entityMapper;
 
     @GetMapping
-    @Operation(summary = "Get all partners with pagination")
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<PageResponse<PartnerResponse>>> getAllPartners(
-            @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "Sort by field") @RequestParam(defaultValue = "name") String sortBy,
-            @Parameter(description = "Sort direction") @RequestParam(defaultValue = "asc") String sortDirection) {
-        
-        log.info("Getting partners: page={}, size={}, sortBy={}, sortDirection={}", page, size, sortBy, sortDirection);
-        
-        Pageable pageable = createPageable(page, size, sortBy, sortDirection);
-        Page<Partner> partners = partnerService.getAllPartners(pageable);
-        
-        // Convert to DTO directly within transaction
-        Page<PartnerResponse> partnerResponses = partners.map(mapper::toPartnerResponse);
-        
-        return ResponseEntity.ok(successPage(partnerResponses));
-    }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Get partner by ID")
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<PartnerResponse>> getPartnerById(
-            @Parameter(description = "Partner ID") @PathVariable Long id) {
-        
-        Partner partner = partnerService.getPartnerById(id)
-                .orElseThrow(() -> new backend.exception.ResourceNotFoundException("Partner", "id", id));
-        
-        // Convert to DTO directly within transaction
-        PartnerResponse response = mapper.toPartnerResponse(partner);
-        return ResponseEntity.ok(success("Partner retrieved successfully", response));
-    }
-
-    @GetMapping("/search")
-    @Operation(summary = "Search partners")
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<PageResponse<PartnerResponse>>> searchPartners(
-            @Parameter(description = "Search keyword") @RequestParam(required = false) String keyword,
-            @Parameter(description = "Partner type") @RequestParam(required = false) String type,
-            @Parameter(description = "Location") @RequestParam(required = false) String location,
-            @Parameter(description = "Minimum rating") @RequestParam(required = false) Double minRating,
-            @Parameter(description = "Page number") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "Sort by") @RequestParam(defaultValue = "name") String sortBy,
-            @Parameter(description = "Sort direction") @RequestParam(defaultValue = "asc") String sortDirection) {
-        
+    @Operation(summary = "Get all active partners")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<List<PartnerResponse>>> getAllPartners() {
         try {
-            Pageable pageable = createPageable(page, size, sortBy, sortDirection);
+            log.info("Fetching all active partners.");
+            List<Partner> partners = partnerRepository.findByStatusOrderByNameAsc(Partner.PartnerStatus.Active);
             
-            Partner.PartnerType partnerType = null;
-            if (type != null && !type.isEmpty()) {
-                try {
-                    partnerType = Partner.PartnerType.valueOf(type);
-                } catch (IllegalArgumentException e) {
-                    log.warn("Invalid partner type: {}", type);
-                }
-            }
+            List<PartnerResponse> responses = partners.stream()
+                    .map(partner -> {
+                        // Force initialization of lazy-loaded collections
+                        if (partner.getImages() != null) {
+                            partner.getImages().size();
+                        }
+                        if (partner.getTourItineraries() != null) {
+                            partner.getTourItineraries().size();
+                            // Also initialize nested collections for statistics and tour details
+                            partner.getTourItineraries().forEach(itinerary -> {
+                                if (itinerary.getTour() != null) {
+                                    if (itinerary.getTour().getBookings() != null) {
+                                        itinerary.getTour().getBookings().size();
+                                    }
+                                    if (itinerary.getTour().getReviews() != null) {
+                                        itinerary.getTour().getReviews().size();
+                                    }
+                                    if (itinerary.getTour().getImages() != null) {
+                                        itinerary.getTour().getImages().size();
+                                    }
+                                    if (itinerary.getTour().getCategory() != null) {
+                                        // Access category to initialize it
+                                        itinerary.getTour().getCategory().getName();
+                                    }
+                                }
+                            });
+                        }
+                        return entityMapper.toPartnerResponse(partner);
+                    })
+                    .collect(Collectors.toList());
             
-            Page<Partner> partners = partnerService.searchPartners(keyword, partnerType, location, minRating, pageable);
-            
-            // Convert to DTO directly within transaction
-            Page<PartnerResponse> partnerResponses = partners.map(mapper::toPartnerResponse);
-            return ResponseEntity.ok(successPage(partnerResponses));
+            log.info("Found {} active partners.", responses.size());
+            return ResponseEntity.ok(ApiResponse.success("Partners retrieved successfully", responses));
         } catch (Exception e) {
-            log.error("Error searching partners", e);
-            throw e;
+            log.error("Error fetching partners: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(ApiResponse.error("Failed to retrieve partners"));
+        }
+    }
+
+    @GetMapping("/{slug}")
+    @Operation(summary = "Get partner by slug")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<PartnerResponse>> getPartnerBySlug(
+            @Parameter(description = "Partner slug") @PathVariable String slug) {
+        try {
+            log.info("Fetching partner with slug: {}", slug);
+            return partnerRepository.findBySlug(slug)
+                    .map(partner -> {
+                        // Force initialization of lazy-loaded collections
+                        if (partner.getImages() != null) {
+                            partner.getImages().size();
+                        }
+                        if (partner.getTourItineraries() != null) {
+                            partner.getTourItineraries().size();
+                            // Also initialize nested collections for statistics and tour details
+                            partner.getTourItineraries().forEach(itinerary -> {
+                                if (itinerary.getTour() != null) {
+                                    if (itinerary.getTour().getBookings() != null) {
+                                        itinerary.getTour().getBookings().size();
+                                    }
+                                    if (itinerary.getTour().getReviews() != null) {
+                                        itinerary.getTour().getReviews().size();
+                                    }
+                                    if (itinerary.getTour().getImages() != null) {
+                                        itinerary.getTour().getImages().size();
+                                    }
+                                    if (itinerary.getTour().getCategory() != null) {
+                                        // Access category to initialize it
+                                        itinerary.getTour().getCategory().getName();
+                                    }
+                                }
+                            });
+                        }
+                        
+                        PartnerResponse response = entityMapper.toPartnerResponse(partner);
+                        log.info("Partner found: {}", partner.getName());
+                        return ResponseEntity.ok(ApiResponse.success("Partner retrieved successfully", response));
+                    })
+                    .orElseGet(() -> {
+                        log.warn("Partner with slug {} not found.", slug);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(ApiResponse.error("Partner not found"));
+                    });
+        } catch (Exception e) {
+            log.error("Error fetching partner with slug {}: {}", slug, e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(ApiResponse.error("Failed to retrieve partner"));
         }
     }
 }

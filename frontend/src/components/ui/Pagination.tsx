@@ -68,25 +68,25 @@ const Pagination: React.FC<PaginationProps> = ({
   const pageNumbers = getPageNumbers();
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-6">
+    <div className="flex items-center justify-center gap-2 mt-8 animate-fade-in-scale">
       {/* Previous Button */}
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 0}
-        className="px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+        className="px-4 py-2.5 rounded-none border border-stone-300 bg-white text-slate-700 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-all duration-300 hover:scale-105 active:scale-95 hover:border-slate-700 font-normal"
         title="Trang trước"
       >
         <ChevronLeftIcon className="h-5 w-5" />
       </button>
 
       {/* Page Numbers */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         {pageNumbers.map((page, index) => {
           if (page === '...') {
             return (
               <span
                 key={`ellipsis-${index}`}
-                className="px-3 py-2 text-gray-500"
+                className="px-3 py-2 text-gray-400 font-normal"
               >
                 ...
               </span>
@@ -101,12 +101,14 @@ const Pagination: React.FC<PaginationProps> = ({
               key={pageNum}
               onClick={() => onPageChange(pageNum)}
               className={`
-                min-w-[40px] px-3 py-2 rounded-md border transition-colors font-medium
+                min-w-[44px] px-4 py-2.5 rounded-none border transition-all duration-300 font-medium tracking-wide
+                hover:scale-105 active:scale-95
                 ${isActive
-                  ? 'bg-blue-600 text-white border-blue-600 cursor-default'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  ? 'text-white border-slate-900 cursor-default shadow-lg'
+                  : 'bg-white text-slate-700 border-stone-300 hover:bg-stone-50 hover:border-slate-700'
                 }
               `}
+              style={isActive ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
             >
               {pageNum + 1}
             </button>
@@ -118,7 +120,7 @@ const Pagination: React.FC<PaginationProps> = ({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages - 1}
-        className="px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+        className="px-4 py-2.5 rounded-none border border-stone-300 bg-white text-slate-700 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white transition-all duration-300 hover:scale-105 active:scale-95 hover:border-slate-700 font-normal"
         title="Trang sau"
       >
         <ChevronRightIcon className="h-5 w-5" />

@@ -12,8 +12,17 @@ import {
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import { Card } from '../components/ui';
+import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
 const AboutPage: React.FC = () => {
+  // Scroll animation hooks for each section
+  const timelineSection = useScrollAnimation({ threshold: 0.2 });
+  const valuesSection = useScrollAnimation({ threshold: 0.2 });
+  const missionSection = useScrollAnimation({ threshold: 0.3 });
+  const teamSection = useScrollAnimation({ threshold: 0.2 });
+  const whyChooseSection = useScrollAnimation({ threshold: 0.2 });
+  const ctaSection = useScrollAnimation({ threshold: 0.3 });
+
   const coreValues = [
     {
       icon: HeartIcon,
@@ -131,36 +140,36 @@ const AboutPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-stone-50">
       {/* Hero Section */}
-      <div className="relative h-[600px] bg-gradient-to-r from-blue-900 to-blue-700">
+      <div className="relative h-[600px] bg-slate-900">
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-blend-overlay"
+          className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: 'url(https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600&h=900&fit=crop)'
           }}
         >
-          <div className="absolute inset-0 bg-blue-900/60"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-800/75 to-slate-900/85"></div>
         </div>
         
         <div className="relative h-full flex items-center justify-center text-center text-white px-4">
           <div className="max-w-4xl">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+            <h1 className="text-5xl md:text-6xl font-normal mb-6 tracking-tight animate-fade-in-up opacity-0">
               Đam Mê Khám Phá, Tận Tâm Phục Vụ
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100">
+            <p className="text-xl md:text-2xl mb-8 text-gray-300 font-normal leading-relaxed animate-fade-in-up opacity-0 delay-200">
               Kết nối bạn với thế giới - Từ Việt Nam đến năm châu
             </p>
             
             {/* Quick Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-12">
               {achievements.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">
+                <div key={index} className="text-center bg-white/5 backdrop-blur-sm p-6 rounded-none border border-white/10 animate-fade-in-scale opacity-0" style={{ animationDelay: `${0.4 + index * 0.1}s` }}>
+                  <div className="text-3xl md:text-4xl font-normal mb-2" style={{ color: '#D4AF37' }}>
                     {stat.number}
                   </div>
-                  <div className="text-lg font-semibold mb-1">{stat.label}</div>
-                  <div className="text-sm text-blue-200">{stat.description}</div>
+                  <div className="text-base font-medium mb-1 tracking-wide">{stat.label}</div>
+                  <div className="text-sm text-gray-400 font-normal">{stat.description}</div>
                 </div>
               ))}
             </div>
@@ -169,12 +178,12 @@ const AboutPage: React.FC = () => {
       </div>
 
       {/* Our Story Timeline */}
-      <section className="py-20 px-4 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <section className="py-20 px-4 max-w-7xl mx-auto" ref={timelineSection.ref}>
+        <div className={`text-center mb-16 scroll-animate ${timelineSection.isVisible ? 'scroll-fade-in-up' : ''}`}>
+          <h2 className="text-4xl md:text-5xl font-normal text-slate-900 mb-4 tracking-tight">
             Câu Chuyện Của Chúng Tôi
               </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto font-normal leading-relaxed">
             Từ những chuyến du lịch nội địa đầu tiên đến việc mở rộng ra thị trường quốc tế, 
             chúng tôi đã trở thành cầu nối đáng tin cậy giữa du khách Việt và thế giới.
           </p>
@@ -182,26 +191,26 @@ const AboutPage: React.FC = () => {
 
         <div className="relative">
           {/* Timeline line */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-blue-200 hidden md:block"></div>
+          <div className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full hidden md:block" style={{ background: 'linear-gradient(180deg, #D4AF37 0%, #C5A028 100%)' }}></div>
           
           <div className="space-y-12">
             {timeline.map((item, index) => (
-              <div key={index} className={`flex items-center ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
+              <div key={index} className={`flex items-center ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} scroll-animate ${timelineSection.isVisible ? 'scroll-slide-in' : ''}`} style={{ animationDelay: `${index * 0.2}s` }}>
                 <div className="w-full md:w-5/12">
-                  <Card className="p-6 shadow-lg hover:shadow-xl transition-shadow">
+                  <div className="bg-white border border-stone-200 rounded-none p-6 hover:border-slate-700 hover:shadow-lg transition-all duration-300">
                     <div className="flex items-center mb-4">
-                      <div className="bg-blue-600 text-white px-4 py-2 rounded-full font-bold text-lg">
+                      <div className="text-white px-4 py-2 rounded-none font-medium text-lg tracking-wide" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                         {item.year}
                       </div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                    <p className="text-gray-600">{item.description}</p>
-                  </Card>
+                    <h3 className="text-xl font-medium text-slate-900 mb-3 tracking-tight">{item.title}</h3>
+                    <p className="text-gray-600 font-normal leading-relaxed">{item.description}</p>
+                  </div>
                 </div>
                 
                 {/* Timeline dot */}
                 <div className="hidden md:flex w-2/12 justify-center">
-                  <div className="w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
+                  <div className="w-4 h-4 rounded-full border-4 border-white shadow-lg" style={{ background: '#D4AF37' }}></div>
             </div>
             
                 <div className="hidden md:block w-5/12"></div>
@@ -212,54 +221,54 @@ const AboutPage: React.FC = () => {
       </section>
 
       {/* Mission, Vision & Values */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-white" ref={missionSection.ref}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className={`text-center mb-16 scroll-animate ${missionSection.isVisible ? 'scroll-fade-in-up' : ''}`}>
+            <h2 className="text-4xl md:text-5xl font-normal text-slate-900 mb-4 tracking-tight">
               Sứ Mệnh, Tầm Nhìn & Giá Trị
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-lg text-gray-600 font-normal leading-relaxed">
               Những giá trị cốt lõi định hướng mọi hoạt động của chúng tôi
             </p>
           </div>
           
           {/* Mission & Vision */}
           <div className="grid md:grid-cols-2 gap-8 mb-16">
-            <Card className="p-8 text-center bg-blue-50 border-blue-200">
-              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className={`bg-stone-50 border border-stone-200 rounded-none p-8 text-center hover:border-slate-700 hover:shadow-lg transition-all duration-300 scroll-animate ${missionSection.isVisible ? 'scroll-slide-in' : ''}`} style={{ animationDelay: '0s' }}>
+              <div className="w-16 h-16 rounded-none flex items-center justify-center mx-auto mb-6" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                 <HeartIcon className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Sứ Mệnh</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">
+              <h3 className="text-2xl font-medium text-slate-900 mb-4 tracking-tight">Sứ Mệnh</h3>
+              <p className="text-gray-600 text-base leading-relaxed font-normal">
                 Mang đến những trải nghiệm du lịch đích thực, an toàn và đáng nhớ 
                 cho du khách Việt Nam, kết nối họ với thế giới và quảng bá văn hóa Việt ra toàn cầu.
               </p>
-            </Card>
+            </div>
 
-            <Card className="p-8 text-center bg-green-50 border-green-200">
-              <div className="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className={`bg-stone-50 border border-stone-200 rounded-none p-8 text-center hover:border-slate-700 hover:shadow-lg transition-all duration-300 scroll-animate ${missionSection.isVisible ? 'scroll-slide-in' : ''}`} style={{ animationDelay: '0.2s' }}>
+              <div className="w-16 h-16 rounded-none flex items-center justify-center mx-auto mb-6" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                 <StarIcon className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Tầm Nhìn</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">
+              <h3 className="text-2xl font-medium text-slate-900 mb-4 tracking-tight">Tầm Nhìn</h3>
+              <p className="text-gray-600 text-base leading-relaxed font-normal">
                 Trở thành công ty lữ hành hàng đầu Việt Nam, được công nhận quốc tế 
                 về chất lượng dịch vụ và du lịch bền vững.
               </p>
-            </Card>
+            </div>
             </div>
             
           {/* Core Values */}
-          <div>
-            <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">Giá Trị Cốt Lõi</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div ref={valuesSection.ref}>
+            <h3 className={`text-3xl font-normal text-center text-slate-900 mb-12 tracking-tight scroll-animate ${valuesSection.isVisible ? 'scroll-zoom-in' : ''}`}>Giá Trị Cốt Lõi</h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {coreValues.map((value, index) => (
-                <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
-                  <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <value.icon className="w-8 h-8 text-blue-600" />
+                <div key={index} className={`bg-white border border-stone-200 rounded-none p-6 text-center hover:border-slate-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-2 scroll-animate ${valuesSection.isVisible ? 'scroll-rotate-in' : ''}`} style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div className="bg-stone-100 w-16 h-16 rounded-none flex items-center justify-center mx-auto mb-4 transition-transform duration-300 hover:scale-110">
+                    <value.icon className="w-8 h-8" style={{ color: '#D4AF37' }} />
               </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">{value.title}</h4>
-                  <p className="text-gray-600">{value.description}</p>
-                </Card>
+                  <h4 className="text-lg font-medium text-slate-900 mb-3 tracking-tight">{value.title}</h4>
+                  <p className="text-gray-600 text-sm font-normal leading-relaxed">{value.description}</p>
+                </div>
               ))}
             </div>
           </div>
@@ -267,71 +276,71 @@ const AboutPage: React.FC = () => {
       </section>
 
       {/* Meet Our Team */}
-      <section className="py-20">
+      <section className="py-20 bg-stone-50" ref={teamSection.ref}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className={`text-center mb-16 scroll-animate ${teamSection.isVisible ? 'scroll-fade-in-up' : ''}`}>
+            <h2 className="text-4xl md:text-5xl font-normal text-slate-900 mb-4 tracking-tight">
               Đội Ngũ Của Chúng Tôi
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-lg text-gray-600 font-normal leading-relaxed">
               Những con người tài năng và đam mê tạo nên sự khác biệt
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
             {teamMembers.map((member, index) => (
-              <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
+              <div key={index} className={`bg-white border border-stone-200 rounded-none p-6 text-center hover:border-slate-700 hover:shadow-lg transition-all duration-300 scroll-animate ${teamSection.isVisible ? 'scroll-zoom-in' : ''}`} style={{ animationDelay: teamSection.isVisible ? `${index * 0.15}s` : '0s' }}>
                   <img
                     src={member.image}
                     alt={member.name}
-                  className="w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-blue-100"
+                  className="w-32 h-32 rounded-none mx-auto mb-6 object-cover border-2 transition-transform duration-300 hover:scale-105" style={{ borderColor: '#D4AF37' }}
                 />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{member.name}</h3>
-                <p className="text-blue-600 font-semibold mb-3">{member.position}</p>
-                <p className="text-gray-600 mb-4">{member.experience}</p>
-                <blockquote className="text-gray-700 italic border-l-4 border-blue-200 pl-4">
+                <h3 className="text-xl font-medium text-slate-900 mb-2 tracking-tight">{member.name}</h3>
+                <p className="font-medium mb-3 text-sm tracking-wide" style={{ color: '#D4AF37' }}>{member.position}</p>
+                <p className="text-gray-600 mb-4 text-sm font-normal">{member.experience}</p>
+                <blockquote className="text-gray-700 italic text-sm font-normal leading-relaxed border-l-2 pl-4" style={{ borderColor: '#D4AF37' }}>
                     {member.quote}
                   </blockquote>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-white" ref={whyChooseSection.ref}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className={`text-center mb-16 scroll-animate ${whyChooseSection.isVisible ? 'scroll-fade-in-up' : ''}`}>
+            <h2 className="text-4xl md:text-5xl font-normal text-slate-900 mb-4 tracking-tight">
               Tại Sao Lựa Chọn Chúng Tôi?
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-lg text-gray-600 font-normal leading-relaxed">
               Những lý do thuyết phục để bạn tin tưởng và đồng hành cùng chúng tôi
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {whyChooseUs.map((reason, index) => (
-              <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
-                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <reason.icon className="w-8 h-8 text-blue-600" />
+              <div key={index} className={`bg-stone-50 border border-stone-200 rounded-none p-6 text-center hover:border-slate-700 hover:shadow-lg transition-all duration-300 scroll-animate ${whyChooseSection.isVisible ? 'scroll-fade-in-up' : ''}`} style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="bg-stone-100 w-16 h-16 rounded-none flex items-center justify-center mx-auto mb-4">
+                  <reason.icon className="w-8 h-8" style={{ color: '#D4AF37' }} />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">{reason.title}</h3>
-                <p className="text-gray-600">{reason.description}</p>
-              </Card>
+                <h3 className="text-base font-medium text-slate-900 mb-3 tracking-tight">{reason.title}</h3>
+                <p className="text-gray-600 text-sm font-normal leading-relaxed">{reason.description}</p>
+              </div>
             ))}
                   </div>
 
           {/* Additional Stats */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
+          <div className="bg-stone-50 border border-stone-200 rounded-none p-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {achievements.map((stat, index) => (
                 <div key={index} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">
+                  <div className="text-3xl md:text-4xl font-normal mb-2" style={{ color: '#D4AF37' }}>
                     {stat.number}
                   </div>
-                  <div className="text-lg font-semibold text-gray-900 mb-1">{stat.label}</div>
-                  <div className="text-sm text-gray-600">{stat.description}</div>
+                  <div className="text-base font-medium text-slate-900 mb-1 tracking-wide">{stat.label}</div>
+                  <div className="text-sm text-gray-600 font-normal">{stat.description}</div>
                 </div>
               ))}
               </div>
@@ -340,19 +349,25 @@ const AboutPage: React.FC = () => {
       </section>
 
       {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-800">
-        <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-4xl font-bold text-white mb-6">
+      <section className="py-20 bg-slate-900 relative overflow-hidden" ref={ctaSection.ref}>
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 left-0 w-64 h-64 rounded-full -translate-x-32 -translate-y-32" style={{ background: '#D4AF37' }}></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full translate-x-48 translate-y-48" style={{ background: '#D4AF37' }}></div>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95"></div>
+        
+        <div className={`relative max-w-4xl mx-auto text-center px-4 scroll-animate ${ctaSection.isVisible ? 'scroll-zoom-in' : ''}`}>
+          <h2 className="text-4xl md:text-5xl font-normal text-white mb-6 tracking-tight">
             Sẵn Sàng Khám Phá Thế Giới Cùng Chúng Tôi?
           </h2>
-          <p className="text-xl text-blue-100 mb-10">
+          <p className="text-lg text-gray-300 mb-10 font-normal leading-relaxed">
             Từ Việt Nam đến năm châu - Hãy để chúng tôi biến ước mơ du lịch của bạn thành hiện thực
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/tours"
-              className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors inline-flex items-center justify-center"
+              className="bg-white text-slate-900 px-8 py-4 rounded-none font-medium text-base hover:bg-gray-100 transition-all duration-300 hover:shadow-lg inline-flex items-center justify-center tracking-wide"
             >
               <GlobeAltIcon className="w-5 h-5 mr-2" />
               Khám Phá Các Tour Du Lịch
@@ -360,7 +375,7 @@ const AboutPage: React.FC = () => {
             
             <Link
               to="/contact"
-              className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-colors inline-flex items-center justify-center"
+              className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-none font-medium text-base hover:bg-white transition-all duration-300 hover:shadow-lg inline-flex items-center justify-center tracking-wide hover:text-slate-900"
             >
               <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2" />
               Liên Hệ Để Được Tư Vấn
@@ -368,14 +383,14 @@ const AboutPage: React.FC = () => {
           </div>
           
           {/* Contact Info */}
-          <div className="mt-12 pt-8 border-t border-blue-500">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-blue-100">
+          <div className="mt-12 pt-8" style={{ borderTop: '1px solid #D4AF37' }}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-gray-400 font-normal">
               <div className="flex items-center">
-                <PhoneIcon className="w-5 h-5 mr-2" />
+                <PhoneIcon className="w-5 h-5 mr-2" style={{ color: '#D4AF37' }} />
                 <span>Hotline: 1900 1234 (24/7)</span>
               </div>
               <div className="flex items-center">
-                <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2" />
+                <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2" style={{ color: '#D4AF37' }} />
                 <span>Email: info@tourcompany.vn</span>
               </div>
             </div>

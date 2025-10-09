@@ -212,4 +212,29 @@ public interface TourRepository extends JpaRepository<Tour, Long> {
            "ORDER BY t.isFeatured DESC, t.id DESC")
     List<Tour> findByDestination(@Param("destination") String destination, 
                                  @Param("status") TourStatus status);
+    
+    /**
+     * Find trending tours based on recent bookings (last 30 days)
+     * Orders by booking count DESC
+     */
+    @Query("SELECT t, COUNT(DISTINCT b) as bookingCount FROM Tour t " +
+           "LEFT JOIN Booking b ON b.tour.id = t.id " +
+           "WHERE t.status = :status AND t.deletedAt IS NULL " +
+           "AND (b.createdAt IS NULL OR b.createdAt >= :since) " +
+           "GROUP BY t " +
+           "ORDER BY bookingCount DESC, t.isFeatured DESC, t.id DESC")
+    List<Object[]> findTrendingTours(@Param("status") TourStatus status, 
+                                    @Param("since") java.time.LocalDateTime since, 
+                                    Pageable pageable);
+    
+    /**
+     * Find tours by category IDs (for personalized recommendations)
+     */
+    @Query("SELECT t FROM Tour t WHERE " +
+           "t.category.id IN :categoryIds " +
+           "AND t.status = :status AND t.deletedAt IS NULL " +
+           "ORDER BY t.isFeatured DESC, t.id DESC")
+    List<Tour> findByCategoryIds(@Param("categoryIds") List<Long> categoryIds, 
+                                 @Param("status") TourStatus status, 
+                                 Pageable pageable);
 }

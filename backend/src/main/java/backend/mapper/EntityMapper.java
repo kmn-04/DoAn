@@ -705,9 +705,123 @@ public class EntityMapper {
         response.setAvatarUrl(partner.getAvatarUrl());
         response.setRating(partner.getRating());
         response.setStatus(partner.getStatus() != null ? partner.getStatus().toString() : null);
-        response.setSpecialties(partner.getSpecialties()); // Keep as JSON string
+        
+        // Parse specialties from JSON string to List
+        try {
+            if (partner.getSpecialties() != null && !partner.getSpecialties().isEmpty()) {
+                response.setSpecialties(parseJsonArray(partner.getSpecialties()));
+            } else {
+                response.setSpecialties(new ArrayList<>());
+            }
+        } catch (Exception e) {
+            log.warn("Could not parse specialties for partner {}: {}", partner.getId(), e.getMessage());
+            response.setSpecialties(new ArrayList<>());
+        }
+        
         response.setCreatedAt(partner.getCreatedAt());
         response.setUpdatedAt(partner.getUpdatedAt());
+        
+        // Calculate statistics from tour itineraries and map tours
+        try {
+            if (partner.getTourItineraries() != null) {
+                // Get unique tours from itineraries
+                Set<backend.entity.Tour> uniqueTours = partner.getTourItineraries().stream()
+                    .map(backend.entity.TourItinerary::getTour)
+                    .filter(java.util.Objects::nonNull)
+                    .collect(Collectors.toSet());
+                
+                response.setTotalTours(uniqueTours.size());
+                
+                // Calculate total bookings and reviews from all tours
+                int totalBookings = uniqueTours.stream()
+                    .mapToInt(tour -> tour.getBookings() != null ? tour.getBookings().size() : 0)
+                    .sum();
+                
+                int totalReviews = uniqueTours.stream()
+                    .mapToInt(tour -> tour.getReviews() != null ? tour.getReviews().size() : 0)
+                    .sum();
+                
+                response.setTotalBookings(totalBookings);
+                response.setTotalReviews(totalReviews);
+                
+                // Map tours to response
+                List<PartnerResponse.PartnerTourResponse> tourResponses = uniqueTours.stream()
+                    .map(tour -> {
+                        PartnerResponse.PartnerTourResponse tourResp = new PartnerResponse.PartnerTourResponse();
+                        tourResp.setId(tour.getId());
+                        tourResp.setTitle(tour.getName());
+                        tourResp.setSlug(tour.getSlug());
+                        tourResp.setDescription(tour.getDescription());
+                        tourResp.setPrice(tour.getPrice());
+                        tourResp.setSalePrice(tour.getSalePrice());
+                        tourResp.setDuration(tour.getDuration());
+                        tourResp.setLocation(tour.getDestination());
+                        
+                        // Calculate average rating from reviews
+                        double avgRating = 0.0;
+                        if (tour.getReviews() != null && !tour.getReviews().isEmpty()) {
+                            avgRating = tour.getReviews().stream()
+                                .mapToDouble(backend.entity.Review::getRating)
+                                .average()
+                                .orElse(0.0);
+                        }
+                        tourResp.setRating(avgRating);
+                        
+                        tourResp.setMaxGroupSize(tour.getMaxPeople());
+                        tourResp.setDifficulty(null); // Not available in current schema
+                        tourResp.setStatus(tour.getStatus() != null ? tour.getStatus().name() : null);
+                        
+                        // Map tour images
+                        if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+                            List<String> imageUrls = tour.getImages().stream()
+                                .map(backend.entity.TourImage::getImageUrl)
+                                .collect(Collectors.toList());
+                            tourResp.setImages(imageUrls);
+                        } else {
+                            tourResp.setImages(new ArrayList<>());
+                        }
+                        
+                        // Count reviews
+                        tourResp.setTotalReviews(tour.getReviews() != null ? tour.getReviews().size() : 0);
+                        
+                        // Map category
+                        if (tour.getCategory() != null) {
+                            PartnerResponse.CategoryResponse catResp = new PartnerResponse.CategoryResponse();
+                            catResp.setId(tour.getCategory().getId());
+                            catResp.setName(tour.getCategory().getName());
+                            catResp.setSlug(tour.getCategory().getSlug());
+                            tourResp.setCategory(catResp);
+                        }
+                        
+                        // Map highlights
+                        try {
+                            if (tour.getHighlights() != null && !tour.getHighlights().isEmpty()) {
+                                tourResp.setHighlights(parseJsonArray(tour.getHighlights()));
+                            } else {
+                                tourResp.setHighlights(new ArrayList<>());
+                            }
+                        } catch (Exception e) {
+                            tourResp.setHighlights(new ArrayList<>());
+                        }
+                        
+                        return tourResp;
+                    })
+                    .collect(Collectors.toList());
+                
+                response.setTours(tourResponses);
+            } else {
+                response.setTotalTours(0);
+                response.setTotalBookings(0);
+                response.setTotalReviews(0);
+                response.setTours(new ArrayList<>());
+            }
+        } catch (Exception e) {
+            log.warn("Could not calculate statistics for partner {}: {}", partner.getId(), e.getMessage());
+            response.setTotalTours(0);
+            response.setTotalBookings(0);
+            response.setTotalReviews(0);
+            response.setTours(new ArrayList<>());
+        }
         
         // Map images if available - safely handle lazy loading
         try {

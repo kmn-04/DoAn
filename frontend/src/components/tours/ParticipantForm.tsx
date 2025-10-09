@@ -111,8 +111,8 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
 
   return (
     <div className={className}>
-      <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-        <UserIcon className="h-6 w-6 mr-2 text-blue-600" />
+      <h3 className="text-xl font-normal text-slate-900 mb-6 flex items-center tracking-tight">
+        <UserIcon className="h-6 w-6 mr-3" style={{ color: '#D4AF37' }} />
         Thông tin hành khách
       </h3>
 
@@ -125,36 +125,38 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
             <div
               key={index}
               className={`
-                border-2 rounded-lg overflow-hidden transition-all
-                ${isExpanded ? 'border-blue-400' : 'border-gray-200'}
-                ${isComplete && !isExpanded ? 'bg-green-50 border-green-300' : 'bg-white'}
+                border-2 rounded-none overflow-hidden transition-all
+                ${isExpanded ? 'border-slate-700' : 'border-stone-200'}
+                ${isComplete && !isExpanded ? 'bg-amber-50 border-amber-300' : 'bg-white'}
               `}
             >
               {/* Header */}
               <button
                 onClick={() => setExpandedIndex(isExpanded ? null : index)}
-                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className="w-full px-5 py-4 flex items-center justify-between hover:bg-stone-50 transition-colors"
               >
                 <div className="flex items-center space-x-3">
-                  <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center text-white font-bold
-                    ${participant.type === 'ADULT' ? 'bg-blue-600' : 
-                      participant.type === 'CHILD' ? 'bg-purple-600' : 'bg-pink-600'}
-                  `}>
+                  <div 
+                    className={`
+                      w-10 h-10 rounded-none flex items-center justify-center text-white font-medium
+                      ${participant.type === 'ADULT' ? 'bg-slate-900' : 
+                        participant.type === 'CHILD' ? 'bg-slate-700' : 'bg-slate-600'}
+                    `}
+                  >
                     {index + 1}
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-gray-900">
+                    <div className="font-medium text-slate-900 tracking-tight">
                       {getTypeLabel(participant.type, index)}
                     </div>
                     {participant.fullName && (
-                      <div className="text-sm text-gray-600">{participant.fullName}</div>
+                      <div className="text-sm text-gray-600 font-normal">{participant.fullName}</div>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   {isComplete && !isExpanded && (
-                    <span className="text-green-600 text-sm font-medium">✓ Hoàn thành</span>
+                    <span className="text-sm font-medium" style={{ color: '#D4AF37' }}>✓ Hoàn thành</span>
                   )}
                   <span className="text-gray-400">
                     {isExpanded ? '▲' : '▼'}
@@ -176,7 +178,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                         value={participant.fullName}
                         onChange={(e) => updateParticipant(index, 'fullName', e.target.value)}
                         placeholder="Nguyễn Văn A"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         required
                       />
                     </div>
@@ -190,7 +192,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                         type="date"
                         value={participant.dateOfBirth}
                         onChange={(e) => updateParticipant(index, 'dateOfBirth', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         required
                       />
                     </div>
@@ -203,7 +205,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                       <select
                         value={participant.gender}
                         onChange={(e) => updateParticipant(index, 'gender', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         required
                       >
                         <option value="MALE">Nam</option>
@@ -223,7 +225,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                           value={participant.phone || ''}
                           onChange={(e) => updateParticipant(index, 'phone', e.target.value)}
                           placeholder="0901234567"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         />
                       </div>
                     )}
@@ -239,7 +241,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                           value={participant.email || ''}
                           onChange={(e) => updateParticipant(index, 'email', e.target.value)}
                           placeholder="email@example.com"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         />
                       </div>
                     )}
@@ -255,7 +257,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                           value={participant.passportNumber || ''}
                           onChange={(e) => updateParticipant(index, 'passportNumber', e.target.value)}
                           placeholder="A1234567"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                           required
                         />
                       </div>
@@ -269,7 +271,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                           value={participant.idNumber || ''}
                           onChange={(e) => updateParticipant(index, 'idNumber', e.target.value)}
                           placeholder="001234567890"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         />
                       </div>
                     )}
@@ -284,7 +286,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                         value={participant.nationality || ''}
                         onChange={(e) => updateParticipant(index, 'nationality', e.target.value)}
                         placeholder="Việt Nam"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         required={isInternational}
                       />
                     </div>
@@ -297,9 +299,9 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
       </div>
 
       {/* Summary */}
-      <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p className="text-sm text-blue-800">
-          📋 Tổng số hành khách: <strong>{totalParticipants}</strong> người 
+      <div className="mt-6 bg-stone-50 border border-stone-200 rounded-none p-4">
+        <p className="text-sm text-slate-900 font-normal">
+          📋 Tổng số hành khách: <strong className="font-medium">{totalParticipants}</strong> người 
           ({numAdults} người lớn
           {numChildren > 0 && `, ${numChildren} trẻ em`}
           {numInfants > 0 && `, ${numInfants} em bé`})

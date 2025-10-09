@@ -36,45 +36,51 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
   const [recommendations, setRecommendations] = useState<{
     forYou: TourRecommendation[];
     trending: TourRecommendation[];
-    similar: TourRecommendation[];
-    lastMinute: TourRecommendation[];
   }>({
     forYou: [],
-    trending: [],
-    similar: [],
-    lastMinute: []
+    trending: []
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'forYou' | 'trending' | 'similar' | 'lastMinute'>('forYou');
+  const [activeTab, setActiveTab] = useState<'forYou' | 'trending'>('forYou');
   const [wishlistItems, setWishlistItems] = useState<Set<number>>(new Set());
+  
+  // Drag to scroll
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   useEffect(() => {
     const loadRecommendations = async () => {
-      if (!isAuthenticated || !user?.id) {
-        // Load trending for non-authenticated users
-        try {
-          const trending = await recommendationService.getTrendingTours(limit);
-          setRecommendations(prev => ({ ...prev, trending }));
-          setActiveTab('trending');
-        } catch (error) {
-          console.error('Error loading trending tours:', error);
-        } finally {
-          setIsLoading(false);
-        }
-        return;
-      }
-
       try {
         setIsLoading(true);
         
-        // Load personalized recommendations
-        const data = await recommendationService.getHomepageRecommendations(user.id);
-        setRecommendations(data);
+        // Load both tabs in parallel
+        const [forYou, trending] = await Promise.all([
+          // For You: personalized or featured
+          isAuthenticated && user?.id 
+            ? recommendationService.getRecommendations({ userId: user.id, limit, context: 'homepage' })
+            : Promise.resolve({ recommendations: [] }),
+          // Trending: always load
+          recommendationService.getTrendingTours(limit)
+        ]);
         
-        // Load user's wishlist to show heart states
-        const userWishlist = await wishlistService.getUserWishlist(user.id);
-        const wishlistIds = new Set(userWishlist.map(item => item.id));
-        setWishlistItems(wishlistIds);
+        setRecommendations({
+          forYou: forYou.recommendations || [],
+          trending: trending || []
+        });
+        
+        // Set default tab based on auth status
+        if (!isAuthenticated) {
+          setActiveTab('trending');
+        }
+        
+        // Load user's wishlist if authenticated
+        if (isAuthenticated && user?.id) {
+          const userWishlist = await wishlistService.getUserWishlist(user.id);
+          const wishlistIds = new Set(userWishlist.map(item => item.id));
+          setWishlistItems(wishlistIds);
+        }
         
       } catch (error) {
         console.error('Error loading recommendations:', error);
@@ -161,6 +167,45 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
     return 'Sắp hết hạn';
   };
 
+  // Mouse drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX);
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
+  };
+
+  // Touch drag handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX);
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   const tabs = [
     {
       id: 'forYou' as const,
@@ -174,20 +219,6 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
       name: 'Đang hot',
       icon: FireIcon,
       count: recommendations.trending?.length || 0,
-      visible: true
-    },
-    {
-      id: 'similar' as const,
-      name: 'Tương tự',
-      icon: TagIcon,
-      count: recommendations.similar?.length || 0,
-      visible: isAuthenticated
-    },
-    {
-      id: 'lastMinute' as const,
-      name: 'Last minute',
-      icon: ClockIcon,
-      count: recommendations.lastMinute?.length || 0,
       visible: true
     }
   ].filter(tab => tab.visible);
@@ -220,14 +251,16 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
   }
 
   return (
-    <section className={`py-12 bg-gray-50 ${className}`}>
+    <section className={`py-24 bg-white ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {showHeader && (
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              {isAuthenticated ? 'Gợi ý dành riêng cho bạn' : 'Tour đang được quan tâm'}
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <div className="text-center mb-20 animate-fade-in-up opacity-0">
+            <div className="inline-block px-8 py-3 border border-slate-800 rounded-none mb-6">
+              <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">
+                {isAuthenticated ? 'Gợi Ý Dành Cho Bạn' : 'Tour Đang Hot'}
+              </span>
+            </div>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed">
               {isAuthenticated 
                 ? 'Dựa trên sở thích và lịch sử tìm kiếm của bạn'
                 : 'Những tour du lịch được yêu thích nhất hiện tại'
@@ -237,24 +270,24 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
         )}
 
         {/* Tabs */}
-        <div className="flex justify-center mb-8">
-          <div className="flex space-x-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+        <div className="flex justify-center mb-12">
+          <div className="flex space-x-2 bg-stone-50 rounded-none p-1 border border-stone-200">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center space-x-2 px-6 py-3 rounded-none text-xs font-medium tracking-wider uppercase transition-all duration-300 ${
                   activeTab === tab.id
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-slate-900 text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white'
                 }`}
               >
                 <tab.icon className="h-4 w-4" />
                 <span>{tab.name}</span>
                 {tab.count > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  <span className={`px-2 py-0.5 rounded-none text-xs font-medium ${
                     activeTab === tab.id
-                      ? 'bg-blue-500 text-white'
+                      ? 'bg-amber-600 text-white'
                       : 'bg-gray-200 text-gray-600'
                   }`}>
                     {tab.count}
@@ -265,26 +298,46 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
           </div>
         </div>
 
-        {/* Recommendations Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {currentRecommendations.slice(0, limit).map((recommendation) => (
-            <RecommendationCard
-              key={recommendation.tour.id}
-              recommendation={recommendation}
-              isInWishlist={wishlistItems.has(recommendation.tour.id)}
-              onWishlistToggle={() => handleWishlistToggle(recommendation.tour.id)}
-              showWishlist={isAuthenticated}
-            />
-          ))}
+        {/* Recommendations Grid - Horizontal Scroll */}
+        <div className="relative">
+          <div 
+            ref={scrollContainerRef}
+            className={`flex gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-4 select-none ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              scrollBehavior: isDragging ? 'auto' : 'smooth'
+            }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {currentRecommendations.slice(0, limit).map((recommendation) => (
+              <div key={recommendation.tour.id} className="flex-none w-[calc(25%-18px)]">
+                <RecommendationCard
+                  recommendation={recommendation}
+                  isInWishlist={wishlistItems.has(recommendation.tour.id)}
+                  onWishlistToggle={() => handleWishlistToggle(recommendation.tour.id)}
+                  showWishlist={isAuthenticated}
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* View All Button */}
         {currentRecommendations.length > limit && (
-          <div className="text-center mt-8">
+          <div className="text-center mt-16">
             <Link to="/tours">
-              <Button variant="outline" className="px-8 py-3">
-                Xem tất cả
-                <ChevronRightIcon className="h-4 w-4 ml-2" />
+              <Button className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-none text-xs font-medium tracking-[0.2em] uppercase transition-all duration-300 border border-slate-900 hover:border-amber-600">
+                Xem Tất Cả Tour
+                <ChevronRightIcon className="h-4 w-4 ml-3" />
               </Button>
             </Link>
           </div>
@@ -333,15 +386,17 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
+    <div className="bg-white rounded-none border border-stone-200 overflow-hidden group hover:shadow-xl hover:border-slate-700 transition-all duration-300">
       <div className="relative">
         {/* Image */}
         <Link to={`/tours/${tour.slug}`}>
-          <img
-            src={tour.mainImage}
-            alt={tour.name}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          <div className="relative h-56 overflow-hidden">
+            <img
+              src={tour.mainImage}
+              alt={tour.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+            />
+          </div>
         </Link>
 
         {/* Wishlist Button */}
@@ -358,13 +413,15 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
           </button>
         )}
 
-        {/* Score Badge */}
-        <div className="absolute top-3 left-3">
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-600 text-white">
-            <SparklesIcon className="h-3 w-3 mr-1" />
-            {Math.round(score * 100)}% phù hợp
-          </span>
-        </div>
+        {/* Score Badge - Only show if score > 0 */}
+        {score > 0 && (
+          <div className="absolute top-4 left-4">
+            <span className="inline-flex items-center px-3 py-1.5 rounded-none text-xs font-medium tracking-wider uppercase bg-amber-600 text-white shadow-lg">
+              <SparklesIcon className="h-3 w-3 mr-1" />
+              {Math.round(score * 100)}% Phù Hợp
+            </span>
+          </div>
+        )}
 
         {/* Urgency Banner */}
         {urgency && (
@@ -399,7 +456,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
         {/* Title */}
         <Link to={`/tours/${tour.slug}`}>
-          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+          <h3 className="font-medium text-gray-900 mb-2 h-12 line-clamp-2 group-hover:text-gray-600 transition-colors">
             {tour.name}
           </h3>
         </Link>
@@ -407,10 +464,10 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
         {/* Location & Duration */}
         <div className="flex items-center text-sm text-gray-600 mb-3 space-x-4">
           <div className="flex items-center">
-            <MapPinIcon className="h-4 w-4 mr-1" />
-            <span>{tour.location}</span>
+            <MapPinIcon className="h-4 w-4 mr-1 flex-shrink-0" />
+            <span className="truncate">{tour.destination || tour.region || tour.location || 'Việt Nam'}</span>
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center flex-shrink-0">
             <ClockIcon className="h-4 w-4 mr-1" />
             <span>{tour.duration} ngày</span>
           </div>
@@ -448,24 +505,16 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
           )}
         </div>
 
-        {/* Reasons */}
-        {reasons.length > 0 && (
-          <div className="mb-3">
-            <div className="text-xs text-blue-600 font-medium mb-1">Tại sao phù hợp:</div>
-            <div className="text-xs text-gray-600">
-              {reasons.slice(0, 2).join(' • ')}
-            </div>
-          </div>
-        )}
+        {/* Reasons - Removed per user request */}
 
         {/* CTA Button */}
         <Link to={`/tours/${tour.slug}`} className="block">
-          <Button className="w-full">
-            Xem chi tiết
+          <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 text-xs tracking-[0.2em] uppercase rounded-none transition-all duration-300 border border-slate-900 hover:border-amber-600">
+            Xem Chi Tiết
           </Button>
         </Link>
       </div>
-    </Card>
+    </div>
   );
 };
 

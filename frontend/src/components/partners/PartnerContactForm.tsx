@@ -77,35 +77,35 @@ const PartnerContactForm: React.FC = () => {
 
   if (isSubmitted) {
     return (
-      <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="bg-white rounded-none border border-stone-200 shadow-lg p-8 text-center">
+        <div className="w-16 h-16 rounded-none flex items-center justify-center mx-auto mb-4" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
           </svg>
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <h3 className="text-xl font-medium text-slate-900 mb-2 tracking-tight">
           Cảm ơn bạn đã quan tâm!
         </h3>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 mb-6 font-normal leading-relaxed">
           Chúng tôi đã nhận được thông tin của bạn và sẽ liên hệ trong vòng 24 giờ.
         </p>
-        <Button
+        <button
           onClick={() => setIsSubmitted(false)}
-          variant="outline"
+          className="inline-flex items-center bg-white text-slate-900 px-6 py-3 rounded-none border-2 border-slate-900 hover:bg-slate-900 hover:text-white transition-all duration-300 text-sm font-medium tracking-wide"
         >
           Gửi thêm thông tin khác
-        </Button>
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8">
+    <div className="bg-white rounded-none border border-stone-200 shadow-lg p-8">
       <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+        <h3 className="text-2xl font-normal text-slate-900 mb-3 tracking-tight">
           Đăng ký Hợp tác
         </h3>
-        <p className="text-gray-600">
+        <p className="text-gray-600 font-normal leading-relaxed">
           Điền thông tin để chúng tôi liên hệ và tư vấn chi tiết
         </p>
       </div>
@@ -114,11 +114,11 @@ const PartnerContactForm: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Company Name */}
           <div>
-            <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="companyName" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
               Tên công ty/doanh nghiệp *
             </label>
             <div className="relative">
-              <BuildingOfficeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <BuildingOfficeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
               <input
                 type="text"
                 id="companyName"
@@ -126,7 +126,7 @@ const PartnerContactForm: React.FC = () => {
                 value={formData.companyName}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
                 placeholder="VD: ABC Travel Company"
               />
             </div>
@@ -134,11 +134,11 @@ const PartnerContactForm: React.FC = () => {
 
           {/* Contact Person */}
           <div>
-            <label htmlFor="contactPerson" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="contactPerson" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
               Người liên hệ *
             </label>
             <div className="relative">
-              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
               <input
                 type="text"
                 id="contactPerson"
@@ -146,7 +146,7 @@ const PartnerContactForm: React.FC = () => {
                 value={formData.contactPerson}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
                 placeholder="Họ và tên"
               />
             </div>
@@ -154,11 +154,11 @@ const PartnerContactForm: React.FC = () => {
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
               Email *
             </label>
             <div className="relative">
-              <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
               <input
                 type="email"
                 id="email"
@@ -166,7 +166,7 @@ const PartnerContactForm: React.FC = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
                 placeholder="contact@company.com"
               />
             </div>
@@ -174,11 +174,11 @@ const PartnerContactForm: React.FC = () => {
 
           {/* Phone */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="phone" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
               Số điện thoại *
             </label>
             <div className="relative">
-              <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
               <input
                 type="tel"
                 id="phone"
@@ -186,7 +186,7 @@ const PartnerContactForm: React.FC = () => {
                 value={formData.phone}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
                 placeholder="0123 456 789"
               />
             </div>
@@ -194,7 +194,7 @@ const PartnerContactForm: React.FC = () => {
 
           {/* Business Type */}
           <div>
-            <label htmlFor="businessType" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="businessType" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
               Lĩnh vực hoạt động *
             </label>
             <select
@@ -203,7 +203,7 @@ const PartnerContactForm: React.FC = () => {
               value={formData.businessType}
               onChange={handleInputChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
             >
               {partnerTypes.map((type) => (
                 <option key={type.value} value={type.value}>
@@ -215,11 +215,11 @@ const PartnerContactForm: React.FC = () => {
 
           {/* Location */}
           <div>
-            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="location" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
               Địa điểm hoạt động *
             </label>
             <div className="relative">
-              <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
               <input
                 type="text"
                 id="location"
@@ -227,7 +227,7 @@ const PartnerContactForm: React.FC = () => {
                 value={formData.location}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
                 placeholder="VD: Hà Nội, TP.HCM, Đà Nẵng"
               />
             </div>
@@ -236,18 +236,18 @@ const PartnerContactForm: React.FC = () => {
 
         {/* Website */}
         <div>
-          <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="website" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
             Website (tùy chọn)
           </label>
           <div className="relative">
-            <GlobeAltIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <GlobeAltIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
             <input
               type="url"
               id="website"
               name="website"
               value={formData.website}
               onChange={handleInputChange}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
               placeholder="https://www.company.com"
             />
           </div>
@@ -255,18 +255,18 @@ const PartnerContactForm: React.FC = () => {
 
         {/* Message */}
         <div>
-          <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="message" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
             Lời nhắn
           </label>
           <div className="relative">
-            <ChatBubbleLeftRightIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <ChatBubbleLeftRightIcon className="absolute left-3 top-3 h-5 w-5" style={{ color: '#D4AF37' }} />
             <textarea
               id="message"
               name="message"
               value={formData.message}
               onChange={handleInputChange}
               rows={4}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+              className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors resize-none font-normal"
               placeholder="Chia sẻ thêm về doanh nghiệp của bạn và mong muốn hợp tác..."
             />
           </div>
@@ -274,10 +274,11 @@ const PartnerContactForm: React.FC = () => {
 
         {/* Submit Button */}
         <div className="text-center">
-          <Button
+          <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full md:w-auto min-w-[200px] bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            className="w-full md:w-auto min-w-[200px] text-white px-8 py-3 rounded-none hover:opacity-90 transition-all duration-300 text-sm font-medium tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
           >
             {isSubmitting ? (
               <div className="flex items-center justify-center">
@@ -290,11 +291,11 @@ const PartnerContactForm: React.FC = () => {
             ) : (
               'Gửi thông tin hợp tác'
             )}
-          </Button>
+          </button>
         </div>
 
         {/* Privacy Note */}
-        <p className="text-xs text-gray-500 text-center">
+        <p className="text-xs text-gray-500 text-center font-normal">
           Thông tin của bạn sẽ được bảo mật và chỉ sử dụng để liên hệ hợp tác.
         </p>
       </form>
