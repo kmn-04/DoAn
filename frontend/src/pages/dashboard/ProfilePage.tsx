@@ -15,6 +15,7 @@ import { Card, Button, Input } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
 import { userService } from '../../services';
 import type { UserUpdateRequest } from '../../services/userService';
+import { toast } from 'react-hot-toast';
 
 interface ProfileData {
   name: string;
@@ -115,12 +116,6 @@ const ProfilePage: React.FC = () => {
       newErrors.name = 'Vui lòng nhập họ tên';
     }
 
-    if (!editData.email.trim()) {
-      newErrors.email = 'Vui lòng nhập email';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email)) {
-      newErrors.email = 'Email không hợp lệ';
-    }
-
     if (!editData.phone.trim()) {
       newErrors.phone = 'Vui lòng nhập số điện thoại';
     } else if (!/^[0-9]{10,11}$/.test(editData.phone.replace(/\s/g, ''))) {
@@ -163,25 +158,10 @@ const ProfilePage: React.FC = () => {
         });
       }
       
-      // Success notification
-      const successEvent = new CustomEvent('show-toast', {
-        detail: {
-          type: 'success',
-          title: 'Cập nhật thành công!',
-          message: 'Thông tin cá nhân đã được lưu.'
-        }
-      });
-      window.dispatchEvent(successEvent);
+      toast.success('Thông tin cá nhân đã được cập nhật thành công');
     } catch (error) {
-      // Error notification  
-      const errorEvent = new CustomEvent('show-toast', {
-        detail: {
-          type: 'error',
-          title: 'Cập nhật thất bại',
-          message: 'Có lỗi xảy ra, vui lòng thử lại.'
-        }
-      });
-      window.dispatchEvent(errorEvent);
+      console.error('Error updating profile:', error);
+      toast.error('Không thể cập nhật thông tin. Vui lòng thử lại');
     } finally {
       setIsLoading(false);
     }
@@ -202,27 +182,13 @@ const ProfilePage: React.FC = () => {
       if (file) {
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-          const errorEvent = new CustomEvent('show-toast', {
-            detail: {
-              type: 'error',
-              title: 'File quá lớn',
-              message: 'Vui lòng chọn ảnh có kích thước nhỏ hơn 5MB.'
-            }
-          });
-          window.dispatchEvent(errorEvent);
+          toast.error('File quá lớn. Vui lòng chọn ảnh có kích thước nhỏ hơn 5MB');
           return;
         }
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-          const errorEvent = new CustomEvent('show-toast', {
-            detail: {
-              type: 'error',
-              title: 'File không hợp lệ',
-              message: 'Vui lòng chọn file ảnh (JPG, PNG, GIF).'
-            }
-          });
-          window.dispatchEvent(errorEvent);
+          toast.error('File không hợp lệ. Vui lòng chọn file ảnh (JPG, PNG, GIF)');
           return;
         }
 
@@ -248,24 +214,10 @@ const ProfilePage: React.FC = () => {
             updateUser({ avatarUrl: avatarUrl });
           }
           
-          const successEvent = new CustomEvent('show-toast', {
-            detail: {
-              type: 'success',
-              title: 'Upload thành công!',
-              message: 'Ảnh đại diện đã được cập nhật.'
-            }
-          });
-          window.dispatchEvent(successEvent);
-          
+          toast.success('Ảnh đại diện đã được cập nhật thành công');
         } catch (error) {
-          const errorEvent = new CustomEvent('show-toast', {
-            detail: {
-              type: 'error',
-              title: 'Upload thất bại',
-              message: 'Có lỗi xảy ra khi upload ảnh.'
-            }
-          });
-          window.dispatchEvent(errorEvent);
+          console.error('Error uploading avatar:', error);
+          toast.error('Không thể upload ảnh. Vui lòng thử lại');
         } finally {
           setIsLoading(false);
         }
@@ -433,10 +385,9 @@ const ProfilePage: React.FC = () => {
                   <Input
                     label="Email *"
                     type="email"
-                    value={isEditing ? editData.email : profileData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    error={errors.email}
-                    disabled={!isEditing}
+                    value={profileData.email}
+                    disabled={true}
+                    className="bg-stone-100 cursor-not-allowed"
                   />
                   
                   <Input

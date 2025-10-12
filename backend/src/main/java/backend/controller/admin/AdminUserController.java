@@ -209,7 +209,7 @@ public class AdminUserController extends BaseController {
     }
     
     @DeleteMapping("/{id}")
-    @Operation(summary = "Soft delete user")
+    @Operation(summary = "Delete user permanently")
     @Transactional
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
         try {

@@ -10,6 +10,8 @@ import toast from 'react-hot-toast';
 const MyReviewsPage: React.FC = () => {
   const [reviews, setReviews] = useState<ReviewResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingReview, setEditingReview] = useState<ReviewResponse | null>(null);
+  const [editForm, setEditForm] = useState({ rating: 5, comment: '' });
 
   useEffect(() => {
     loadReviews();
@@ -36,10 +38,41 @@ const MyReviewsPage: React.FC = () => {
     try {
       await reviewService.deleteReview(reviewId);
       toast.success('Đã xóa đánh giá thành công');
-      loadReviews(); // Reload
+      loadReviews();
     } catch (error: any) {
       console.error('Error deleting review:', error);
       const message = error?.response?.data?.error || 'Không thể xóa đánh giá';
+      toast.error(message);
+    }
+  };
+
+  const handleEditClick = (review: ReviewResponse) => {
+    setEditingReview(review);
+    setEditForm({
+      rating: review.rating,
+      comment: review.comment
+    });
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editingReview) return;
+
+    if (!editForm.comment.trim()) {
+      toast.error('Vui lòng nhập nội dung đánh giá');
+      return;
+    }
+
+    try {
+      await reviewService.updateReview(editingReview.id, {
+        rating: editForm.rating,
+        comment: editForm.comment
+      });
+      toast.success('Đã cập nhật đánh giá thành công');
+      setEditingReview(null);
+      loadReviews();
+    } catch (error: any) {
+      console.error('Error updating review:', error);
+      const message = error?.response?.data?.error || 'Không thể cập nhật đánh giá';
       toast.error(message);
     }
   };
@@ -200,10 +233,7 @@ const MyReviewsPage: React.FC = () => {
                         size="sm"
                         variant="outline"
                         className="border-2 border-stone-300 hover:border-slate-900 rounded-none"
-                        onClick={() => {
-                          // TODO: Implement edit functionality
-                          toast.info('Chức năng chỉnh sửa đang được phát triển');
-                        }}
+                        onClick={() => handleEditClick(review)}
                       >
                         <PencilIcon className="h-4 w-4 mr-1" />
                         Sửa
@@ -225,6 +255,86 @@ const MyReviewsPage: React.FC = () => {
             </div>
           ))}
         </div>
+
+        {/* Edit Modal */}
+        {editingReview && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-none max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-stone-200">
+              {/* Modal Header */}
+              <div className="p-6 border-b border-stone-200">
+                <h2 className="text-2xl font-normal text-slate-900 tracking-tight">
+                  Chỉnh sửa đánh giá
+                </h2>
+                <p className="text-sm text-gray-600 mt-1 font-normal">
+                  {editingReview.tour.name}
+                </p>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 space-y-6">
+                {/* Rating */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Đánh giá <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setEditForm({ ...editForm, rating: star })}
+                        className="focus:outline-none transition-transform hover:scale-110"
+                      >
+                        <StarIcon
+                          className="h-8 w-8"
+                          style={{ color: star <= editForm.rating ? '#D4AF37' : '#e5e7eb' }}
+                        />
+                      </button>
+                    ))}
+                    <span className="ml-3 text-lg font-medium text-slate-900">
+                      {editForm.rating}/5
+                    </span>
+                  </div>
+                </div>
+
+                {/* Comment */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nội dung đánh giá <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={editForm.comment}
+                    onChange={(e) => setEditForm({ ...editForm, comment: e.target.value })}
+                    rows={6}
+                    className="w-full px-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal transition-all"
+                    placeholder="Chia sẻ trải nghiệm của bạn về chuyến đi này..."
+                  />
+                  <p className="mt-2 text-sm text-gray-500 font-normal">
+                    {editForm.comment.length} ký tự
+                  </p>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-6 border-t border-stone-200 flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingReview(null)}
+                  className="border-2 border-stone-300 hover:border-slate-900 rounded-none"
+                >
+                  Hủy
+                </Button>
+                <Button
+                  onClick={handleEditSubmit}
+                  className="text-white rounded-none hover:opacity-90 transition-all"
+                  style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
+                >
+                  Lưu thay đổi
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

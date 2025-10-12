@@ -3,8 +3,10 @@ package backend.controller;
 import backend.dto.request.TourRequest;
 import backend.dto.response.ApiResponse;
 import backend.dto.response.TourResponse;
+import backend.entity.Notification;
 import backend.entity.Tour;
 import backend.mapper.TourMapper;
+import backend.service.NotificationService;
 import backend.service.TourService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,7 +19,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,6 +32,7 @@ public class AdminTourController extends BaseController {
     
     private final TourService tourService;
     private final TourMapper tourMapper;
+    private final NotificationService notificationService;
     
     @PostMapping
     @Operation(summary = "Create new tour", description = "Create a new tour (Admin only)")
@@ -41,6 +43,24 @@ public class AdminTourController extends BaseController {
             log.info("Admin creating tour: {}", request.getName());
             
             TourResponse tour = tourService.createTour(request);
+            
+            // Send notification to all users about new tour
+            try {
+                String title = "🎉 Tour mới ra mắt!";
+                String message = String.format("Tour \"%s\" vừa được thêm vào hệ thống. Khám phá ngay!", tour.getName());
+                String link = "/tours/" + tour.getSlug();
+                
+                notificationService.createNotificationForUsers(
+                    title, 
+                    message, 
+                    Notification.NotificationType.Info,
+                    link
+                );
+                log.info("Sent notification to all users about new tour: {}", tour.getName());
+            } catch (Exception notifError) {
+                log.error("Failed to send notification for new tour", notifError);
+                // Don't fail tour creation if notification fails
+            }
             
             return ResponseEntity.ok(success("Tour created successfully", tour));
             

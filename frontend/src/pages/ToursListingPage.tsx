@@ -3,8 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import TourCard from '../components/tours/TourCard';
 import TourFilters from '../components/tours/TourFilters';
 import { Pagination, SkeletonTourCard } from '../components/ui';
-import { tourService, categoryService } from '../services';
+import { tourService, categoryService, wishlistService } from '../services';
 import type { TourResponse, TourSearchRequest, CategoryResponse } from '../services';
+import { useAuth } from '../hooks/useAuth';
+import { toast } from 'react-hot-toast';
 
 interface Tour {
   id: number;
@@ -80,6 +82,7 @@ const convertTourResponse = (tourResponse: TourResponse): Tour => {
 };
 
 const ToursListingPage: React.FC = () => {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tours, setTours] = useState<Tour[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
@@ -123,6 +126,26 @@ const ToursListingPage: React.FC = () => {
     };
     fetchCategories();
   }, []);
+
+  // Load wishlist from server
+  useEffect(() => {
+    const loadWishlist = async () => {
+      if (!user?.id) {
+        setWishlist([]);
+        return;
+      }
+      
+      try {
+        const wishlistItems = await wishlistService.getUserWishlist(user.id);
+        const wishlistIds = wishlistItems.map(item => item.id);
+        setWishlist(wishlistIds);
+      } catch (error) {
+        console.error('Error loading wishlist:', error);
+      }
+    };
+    
+    loadWishlist();
+  }, [user?.id]);
 
   // Helper to find category ID from slug or name
   const getCategoryId = useCallback((categorySlug: string): number | undefined => {
@@ -276,12 +299,42 @@ const ToursListingPage: React.FC = () => {
     });
   };
 
-  const handleToggleWishlist = (tourId: number) => {
+  const handleToggleWishlist = async (tourId: number) => {
+    // Check if user is logged in
+    if (!user?.id) {
+      toast.error('Vui lòng đăng nhập để lưu tour yêu thích');
+      return;
+    }
+
+    const isCurrentlyWishlisted = wishlist.includes(tourId);
+    
+    // Optimistic update
     setWishlist(prev => 
-      prev.includes(tourId) 
+      isCurrentlyWishlisted
         ? prev.filter(id => id !== tourId)
         : [...prev, tourId]
     );
+
+    try {
+      if (isCurrentlyWishlisted) {
+        // Remove from wishlist
+        await wishlistService.removeFromWishlist(user.id, tourId);
+        toast.success('Đã xóa khỏi danh sách yêu thích');
+      } else {
+        // Add to wishlist
+        await wishlistService.addToWishlist(user.id, tourId);
+        toast.success('Đã thêm vào danh sách yêu thích');
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      // Revert optimistic update on error
+      setWishlist(prev => 
+        isCurrentlyWishlisted
+          ? [...prev, tourId]
+          : prev.filter(id => id !== tourId)
+      );
+      toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
+    }
   };
 
   // Display tours directly from API (already filtered and paginated by backend)

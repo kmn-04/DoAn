@@ -15,102 +15,7 @@ import { Card, Button, Pagination, SkeletonTourCard } from '../../components/ui'
 import { wishlistService } from '../../services';
 import { useAuth } from '../../hooks/useAuth';
 import type { WishlistItem } from '../../services/wishlistService';
-
-interface WishlistTour {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-  duration: string;
-  location: string;
-  rating: number;
-  reviewCount: number;
-  maxPeople: number;
-  image: string;
-  category: string;
-  addedDate: string;
-}
-
-const mockWishlistTours: WishlistTour[] = [
-  {
-    id: 1,
-    name: "Hạ Long Bay - Kỳ Quan Thế Giới",
-    slug: "ha-long-bay-ky-quan-the-gioi",
-    description: "Khám phá vẻ đẹp huyền bí của Vịnh Hạ Long với hàng ngàn đảo đá vôi kỳ thú",
-    price: 2500000,
-    originalPrice: 3000000,
-    duration: "2 ngày 1 đêm",
-    location: "Quảng Ninh",
-    rating: 4.8,
-    reviewCount: 245,
-    maxPeople: 20,
-    image: "https://images.unsplash.com/photo-1528127269322-539801943592?w=800",
-    category: "beach",
-    addedDate: "2024-01-20"
-  },
-  {
-    id: 2,
-    name: "Sapa - Thiên Đường Mây Trắng",
-    slug: "sapa-thien-duong-may-trang",
-    description: "Chinh phục đỉnh Fansipan và khám phá văn hóa độc đáo của các dân tộc thiểu số",
-    price: 1800000,
-    duration: "3 ngày 2 đêm",
-    location: "Lào Cai",
-    rating: 4.9,
-    reviewCount: 189,
-    maxPeople: 15,
-    image: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800",
-    category: "mountain",
-    addedDate: "2024-01-18"
-  },
-  {
-    id: 3,
-    name: "Phú Quốc - Đảo Ngọc Xanh",
-    slug: "phu-quoc-dao-ngoc-xanh",
-    description: "Thư giãn tại những bãi biển tuyệt đẹp và thưởng thức hải sản tươi ngon",
-    price: 3200000,
-    duration: "4 ngày 3 đêm",
-    location: "Kiên Giang",
-    rating: 4.7,
-    reviewCount: 312,
-    maxPeople: 25,
-    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800",
-    category: "beach",
-    addedDate: "2024-01-15"
-  },
-  {
-    id: 4,
-    name: "Hội An - Phố Cổ Thơ Mộng",
-    slug: "hoi-an-pho-co-tho-mong",
-    description: "Dạo bước trong phố cổ Hội An với những ngôi nhà cổ kính và đèn lồng rực rỡ",
-    price: 1500000,
-    duration: "2 ngày 1 đêm",
-    location: "Quảng Nam",
-    rating: 4.6,
-    reviewCount: 156,
-    maxPeople: 18,
-    image: "https://images.unsplash.com/photo-1555618254-74e3f7d4f9b8?w=800",
-    category: "culture",
-    addedDate: "2024-01-12"
-  },
-  {
-    id: 5,
-    name: "Đà Lạt - Thành Phố Ngàn Hoa",
-    slug: "da-lat-thanh-pho-ngan-hoa",
-    description: "Khám phá thành phố mộng mơ với khí hậu mát mẻ và cảnh quan lãng mạn",
-    price: 1200000,
-    duration: "3 ngày 2 đêm",
-    location: "Lâm Đồng",
-    rating: 4.5,
-    reviewCount: 203,
-    maxPeople: 20,
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800",
-    category: "city",
-    addedDate: "2024-01-10"
-  }
-];
+import { toast } from 'react-hot-toast';
 
 const WishlistPage: React.FC = () => {
   const { user } = useAuth();
@@ -129,36 +34,19 @@ const WishlistPage: React.FC = () => {
 
   useEffect(() => {
     const fetchWishlist = async () => {
-      if (!user?.id) return;
+      if (!user?.id) {
+        setIsLoading(false);
+        return;
+      }
       
       try {
         setIsLoading(true);
-        
-        // Get wishlist from backend
         const wishlistItems = await wishlistService.getUserWishlist(user.id);
         setTours(wishlistItems);
-        
       } catch (error) {
         console.error('Error fetching wishlist:', error);
-        
-        // Fallback to mock data on error
-        const mockWishlistItems: WishlistItem[] = mockWishlistTours.map(tour => ({
-          ...tour,
-          tourType: 'domestic' as const,
-          addedDate: tour.addedDate
-        }));
-        
-        setTours(mockWishlistItems);
-        
-        const errorEvent = new CustomEvent('show-toast', {
-          detail: {
-            type: 'warning',
-            title: 'Không thể tải dữ liệu',
-            message: 'Đang hiển thị dữ liệu mẫu. Vui lòng thử lại sau.'
-          }
-        });
-        window.dispatchEvent(errorEvent);
-        
+        toast.error('Không thể tải danh sách yêu thích. Vui lòng thử lại sau.');
+        setTours([]);
       } finally {
         setIsLoading(false);
       }
@@ -211,39 +99,16 @@ const WishlistPage: React.FC = () => {
   };
 
   const handleRemoveFromWishlist = async (tourId: number, tourName: string) => {
-    // Show confirmation
     const confirmed = window.confirm(`Bạn có chắc muốn xóa "${tourName}" khỏi danh sách yêu thích?`);
     
     if (confirmed && user?.id) {
       try {
-        // Remove from backend
         await wishlistService.removeFromWishlist(user.id, tourId);
-        
-        // Update local state
         setTours(prev => prev.filter(tour => tour.id !== tourId));
-        
-        // Show success notification
-        const successEvent = new CustomEvent('show-toast', {
-          detail: {
-            type: 'success',
-            title: 'Đã xóa khỏi yêu thích',
-            message: `"${tourName}" đã được xóa khỏi danh sách.`
-          }
-        });
-        window.dispatchEvent(successEvent);
-        
+        toast.success(`Đã xóa "${tourName}" khỏi danh sách yêu thích`);
       } catch (error) {
         console.error('Error removing from wishlist:', error);
-        
-        // Show error notification
-        const errorEvent = new CustomEvent('show-toast', {
-          detail: {
-            type: 'error',
-            title: 'Xóa thất bại',
-            message: 'Không thể xóa tour khỏi danh sách yêu thích.'
-          }
-        });
-        window.dispatchEvent(errorEvent);
+        toast.error('Không thể xóa tour khỏi danh sách yêu thích');
       }
     }
   };
