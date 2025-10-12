@@ -39,6 +39,16 @@ interface RegisterRequest {
   dateOfBirth?: string;
 }
 
+interface ForgotPasswordRequest {
+  email: string;
+}
+
+interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 const authService = {
   // Login user
   login: async (data: LoginRequest): Promise<AuthResponse> => {
@@ -85,6 +95,16 @@ const authService = {
   validateToken: async (): Promise<User> => {
     const response = await apiClient.get<User>('/auth/validate-token');
     return response.data.data!;
+  },
+
+  // Forgot password
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<void> => {
+    await apiClient.post('/auth/forgot-password', data);
+  },
+
+  // Reset password
+  resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
+    await apiClient.post('/auth/reset-password', data);
   },
 };
 

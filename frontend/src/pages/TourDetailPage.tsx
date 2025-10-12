@@ -24,6 +24,7 @@ import TourReviews from '../components/tours/TourReviews';
 import TourCard from '../components/tours/TourCard';
 import { Button } from '../components/ui';
 import tourService from '../services/tourService';
+import { TourCardSkeleton, BookingFormSkeleton } from '../components/ui/Skeleton';
 
 interface TourDetail {
   id: number;
@@ -147,51 +148,6 @@ const mockTourDetail: TourDetail = {
   availableDates: []
 };
 
-// Mock related tours
-const mockRelatedTours = [
-  {
-    id: 2,
-    name: "Sapa - Thiên Đường Mây Trắng",
-    slug: "sapa-thien-duong-may-trang",
-    description: "Chinh phục đỉnh Fansipan và khám phá văn hóa độc đáo",
-    price: 1800000,
-    duration: "3 ngày 2 đêm",
-    location: "Lào Cai",
-    rating: 4.9,
-    reviewCount: 189,
-    maxPeople: 15,
-    image: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800",
-    category: "mountain"
-  },
-  {
-    id: 3,
-    name: "Phú Quốc - Đảo Ngọc Xanh",
-    slug: "phu-quoc-dao-ngoc-xanh",
-    description: "Thư giãn tại những bãi biển tuyệt đẹp",
-    price: 3200000,
-    duration: "4 ngày 3 đêm",
-    location: "Kiên Giang",
-    rating: 4.7,
-    reviewCount: 312,
-    maxPeople: 25,
-    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800",
-    category: "beach"
-  },
-  {
-    id: 4,
-    name: "Hội An - Phố Cổ Thơ Mộng",
-    slug: "hoi-an-pho-co-tho-mong",
-    description: "Dạo bước trong phố cổ với đèn lồng rực rỡ",
-    price: 1500000,
-    duration: "2 ngày 1 đêm",
-    location: "Quảng Nam",
-    rating: 4.6,
-    reviewCount: 156,
-    maxPeople: 18,
-    image: "https://images.unsplash.com/photo-1555618254-74e3f7d4f9b8?w=800",
-    category: "culture"
-  }
-];
 
 const TourDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -403,10 +359,10 @@ const TourDetailPage: React.FC = () => {
             setRelatedTours(relatedToursList);
           } catch (relatedError) {
             console.error('❌ Error fetching related tours:', relatedError);
-            setRelatedTours(mockRelatedTours);
+            setRelatedTours([]);
           }
         } else {
-          setRelatedTours(mockRelatedTours);
+          setRelatedTours([]);
         }
         
       } catch (error) {
@@ -465,8 +421,68 @@ const TourDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header Skeleton */}
+          <div className="mb-8 animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content Skeleton */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Image Gallery Skeleton */}
+              <div className="h-96 bg-gray-200 rounded-lg"></div>
+              
+              {/* Tour Info Skeleton */}
+              <div className="bg-white rounded-lg p-6 animate-pulse">
+                <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="space-y-2 mb-6">
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+                <div className="flex space-x-4">
+                  <div className="h-6 bg-gray-200 rounded w-16"></div>
+                  <div className="h-6 bg-gray-200 rounded w-20"></div>
+                  <div className="h-6 bg-gray-200 rounded w-12"></div>
+                </div>
+              </div>
+              
+              {/* Tabs Skeleton */}
+              <div className="bg-white rounded-lg p-6 animate-pulse">
+                <div className="flex space-x-4 mb-6">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-8 bg-gray-200 rounded w-20"></div>
+                  ))}
+                </div>
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-4 bg-gray-200 rounded w-full"></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Booking Form Skeleton */}
+            <div className="lg:col-span-1">
+              <BookingFormSkeleton />
+            </div>
+          </div>
+          
+          {/* Related Tours Skeleton */}
+          <div className="mt-16">
+            <div className="text-center mb-8 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-32 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-48 mx-auto"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <TourCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -798,16 +814,17 @@ const TourDetailPage: React.FC = () => {
         </div>
 
         {/* Related Tours */}
-        {relatedTours.length > 0 && (
-          <div className="mt-16 pt-12 border-t border-stone-200 animate-fade-in-up opacity-0 delay-800">
-            <div className="text-center mb-12">
-              <div className="inline-block px-8 py-3 border border-slate-800 rounded-none mb-6 hover:border-slate-600 transition-all hover:shadow-md">
-                <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">Tour Liên Quan</span>
-              </div>
-              <p className="text-gray-600 max-w-2xl mx-auto font-normal">
-                Khám phá những tour tương tự có thể bạn quan tâm
-              </p>
+        <div className="mt-16 pt-12 border-t border-stone-200 animate-fade-in-up opacity-0 delay-800">
+          <div className="text-center mb-12">
+            <div className="inline-block px-8 py-3 border border-slate-800 rounded-none mb-6 hover:border-slate-600 transition-all hover:shadow-md">
+              <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">Tour Liên Quan</span>
             </div>
+            <p className="text-gray-600 max-w-2xl mx-auto font-normal">
+              Khám phá những tour tương tự có thể bạn quan tâm
+            </p>
+          </div>
+          
+          {relatedTours.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {relatedTours.map((relatedTour, index) => (
                 <div key={relatedTour.id} className="stagger-animation opacity-0" style={{ animationDelay: `${index * 150}ms` }}>
@@ -815,8 +832,28 @@ const TourDetailPage: React.FC = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 text-gray-400">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Chưa có tour liên quan
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Hiện tại chưa có tour tương tự để gợi ý. Hãy khám phá thêm các tour khác.
+              </p>
+              <Link 
+                to="/tours" 
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-slate-800 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
+              >
+                Xem tất cả tour
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

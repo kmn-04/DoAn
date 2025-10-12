@@ -89,79 +89,6 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
 
   const pageSize = 10;
 
-  // Mock data for development
-  const mockCancellations: CancellationHistoryItem[] = [
-    {
-      id: 1,
-      bookingId: 123456,
-      bookingCode: 'BK123456',
-      tourName: 'Tokyo - Kyoto - Osaka 7N6D',
-      reason: 'Khẩn cấp y tế trong gia đình, cần hủy để chăm sóc người thân',
-      reasonCategory: 'MEDICAL_EMERGENCY',
-      status: CancellationStatus.APPROVED,
-      refundStatus: RefundStatus.COMPLETED,
-      originalAmount: 15000000,
-      finalRefundAmount: 11925000,
-      cancelledAt: '2024-01-10T10:30:00Z',
-      processedAt: '2024-01-10T15:45:00Z',
-      refundProcessedAt: '2024-01-12T09:20:00Z',
-      adminNotes: 'Đã xác minh giấy tờ y tế. Hoàn tiền 100% theo chính sách khẩn cấp.',
-      hoursBeforeDeparture: 120,
-      policyName: 'Chính sách y tế khẩn cấp',
-      isEmergencyCase: true
-    },
-    {
-      id: 2,
-      bookingId: 123457,
-      bookingCode: 'BK123457',
-      tourName: 'Hạ Long Bay Adventure 3N2D',
-      reason: 'Xung đột lịch trình công việc không thể sắp xếp được',
-      reasonCategory: 'SCHEDULE_CONFLICT',
-      status: CancellationStatus.UNDER_REVIEW,
-      refundStatus: RefundStatus.PENDING,
-      originalAmount: 3500000,
-      finalRefundAmount: 2625000,
-      cancelledAt: '2024-01-15T14:20:00Z',
-      hoursBeforeDeparture: 48,
-      policyName: 'Chính sách tiêu chuẩn',
-      isEmergencyCase: false
-    },
-    {
-      id: 3,
-      bookingId: 123458,
-      bookingCode: 'BK123458',
-      tourName: 'Sapa Trekking Experience 2N1D',
-      reason: 'Điều kiện thời tiết bất lợi, cảnh báo bão',
-      reasonCategory: 'WEATHER_CONDITIONS',
-      status: CancellationStatus.APPROVED,
-      refundStatus: RefundStatus.PROCESSING,
-      originalAmount: 2000000,
-      finalRefundAmount: 1900000,
-      cancelledAt: '2024-01-08T08:15:00Z',
-      processedAt: '2024-01-08T11:30:00Z',
-      hoursBeforeDeparture: 72,
-      policyName: 'Chính sách thời tiết',
-      isEmergencyCase: true
-    },
-    {
-      id: 4,
-      bookingId: 123459,
-      bookingCode: 'BK123459',
-      tourName: 'Phuket Beach Holiday 4N3D',
-      reason: 'Khó khăn tài chính đột xuất',
-      reasonCategory: 'FINANCIAL_DIFFICULTY',
-      status: CancellationStatus.REJECTED,
-      refundStatus: RefundStatus.NOT_APPLICABLE,
-      originalAmount: 8500000,
-      finalRefundAmount: 0,
-      cancelledAt: '2024-01-05T16:45:00Z',
-      processedAt: '2024-01-06T10:20:00Z',
-      adminNotes: 'Yêu cầu hủy quá gần ngày khởi hành (6 giờ). Không đủ điều kiện hoàn tiền theo chính sách.',
-      hoursBeforeDeparture: 6,
-      policyName: 'Chính sách tiêu chuẩn',
-      isEmergencyCase: false
-    }
-  ];
 
   const statusLabels = {
     [CancellationStatus.REQUESTED]: 'Đã gửi yêu cầu',
@@ -318,10 +245,10 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
     } catch (error) {
       console.error('Error loading cancellations:', error);
       
-      // Fallback to mock data
-      setCancellations(mockCancellations.slice(0, pageSize));
-      setTotalCount(mockCancellations.length);
-      setTotalPages(Math.ceil(mockCancellations.length / pageSize));
+      // Show empty state on error
+      setCancellations([]);
+      setTotalCount(0);
+      setTotalPages(0);
     } finally {
       setIsLoading(false);
     }

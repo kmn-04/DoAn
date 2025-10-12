@@ -11,6 +11,7 @@ import {
   PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
+import { TourCardSkeleton } from '../ui/Skeleton';
 
 interface TourCardProps {
   tour: {
@@ -40,13 +41,19 @@ interface TourCardProps {
   };
   isWishlisted?: boolean;
   onToggleWishlist?: (tourId: number) => void;
+  isLoading?: boolean;
 }
 
 const TourCard: React.FC<TourCardProps> = memo(({ 
   tour, 
   isWishlisted = false, 
-  onToggleWishlist 
+  onToggleWishlist,
+  isLoading = false
 }) => {
+  // Show skeleton if loading
+  if (isLoading) {
+    return <TourCardSkeleton />;
+  }
   // Memoize expensive calculations
   const formatPrice = useCallback((price: number) => {
     return new Intl.NumberFormat('vi-VN', {

@@ -9,13 +9,16 @@ import {
   CheckIcon,
   XMarkIcon,
   Cog6ToothIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  EyeIcon,
+  EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import { Card, Button, Input } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
-import { userService } from '../../services';
+import { userService, reviewService } from '../../services';
 import type { UserUpdateRequest } from '../../services/userService';
 import { toast } from 'react-hot-toast';
+import { ProfileSkeleton } from '../../components/ui/Skeleton';
 
 interface ProfileData {
   name: string;
@@ -25,8 +28,13 @@ interface ProfileData {
   dateOfBirth: string;
   gender: 'male' | 'female' | 'other';
   bio: string;
-  emergencyContact: string;
-  emergencyPhone: string;
+}
+
+interface UserStats {
+  totalBookings: number;
+  completedBookings: number;
+  totalReviews: number;
+  memberSince: string;
 }
 
 const ProfilePage: React.FC = () => {
@@ -42,10 +50,31 @@ const ProfilePage: React.FC = () => {
     address: '',
     dateOfBirth: '',
     gender: 'male',
-    bio: '',
-    emergencyContact: '',
-    emergencyPhone: ''
+    bio: ''
   });
+
+  const [userStats, setUserStats] = useState<UserStats>({
+    totalBookings: 0,
+    completedBookings: 0,
+    totalReviews: 0,
+    memberSince: ''
+  });
+
+  const [avatarKey, setAvatarKey] = useState(0); // Force re-render avatar
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [objectUrlToCleanup, setObjectUrlToCleanup] = useState<string | null>(null);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const [editData, setEditData] = useState<ProfileData>(profileData);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -64,13 +93,17 @@ const ProfilePage: React.FC = () => {
           address: userProfile.address || '',
           dateOfBirth: userProfile.dateOfBirth || '',
           gender: 'male', // Default since not in API
-          bio: '', // Default since not in API
-          emergencyContact: '', // Default since not in API
-          emergencyPhone: '' // Default since not in API
+          bio: '' // Default since not in API
         };
         
         setProfileData(profileData);
         setEditData(profileData);
+        setCurrentAvatarUrl(userProfile.avatarUrl || null);
+        
+        // Update auth store with avatar from database
+        if (updateUser && userProfile.avatarUrl) {
+          updateUser({ avatarUrl: userProfile.avatarUrl });
+        }
         
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -84,13 +117,17 @@ const ProfilePage: React.FC = () => {
             address: '',
             dateOfBirth: '',
             gender: 'male',
-            bio: '',
-            emergencyContact: '',
-            emergencyPhone: ''
+            bio: ''
           };
           
           setProfileData(fallbackData);
           setEditData(fallbackData);
+          setCurrentAvatarUrl(user.avatarUrl || null);
+          
+          // Update auth store with avatar from fallback
+          if (updateUser && user.avatarUrl) {
+            updateUser({ avatarUrl: user.avatarUrl });
+          }
         }
       } finally {
         setIsLoadingProfile(false);
@@ -99,6 +136,47 @@ const ProfilePage: React.FC = () => {
 
     loadProfile();
   }, [user]);
+
+  // Load user statistics
+  useEffect(() => {
+    const loadUserStats = async () => {
+      if (!user?.id) return;
+      
+      try {
+        // Get user's booking count
+        const bookings = await userService.getUserBookings(user.id);
+        const totalBookings = bookings.length;
+        const completedBookings = bookings.filter(b => b.status === 'completed').length;
+        
+        // Get user's review count from API
+        const reviews = await reviewService.getMyReviews();
+        const totalReviews = reviews.length;
+        
+        // Get member since date
+        const memberSince = user.createdAt ? new Date(user.createdAt).getFullYear().toString() : '2023';
+        
+        setUserStats({
+          totalBookings,
+          completedBookings,
+          totalReviews,
+          memberSince
+        });
+      } catch (error) {
+        console.error('Error loading user stats:', error);
+      }
+    };
+
+    loadUserStats();
+  }, [user?.id]);
+
+  // Cleanup object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (objectUrlToCleanup) {
+        URL.revokeObjectURL(objectUrlToCleanup);
+      }
+    };
+  }, [objectUrlToCleanup]);
 
   const handleInputChange = (field: keyof ProfileData, value: string) => {
     setEditData(prev => ({ ...prev, [field]: value }));
@@ -193,51 +271,195 @@ const ProfilePage: React.FC = () => {
         }
 
         try {
-          setIsLoading(true);
+          setIsUploadingAvatar(true);
           
-          // Upload avatar
-          const avatarUrl = await userService.uploadAvatar(file);
-          
-          // Update profile with new avatar
-          const updateRequest: UserUpdateRequest = {
-            name: profileData.name,
-            phone: profileData.phone || undefined,
-            address: profileData.address || undefined,
-            dateOfBirth: profileData.dateOfBirth || undefined,
-            avatarUrl: avatarUrl
-          };
-          
-          await userService.updateProfile(updateRequest);
-          
-          // Update auth store
-          if (updateUser) {
-            updateUser({ avatarUrl: avatarUrl });
+          // Cleanup previous object URL if exists
+          if (objectUrlToCleanup) {
+            URL.revokeObjectURL(objectUrlToCleanup);
           }
+          
+          // Create object URL for immediate preview
+          const objectUrl = URL.createObjectURL(file);
+          setObjectUrlToCleanup(objectUrl);
+          
+          // Update local avatar state immediately for preview
+          setCurrentAvatarUrl(objectUrl);
+          
+          // Force avatar re-render
+          setAvatarKey(prev => prev + 1);
+          
+          // Convert file to base64 for storage
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            const base64String = e.target?.result as string;
+            
+            // Update profile with base64 avatar
+            const updateRequest: UserUpdateRequest = {
+              name: profileData.name,
+              phone: profileData.phone || undefined,
+              address: profileData.address || undefined,
+              dateOfBirth: profileData.dateOfBirth || undefined,
+              avatarUrl: base64String
+            };
+            
+            try {
+              await userService.updateProfile(updateRequest);
+              
+              // Update auth store with base64 URL
+              if (updateUser) {
+                updateUser({ avatarUrl: base64String });
+              }
+            } catch (error) {
+              console.error('Error updating profile with avatar:', error);
+              toast.error('Không thể lưu ảnh đại diện. Vui lòng thử lại');
+            }
+          };
+          reader.readAsDataURL(file);
           
           toast.success('Ảnh đại diện đã được cập nhật thành công');
         } catch (error) {
           console.error('Error uploading avatar:', error);
           toast.error('Không thể upload ảnh. Vui lòng thử lại');
         } finally {
-          setIsLoading(false);
+          setIsUploadingAvatar(false);
         }
       }
     };
     input.click();
   };
 
+  const handleChangePassword = () => {
+    setShowChangePasswordModal(true);
+    // Reset form when opening modal
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+    setPasswordErrors({});
+  };
+
+  const handlePasswordInputChange = (field: keyof typeof passwordData, value: string) => {
+    setPasswordData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear error when user starts typing
+    if (passwordErrors[field]) {
+      setPasswordErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validatePasswordForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!passwordData.currentPassword.trim()) {
+      newErrors.currentPassword = 'Vui lòng nhập mật khẩu hiện tại';
+    }
+
+    if (!passwordData.newPassword.trim()) {
+      newErrors.newPassword = 'Vui lòng nhập mật khẩu mới';
+    } else if (passwordData.newPassword.length < 6) {
+      newErrors.newPassword = 'Mật khẩu mới phải có ít nhất 6 ký tự';
+    }
+
+    if (!passwordData.confirmPassword.trim()) {
+      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới';
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+    }
+
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      newErrors.newPassword = 'Mật khẩu mới phải khác mật khẩu hiện tại';
+    }
+
+    setPasswordErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validatePasswordForm()) {
+      return;
+    }
+
+    setIsChangingPassword(true);
+    
+    try {
+      await userService.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword
+      });
+      
+      toast.success('Mật khẩu đã được thay đổi thành công');
+      setShowChangePasswordModal(false);
+      
+      // Reset form
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      
+      // Handle specific error messages
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.response?.status === 400) {
+        toast.error('Mật khẩu hiện tại không đúng');
+      } else {
+        toast.error('Không thể thay đổi mật khẩu. Vui lòng thử lại');
+      }
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   // Show loading state while fetching profile
   if (isLoadingProfile) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+      <div className="min-h-screen bg-stone-50 p-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Page Header Skeleton */}
+          <div className="mb-8 animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+          
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column Skeleton */}
             <div className="lg:col-span-1">
-              <div className="bg-gray-200 rounded-lg h-80"></div>
+              <ProfileSkeleton />
             </div>
+            
+            {/* Right Column Skeleton */}
             <div className="lg:col-span-2">
-              <div className="bg-gray-200 rounded-lg h-96"></div>
+              <div className="space-y-6">
+                {/* Stats Cards Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-white rounded-lg p-6 animate-pulse">
+                      <div className="h-6 bg-gray-200 rounded w-16 mb-2"></div>
+                      <div className="h-8 bg-gray-200 rounded w-12"></div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Form Skeleton */}
+                <div className="bg-white rounded-lg p-6 animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-24 mb-4"></div>
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i}>
+                        <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                        <div className="h-10 bg-gray-200 rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -260,11 +482,17 @@ const ProfilePage: React.FC = () => {
             <Card className="p-6 text-center bg-white border border-stone-200 rounded-none hover:border-slate-700 transition-all duration-300 animate-fade-in-up opacity-0">
             <div className="relative inline-block mb-4">
               <div className="w-32 h-32 rounded-none flex items-center justify-center mx-auto" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
-                {user?.avatarUrl ? (
+                {(currentAvatarUrl || user?.avatarUrl) ? (
                   <img 
-                    src={user.avatarUrl} 
+                    key={avatarKey}
+                    src={currentAvatarUrl || user?.avatarUrl} 
                     alt={profileData.name}
                     className="w-32 h-32 rounded-none object-cover"
+                    onError={(e) => {
+                      // Fallback to initials if image fails to load
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
                   />
                 ) : (
                   <span className="text-4xl font-bold text-white">
@@ -275,9 +503,14 @@ const ProfilePage: React.FC = () => {
               
               <button
                 onClick={handleAvatarUpload}
-                className="absolute bottom-0 right-0 bg-white border-2 rounded-none p-2 hover:bg-stone-100 transition-colors" style={{ borderColor: '#D4AF37' }}
+                disabled={isUploadingAvatar}
+                className="absolute bottom-0 right-0 bg-white border-2 rounded-none p-2 hover:bg-stone-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" style={{ borderColor: '#D4AF37' }}
               >
-                <CameraIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                {isUploadingAvatar ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: '#D4AF37' }}></div>
+                ) : (
+                  <CameraIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
+                )}
               </button>
             </div>
 
@@ -312,19 +545,19 @@ const ProfilePage: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center pb-3 border-b border-stone-100">
                   <span className="text-gray-600 font-normal">Tours đã đặt</span>
-                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>8</span>
+                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>{userStats.totalBookings}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-stone-100">
                   <span className="text-gray-600 font-normal">Tours hoàn thành</span>
-                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>5</span>
+                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>{userStats.completedBookings}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-stone-100">
                   <span className="text-gray-600 font-normal">Đánh giá đã viết</span>
-                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>3</span>
+                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>{userStats.totalReviews}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 font-normal">Thành viên từ</span>
-                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>2023</span>
+                  <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>{userStats.memberSince}</span>
                 </div>
               </div>
             </Card>
@@ -447,25 +680,6 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Emergency Contact */}
-              <div className="border-t border-stone-200 pt-6">
-                <h4 className="font-medium text-slate-900 mb-6 tracking-tight text-lg">Liên hệ khẩn cấp</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="Tên người liên hệ"
-                    value={isEditing ? editData.emergencyContact : profileData.emergencyContact}
-                    onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
-                    disabled={!isEditing}
-                  />
-                  
-                  <Input
-                    label="Số điện thoại"
-                    value={isEditing ? editData.emergencyPhone : profileData.emergencyPhone}
-                    onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
-                    disabled={!isEditing}
-                  />
-                </div>
-              </div>
 
               {/* Account Security */}
               <div className="border-t border-stone-200 pt-6">
@@ -476,7 +690,12 @@ const ProfilePage: React.FC = () => {
                       <h5 className="font-medium text-slate-900 tracking-tight">Mật khẩu</h5>
                       <p className="text-sm text-gray-600 font-normal">Cập nhật lần cuối: 30 ngày trước</p>
                     </div>
-                    <Button variant="outline" size="sm" className="border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleChangePassword}
+                      className="border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none"
+                    >
                       Đổi mật khẩu
                     </Button>
                   </div>
@@ -497,6 +716,146 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      {showChangePasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-xl font-medium text-slate-900 mb-6 tracking-tight">Đổi mật khẩu</h3>
+            
+            <form onSubmit={handlePasswordSubmit}>
+              <div className="space-y-4">
+                {/* Current Password */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
+                    Mật khẩu hiện tại *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showCurrentPassword ? "text" : "password"}
+                      required
+                      value={passwordData.currentPassword}
+                      onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                      className={`w-full border rounded-none px-3 py-2 pr-10 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300 ${
+                        passwordErrors.currentPassword ? 'border-red-500' : 'border-stone-300'
+                      }`}
+                      placeholder="Nhập mật khẩu hiện tại"
+                    />
+                    {passwordErrors.currentPassword && (
+                      <p className="text-red-500 text-sm mt-1">{passwordErrors.currentPassword}</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showCurrentPassword ? (
+                        <EyeSlashIcon className="h-5 w-5" />
+                      ) : (
+                        <EyeIcon className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                
+                {/* New Password */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
+                    Mật khẩu mới *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      required
+                      value={passwordData.newPassword}
+                      onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                      className={`w-full border rounded-none px-3 py-2 pr-10 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300 ${
+                        passwordErrors.newPassword ? 'border-red-500' : 'border-stone-300'
+                      }`}
+                      placeholder="Nhập mật khẩu mới"
+                    />
+                    {passwordErrors.newPassword && (
+                      <p className="text-red-500 text-sm mt-1">{passwordErrors.newPassword}</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showNewPassword ? (
+                        <EyeSlashIcon className="h-5 w-5" />
+                      ) : (
+                        <EyeIcon className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Confirm Password */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
+                    Xác nhận mật khẩu mới *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      required
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                      className={`w-full border rounded-none px-3 py-2 pr-10 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300 ${
+                        passwordErrors.confirmPassword ? 'border-red-500' : 'border-stone-300'
+                      }`}
+                      placeholder="Xác nhận mật khẩu mới"
+                    />
+                    {passwordErrors.confirmPassword && (
+                      <p className="text-red-500 text-sm mt-1">{passwordErrors.confirmPassword}</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeSlashIcon className="h-5 w-5" />
+                      ) : (
+                        <EyeIcon className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowChangePasswordModal(false)}
+                  disabled={isChangingPassword}
+                  className="border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none disabled:opacity-50"
+                >
+                  Hủy
+                </Button>
+                
+                <Button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className="text-white rounded-none hover:opacity-90 transition-all duration-300 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
+                >
+                  {isChangingPassword ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Đang xử lý...</span>
+                    </div>
+                  ) : (
+                    'Đổi mật khẩu'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

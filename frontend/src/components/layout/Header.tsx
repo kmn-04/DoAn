@@ -9,7 +9,6 @@ import {
   ShoppingBagIcon,
   ArrowRightOnRectangleIcon,
   UserCircleIcon,
-  Cog6ToothIcon,
   ChevronDownIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
@@ -103,7 +102,6 @@ const Header: React.FC = () => {
     { name: 'Hồ sơ cá nhân', href: '/profile', icon: UserCircleIcon },
     { name: 'Booking của tôi', href: '/bookings', icon: ShoppingBagIcon },
     { name: 'Tour yêu thích', href: '/wishlist', icon: HeartIcon },
-    { name: 'Cài đặt', href: '/settings', icon: Cog6ToothIcon },
   ];
 
   // Admin-only navigation item

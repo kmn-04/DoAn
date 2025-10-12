@@ -6,7 +6,6 @@ import {
   UserIcon,
   HeartIcon,
   BellIcon,
-  Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon
@@ -40,11 +39,6 @@ const navigationItems = [
     href: '/dashboard/profile',
     icon: UserIcon
   },
-  {
-    name: 'Cài đặt',
-    href: '/dashboard/settings',
-    icon: Cog6ToothIcon
-  }
 ];
 
 const DashboardLayout: React.FC = () => {

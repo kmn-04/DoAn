@@ -56,7 +56,7 @@ const reviewService = {
    * Create a new review
    */
   createReview: async (data: ReviewCreateRequest): Promise<ReviewResponse> => {
-    const response = await api.post('/api/reviews', data);
+    const response = await api.post('/reviews', data);
     return response.data.data;
   },
 
@@ -120,7 +120,7 @@ const reviewService = {
    * Get current user's reviews
    */
   getMyReviews: async (): Promise<ReviewResponse[]> => {
-    const response = await api.get('/api/reviews/my-reviews');
+    const response = await api.get('/reviews/my-reviews');
     return response.data.data;
   },
 
@@ -144,7 +144,7 @@ const reviewService = {
    * Check if user can review a tour
    */
   canReviewTour: async (tourId: number, bookingId: number): Promise<boolean> => {
-    const response = await api.get('/api/reviews/can-review', {
+    const response = await api.get('/reviews/can-review', {
       params: { tourId, bookingId }
     });
     return response.data.data.canReview;

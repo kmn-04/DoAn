@@ -76,9 +76,11 @@ const userService = {
     // In real implementation, this would upload to cloud storage
     return new Promise((resolve) => {
       setTimeout(() => {
-        const mockUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${Date.now()}`;
+        // Create a more unique URL with random seed
+        const randomSeed = Math.random().toString(36).substring(7);
+        const mockUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${randomSeed}&backgroundColor=random`;
         resolve(mockUrl);
-      }, 2000);
+      }, 1000); // Reduced timeout for better UX
     });
   },
 
@@ -117,6 +119,12 @@ const userService = {
     const userId = currentUserResponse.data.data!.id;
     
     await apiClient.delete(`/users/${userId}`);
+  },
+
+  // Get user's bookings
+  getUserBookings: async (userId: number): Promise<any[]> => {
+    const response = await apiClient.get<any[]>(`/bookings/user/${userId}`);
+    return response.data.data!;
   }
 };
 

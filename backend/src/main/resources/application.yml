@@ -39,8 +39,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:noreply@tourbooking.com}
-    password: ${MAIL_PASSWORD:your-app-password}
+    username: ${MAIL_USERNAME:khoi14112004@gmail.com}
+    password: ${MAIL_PASSWORD:flek hvxv edxk vtxc}
     properties:
       mail:
         smtp:
@@ -109,6 +109,8 @@ logging:
     backend: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
+    org.springframework.mail: DEBUG
+    org.springframework.context.support: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
