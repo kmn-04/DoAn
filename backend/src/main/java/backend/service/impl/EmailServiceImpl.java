@@ -24,7 +24,7 @@ public class EmailServiceImpl implements EmailService {
     
     private final JavaMailSender mailSender;
     
-    @Value("${spring.mail.username:noreply@tourbooking.com}")
+    @Value("${spring.mail.username:khoi14112004@gmail.com}")
     private String fromEmail;
     
     @Value("${app.name:Tour Booking System}")
@@ -115,9 +115,14 @@ public class EmailServiceImpl implements EmailService {
     @Async
     public void sendPasswordResetEmail(User user, String resetToken) {
         try {
+            log.info("🔄 Starting to send password reset email to: {}", user.getEmail());
+            log.info("📧 From email: {}", fromEmail);
+            log.info("🔗 App URL: {}", appUrl);
+            
             String subject = String.format("[%s] Đặt lại mật khẩu", appName);
             
-            String resetUrl = String.format("%s/reset-password?token=%s", appUrl, resetToken);
+            String resetUrl = String.format("%s/reset-password/%s", appUrl, resetToken);
+            log.info("🔗 Reset URL: {}", resetUrl);
             
             String body = buildPasswordResetHtml(user, resetUrl);
             
@@ -126,7 +131,7 @@ public class EmailServiceImpl implements EmailService {
             log.info("✅ Sent password reset email to: {}", user.getEmail());
             
         } catch (Exception e) {
-            log.error("❌ Failed to send password reset email", e);
+            log.error("❌ Failed to send password reset email to: {}", user.getEmail(), e);
         }
     }
     
@@ -170,6 +175,10 @@ public class EmailServiceImpl implements EmailService {
     @Async
     public void sendHtmlEmail(String to, String subject, String htmlBody) {
         try {
+            log.info("📧 Creating MimeMessage for: {}", to);
+            log.info("📧 Subject: {}", subject);
+            log.info("📧 From: {}", fromEmail);
+            
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             
@@ -178,12 +187,17 @@ public class EmailServiceImpl implements EmailService {
             helper.setSubject(subject);
             helper.setText(htmlBody, true);
             
+            log.info("📧 Sending email...");
             mailSender.send(message);
             
             log.info("✅ Sent HTML email to: {}", to);
             
         } catch (Exception e) {
             log.error("❌ Failed to send HTML email to: {}", to, e);
+            log.error("❌ Error details: {}", e.getMessage());
+            if (e.getCause() != null) {
+                log.error("❌ Root cause: {}", e.getCause().getMessage());
+            }
         }
     }
     

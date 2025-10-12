@@ -319,7 +319,7 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
             onTouchEnd={handleTouchEnd}
           >
             {currentRecommendations.slice(0, limit).map((recommendation) => (
-              <div key={recommendation.tour.id} className="flex-none w-[calc(25%-18px)]">
+              <div key={recommendation.tour.id} className="flex-none w-[calc(100%-12px)] sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)]">
                 <RecommendationCard
                   recommendation={recommendation}
                   isInWishlist={wishlistItems.has(recommendation.tour.id)}

@@ -11,7 +11,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
-import { Card, Button, Pagination, SkeletonTourCard } from '../../components/ui';
+import { Card, Button, Pagination, TourCardSkeleton } from '../../components/ui';
 import { wishlistService } from '../../services';
 import { useAuth } from '../../hooks/useAuth';
 import type { WishlistItem } from '../../services/wishlistService';
@@ -162,7 +162,7 @@ const WishlistPage: React.FC = () => {
         {/* Tours Grid Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, index) => (
-            <SkeletonTourCard key={index} />
+            <TourCardSkeleton key={index} />
           ))}
         </div>
       </div>

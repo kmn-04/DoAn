@@ -1,12 +1,21 @@
 package backend.controller;
 
+import backend.dto.request.ForgotPasswordRequest;
 import backend.dto.request.LoginRequest;
 import backend.dto.request.RegisterRequest;
+import backend.dto.request.ResetPasswordRequest;
 import backend.dto.response.ApiResponse;
 import backend.dto.response.AuthResponse;
 import backend.dto.response.UserResponse;
 import backend.security.UserDetailsImpl;
 import backend.service.AuthService;
+import backend.service.EmailService;
+import backend.service.PasswordResetService;
+import backend.security.JwtUtils;
+import backend.entity.User;
+import backend.repository.UserRepository;
+import backend.exception.ResourceNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,6 +27,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -27,6 +39,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController extends BaseController {
     
     private final AuthService authService;
+    private final EmailService emailService;
+    private final PasswordResetService passwordResetService;
+    private final JwtUtils jwtUtils;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     
     @PostMapping("/register")
     @Operation(summary = "Register new user account")
@@ -144,5 +161,125 @@ public class AuthController extends BaseController {
         public String getName() { return name; }
         public String getEmail() { return email; }
         public String getAuthorities() { return authorities; }
+    }
+    
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        log.info("Password reset requested for email: {}", request.getEmail());
+        
+        // Always return success to prevent email enumeration
+        // Check if email exists
+        if (!authService.emailExists(request.getEmail())) {
+            return ResponseEntity.ok(success("If email exists, reset link has been sent"));
+        }
+        
+        try {
+            // Generate reset token
+            String resetToken = jwtUtils.generateResetToken(request.getEmail());
+            
+            // Save token
+            passwordResetService.saveResetToken(request.getEmail(), resetToken);
+            
+            // Get user and send email
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.getEmail()));
+            
+            emailService.sendPasswordResetEmail(user, resetToken);
+            
+            log.info("Password reset email sent to: {}", request.getEmail());
+            
+        } catch (Exception e) {
+            log.error("Error sending password reset email", e);
+            // Still return success to prevent information leakage
+        }
+        
+        return ResponseEntity.ok(success("If email exists, reset link has been sent"));
+    }
+    
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password with token")
+    public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        log.info("Password reset attempted with token");
+        
+        // Validate password confirmation
+        if (!request.isPasswordMatching()) {
+            return ResponseEntity.badRequest().body(error("New password and confirm password do not match"));
+        }
+        
+        try {
+            // Validate reset token
+            if (!jwtUtils.validateResetToken(request.getToken())) {
+                return ResponseEntity.badRequest().body(error("Invalid or expired reset token"));
+            }
+            
+            // Get email from token
+            String email = jwtUtils.getEmailFromResetToken(request.getToken());
+            
+            // Check if token exists in our storage
+            if (!passwordResetService.isValidResetToken(email, request.getToken())) {
+                return ResponseEntity.badRequest().body(error("Invalid or expired reset token"));
+            }
+            
+            // Find user
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+            
+            // Update password
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            userRepository.save(user);
+            
+            // Delete reset token
+            passwordResetService.deleteResetToken(email);
+            
+            log.info("Password reset successful for email: {}", email);
+            
+            return ResponseEntity.ok(success("Password reset successfully"));
+            
+        } catch (Exception e) {
+            log.error("Error resetting password", e);
+            return ResponseEntity.badRequest().body(error("Invalid or expired reset token"));
+        }
+    }
+    
+    @PostMapping("/test-email")
+    @Operation(summary = "Test email sending")
+    public ResponseEntity<ApiResponse<String>> testEmail(@RequestParam String email) {
+        log.info("Testing email sending to: {}", email);
+        
+        try {
+            // Find user by email or create a test user
+            User user = userRepository.findByEmail(email).orElse(null);
+            if (user == null) {
+                // Create a test user for testing
+                user = new User();
+                user.setEmail(email);
+                user.setName("Test User");
+            }
+            
+            // Send test email
+            emailService.sendPasswordResetEmail(user, "test-token-123");
+            
+            return ResponseEntity.ok(success("Test email sent successfully"));
+            
+        } catch (Exception e) {
+            log.error("Error sending test email", e);
+            return ResponseEntity.badRequest().body(error("Failed to send test email: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/debug-email-config")
+    @Operation(summary = "Debug email configuration")
+    public ResponseEntity<ApiResponse<Map<String, String>>> debugEmailConfig() {
+        Map<String, String> config = new HashMap<>();
+        config.put("fromEmail", "khoi14112004@gmail.com");
+        config.put("appName", "Tour Booking System");
+        config.put("appUrl", "http://localhost:5173");
+        config.put("smtpHost", "smtp.gmail.com");
+        config.put("smtpPort", "587");
+        config.put("auth", "true");
+        config.put("starttls", "true");
+        
+        return ResponseEntity.ok(success("Email configuration", config));
     }
 }

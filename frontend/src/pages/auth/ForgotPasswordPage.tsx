@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
 import { showToast } from '../../components/ui/Toast';
+import authService from '../../services/authService';
 
 // Validation schema
 const forgotPasswordSchema = z.object({
@@ -36,11 +37,7 @@ const ForgotPasswordPage: React.FC = () => {
   const onSubmit = async (data: ForgotPasswordFormData) => {
     setIsLoading(true);
     try {
-      // TODO: Call forgot password API
-      // await authService.forgotPassword(data.email);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await authService.forgotPassword({ email: data.email });
       
       setIsSubmitted(true);
       showToast.success(

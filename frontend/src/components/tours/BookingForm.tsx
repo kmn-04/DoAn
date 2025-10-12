@@ -11,6 +11,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { tourService } from '../../services';
 import TourScheduleSelector from './TourScheduleSelector';
 import { type TourSchedule } from '../tours';
+import { BookingFormSkeleton } from '../ui/Skeleton';
 
 interface BookingFormProps {
   tour: {
@@ -23,6 +24,7 @@ interface BookingFormProps {
     availableDates: string[];
   };
   onBooking: (bookingData: BookingData) => void;
+  isLoading?: boolean;
 }
 
 interface BookingData {
@@ -34,7 +36,11 @@ interface BookingData {
   specialRequests?: string;
 }
 
-const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking }) => {
+const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = false }) => {
+  // Show skeleton if loading
+  if (isLoading) {
+    return <BookingFormSkeleton />;
+  }
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   

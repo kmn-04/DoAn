@@ -8,6 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { destinationService } from '../../services';
 import type { PopularDestinationResponse } from '../../services';
+import { DestinationCardSkeleton } from '../ui/Skeleton';
 
 const PopularDestinations: React.FC = () => {
   const [destinations, setDestinations] = useState<PopularDestinationResponse[]>([]);
@@ -31,93 +32,6 @@ const PopularDestinations: React.FC = () => {
     fetchDestinations();
   }, []);
   
-  // Keep mock data for reference but don't use it
-  const mockDestinations: PopularDestinationResponse[] = [
-    {
-      id: 1,
-      name: 'Phú Quốc',
-      country: 'Việt Nam',
-      slug: 'phu-quoc',
-      image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop',
-      tourCount: 24,
-      averageRating: 4.8,
-      averagePrice: 2500000,
-      bestTime: 'Nov - Apr',
-      highlights: ['Bãi biển tuyệt đẹp', 'Hải sản tươi ngon', 'Cáp treo Hòn Thơm'],
-      isPopular: true,
-      climate: 'Nhiệt đới'
-    },
-    {
-      id: 2,
-      name: 'Vịnh Hạ Long',
-      country: 'Việt Nam',
-      slug: 'ha-long-bay',
-      image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop',
-      tourCount: 32,
-      averageRating: 4.9,
-      averagePrice: 1800000,
-      bestTime: 'Mar - May',
-      highlights: ['Kỳ quan thiên nhiên', 'Du thuyền sang trọng', 'Hang động kỳ thú'],
-      isPopular: true,
-      climate: 'Cận nhiệt đới'
-    },
-    {
-      id: 3,
-      name: 'Sapa',
-      country: 'Việt Nam',
-      slug: 'sapa',
-      image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=800&h=600&fit=crop',
-      tourCount: 18,
-      averageRating: 4.7,
-      averagePrice: 2200000,
-      bestTime: 'Sep - Nov',
-      highlights: ['Ruộng bậc thang', 'Đỉnh Fansipan', 'Văn hóa dân tộc'],
-      isPopular: true,
-      climate: 'Ôn đới'
-    },
-    {
-      id: 4,
-      name: 'Hội An',
-      country: 'Việt Nam',
-      slug: 'hoi-an',
-      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-      tourCount: 21,
-      averageRating: 4.8,
-      averagePrice: 1500000,
-      bestTime: 'Feb - Apr',
-      highlights: ['Phố cổ độc đáo', 'Đèn lồng rực rỡ', 'Ẩm thực đặc sắc'],
-      isPopular: true,
-      climate: 'Nhiệt đới gió mùa'
-    },
-    {
-      id: 5,
-      name: 'Đà Lạt',
-      country: 'Việt Nam',
-      slug: 'da-lat',
-      image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&h=600&fit=crop',
-      tourCount: 16,
-      averageRating: 4.6,
-      averagePrice: 1800000,
-      bestTime: 'Dec - Mar',
-      highlights: ['Khí hậu mát mẻ', 'Thác Elephant', 'Thung lũng tình yêu'],
-      isPopular: false,
-      climate: 'Ôn đới'
-    },
-    {
-      id: 6,
-      name: 'Bangkok',
-      country: 'Thái Lan',
-      slug: 'bangkok',
-      image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=800&h=600&fit=crop',
-      tourCount: 14,
-      averageRating: 4.5,
-      averagePrice: 8500000,
-      bestTime: 'Nov - Feb',
-      highlights: ['Chùa Vàng', 'Chợ nổi', 'Street food'],
-      isPopular: false,
-      climate: 'Nhiệt đới'
-    }
-  ];
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -138,9 +52,7 @@ const PopularDestinations: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="bg-gray-200 h-96 rounded-2xl"></div>
-              </div>
+              <DestinationCardSkeleton key={i} />
             ))}
           </div>
         </div>

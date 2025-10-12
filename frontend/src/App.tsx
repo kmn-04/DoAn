@@ -24,6 +24,7 @@ const BookingConfirmationPage = React.lazy(() => import('./pages/BookingConfirma
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = React.lazy(() => import('./pages/auth/ResetPasswordPage'));
 const AboutPage = React.lazy(() => import('./pages/AboutPage'));
 const ContactPage = React.lazy(() => import('./pages/ContactPage'));
 
@@ -32,7 +33,6 @@ const BookingHistoryPage = React.lazy(() => import('./pages/dashboard/BookingHis
 const ProfilePage = React.lazy(() => import('./pages/dashboard/ProfilePage'));
 const WishlistPage = React.lazy(() => import('./pages/dashboard/WishlistPage'));
 const NotificationsPage = React.lazy(() => import('./pages/dashboard/NotificationsPage'));
-const SettingsPage = React.lazy(() => import('./pages/dashboard/SettingsPage'));
 const MyReviewsPage = React.lazy(() => import('./pages/dashboard/MyReviewsPage'));
 
 // Admin pages - lazy loaded
@@ -208,15 +208,6 @@ function App() {
               </ProtectedRoute>
             } />
 
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Suspense fallback={<DashboardPageLoader />}>
-                    <SettingsPage />
-                  </Suspense>
-                </Layout>
-              </ProtectedRoute>
-            } />
 
             <Route path="/my-reviews" element={
               <ProtectedRoute>
@@ -372,6 +363,11 @@ function App() {
             <Route path="/forgot-password" element={
               <Suspense fallback={<AuthPageLoader />}>
                 <ForgotPasswordPage />
+              </Suspense>
+            } />
+            <Route path="/reset-password/:token" element={
+              <Suspense fallback={<AuthPageLoader />}>
+                <ResetPasswordPage />
               </Suspense>
             } />
 

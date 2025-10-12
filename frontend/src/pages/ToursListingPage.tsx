@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import TourCard from '../components/tours/TourCard';
 import TourFilters from '../components/tours/TourFilters';
-import { Pagination, SkeletonTourCard } from '../components/ui';
+import { Pagination, TourCardSkeleton } from '../components/ui';
 import { tourService, categoryService, wishlistService } from '../services';
 import type { TourResponse, TourSearchRequest, CategoryResponse } from '../services';
 import { useAuth } from '../hooks/useAuth';
@@ -394,7 +394,7 @@ const ToursListingPage: React.FC = () => {
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
                 {Array.from({ length: 12 }).map((_, index) => (
-                  <SkeletonTourCard key={index} />
+                  <TourCardSkeleton key={index} />
                 ))}
               </div>
             ) : tours.length === 0 ? (

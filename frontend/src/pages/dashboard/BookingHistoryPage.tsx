@@ -13,7 +13,7 @@ import {
   XCircleIcon,
   CreditCardIcon
 } from '@heroicons/react/24/outline';
-import { Card, Button, Pagination, SkeletonBookingCard } from '../../components/ui';
+import { Card, Button, Pagination, BookingCardSkeleton } from '../../components/ui';
 import { bookingService } from '../../services';
 import { useAuth } from '../../hooks/useAuth';
 import { CancellationRequestForm, CancellationHistory } from '../../components/cancellation';
@@ -511,7 +511,7 @@ const BookingHistoryPage: React.FC = () => {
         {isLoading ? (
           // Show skeleton cards while loading
           Array.from({ length: 3 }).map((_, index) => (
-            <SkeletonBookingCard key={index} />
+            <BookingCardSkeleton key={index} />
           ))
         ) : currentBookings.length === 0 ? (
           // Empty state

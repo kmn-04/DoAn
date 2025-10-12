@@ -104,4 +104,49 @@ public class JwtUtils {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
+    
+    /**
+     * Generate reset token for password reset (expires in 1 hour)
+     */
+    public String generateResetToken(String email) {
+        return Jwts.builder()
+                .subject(email)
+                .claim("type", "password_reset")
+                .issuedAt(new Date())
+                .expiration(new Date((new Date()).getTime() + 3600000)) // 1 hour
+                .signWith(key())
+                .compact();
+    }
+    
+    /**
+     * Validate reset token
+     */
+    public boolean validateResetToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(key())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            
+            // Check if it's a reset token
+            String type = claims.get("type", String.class);
+            return "password_reset".equals(type);
+        } catch (Exception e) {
+            log.error("Invalid reset token: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Get email from reset token
+     */
+    public String getEmailFromResetToken(String token) {
+        return Jwts.parser()
+                .verifyWith(key())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
+    }
 }
