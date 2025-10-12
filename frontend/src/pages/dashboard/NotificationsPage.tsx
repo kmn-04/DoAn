@@ -13,6 +13,9 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import { Card, Button } from '../../components/ui';
+import { useAuth } from '../../hooks/useAuth';
+import { notificationService } from '../../services';
+import toast from 'react-hot-toast';
 
 interface Notification {
   id: string;
@@ -26,76 +29,8 @@ interface Notification {
   actionText?: string;
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: 'notif_001',
-    type: 'booking',
-    title: 'Xác nhận đặt tour thành công',
-    message: 'Tour "Hạ Long Bay - Kỳ Quan Thế Giới" đã được xác nhận. Mã booking: BK1234567',
-    date: '2024-01-25T10:30:00Z',
-    isRead: false,
-    priority: 'high',
-    actionUrl: '/booking/confirmation/BK1234567',
-    actionText: 'Xem chi tiết'
-  },
-  {
-    id: 'notif_002',
-    type: 'payment',
-    title: 'Nhắc nhở thanh toán',
-    message: 'Bạn có 1 booking chưa thanh toán. Vui lòng hoàn tất trong 24h để đảm bảo chỗ.',
-    date: '2024-01-24T14:15:00Z',
-    isRead: false,
-    priority: 'high',
-    actionUrl: '/dashboard/bookings?status=pending',
-    actionText: 'Thanh toán ngay'
-  },
-  {
-    id: 'notif_003',
-    type: 'tour_update',
-    title: 'Cập nhật lịch trình tour',
-    message: 'Tour "Sapa - Thiên Đường Mây Trắng" có thay đổi nhỏ về giờ khởi hành. Vui lòng kiểm tra.',
-    date: '2024-01-23T09:20:00Z',
-    isRead: true,
-    priority: 'medium',
-    actionUrl: '/tours/sapa-thien-duong-may-trang',
-    actionText: 'Xem thay đổi'
-  },
-  {
-    id: 'notif_004',
-    type: 'promotion',
-    title: 'Ưu đãi đặc biệt cho bạn!',
-    message: 'Giảm 20% cho tất cả tour biển trong tháng 2. Áp dụng mã: BEACH20',
-    date: '2024-01-22T16:45:00Z',
-    isRead: true,
-    priority: 'low',
-    actionUrl: '/tours?category=beach',
-    actionText: 'Xem tours'
-  },
-  {
-    id: 'notif_005',
-    type: 'booking',
-    title: 'Tour sắp khởi hành',
-    message: 'Tour "Phú Quốc - Đảo Ngọc Xanh" của bạn sẽ khởi hành trong 3 ngày. Hãy chuẩn bị hành lý!',
-    date: '2024-01-21T08:00:00Z',
-    isRead: true,
-    priority: 'medium',
-    actionUrl: '/dashboard/bookings',
-    actionText: 'Xem booking'
-  },
-  {
-    id: 'notif_006',
-    type: 'system',
-    title: 'Cập nhật điều khoản sử dụng',
-    message: 'Chúng tôi đã cập nhật điều khoản sử dụng. Vui lòng xem lại để biết thêm chi tiết.',
-    date: '2024-01-20T12:30:00Z',
-    isRead: true,
-    priority: 'low',
-    actionUrl: '/terms',
-    actionText: 'Xem điều khoản'
-  }
-];
-
 const NotificationsPage: React.FC = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,17 +42,41 @@ const NotificationsPage: React.FC = () => {
   });
 
   useEffect(() => {
-    // Simulate API call
     const fetchNotifications = async () => {
-      setIsLoading(true);
-      setTimeout(() => {
-        setNotifications(mockNotifications);
+      if (!user?.id) return;
+      
+      try {
+        setIsLoading(true);
+        const response = await notificationService.getNotifications(user.id, 0, 50);
+        
+        // Response structure: { notifications: [], total: number, unread: number }
+        const notificationList = response.notifications || [];
+        
+        // Map backend data to frontend format
+        const mappedNotifications: Notification[] = notificationList.map(notif => ({
+          id: String(notif.id),
+          type: (notif.type?.toLowerCase() || 'info') as 'booking' | 'payment' | 'tour_update' | 'promotion' | 'system',
+          title: notif.title || 'Thông báo',
+          message: notif.message || '',
+          date: notif.createdAt || new Date().toISOString(),
+          isRead: notif.isRead || false,
+          priority: 'medium' as 'low' | 'medium' | 'high',
+          actionUrl: notif.link || '',
+          actionText: 'Xem chi tiết'
+        }));
+        
+        setNotifications(mappedNotifications);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        toast.error('Không thể tải thông báo. Vui lòng thử lại sau.');
+        setNotifications([]);
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
 
     fetchNotifications();
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     let filtered = [...notifications];
@@ -149,22 +108,45 @@ const NotificationsPage: React.FC = () => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === notificationId ? { ...notif, isRead: true } : notif
-      )
-    );
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await notificationService.markAsRead(notificationId);
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif.id === notificationId ? { ...notif, isRead: true } : notif
+        )
+      );
+      toast.success('Đã đánh dấu đã đọc');
+    } catch (error) {
+      console.error('Error marking as read:', error);
+      toast.error('Không thể đánh dấu đã đọc');
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notif => ({ ...notif, isRead: true }))
-    );
+  const markAllAsRead = async () => {
+    if (!user?.id) return;
+    
+    try {
+      await notificationService.markAllAsRead(user.id);
+      setNotifications(prev =>
+        prev.map(notif => ({ ...notif, isRead: true }))
+      );
+      toast.success('Đã đánh dấu tất cả đã đọc');
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+      toast.error('Không thể đánh dấu tất cả đã đọc');
+    }
   };
 
-  const deleteNotification = (notificationId: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      await notificationService.deleteNotification(notificationId);
+      setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
+      toast.success('Đã xóa thông báo');
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      toast.error('Không thể xóa thông báo');
+    }
   };
 
   const clearAllRead = () => {
@@ -267,6 +249,7 @@ const NotificationsPage: React.FC = () => {
                 </span>
               )}
             </div>
+          </div>
           
           <div className="flex flex-wrap gap-3">
             {unreadCount > 0 && (
@@ -291,10 +274,11 @@ const NotificationsPage: React.FC = () => {
               Xóa đã đọc
             </Button>
           </div>
+          
+          <p className="text-gray-600 mt-2 font-normal">
+            Quản lý tất cả thông báo về booking, thanh toán và cập nhật tour
+          </p>
         </div>
-        <p className="text-gray-600 mt-2 font-normal">
-          Quản lý tất cả thông báo về booking, thanh toán và cập nhật tour
-        </p>
       </div>
 
       {/* Filters */}
@@ -382,17 +366,15 @@ const NotificationsPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-xs px-3 py-1 rounded-none font-medium border ${
-                      notification.priority === 'high' ? 'bg-red-100 text-red-800 border-red-300' :
-                      notification.priority === 'medium' ? 'bg-amber-100 text-amber-800 border-amber-300' :
-                      'bg-stone-100 text-gray-800 border-stone-300'
-                    }`}>
-                      {getPriorityLabel(notification.priority)}
-                    </span>
-                    
-                    <span className="text-xs px-3 py-1 rounded-none bg-stone-100 text-gray-700 border border-stone-300 font-medium">
-                      {getTypeLabel(notification.type)}
-                    </span>
+                    {/* Only show priority badge for high/urgent notifications */}
+                    {(notification.priority === 'high' || notification.priority === 'urgent') && (
+                      <span className={`text-xs px-3 py-1 rounded-none font-medium border ${
+                        notification.priority === 'urgent' ? 'bg-red-100 text-red-800 border-red-300' :
+                        'bg-orange-100 text-orange-800 border-orange-300'
+                      }`}>
+                        {getPriorityLabel(notification.priority)}
+                      </span>
+                    )}
                   </div>
                 </div>
 

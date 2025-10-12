@@ -1,11 +1,15 @@
 package backend.controller;
 
 import backend.dto.response.ApiResponse;
+import backend.entity.Notification;
+import backend.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
 public class NotificationController {
 
+    private final NotificationService notificationService;
     private final ConcurrentHashMap<Long, SseEmitter> userConnections = new ConcurrentHashMap<>();
     private final ScheduledExecutorService heartbeatExecutor = Executors.newScheduledThreadPool(1);
 
@@ -209,14 +214,80 @@ public class NotificationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "false") boolean unreadOnly) {
-        // Mock notifications response
-        return ResponseEntity.ok(ApiResponse.success("Notifications retrieved", java.util.Map.of(
-            "content", java.util.Collections.emptyList(),
-            "totalElements", 0,
-            "totalPages", 0,
-            "size", size,
-            "number", page
-        )));
+        
+        try {
+            Page<Notification> notificationPage = notificationService.getUserNotifications(
+                userId, 
+                PageRequest.of(page, size)
+            );
+            
+            // Convert to DTOs to avoid lazy loading issues
+            java.util.List<java.util.Map<String, Object>> notificationDTOs = notificationPage.getContent().stream()
+                .map(n -> {
+                    java.util.Map<String, Object> dto = new java.util.HashMap<>();
+                    dto.put("id", n.getId());
+                    dto.put("title", n.getTitle());
+                    dto.put("message", n.getMessage());
+                    dto.put("type", n.getType().name());
+                    dto.put("link", n.getLink() != null ? n.getLink() : "");
+                    dto.put("isRead", n.getIsRead());
+                    dto.put("createdAt", n.getCreatedAt());
+                    return dto;
+                })
+                .collect(java.util.stream.Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success("Notifications retrieved", java.util.Map.of(
+                "notifications", notificationDTOs,
+                "total", notificationPage.getTotalElements(),
+                "unread", notificationService.getUnreadCount(userId)
+            )));
+        } catch (Exception e) {
+            log.error("Error getting notifications for user {}", userId, e);
+            return ResponseEntity.ok(ApiResponse.success("Notifications retrieved", java.util.Map.of(
+                "notifications", java.util.Collections.emptyList(),
+                "total", 0,
+                "unread", 0
+            )));
+        }
+    }
+    
+    @PutMapping("/{notificationId}/read")
+    @Operation(summary = "Mark notification as read")
+    public ResponseEntity<ApiResponse<String>> markNotificationAsRead(@PathVariable Long notificationId) {
+        try {
+            notificationService.markAsRead(notificationId);
+            return ResponseEntity.ok(ApiResponse.success("Notification marked as read"));
+        } catch (Exception e) {
+            log.error("Error marking notification as read: {}", notificationId, e);
+            return ResponseEntity.internalServerError()
+                    .body(ApiResponse.error("Failed to mark notification as read: " + e.getMessage()));
+        }
+    }
+    
+    @PutMapping("/user/{userId}/read-all")
+    @Operation(summary = "Mark all notifications as read for user")
+    public ResponseEntity<ApiResponse<String>> markAllNotificationsAsRead(@PathVariable Long userId) {
+        try {
+            notificationService.markAllAsRead(userId);
+            return ResponseEntity.ok(ApiResponse.success("All notifications marked as read"));
+        } catch (Exception e) {
+            log.error("Error marking all notifications as read for user: {}", userId, e);
+            return ResponseEntity.internalServerError()
+                    .body(ApiResponse.error("Failed to mark all notifications as read: " + e.getMessage()));
+        }
+    }
+    
+    @DeleteMapping("/{notificationId}")
+    @Operation(summary = "Delete notification")
+    public ResponseEntity<ApiResponse<String>> deleteNotification(@PathVariable Long notificationId) {
+        try {
+            notificationService.deleteNotification(notificationId);
+            return ResponseEntity.ok(ApiResponse.success("Notification deleted successfully"));
+        } catch (Exception e) {
+            log.error("Error deleting notification: {}", notificationId, e);
+            return ResponseEntity.internalServerError()
+                    .body(ApiResponse.error("Failed to delete notification: " + e.getMessage()));
+        }
     }
 }
 

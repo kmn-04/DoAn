@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { wishlistService } from '../../services';
@@ -27,6 +27,22 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({
   const [wishlisted, setWishlisted] = useState(isWishlisted);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Check wishlist status on mount
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const inWishlist = await wishlistService.isInWishlist(user.id, tourId);
+        setWishlisted(inWishlist);
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    };
+
+    checkWishlistStatus();
+  }, [user?.id, tourId]);
+
   const sizeClasses = {
     sm: 'h-5 w-5',
     md: 'h-6 w-6',
@@ -38,8 +54,7 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({
     e.stopPropagation();
 
     // Check if user is logged in
-    if (!user) {
-      // Redirect to login or show login modal
+    if (!user?.id) {
       alert('Vui lòng đăng nhập để lưu tour yêu thích');
       return;
     }
@@ -48,12 +63,12 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({
     try {
       if (wishlisted) {
         // Remove from wishlist
-        await wishlistService.removeFromWishlist(tourId);
+        await wishlistService.removeFromWishlist(user.id, tourId);
         setWishlisted(false);
         onToggle?.(false);
       } else {
         // Add to wishlist
-        await wishlistService.addToWishlist(tourId);
+        await wishlistService.addToWishlist(user.id, tourId);
         setWishlisted(true);
         onToggle?.(true);
       }

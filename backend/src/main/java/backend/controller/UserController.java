@@ -102,6 +102,8 @@ public class UserController extends BaseController {
             @Parameter(description = "User ID") @PathVariable Long userId,
             @Valid @RequestBody UserUpdateRequest request) {
         
+        log.info("Updating user with ID: {}, request: {}", userId, request);
+        
         // Convert request to User entity
         User userUpdate = new User();
         userUpdate.setName(request.getName());
@@ -161,7 +163,7 @@ public class UserController extends BaseController {
     }
     
     @DeleteMapping("/{userId}")
-    @Operation(summary = "Soft delete user")
+    @Operation(summary = "Delete user permanently")
     public ResponseEntity<ApiResponse<String>> deleteUser(
             @Parameter(description = "User ID") @PathVariable Long userId) {
         

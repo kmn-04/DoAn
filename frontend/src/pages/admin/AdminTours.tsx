@@ -213,6 +213,10 @@ const AdminTours: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, statusFilter, featuredFilter, categoryFilter, priceFilter, sortBy, sortDirection]);
 
+  useEffect(() => {
+    fetchCategoriesAndPartners();
+  }, []);
+
   const fetchCategoriesAndPartners = async () => {
     try {
       const [catResponse, partResponse] = await Promise.all([
@@ -220,7 +224,9 @@ const AdminTours: React.FC = () => {
         apiClient.get('/partners')
       ]);
       setCategories(catResponse.data.data || []);
-      setPartners(partResponse.data.data?.content || []);
+      // Partners API returns List<PartnerResponse> directly in data field
+      setPartners(partResponse.data.data || []);
+      console.log('Loaded partners:', partResponse.data.data?.length || 0);
     } catch (error) {
       console.error('Error fetching categories/partners:', error);
     }

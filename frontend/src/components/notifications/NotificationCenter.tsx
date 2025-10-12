@@ -229,45 +229,6 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
                         <NotificationContent notification={notification} />
                       </div>
                     )}
-
-                    {/* Action Menu */}
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setActiveMenu(activeMenu === notification.id ? null : notification.id);
-                        }}
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded"
-                      >
-                        <EllipsisVerticalIcon className="h-4 w-4" />
-                      </button>
-
-                      {activeMenu === notification.id && (
-                        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-10">
-                          {!notification.isRead && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                markAsRead(notification.id);
-                                setActiveMenu(null);
-                              }}
-                              className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                            >
-                              <EyeIcon className="h-4 w-4 mr-2" />
-                              Đánh dấu đã đọc
-                            </button>
-                          )}
-                          <button
-                            onClick={(e) => handleDeleteNotification(notification.id, e)}
-                            className="flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
-                          >
-                            <TrashIcon className="h-4 w-4 mr-2" />
-                            Xóa thông báo
-                          </button>
-                        </div>
-                      )}
-                    </div>
                   </div>
                 ))}
 

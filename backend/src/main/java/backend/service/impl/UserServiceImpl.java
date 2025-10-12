@@ -64,8 +64,8 @@ public class UserServiceImpl implements UserService {
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
         
-        // Update fields
-        if (user.getName() != null) {
+        // Update fields - only update if explicitly provided (not null and not empty for strings)
+        if (user.getName() != null && !user.getName().trim().isEmpty()) {
             existingUser.setName(user.getName());
         }
         if (user.getEmail() != null && !user.getEmail().equals(existingUser.getEmail())) {
@@ -80,16 +80,20 @@ public class UserServiceImpl implements UserService {
             existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         if (user.getPhone() != null) {
-            existingUser.setPhone(user.getPhone());
+            // Clean phone number (remove spaces), allow empty to clear the field
+            String cleanedPhone = user.getPhone().replaceAll("\\s+", "");
+            existingUser.setPhone(cleanedPhone.isEmpty() ? null : cleanedPhone);
         }
         if (user.getAddress() != null) {
-            existingUser.setAddress(user.getAddress());
+            // Allow empty string to clear the field
+            existingUser.setAddress(user.getAddress().trim().isEmpty() ? null : user.getAddress());
         }
         if (user.getDateOfBirth() != null) {
             existingUser.setDateOfBirth(user.getDateOfBirth());
         }
         if (user.getAvatarUrl() != null) {
-            existingUser.setAvatarUrl(user.getAvatarUrl());
+            // Allow empty string to clear the avatar
+            existingUser.setAvatarUrl(user.getAvatarUrl().trim().isEmpty() ? null : user.getAvatarUrl());
         }
         if (user.getRole() != null) {
             existingUser.setRole(user.getRole());
@@ -99,6 +103,12 @@ public class UserServiceImpl implements UserService {
         }
         
         User updatedUser = userRepository.save(existingUser);
+        
+        // Eagerly fetch the role to avoid LazyInitializationException
+        if (updatedUser.getRole() != null) {
+            updatedUser.getRole().getName(); // Force initialization
+        }
+        
         log.info("User updated successfully with ID: {}", updatedUser.getId());
         return updatedUser;
     }
@@ -118,8 +128,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Page<User> getAllUsers(Pageable pageable) {
-        // Only return users that are not soft deleted
-        return userRepository.findByDeletedAtIsNull(pageable);
+        // Return all users (no soft delete filtering since we use hard delete now)
+        return userRepository.findAll(pageable);
     }
     
     @Override
@@ -171,15 +181,15 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public void deleteUser(Long userId) {
-        log.info("Soft deleting user with ID: {}", userId);
+        log.info("Hard deleting user with ID: {}", userId);
         
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
         
-        user.softDelete();
-        userRepository.save(user);
+        // Hard delete - permanently remove from database
+        userRepository.delete(user);
         
-        log.info("User soft deleted successfully with ID: {}", userId);
+        log.info("User hard deleted successfully with ID: {}", userId);
     }
     
     @Override

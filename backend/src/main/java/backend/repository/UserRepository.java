@@ -55,9 +55,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findByDeletedAtIsNull(Pageable pageable);
     
     /**
-     * Find users by role name
+     * Find users by role name (only active users)
      */
-    @Query("SELECT u FROM User u JOIN u.role r WHERE r.name = :roleName")
+    @Query("SELECT u FROM User u JOIN u.role r WHERE r.name = :roleName AND u.deletedAt IS NULL")
     List<User> findByRoleName(@Param("roleName") String roleName);
     
     /**

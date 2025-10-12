@@ -4,7 +4,9 @@ import backend.dto.request.PromotionRequest;
 import backend.dto.response.ApiResponse;
 import backend.dto.response.PageResponse;
 import backend.dto.response.PromotionResponse;
+import backend.entity.Notification;
 import backend.entity.Promotion;
+import backend.service.NotificationService;
 import backend.service.PromotionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 public class PromotionController extends BaseController {
     
     private final PromotionService promotionService;
+    private final NotificationService notificationService;
     
     // ================================
     // ADMIN ENDPOINTS
@@ -49,6 +52,30 @@ public class PromotionController extends BaseController {
             
             Promotion promotion = promotionService.createPromotion(request);
             PromotionResponse response = promotionService.toResponse(promotion);
+            
+            // Send notification to all users about new promotion
+            try {
+                String title = "🎁 Khuyến mãi mới!";
+                String message = String.format(
+                    "Mã giảm giá \"%s\" - Giảm %s. Áp dụng ngay!",
+                    response.getCode(),
+                    response.getType().equals("Percentage") 
+                        ? response.getValue() + "%" 
+                        : String.format("%.0fđ", response.getValue())
+                );
+                String link = "/tours";
+                
+                notificationService.createNotificationForUsers(
+                    title,
+                    message,
+                    Notification.NotificationType.Info,
+                    link
+                );
+                log.info("Sent notification to all users about new promotion: {}", response.getCode());
+            } catch (Exception notifError) {
+                log.error("Failed to send notification for new promotion", notifError);
+                // Don't fail promotion creation if notification fails
+            }
             
             return ResponseEntity.ok(success("Promotion created successfully", response));
             

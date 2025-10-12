@@ -68,17 +68,28 @@ class NotificationService {
         unreadOnly: unreadOnly.toString()
       });
 
-      const response = await apiClient.get<{
-        notifications: Notification[];
-        total: number;
-        unread: number;
-      }>(`/notifications/user/${userId}?${params}`);
+      const response = await apiClient.get<any>(`/notifications/user/${userId}?${params}`);
 
       // Safe access to response data
       const data = response.data?.data || response.data;
+      const backendNotifications = data?.notifications || data?.content || [];
+      
+      // Map backend data to frontend Notification type
+      const mappedNotifications: Notification[] = backendNotifications.map((notif: any) => ({
+        id: String(notif.id),
+        type: (notif.type?.toLowerCase() || 'system') as any,
+        title: notif.title || '',
+        message: notif.message || '',
+        isRead: notif.isRead || false,
+        priority: 'medium' as any,
+        createdAt: notif.createdAt || new Date().toISOString(),
+        actionUrl: notif.link || '', // Map 'link' từ backend sang 'actionUrl'
+        actionText: 'Xem chi tiết',
+        userId: userId
+      }));
       
       return {
-        notifications: data?.notifications || data?.content || [],
+        notifications: mappedNotifications,
         total: data?.total || data?.totalElements || 0,
         unread: data?.unread || 0
       };
@@ -98,8 +109,10 @@ class NotificationService {
   async markAsRead(notificationId: string): Promise<void> {
     try {
       await apiClient.put(`/notifications/${notificationId}/read`);
+      console.log('✅ Marked notification as read:', notificationId);
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error('❌ Error marking notification as read:', notificationId, error);
+      throw error; // Re-throw to show error in UI
     }
   }
 
@@ -116,8 +129,10 @@ class NotificationService {
   async deleteNotification(notificationId: string): Promise<void> {
     try {
       await apiClient.delete(`/notifications/${notificationId}`);
+      console.log('✅ Deleted notification:', notificationId);
     } catch (error) {
-      console.error('Error deleting notification:', error);
+      console.error('❌ Error deleting notification:', notificationId, error);
+      throw error; // Re-throw to show error in UI
     }
   }
 

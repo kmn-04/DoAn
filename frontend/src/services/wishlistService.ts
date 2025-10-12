@@ -39,40 +39,49 @@ const wishlistService = {
   // Get user's wishlist
   getUserWishlist: async (userId: number): Promise<WishlistItem[]> => {
     try {
-      const response = await apiClient.get<TourResponse[]>(`/wishlists`);
+      interface WishlistResponse {
+        id: number;
+        userId: number;
+        tour: {
+          id: number;
+          name: string;
+          slug: string;
+          mainImage: string;
+          price: number;
+          salePrice?: number;
+          effectivePrice: number;
+          duration: number;
+          tourType: string;
+          destination: string;
+          isFeatured: boolean;
+        };
+        createdAt: string;
+      }
       
-      // Convert TourResponse to WishlistItem
-      return response.data.data!.map(tour => ({
-        id: tour.id,
-        name: tour.name,
-        slug: tour.slug,
-        description: tour.description,
-        price: tour.price,
-        originalPrice: tour.discountPrice,
-        duration: `${tour.duration} ngày`,
-        location: tour.location || tour.categoryName || 'Unknown',
-        rating: tour.averageRating || 4.5,
-        reviewCount: tour.totalReviews || 0,
-        maxPeople: tour.maxParticipants,
-        image: tour.images?.[0]?.imageUrl || tour.mainImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
-        category: tour.category.slug,
-        addedDate: tour.createdAt || new Date().toISOString(),
-        tourType: tour.tourType === 'DOMESTIC' ? 'domestic' : 'international',
-        country: tour.country ? {
-          name: tour.country.name,
-          code: tour.country.code,
-          flagUrl: tour.country.flagUrl,
-          visaRequired: tour.country.visaRequired
-        } : undefined,
-        flightIncluded: tour.flightIncluded,
-        visaInfo: tour.visaInfo
+      const response = await apiClient.get<WishlistResponse[]>(`/wishlists`);
+      
+      // Convert WishlistResponse to WishlistItem
+      return response.data.data!.map(wishlist => ({
+        id: wishlist.tour.id,
+        name: wishlist.tour.name,
+        slug: wishlist.tour.slug,
+        description: '', // Not available in WishlistResponse
+        price: wishlist.tour.effectivePrice,
+        originalPrice: wishlist.tour.price !== wishlist.tour.effectivePrice ? wishlist.tour.price : undefined,
+        duration: `${wishlist.tour.duration} ngày`,
+        location: wishlist.tour.destination || 'Unknown',
+        rating: 4.5, // Default rating
+        reviewCount: 0, // Not available
+        maxPeople: 20, // Default
+        image: wishlist.tour.mainImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+        category: 'tour', // Default
+        addedDate: wishlist.createdAt,
+        tourType: wishlist.tour.tourType === 'DOMESTIC' ? 'domestic' : 'international'
       }));
       
     } catch (error) {
       console.error('Error fetching wishlist:', error);
-      
-      // Return empty array on error
-      return [];
+      throw error;
     }
   },
 
@@ -89,8 +98,8 @@ const wishlistService = {
   // Check if tour is in wishlist
   isInWishlist: async (userId: number, tourId: number): Promise<boolean> => {
     try {
-      const response = await apiClient.get<boolean>(`/wishlists/check/${tourId}`);
-      return response.data.data!.inWishlist || false;
+      const response = await apiClient.get<{ inWishlist: boolean }>(`/wishlists/check/${tourId}`);
+      return response.data.data?.inWishlist || false;
     } catch (error) {
       return false;
     }
@@ -99,8 +108,8 @@ const wishlistService = {
   // Get wishlist count
   getWishlistCount: async (userId: number): Promise<number> => {
     try {
-      const response = await apiClient.get<number>(`/wishlists/count`);
-      return response.data.data!.count || 0;
+      const response = await apiClient.get<{ count: number }>(`/wishlists/count`);
+      return response.data.data?.count || 0;
     } catch (error) {
       return 0;
     }

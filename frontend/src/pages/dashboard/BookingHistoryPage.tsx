@@ -38,96 +38,6 @@ interface Booking {
   specialRequests?: string;
 }
 
-const mockBookings: Booking[] = [
-  {
-    id: 'BK1234567',
-    tourId: 1,
-    tourName: 'Hạ Long Bay - Kỳ Quan Thế Giới',
-    tourSlug: 'ha-long-bay-ky-quan-the-gioi',
-    tourImage: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=400',
-    startDate: '2024-02-15',
-    endDate: '2024-02-16',
-    duration: '2 ngày 1 đêm',
-    location: 'Quảng Ninh',
-    adults: 2,
-    children: 1,
-    totalPrice: 6200000,
-    status: 'confirmed',
-    paymentStatus: 'paid',
-    bookingDate: '2024-01-20',
-    specialRequests: 'Phòng view biển'
-  },
-  {
-    id: 'BK1234568',
-    tourId: 2,
-    tourName: 'Sapa - Thiên Đường Mây Trắng',
-    tourSlug: 'sapa-thien-duong-may-trang',
-    tourImage: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=400',
-    startDate: '2024-01-20',
-    endDate: '2024-01-22',
-    duration: '3 ngày 2 đêm',
-    location: 'Lào Cai',
-    adults: 2,
-    children: 0,
-    totalPrice: 3600000,
-    status: 'completed',
-    paymentStatus: 'paid',
-    bookingDate: '2024-01-05'
-  },
-  {
-    id: 'BK1234569',
-    tourId: 3,
-    tourName: 'Phú Quốc - Đảo Ngọc Xanh',
-    tourSlug: 'phu-quoc-dao-ngoc-xanh',
-    tourImage: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
-    startDate: '2024-03-10',
-    endDate: '2024-03-13',
-    duration: '4 ngày 3 đêm',
-    location: 'Kiên Giang',
-    adults: 4,
-    children: 2,
-    totalPrice: 9600000,
-    status: 'pending',
-    paymentStatus: 'pending',
-    bookingDate: '2024-01-25',
-    specialRequests: 'Ăn chay cho 2 người'
-  },
-  {
-    id: 'BK1234570',
-    tourId: 4,
-    tourName: 'Hội An - Phố Cổ Thơ Mộng',
-    tourSlug: 'hoi-an-pho-co-tho-mong',
-    tourImage: 'https://images.unsplash.com/photo-1555618254-74e3f7d4f9b8?w=400',
-    startDate: '2023-12-15',
-    endDate: '2023-12-16',
-    duration: '2 ngày 1 đêm',
-    location: 'Quảng Nam',
-    adults: 2,
-    children: 0,
-    totalPrice: 3000000,
-    status: 'completed',
-    paymentStatus: 'paid',
-    bookingDate: '2023-12-01'
-  },
-  {
-    id: 'BK1234571',
-    tourId: 5,
-    tourName: 'Đà Lạt - Thành Phố Ngàn Hoa',
-    tourSlug: 'da-lat-thanh-pho-ngan-hoa',
-    tourImage: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-    startDate: '2023-11-20',
-    endDate: '2023-11-22',
-    duration: '3 ngày 2 đêm',
-    location: 'Lâm Đồng',
-    adults: 1,
-    children: 0,
-    totalPrice: 1200000,
-    status: 'cancelled',
-    paymentStatus: 'failed',
-    bookingDate: '2023-11-10'
-  }
-];
-
 const BookingHistoryPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -230,17 +140,16 @@ const BookingHistoryPage: React.FC = () => {
       } catch (error) {
         console.error('Error fetching bookings:', error);
         
-        // Fallback to mock data on error
-        setBookings(mockBookings);
-        
         const errorEvent = new CustomEvent('show-toast', {
           detail: {
-            type: 'warning',
-            title: 'Không thể tải dữ liệu',
-            message: 'Đang hiển thị dữ liệu mẫu. Vui lòng thử lại sau.'
+            type: 'error',
+            title: 'Lỗi tải dữ liệu',
+            message: 'Không thể tải lịch sử booking. Vui lòng thử lại sau.'
           }
         });
         window.dispatchEvent(errorEvent);
+        
+        setBookings([]);
         
       } finally {
         setIsLoading(false);

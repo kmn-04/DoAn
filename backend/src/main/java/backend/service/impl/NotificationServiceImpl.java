@@ -114,7 +114,12 @@ public class NotificationServiceImpl implements NotificationService {
     
     @Override
     public void createNotificationForAdmins(String title, String message, Notification.NotificationType type, String link) {
-        List<User> admins = userRepository.findByRoleName("ROLE_ADMIN");
+        // Get admins and staff (role names are "Admin" and "Staff" in database)
+        List<User> admins = userRepository.findByRoleName("Admin");
+        List<User> staff = userRepository.findByRoleName("Staff");
+        
+        // Combine both lists
+        admins.addAll(staff);
         
         for (User admin : admins) {
             Notification notification = new Notification();
@@ -128,12 +133,16 @@ public class NotificationServiceImpl implements NotificationService {
             notificationRepository.save(notification);
         }
         
-        log.info("Created {} notifications for admins", admins.size());
+        log.info("Created {} notifications for admins/staff", admins.size());
     }
     
     @Override
     public void createNotificationForUsers(String title, String message, Notification.NotificationType type, String link) {
-        List<User> users = userRepository.findByRoleName("ROLE_USER");
+        // Get customers only (role name is "Customer" in database)
+        List<User> users = userRepository.findByRoleName("Customer");
+        
+        // Log for debugging
+        log.info("Found {} customers to send notifications", users.size());
         
         for (User user : users) {
             Notification notification = new Notification();
