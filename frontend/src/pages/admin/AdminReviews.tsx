@@ -146,9 +146,9 @@ const AdminReviews: React.FC = () => {
         
         // Calculate stats from ALL filtered data
         const total = filteredData.length;
-        const approved = filteredData.filter((r: Review) => r.status === 'Approved').length;
-        const pending = filteredData.filter((r: Review) => r.status === 'Pending').length;
-        const rejected = filteredData.filter((r: Review) => r.status === 'Rejected').length;
+        const approved = filteredData.filter((r: Review) => r.status === 'APPROVED').length;
+        const pending = filteredData.filter((r: Review) => r.status === 'PENDING').length;
+        const rejected = filteredData.filter((r: Review) => r.status === 'REJECTED').length;
         setStats({ total, approved, pending, rejected });
       } else {
         setReviews(filteredData);
@@ -158,9 +158,9 @@ const AdminReviews: React.FC = () => {
         
         // Calculate stats from current page
         const total = filteredData.length;
-        const approved = filteredData.filter((r: Review) => r.status === 'Approved').length;
-        const pending = filteredData.filter((r: Review) => r.status === 'Pending').length;
-        const rejected = filteredData.filter((r: Review) => r.status === 'Rejected').length;
+        const approved = filteredData.filter((r: Review) => r.status === 'APPROVED').length;
+        const pending = filteredData.filter((r: Review) => r.status === 'PENDING').length;
+        const rejected = filteredData.filter((r: Review) => r.status === 'REJECTED').length;
         setStats({ total, approved, pending, rejected });
       }
       
@@ -190,16 +190,16 @@ const AdminReviews: React.FC = () => {
 
       
       let endpoint = '';
-      if (newStatus === 'Approved') {
+      if (newStatus === 'APPROVED') {
         endpoint = `/admin/reviews/${reviewId}/approve`;
-      } else if (newStatus === 'Rejected') {
+      } else if (newStatus === 'REJECTED') {
         endpoint = `/admin/reviews/${reviewId}/reject`;
-      } else if (newStatus === 'Pending') {
+      } else if (newStatus === 'PENDING') {
         // If there's no specific endpoint to set back to Pending, use PATCH
-        endpoint = `/admin/reviews/${reviewId}/status?status=Pending`;
+        endpoint = `/admin/reviews/${reviewId}/status?status=PENDING`;
       }
       
-      if (newStatus === 'Pending') {
+      if (newStatus === 'PENDING') {
         await apiClient.patch(endpoint);
       } else {
         await apiClient.patch(endpoint);
@@ -273,11 +273,11 @@ const AdminReviews: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Approved':
+      case 'APPROVED':
         return 'admin-badge-green';
-      case 'Pending':
+      case 'PENDING':
         return 'admin-badge-yellow';
-      case 'Rejected':
+      case 'REJECTED':
         return 'admin-badge-red';
       default:
         return 'admin-badge-gray';
@@ -286,9 +286,9 @@ const AdminReviews: React.FC = () => {
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      'Approved': 'Đã duyệt',
-      'Pending': 'Chờ duyệt',
-      'Rejected': 'Đã từ chối'
+      'APPROVED': 'Đã duyệt',
+      'PENDING': 'Chờ duyệt',
+      'REJECTED': 'Đã từ chối'
     };
     return labels[status] || status;
   };
@@ -408,9 +408,9 @@ const AdminReviews: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="Pending">Chờ duyệt</option>
-                <option value="Approved">Đã duyệt</option>
-                <option value="Rejected">Đã từ chối</option>
+                <option value="PENDING">Chờ duyệt</option>
+                <option value="APPROVED">Đã duyệt</option>
+                <option value="REJECTED">Đã từ chối</option>
               </select>
             </div>
 
@@ -517,9 +517,9 @@ const AdminReviews: React.FC = () => {
                         className={`admin-table-select ${getStatusBadge(review.status)}`}
                         disabled={loading}
                       >
-                        <option value="Pending">Chờ duyệt</option>
-                        <option value="Approved">Đã duyệt</option>
-                        <option value="Rejected">Đã từ chối</option>
+                        <option value="PENDING">Chờ duyệt</option>
+                        <option value="APPROVED">Đã duyệt</option>
+                        <option value="REJECTED">Đã từ chối</option>
                       </select>
                     </td>
                     <td className="admin-table-td">
@@ -724,7 +724,7 @@ const AdminReviews: React.FC = () => {
                   </div>
 
                   {/* Actions for Pending Reviews */}
-                  {selectedReview.status === 'Pending' && (
+                  {selectedReview.status === 'PENDING' && (
                     <div className="admin-view-section">
                       <h4 className="admin-view-section-title">Hành động</h4>
                       <div className="flex gap-3">

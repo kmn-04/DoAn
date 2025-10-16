@@ -66,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
         user.setAddress(request.getAddress());
         user.setDateOfBirth(request.getDateOfBirth());
         user.setRole(customerRole);
-        user.setStatus(User.UserStatus.Active);
+        user.setStatus(User.UserStatus.ACTIVE);
         
         User savedUser = userRepository.save(user);
         

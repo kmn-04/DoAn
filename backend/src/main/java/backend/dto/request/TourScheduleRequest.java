@@ -37,7 +37,7 @@ public class TourScheduleRequest {
     @DecimalMin(value = "0.0", message = "Infant price cannot be negative")
     private BigDecimal infantPrice;
     
-    private String status; // Available, Full, Confirmed, Cancelled, Completed
+    private String status; // AVAILABLE, FULL, CONFIRMED, CANCELLED, COMPLETED
     
     @Size(max = 500, message = "Note must be less than 500 characters")
     private String note;

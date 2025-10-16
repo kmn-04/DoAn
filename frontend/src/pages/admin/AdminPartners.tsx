@@ -26,7 +26,7 @@ interface PartnerFormData {
   description: string;
   specialties: string;
   avatarUrl?: string;
-  status: 'Active' | 'Inactive' | 'Suspended';
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 }
 
 const AdminPartners: React.FC = () => {
@@ -60,7 +60,7 @@ const AdminPartners: React.FC = () => {
     description: '',
     specialties: '',
     avatarUrl: '',
-    status: 'Active'
+    status: 'ACTIVE'
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
@@ -144,7 +144,7 @@ const AdminPartners: React.FC = () => {
       description: '',
       specialties: '',
       avatarUrl: '',
-      status: 'Active'
+      status: 'ACTIVE'
     });
     setFormErrors({});
     setIsModalOpen(true);
@@ -162,7 +162,7 @@ const AdminPartners: React.FC = () => {
       description: partner.description || '',
       specialties: partner.specialties || '',
       avatarUrl: partner.avatarUrl || '',
-      status: partner.status as 'Active' | 'Inactive' | 'Suspended'
+      status: partner.status as 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
     });
     setFormErrors({});
     setIsModalOpen(true);
@@ -232,11 +232,11 @@ const AdminPartners: React.FC = () => {
   };
 
   const handleDelete = async (partner: PartnerResponse) => {
-    const partnerType = partner.type === 'Hotel' ? 'Khách sạn' :
-                       partner.type === 'Restaurant' ? 'Nhà hàng' :
-                       partner.type === 'Transport' ? 'Vận chuyển' :
-                       partner.type === 'TourOperator' ? 'Tour Operator' :
-                       partner.type === 'Insurance' ? 'Bảo hiểm' : 'Khác';
+    const partnerType = partner.type === 'HOTEL' ? 'Khách sạn' :
+                       partner.type === 'RESTAURANT' ? 'Nhà hàng' :
+                       partner.type === 'TRANSPORT' ? 'Vận chuyển' :
+                       partner.type === 'TOUR_OPERATOR' ? 'Tour Operator' :
+                       partner.type === 'INSURANCE' ? 'Bảo hiểm' : 'Khác';
     
     const confirmed = window.confirm(
       `Bạn có chắc chắn muốn xóa đối tác "${partner.name}" (${partnerType})?\n\n⚠️ Hành động này không thể hoàn tác!`
@@ -260,7 +260,7 @@ const AdminPartners: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (id: number, newStatus: 'Active' | 'Inactive' | 'Suspended') => {
+  const handleStatusChange = async (id: number, newStatus: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED') => {
     try {
       setLoading(true);
       await apiClient.patch(`/admin/partners/${id}/status?status=${newStatus}`);
@@ -279,11 +279,11 @@ const AdminPartners: React.FC = () => {
 
   const getStatusClassName = (status: string) => {
     switch (status) {
-      case 'Active':
+      case 'ACTIVE':
         return 'admin-table-select-active';
-      case 'Suspended':
+      case 'SUSPENDED':
         return 'admin-table-select-suspended';
-      case 'Inactive':
+      case 'INACTIVE':
         return 'admin-table-select-inactive';
       default:
         return 'admin-table-select-inactive';
@@ -403,9 +403,9 @@ const AdminPartners: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="Active">Hoạt động</option>
-                <option value="Suspended">Tạm ngừng</option>
-                <option value="Inactive">Ngừng hoạt động</option>
+                <option value="ACTIVE">Hoạt động</option>
+                <option value="SUSPENDED">Tạm ngừng</option>
+                <option value="INACTIVE">Ngừng hoạt động</option>
               </select>
             </div>
 
@@ -466,25 +466,25 @@ const AdminPartners: React.FC = () => {
                     <td className="admin-table-td font-medium">{partner.name}</td>
                     <td className="admin-table-td">
                       <span className="admin-badge-blue">
-                        {partner.type === 'Hotel' && 'Khách sạn'}
-                        {partner.type === 'Restaurant' && 'Nhà hàng'}
-                        {partner.type === 'Transport' && 'Vận chuyển'}
-                        {partner.type === 'TourOperator' && 'Điều hành tour'}
-                        {partner.type === 'Insurance' && 'Bảo hiểm'}
-                        {partner.type === 'Other' && 'Khác'}
+                        {partner.type === 'HOTEL' && 'Khách sạn'}
+                        {partner.type === 'RESTAURANT' && 'Nhà hàng'}
+                        {partner.type === 'TRANSPORT' && 'Vận chuyển'}
+                        {partner.type === 'TOUR_OPERATOR' && 'Điều hành tour'}
+                        {partner.type === 'INSURANCE' && 'Bảo hiểm'}
+                        {partner.type === 'OTHER' && 'Khác'}
                       </span>
                     </td>
                     <td className="admin-table-td text-sm">{partner.address || 'N/A'}</td>
                     <td className="admin-table-td">
                       <select
                         value={partner.status}
-                        onChange={(e) => handleStatusChange(partner.id, e.target.value as 'Active' | 'Inactive' | 'Suspended')}
+                        onChange={(e) => handleStatusChange(partner.id, e.target.value as 'ACTIVE' | 'INACTIVE' | 'SUSPENDED')}
                         className={getStatusClassName(partner.status)}
                         disabled={loading}
                       >
-                        <option value="Active">Hoạt động</option>
-                        <option value="Suspended">Tạm ngừng</option>
-                        <option value="Inactive">Ngừng hoạt động</option>
+                        <option value="ACTIVE">Hoạt động</option>
+                        <option value="SUSPENDED">Tạm ngừng</option>
+                        <option value="INACTIVE">Ngừng hoạt động</option>
                       </select>
                     </td>
                     <td className="admin-table-td">
@@ -569,12 +569,12 @@ const AdminPartners: React.FC = () => {
                         <p className="admin-view-label">Loại</p>
                         <p className="admin-view-value">
                           <span className="admin-badge-blue">
-                            {viewingPartner.type === 'Hotel' && 'Khách sạn'}
-                            {viewingPartner.type === 'Restaurant' && 'Nhà hàng'}
-                            {viewingPartner.type === 'Transport' && 'Vận chuyển'}
-                            {viewingPartner.type === 'TourOperator' && 'Điều hành tour'}
-                            {viewingPartner.type === 'Insurance' && 'Bảo hiểm'}
-                            {viewingPartner.type === 'Other' && 'Khác'}
+                            {viewingPartner.type === 'HOTEL' && 'Khách sạn'}
+                            {viewingPartner.type === 'RESTAURANT' && 'Nhà hàng'}
+                            {viewingPartner.type === 'TRANSPORT' && 'Vận chuyển'}
+                            {viewingPartner.type === 'TOUR_OPERATOR' && 'Điều hành tour'}
+                            {viewingPartner.type === 'INSURANCE' && 'Bảo hiểm'}
+                            {viewingPartner.type === 'OTHER' && 'Khác'}
                           </span>
                         </p>
                       </div>
@@ -582,12 +582,12 @@ const AdminPartners: React.FC = () => {
                         <p className="admin-view-label">Trạng thái</p>
                         <p className="admin-view-value">
                           <span className={
-                            viewingPartner.status === 'Active' ? 'admin-badge-green' :
-                            viewingPartner.status === 'Suspended' ? 'admin-badge-yellow' :
+                            viewingPartner.status === 'ACTIVE' ? 'admin-badge-green' :
+                            viewingPartner.status === 'SUSPENDED' ? 'admin-badge-yellow' :
                             'admin-badge-gray'
                           }>
-                            {viewingPartner.status === 'Active' ? 'Hoạt động' :
-                             viewingPartner.status === 'Suspended' ? 'Tạm ngừng' :
+                            {viewingPartner.status === 'ACTIVE' ? 'Hoạt động' :
+                             viewingPartner.status === 'SUSPENDED' ? 'Tạm ngừng' :
                              'Ngừng hoạt động'}
                           </span>
                         </p>
@@ -801,12 +801,12 @@ const AdminPartners: React.FC = () => {
                       <select
                         id="status"
                         value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' | 'Suspended' })}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' })}
                         className="admin-select"
                       >
-                        <option value="Active">Hoạt động</option>
-                        <option value="Suspended">Tạm ngừng</option>
-                        <option value="Inactive">Ngừng hoạt động</option>
+                        <option value="ACTIVE">Hoạt động</option>
+                        <option value="SUSPENDED">Tạm ngừng</option>
+                        <option value="INACTIVE">Ngừng hoạt động</option>
                       </select>
                     </div>
                   </div>

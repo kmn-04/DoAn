@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   EyeIcon,
   CalendarIcon,
   CheckCircleIcon,
-  XCircleIcon,
   ClockIcon,
   BanknotesIcon
 } from '@heroicons/react/24/outline';
@@ -83,13 +82,9 @@ const AdminBookings: React.FC = () => {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('id');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  useEffect(() => {
-    fetchGlobalStats();
-  }, []);
-  
-  const fetchGlobalStats = async () => {
+  const fetchGlobalStats = useCallback(async () => {
     try {
       const response = await apiClient.get('/admin/bookings/statistics');
       const data = response.data.data;
@@ -102,13 +97,9 @@ const AdminBookings: React.FC = () => {
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    fetchBookings(currentPage);
-  }, [currentPage, searchTerm, confirmationStatusFilter, paymentStatusFilter, dateFilter, sortBy, sortDirection]);
-
-  const fetchBookings = async (page: number) => {
+  const fetchBookings = useCallback(async (page: number) => {
     try {
       setLoading(true);
       
@@ -127,17 +118,12 @@ const AdminBookings: React.FC = () => {
       
       const response = await apiClient.get(`/admin/bookings?${params.toString()}`);
       
-      const bookingsData = (response.data.data?.content || []).map((booking: any) => ({
+      const bookingsData = (response.data.data?.content || []).map((booking: Booking) => ({
         ...booking,
-        // Normalize status to PascalCase
-        confirmationStatus: booking.confirmationStatus 
-          ? booking.confirmationStatus.charAt(0).toUpperCase() + booking.confirmationStatus.slice(1)
-          : booking.confirmationStatus,
+        // Keep status as-is from backend (should already be uppercase ENUM values)
+        confirmationStatus: booking.confirmationStatus,
         paymentStatus: booking.paymentStatus
-          ? booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1)
-          : booking.paymentStatus
       }));
-      
       
       setBookings(bookingsData);
       setTotalPages(response.data.data?.totalPages || 0);
@@ -151,7 +137,15 @@ const AdminBookings: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sortBy, sortDirection, searchTerm, confirmationStatusFilter, paymentStatusFilter, dateFilter]);
+
+  useEffect(() => {
+    fetchGlobalStats();
+  }, [fetchGlobalStats]);
+
+  useEffect(() => {
+    fetchBookings(currentPage);
+  }, [currentPage, fetchBookings]);
 
   const openDetailModal = async (booking: Booking) => {
     try {
@@ -178,18 +172,32 @@ const AdminBookings: React.FC = () => {
     
     try {
       setLoading(true);
-      const response = await apiClient.patch(`/admin/bookings/${id}/status`, { 
+      
+      // Optimistic update: Update local state immediately
+      setBookings(prevBookings => 
+        prevBookings.map(b => 
+          b.id === id ? { ...b, confirmationStatus: newStatus } : b
+        )
+      );
+      
+      await apiClient.patch(`/admin/bookings/${id}/status`, { 
         status: newStatus 
       });
+      
       if (typeof bookingId !== 'number') closeDetailModal();
+      
+      // Refresh from server to ensure consistency
       await Promise.all([
         fetchBookings(currentPage),
         fetchGlobalStats()
       ]);
     } catch (error) {
-      console.error('Error updating confirmation status:', error);
+      console.error('❌ Error updating confirmation status:', error);
       const axiosError = error as AxiosError<{ message?: string }>;
       alert(axiosError.response?.data?.message || 'Không thể cập nhật trạng thái xác nhận');
+      
+      // Revert optimistic update on error
+      await fetchBookings(currentPage);
     } finally {
       setLoading(false);
     }
@@ -201,16 +209,30 @@ const AdminBookings: React.FC = () => {
     
     try {
       setLoading(true);
-      const response = await apiClient.patch(`/admin/bookings/${id}/payment-status?paymentStatus=${newStatus}`);
+      
+      // Optimistic update: Update local state immediately
+      setBookings(prevBookings => 
+        prevBookings.map(b => 
+          b.id === id ? { ...b, paymentStatus: newStatus } : b
+        )
+      );
+      
+      await apiClient.patch(`/admin/bookings/${id}/payment-status?paymentStatus=${newStatus}`);
+      
       if (typeof bookingId !== 'number') closeDetailModal();
+      
+      // Refresh from server to ensure consistency
       await Promise.all([
         fetchBookings(currentPage),
         fetchGlobalStats()
       ]);
     } catch (error) {
-      console.error('Error updating payment status:', error);
+      console.error('❌ Error updating payment status:', error);
       const axiosError = error as AxiosError<{ message?: string }>;
       alert(axiosError.response?.data?.message || 'Không thể cập nhật trạng thái thanh toán');
+      
+      // Revert optimistic update on error
+      await fetchBookings(currentPage);
     } finally {
       setLoading(false);
     }
@@ -218,15 +240,15 @@ const AdminBookings: React.FC = () => {
 
   const getConfirmationStatusBadge = (status: string) => {
     switch (status) {
-      case 'Confirmed':
+      case 'CONFIRMED':
         return 'admin-badge-green';
-      case 'Pending':
+      case 'PENDING':
         return 'admin-badge-yellow';
-      case 'Cancelled':
+      case 'CANCELLED':
         return 'admin-badge-red';
-      case 'Completed':
+      case 'COMPLETED':
         return 'admin-badge-blue';
-      case 'CancellationRequested':
+      case 'CANCELLATION_REQUESTED':
         return 'admin-badge-red';
       default:
         return 'admin-badge-gray';
@@ -235,13 +257,10 @@ const AdminBookings: React.FC = () => {
 
   const getPaymentStatusBadge = (status: string) => {
     switch (status) {
-      case 'Paid':
+      case 'PAID':
         return 'admin-badge-green';
-      case 'Unpaid':
+      case 'UNPAID':
         return 'admin-badge-red';
-      case 'Refunded':
-      case 'Refunding':
-        return 'admin-badge-purple';
       default:
         return 'admin-badge-gray';
     }
@@ -249,10 +268,11 @@ const AdminBookings: React.FC = () => {
 
   const getConfirmationStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      'Pending': 'Chờ xác nhận',
-      'Confirmed': 'Đã xác nhận',
-      'Cancelled': 'Đã hủy',
-      'Completed': 'Hoàn thành',
+      'PENDING': 'Chờ xác nhận',
+      'CONFIRMED': 'Đã xác nhận',
+      'CANCELLED': 'Đã hủy',
+      'COMPLETED': 'Hoàn thành',
+      'CANCELLATION_REQUESTED': 'Yêu cầu hủy',
       'CancellationRequested': 'Yêu cầu hủy'
     };
     return labels[status] || status;
@@ -260,10 +280,8 @@ const AdminBookings: React.FC = () => {
 
   const getPaymentStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      'Unpaid': 'Chưa thanh toán',
-      'Paid': 'Đã thanh toán',
-      'Refunded': 'Đã hoàn tiền',
-      'Refunding': 'Đang hoàn tiền'
+      'UNPAID': 'Chưa thanh toán',
+      'PAID': 'Đã thanh toán'
     };
     return labels[status] || status;
   };
@@ -372,11 +390,11 @@ const AdminBookings: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="Pending">Chờ xác nhận</option>
-                <option value="Confirmed">Đã xác nhận</option>
-                <option value="Completed">Hoàn thành</option>
-                <option value="Cancelled">Đã hủy</option>
-                <option value="CancellationRequested">Yêu cầu hủy</option>
+                <option value="PENDING">Chờ xác nhận</option>
+                <option value="CONFIRMED">Đã xác nhận</option>
+                <option value="COMPLETED">Hoàn thành</option>
+                <option value="CANCELLED">Đã hủy</option>
+                {/* Yêu cầu hủy được xử lý tại trang /admin/cancellations */}
               </select>
             </div>
 
@@ -388,10 +406,8 @@ const AdminBookings: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="Unpaid">Chưa thanh toán</option>
-                <option value="Paid">Đã thanh toán</option>
-                <option value="PartiallyPaid">Thanh toán 1 phần</option>
-                <option value="Refunded">Đã hoàn tiền</option>
+                <option value="UNPAID">Chưa thanh toán</option>
+                <option value="PAID">Đã thanh toán</option>
               </select>
             </div>
 
@@ -434,6 +450,7 @@ const AdminBookings: React.FC = () => {
           <table className="admin-table">
             <thead className="admin-table-header">
               <tr>
+                <th className="admin-table-th">ID</th>
                 <th className="admin-table-th">Mã booking</th>
                 <th className="admin-table-th">Khách hàng</th>
                 <th className="admin-table-th">Ngày đặt</th>
@@ -447,7 +464,7 @@ const AdminBookings: React.FC = () => {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="admin-loading">
+                  <td colSpan={9} className="admin-loading">
                     <div className="admin-spinner">
                       <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -458,13 +475,16 @@ const AdminBookings: React.FC = () => {
                 </tr>
               ) : bookings.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="admin-empty">
+                  <td colSpan={9} className="admin-empty">
                     Không có dữ liệu
                   </td>
                 </tr>
               ) : (
                 bookings.map((booking) => (
                   <tr key={booking.id} className="admin-table-row">
+                    <td className="admin-table-td">
+                      <span className="text-sm text-gray-600">{booking.id}</span>
+                    </td>
                     <td className="admin-table-td">
                       <span className="font-mono text-sm font-semibold text-blue-600">{booking.bookingCode}</span>
                     </td>
@@ -479,31 +499,37 @@ const AdminBookings: React.FC = () => {
                     <td className="admin-table-td font-semibold text-green-600">{formatPrice(booking.totalPrice)}</td>
                     <td className="admin-table-td">
                       <select
-                        key={`conf-${booking.id}-${booking.confirmationStatus}`}
+                        key={`conf-${booking.id}-${booking.confirmationStatus}-${booking.updatedAt || booking.createdAt}`}
                         value={booking.confirmationStatus}
                         onChange={(e) => handleUpdateConfirmationStatus(booking.id, e.target.value)}
                         className={`admin-table-select ${getConfirmationStatusBadge(booking.confirmationStatus)}`}
-                        disabled={loading}
+                        disabled={loading || booking.confirmationStatus === 'CANCELLATION_REQUESTED' || booking.confirmationStatus === 'CANCELLED'}
+                        title={booking.confirmationStatus === 'CANCELLATION_REQUESTED' ? 'Xử lý yêu cầu hủy tại trang Yêu cầu hủy' : booking.confirmationStatus === 'CANCELLED' ? 'Không thể thay đổi booking đã hủy' : ''}
                       >
-                        <option value="Pending">Chờ xác nhận</option>
-                        <option value="Confirmed">Đã xác nhận</option>
-                        <option value="Completed">Hoàn thành</option>
-                        <option value="Cancelled">Đã hủy</option>
-                        <option value="CancellationRequested">Yêu cầu hủy</option>
+                        {booking.confirmationStatus === 'CANCELLATION_REQUESTED' ? (
+                          <option value="CANCELLATION_REQUESTED">Yêu cầu hủy</option>
+                        ) : booking.confirmationStatus === 'CANCELLED' ? (
+                          <option value="CANCELLED">Đã hủy</option>
+                        ) : (
+                          <>
+                            <option value="PENDING">Chờ xác nhận</option>
+                            <option value="CONFIRMED">Đã xác nhận</option>
+                            <option value="COMPLETED">Hoàn thành</option>
+                            <option value="CANCELLED">Đã hủy</option>
+                          </>
+                        )}
                       </select>
                     </td>
                     <td className="admin-table-td">
                       <select
-                        key={`pay-${booking.id}-${booking.paymentStatus}`}
+                        key={`pay-${booking.id}-${booking.paymentStatus}-${booking.updatedAt || booking.createdAt}`}
                         value={booking.paymentStatus}
                         onChange={(e) => handleUpdatePaymentStatus(booking.id, e.target.value)}
                         className={`admin-table-select ${getPaymentStatusBadge(booking.paymentStatus)}`}
                         disabled={loading}
                       >
-                        <option value="Unpaid">Chưa thanh toán</option>
-                        <option value="Paid">Đã thanh toán</option>
-                        <option value="Refunding">Đang hoàn tiền</option>
-                        <option value="Refunded">Đã hoàn tiền</option>
+                        <option value="UNPAID">Chưa thanh toán</option>
+                        <option value="PAID">Đã thanh toán</option>
                       </select>
                     </td>
                     <td className="admin-table-td">
@@ -762,13 +788,21 @@ const AdminBookings: React.FC = () => {
                           value={selectedBooking.confirmationStatus}
                           onChange={(e) => handleUpdateConfirmationStatus('modal', e.target.value)}
                           className="admin-select"
-                          disabled={loading}
+                          disabled={loading || selectedBooking.confirmationStatus === 'CANCELLATION_REQUESTED' || selectedBooking.confirmationStatus === 'CANCELLED'}
+                          title={selectedBooking.confirmationStatus === 'CANCELLATION_REQUESTED' ? 'Xử lý yêu cầu hủy tại trang Yêu cầu hủy' : selectedBooking.confirmationStatus === 'CANCELLED' ? 'Không thể thay đổi booking đã hủy' : ''}
                         >
-                          <option value="Pending">Chờ xác nhận</option>
-                          <option value="Confirmed">Đã xác nhận</option>
-                          <option value="Completed">Hoàn thành</option>
-                          <option value="Cancelled">Đã hủy</option>
-                          <option value="CancellationRequested">Yêu cầu hủy</option>
+                          {selectedBooking.confirmationStatus === 'CANCELLATION_REQUESTED' ? (
+                            <option value="CANCELLATION_REQUESTED">Yêu cầu hủy</option>
+                          ) : selectedBooking.confirmationStatus === 'CANCELLED' ? (
+                            <option value="CANCELLED">Đã hủy</option>
+                          ) : (
+                            <>
+                              <option value="PENDING">Chờ xác nhận</option>
+                              <option value="CONFIRMED">Đã xác nhận</option>
+                              <option value="COMPLETED">Hoàn thành</option>
+                              <option value="CANCELLED">Đã hủy</option>
+                            </>
+                          )}
                         </select>
                       </div>
                       <div>
@@ -779,11 +813,8 @@ const AdminBookings: React.FC = () => {
                           className="admin-select"
                           disabled={loading}
                         >
-                          <option value="Unpaid">Chưa thanh toán</option>
-                          <option value="PartiallyPaid">Thanh toán 1 phần</option>
-                          <option value="Paid">Đã thanh toán</option>
-                          <option value="Refunding">Đang hoàn tiền</option>
-                          <option value="Refunded">Đã hoàn tiền</option>
+                          <option value="UNPAID">Chưa thanh toán</option>
+                          <option value="PAID">Đã thanh toán</option>
                         </select>
                       </div>
                     </div>

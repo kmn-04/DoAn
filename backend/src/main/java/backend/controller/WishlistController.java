@@ -50,10 +50,15 @@ public class WishlistController {
     }
     
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Lấy wishlist của user")
     public ResponseEntity<ApiResponse<List<WishlistResponse>>> getUserWishlist(
             Authentication authentication) {
+        // Return empty list if not authenticated
+        if (authentication == null || !authentication.isAuthenticated() 
+            || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.ok(success("No wishlist for unauthenticated user", List.of()));
+        }
+        
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         List<WishlistResponse> wishlists = wishlistService.getUserWishlist(userDetails.getId());
         return ResponseEntity.ok(success("Wishlist retrieved successfully", wishlists));

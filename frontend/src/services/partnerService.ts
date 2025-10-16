@@ -55,7 +55,7 @@ export interface PartnerResponse {
   specialties: string[];
   images: PartnerImage[];
   tours: PartnerTour[];
-  status: 'Active' | 'Inactive' | 'Suspended';
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   createdAt: string;
   updatedAt: string;
 }

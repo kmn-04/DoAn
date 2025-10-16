@@ -48,7 +48,7 @@ interface Tour {
   location: string;
   categoryId: number;
   categoryName?: string;
-  status: 'Active' | 'Inactive';
+  status: 'ACTIVE' | 'INACTIVE';
   isFeatured: boolean; // Backend returns isFeatured, not featured
   itineraries?: Itinerary[];
 }
@@ -113,7 +113,7 @@ interface TourFormData {
   difficulty: string;
   location?: string;
   categoryId: number;
-  status: 'Active' | 'Inactive';
+  status: 'ACTIVE' | 'INACTIVE';
   featured: boolean;
   itineraries: Itinerary[];
 }
@@ -168,7 +168,7 @@ const AdminTours: React.FC = () => {
     difficulty: 'Easy',
     location: undefined,
     categoryId: 0,
-    status: 'Active',
+    status: 'ACTIVE',
     featured: false,
     itineraries: []
   });
@@ -326,7 +326,7 @@ const AdminTours: React.FC = () => {
       difficulty: 'Easy',
       location: undefined,
       categoryId: categories[0]?.id || 0,
-      status: 'Active',
+      status: 'ACTIVE',
       featured: false,
       itineraries: []
     });
@@ -434,7 +434,7 @@ const AdminTours: React.FC = () => {
       difficulty: tour.difficulty || 'Easy',
       location: tour.location || '',
       categoryId: tour.category?.id || tour.categoryId || 0,
-      status: tour.status || 'Active',
+      status: tour.status || 'ACTIVE',
       featured: tour.isFeatured || false,
       // Map itineraries with partner IDs
       itineraries: (tour.itineraries || []).map(itin => ({
@@ -615,19 +615,35 @@ const AdminTours: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (id: number, newStatus: 'Active' | 'Inactive') => {
+  const handleStatusChange = async (id: number, newStatus: 'ACTIVE' | 'INACTIVE') => {
     try {
       setLoading(true);
-      await apiClient.patch(`/admin/tours/${id}/status?status=${newStatus}`);
-      // Refresh both tours list and global stats
+      console.log(`🔄 Updating tour ${id} status to: ${newStatus}`);
+      
+      const response = await apiClient.patch(`/admin/tours/${id}/status?status=${newStatus}`);
+      console.log('✅ Status update response:', response.data);
+      
+      // Update local state immediately for instant UI feedback
+      setTours(prevTours => 
+        prevTours.map(tour => 
+          tour.id === id ? { ...tour, status: newStatus } : tour
+        )
+      );
+      
+      // Then refresh from server to ensure sync
       await Promise.all([
         fetchTours(currentPage),
         fetchGlobalStats()
       ]);
+      
+      console.log('✅ Tours reloaded');
     } catch (error) {
-      console.error('Error updating status:', error);
-      const axiosError = error as AxiosError<{ message?: string }>;
-      alert(axiosError.response?.data?.message || 'Không thể cập nhật trạng thái');
+      console.error('❌ Error updating status:', error);
+      const axiosError = error as AxiosError<{ message?: string; error?: string }>;
+      const errorMsg = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Không thể cập nhật trạng thái';
+      alert(errorMsg);
+      // Reload on error to revert optimistic update
+      await fetchTours(currentPage);
     } finally {
       setLoading(false);
     }
@@ -779,8 +795,8 @@ const AdminTours: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="Active">Hoạt động</option>
-                <option value="Inactive">Ngừng hoạt động</option>
+                <option value="ACTIVE">Hoạt động</option>
+                <option value="INACTIVE">Ngừng hoạt động</option>
               </select>
             </div>
 
@@ -846,17 +862,18 @@ const AdminTours: React.FC = () => {
                     <td className="admin-table-td">{tour.duration}</td>
                     <td className="admin-table-td">
                       <select
+                        key={`status-${tour.id}-${tour.status}`}
                         value={tour.status}
-                        onChange={(e) => handleStatusChange(tour.id, e.target.value as 'Active' | 'Inactive')}
+                        onChange={(e) => handleStatusChange(tour.id, e.target.value as 'ACTIVE' | 'INACTIVE')}
                         className={
-                          tour.status === 'Active'
+                          tour.status === 'ACTIVE'
                             ? 'admin-table-select-active'
                             : 'admin-table-select-inactive'
                         }
                         disabled={loading}
                       >
-                        <option value="Active">Hoạt động</option>
-                        <option value="Inactive">Ngừng hoạt động</option>
+                        <option value="ACTIVE">Hoạt động</option>
+                        <option value="INACTIVE">Ngừng hoạt động</option>
                       </select>
                     </td>
                     <td className="admin-table-td">
@@ -1004,8 +1021,8 @@ const AdminTours: React.FC = () => {
                       <div className="admin-view-item">
                         <p className="admin-view-label">Trạng thái</p>
                         <p className="admin-view-value">
-                          <span className={viewingTour.status === 'Active' ? 'admin-badge-green' : 'admin-badge-gray'}>
-                            {viewingTour.status === 'Active' ? 'Hoạt động' : 'Ngừng hoạt động'}
+                          <span className={viewingTour.status === 'ACTIVE' ? 'admin-badge-green' : 'admin-badge-gray'}>
+                            {viewingTour.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'}
                           </span>
                         </p>
                       </div>
@@ -1764,7 +1781,7 @@ const AdminTours: React.FC = () => {
                                         className="admin-select text-sm"
                                       >
                                         <option value="0">-- Chọn khách sạn --</option>
-                                        {partners.filter(p => p.type === 'HOTEL' || p.type === 'Hotel').map(partner => (
+                                        {partners.filter(p => p.type === 'HOTEL').map(partner => (
                                           <option key={partner.id} value={partner.id}>{partner.name}</option>
                                         ))}
                                       </select>
@@ -1786,7 +1803,7 @@ const AdminTours: React.FC = () => {
                                         className="admin-select text-sm"
                                       >
                                         <option value="0">-- Chọn nhà hàng --</option>
-                                        {partners.filter(p => p.type === 'RESTAURANT' || p.type === 'Restaurant').map(partner => (
+                                        {partners.filter(p => p.type === 'RESTAURANT').map(partner => (
                                           <option key={partner.id} value={partner.id}>{partner.name}</option>
                                         ))}
                                       </select>
@@ -1810,11 +1827,11 @@ const AdminTours: React.FC = () => {
                           <select
                             id="status"
                             value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' })}
+                            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE' })}
                             className="admin-select"
                           >
-                            <option value="Active">Hoạt động</option>
-                            <option value="Inactive">Ngừng hoạt động</option>
+                            <option value="ACTIVE">Hoạt động</option>
+                            <option value="INACTIVE">Ngừng hoạt động</option>
                           </select>
                         </div>
                         <div>

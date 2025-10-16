@@ -231,7 +231,7 @@ public class AdminUserController extends BaseController {
         int updatedCount = 0;
         for (Long userId : userIds) {
             try {
-                if (status == User.UserStatus.Active) {
+                if (status == User.UserStatus.ACTIVE) {
                     userService.activateUser(userId);
                 } else {
                     userService.deactivateUser(userId);

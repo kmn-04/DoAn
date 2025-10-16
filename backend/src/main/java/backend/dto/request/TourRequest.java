@@ -50,7 +50,7 @@ public class TourRequest {
     @Min(value = 1, message = "Min people must be at least 1")
     private Integer minPeople;
     
-    @Pattern(regexp = "^(Active|Inactive|Draft)$", message = "Status must be Active, Inactive, or Draft")
+    @Pattern(regexp = "^(ACTIVE|INACTIVE)$", message = "Status must be ACTIVE or INACTIVE")
     private String status;
     
     private Boolean isFeatured;
@@ -183,7 +183,7 @@ public class TourRequest {
         
         private BigDecimal infantPrice;
         
-        @Pattern(regexp = "^(Available|Full|Cancelled)$", message = "Status must be Available, Full, or Cancelled")
+        @Pattern(regexp = "^(AVAILABLE|FULL|CANCELLED)$", message = "Status must be AVAILABLE, FULL, or CANCELLED")
         private String status;
     }
     

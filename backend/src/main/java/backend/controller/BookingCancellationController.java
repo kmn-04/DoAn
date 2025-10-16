@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/cancellations")
@@ -190,6 +192,33 @@ public class BookingCancellationController extends BaseController {
     // ADMIN ENDPOINTS
     // ================================
 
+    @GetMapping("/admin/statistics")
+    @Operation(summary = "Get cancellation statistics (Admin)")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getCancellationStatistics() {
+        try {
+            long total = cancellationService.countAllCancellations();
+            long pending = cancellationService.getPendingCancellations(Pageable.unpaged()).getTotalElements();
+            long approved = cancellationService.getCancellationsByStatus(
+                BookingCancellation.CancellationStatus.APPROVED, Pageable.unpaged()
+            ).getTotalElements();
+            long rejected = cancellationService.getCancellationsByStatus(
+                BookingCancellation.CancellationStatus.REJECTED, Pageable.unpaged()
+            ).getTotalElements();
+            
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalCancellations", total);
+            stats.put("pendingCount", pending);
+            stats.put("approvedCount", approved);
+            stats.put("rejectedCount", rejected);
+            
+            return ResponseEntity.ok(success("Statistics retrieved successfully", stats));
+        } catch (Exception e) {
+            log.error("Error fetching cancellation statistics", e);
+            return ResponseEntity.ok(error("Error fetching statistics"));
+        }
+    }
+
     @GetMapping("/admin/pending")
     @Operation(summary = "Get pending cancellations for review (Admin)")
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
@@ -198,6 +227,23 @@ public class BookingCancellationController extends BaseController {
 
         Page<BookingCancellationResponse> cancellations = 
                 cancellationService.getPendingCancellations(pageable);
+        
+        return ResponseEntity.ok(successPage(cancellations));
+    }
+
+    @GetMapping("/admin/all")
+    @Operation(summary = "Get all cancellations (Admin)")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<ApiResponse<PageResponse<BookingCancellationResponse>>> getAllCancellations(
+            Pageable pageable) {
+        
+        log.info("🔍 Admin fetching all cancellations - page: {}, size: {}", 
+                pageable.getPageNumber(), pageable.getPageSize());
+        
+        Page<BookingCancellationResponse> cancellations = 
+                cancellationService.getAllCancellations(pageable);
+        
+        log.info("✅ Found {} total cancellations", cancellations.getTotalElements());
         
         return ResponseEntity.ok(successPage(cancellations));
     }
@@ -222,10 +268,12 @@ public class BookingCancellationController extends BaseController {
             @Parameter(description = "Cancellation ID") @PathVariable Long cancellationId,
             @RequestParam(required = false) String adminNotes) {
 
-        Long adminId = Long.valueOf(userDetails.getUsername());
+        // Get admin user by email
+        User admin = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", userDetails.getUsername()));
         
         BookingCancellationResponse response = 
-                cancellationService.approveCancellation(cancellationId, adminId, adminNotes);
+                cancellationService.approveCancellation(cancellationId, admin.getId(), adminNotes);
         
         return ResponseEntity.ok(
             success("Cancellation approved successfully", response)
@@ -240,13 +288,32 @@ public class BookingCancellationController extends BaseController {
             @Parameter(description = "Cancellation ID") @PathVariable Long cancellationId,
             @RequestParam String adminNotes) {
 
-        Long adminId = Long.valueOf(userDetails.getUsername());
+        // Get admin user by email
+        User admin = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", userDetails.getUsername()));
         
         BookingCancellationResponse response = 
-                cancellationService.rejectCancellation(cancellationId, adminId, adminNotes);
+                cancellationService.rejectCancellation(cancellationId, admin.getId(), adminNotes);
         
         return ResponseEntity.ok(
             success("Cancellation rejected", response)
+        );
+    }
+
+    @PutMapping("/admin/{cancellationId}/refund-status")
+    @Operation(summary = "Update refund status (Admin)")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<ApiResponse<BookingCancellationResponse>> updateRefundStatus(
+            @Parameter(description = "Cancellation ID") @PathVariable Long cancellationId,
+            @RequestParam String refundStatus) {
+
+        log.info("🔄 Updating refund status for cancellation {} to {}", cancellationId, refundStatus);
+        
+        BookingCancellationResponse response = 
+                cancellationService.updateRefundStatus(cancellationId, refundStatus);
+        
+        return ResponseEntity.ok(
+            success("Refund status updated successfully", response)
         );
     }
 
@@ -257,7 +324,10 @@ public class BookingCancellationController extends BaseController {
             @AuthenticationPrincipal UserDetails userDetails,
             @Parameter(description = "Cancellation ID") @PathVariable Long cancellationId) {
 
-        Long adminId = Long.valueOf(userDetails.getUsername());
+        // Get admin user by email
+        User admin = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", userDetails.getUsername()));
+        Long adminId = admin.getId();
         
         BookingCancellationResponse response = 
                 cancellationService.expediteEmergencyCancellation(cancellationId, adminId);
@@ -347,20 +417,6 @@ public class BookingCancellationController extends BaseController {
     // STATISTICS AND REPORTING
     // ================================
 
-    @GetMapping("/admin/statistics")
-    @Operation(summary = "Get cancellation statistics (Admin)")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<BookingCancellationService.CancellationStatistics>> getCancellationStatistics(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-
-        BookingCancellationService.CancellationStatistics stats = 
-                cancellationService.getCancellationStatistics(startDate, endDate);
-        
-        return ResponseEntity.ok(
-            success("Cancellation statistics retrieved", stats)
-        );
-    }
 
     @GetMapping("/admin/reason-stats")
     @Operation(summary = "Get cancellation reason statistics (Admin)")

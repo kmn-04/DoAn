@@ -273,11 +273,11 @@ public class EntityMapper {
         response.setDiscountAmount(booking.getDiscountAmount());
         response.setFinalAmount(booking.getFinalAmount());
         
-        // Status (lowercase for frontend compatibility)
+        // Status (UPPERCASE for dropdown value matching)
         response.setConfirmationStatus(booking.getConfirmationStatus() != null ? 
-            booking.getConfirmationStatus().name().toLowerCase() : null);
+            booking.getConfirmationStatus().name() : null);
         response.setPaymentStatus(booking.getPaymentStatus() != null ? 
-            booking.getPaymentStatus().name().toLowerCase() : null);
+            booking.getPaymentStatus().name() : null);
         
         // Additional
         response.setSpecialRequests(booking.getSpecialRequests());
@@ -656,11 +656,55 @@ public class EntityMapper {
         response.setAdditionalNotes(cancellation.getAdditionalNotes());
         response.setStatus(cancellation.getStatus());
         response.setRefundStatus(cancellation.getRefundStatus());
+        
+        // Financial fields
+        response.setOriginalAmount(cancellation.getOriginalAmount());
         response.setRefundAmount(cancellation.getRefundAmount());
+        response.setFinalRefundAmount(cancellation.getFinalRefundAmount());
+        response.setCancellationFee(cancellation.getCancellationFee());
+        response.setProcessingFee(cancellation.getProcessingFee());
         response.setRefundPercentage(cancellation.getRefundPercentage());
+        
+        // Timing fields
+        response.setHoursBeforeDeparture(cancellation.getHoursBeforeDeparture());
+        response.setDepartureDate(cancellation.getDepartureDate());
+        
+        // Policy information
+        if (cancellation.getCancellationPolicy() != null) {
+            CancellationPolicy policy = cancellation.getCancellationPolicy();
+            BookingCancellationResponse.CancellationPolicySummary policySummary = 
+                new BookingCancellationResponse.CancellationPolicySummary();
+            policySummary.setId(policy.getId());
+            policySummary.setName(policy.getName());
+            policySummary.setPolicyType(policy.getPolicyType() != null ? policy.getPolicyType().name() : null);
+            policySummary.setHoursBeforeDepartureFullRefund(policy.getHoursBeforeDepartureFullRefund());
+            policySummary.setHoursBeforeDeparturePartialRefund(policy.getHoursBeforeDeparturePartialRefund());
+            policySummary.setFullRefundPercentage(policy.getFullRefundPercentage());
+            policySummary.setPartialRefundPercentage(policy.getPartialRefundPercentage());
+            policySummary.setCancellationFee(policy.getCancellationFee());
+            policySummary.setProcessingFee(policy.getProcessingFee());
+            response.setCancellationPolicy(policySummary);
+        }
+        
+        // Emergency flags
+        response.setIsMedicalEmergency(cancellation.getIsMedicalEmergency());
+        response.setIsWeatherRelated(cancellation.getIsWeatherRelated());
+        response.setIsForceMajeure(cancellation.getIsForceMajeure());
+        
+        // Supporting documents
+        if (cancellation.getSupportingDocuments() != null && !cancellation.getSupportingDocuments().isEmpty()) {
+            response.setSupportingDocuments(List.of(cancellation.getSupportingDocuments().split(",")));
+        }
+        
+        // Refund tracking
+        response.setRefundTransactionId(cancellation.getRefundTransactionId());
+        response.setRefundMethod(cancellation.getRefundMethod());
+        
+        // Processing info
         response.setRefundProcessedAt(cancellation.getRefundProcessedAt());
         response.setProcessedAt(cancellation.getProcessedAt());
         response.setAdminNotes(cancellation.getAdminNotes());
+        response.setCancelledAt(cancellation.getCancelledAt());
         response.setCreatedAt(cancellation.getCreatedAt());
         response.setUpdatedAt(cancellation.getUpdatedAt());
         

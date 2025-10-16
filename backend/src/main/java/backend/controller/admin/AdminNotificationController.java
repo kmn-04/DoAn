@@ -87,7 +87,7 @@ public class AdminNotificationController extends BaseController {
     public ResponseEntity<ApiResponse<String>> createNotification(@Valid @RequestBody NotificationRequest request) {
         try {
             String recipientType = request.getRecipientType() != null ? request.getRecipientType() : "ALL";
-            Notification.NotificationType type = request.getType() != null ? request.getType() : Notification.NotificationType.Info;
+            Notification.NotificationType type = request.getType() != null ? request.getType() : Notification.NotificationType.INFO;
             
             // Always create a single notification with recipientType metadata
             Notification notification = new Notification();
@@ -129,7 +129,7 @@ public class AdminNotificationController extends BaseController {
             // Update fields
             notification.setTitle(request.getTitle());
             notification.setMessage(request.getMessage());
-            notification.setType(request.getType() != null ? request.getType() : Notification.NotificationType.Info);
+            notification.setType(request.getType() != null ? request.getType() : Notification.NotificationType.INFO);
             notification.setLink(request.getLink());
             notification.setRecipientType(request.getRecipientType() != null ? request.getRecipientType() : "ALL");
             

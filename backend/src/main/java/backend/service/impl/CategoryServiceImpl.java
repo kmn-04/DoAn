@@ -41,7 +41,7 @@ public class CategoryServiceImpl implements CategoryService {
         
         // Set default status
         if (category.getStatus() == null) {
-            category.setStatus(CategoryStatus.Active);
+            category.setStatus(CategoryStatus.ACTIVE);
         }
         
         Category savedCategory = categoryRepository.save(category);
@@ -110,13 +110,13 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public List<Category> getActiveCategories() {
-        return categoryRepository.findByStatusOrderByNameAsc(CategoryStatus.Active);
+        return categoryRepository.findByStatusOrderByNameAsc(CategoryStatus.ACTIVE);
     }
     
     @Override
     @Transactional(readOnly = true)
     public Page<Category> searchCategories(String keyword, Pageable pageable) {
-        return categoryRepository.searchByName(keyword, CategoryStatus.Active, pageable);
+        return categoryRepository.searchByName(keyword, CategoryStatus.ACTIVE, pageable);
     }
     
     @Override
@@ -186,7 +186,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public List<CategoryWithTourCount> getCategoriesWithTourCount() {
-        List<Object[]> results = categoryRepository.findCategoriesWithTourCount(CategoryStatus.Active);
+        List<Object[]> results = categoryRepository.findCategoriesWithTourCount(CategoryStatus.ACTIVE);
         
         return results.stream()
                 .map(result -> new CategoryWithTourCount(

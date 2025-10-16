@@ -109,12 +109,11 @@ public class BookingCancellationResponse {
     }
     
     public boolean isPending() {
-        return status == BookingCancellation.CancellationStatus.REQUESTED || 
-               status == BookingCancellation.CancellationStatus.UNDER_REVIEW;
+        return status == BookingCancellation.CancellationStatus.PENDING;
     }
     
-    public boolean isCompleted() {
-        return status == BookingCancellation.CancellationStatus.COMPLETED;
+    public boolean isApproved() {
+        return status == BookingCancellation.CancellationStatus.APPROVED;
     }
     
     public boolean isRefundProcessing() {
@@ -122,21 +121,17 @@ public class BookingCancellationResponse {
     }
     
     public boolean isRefundCompleted() {
-        return refundStatus == BookingCancellation.RefundStatus.COMPLETED;
+        return refundStatus == BookingCancellation.RefundStatus.COMPLETED && status == BookingCancellation.CancellationStatus.APPROVED;
     }
     
     public String getStatusDisplayText() {
         switch (status) {
-            case REQUESTED:
+            case PENDING:
                 return "Yêu cầu hủy đã được gửi";
-            case UNDER_REVIEW:
-                return "Đang xem xét yêu cầu hủy";
             case APPROVED:
                 return "Yêu cầu hủy đã được phê duyệt";
             case REJECTED:
                 return "Yêu cầu hủy bị từ chối";
-            case COMPLETED:
-                return "Đã hoàn tất hủy booking";
             default:
                 return status.toString();
         }

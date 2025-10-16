@@ -41,7 +41,7 @@ public class TourMapper {
         if (request.getStatus() != null) {
             tour.setStatus(Tour.TourStatus.valueOf(request.getStatus()));
         } else {
-            tour.setStatus(Tour.TourStatus.Inactive);
+            tour.setStatus(Tour.TourStatus.INACTIVE);
         }
         
         tour.setIsFeatured(request.getIsFeatured() != null ? request.getIsFeatured() : false);

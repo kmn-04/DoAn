@@ -227,7 +227,7 @@ const MyReviewsPage: React.FC = () => {
                     </Button>
                   </Link>
 
-                  {review.status === 'Pending' && (
+                  {review.status === 'PENDING' && (
                     <>
                       <Button
                         size="sm"

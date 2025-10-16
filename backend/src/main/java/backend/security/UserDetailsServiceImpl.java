@@ -22,7 +22,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         
         // Check if user is active and not deleted
-        if (user.getStatus() == User.UserStatus.Inactive || user.isDeleted()) {
+        if (user.getStatus() == User.UserStatus.INACTIVE || user.isDeleted()) {
             throw new UsernameNotFoundException("User account is inactive or deleted: " + email);
         }
         

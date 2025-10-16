@@ -70,7 +70,7 @@ public class ContactRequestServiceImpl implements ContactRequestService {
                 .orElseThrow(() -> new RuntimeException("Staff not found with ID: " + staffId));
         
         contactRequest.setAssignedTo(staff);
-        contactRequest.setStatus(ContactStatus.In_Progress);
+        contactRequest.setStatus(ContactStatus.IN_PROGRESS);
         
         return contactRequestRepository.save(contactRequest);
     }
@@ -101,7 +101,7 @@ public class ContactRequestServiceImpl implements ContactRequestService {
     @Override
     @Transactional(readOnly = true)
     public long getNewContactRequestsCount() {
-        return contactRequestRepository.countByStatus(ContactStatus.New);
+        return contactRequestRepository.countByStatus(ContactStatus.NEW);
     }
 }
 

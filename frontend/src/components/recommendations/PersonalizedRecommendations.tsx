@@ -77,9 +77,14 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
         
         // Load user's wishlist if authenticated
         if (isAuthenticated && user?.id) {
-          const userWishlist = await wishlistService.getUserWishlist(user.id);
-          const wishlistIds = new Set(userWishlist.map(item => item.id));
-          setWishlistItems(wishlistIds);
+          try {
+            const userWishlist = await wishlistService.getUserWishlist(user.id);
+            const wishlistIds = new Set(userWishlist.map(item => item.id));
+            setWishlistItems(wishlistIds);
+          } catch (wishlistError) {
+            // Silently fail if wishlist fetch fails (e.g., token expired)
+            console.warn('Could not load wishlist:', wishlistError);
+          }
         }
         
       } catch (error) {

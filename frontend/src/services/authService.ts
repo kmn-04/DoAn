@@ -9,7 +9,7 @@ interface User {
   address?: string;
   dateOfBirth?: string;
   avatarUrl?: string;
-  status: 'Active' | 'Inactive';
+  status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
   role: {
     id: number;
     name: string;

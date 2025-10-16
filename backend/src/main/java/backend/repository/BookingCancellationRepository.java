@@ -45,7 +45,7 @@ public interface BookingCancellationRepository extends JpaRepository<BookingCanc
     // Find pending cancellations (for admin review)
     @Query("""
         SELECT bc FROM BookingCancellation bc 
-        WHERE bc.status IN ('REQUESTED', 'UNDER_REVIEW') 
+        WHERE bc.status = 'PENDING'
         ORDER BY bc.createdAt ASC
         """)
     Page<BookingCancellation> findPendingCancellations(Pageable pageable);

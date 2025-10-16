@@ -70,12 +70,12 @@ public class AdminDashboardController extends BaseController {
             // Booking statistics - using available methods
             List<Booking> allBookings = bookingService.getAllBookings();
             long totalBookings = allBookings.size();
-            long pendingBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.Pending).count();
-            long confirmedBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.Confirmed).count();
-            long completedBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.Completed).count();
-            long cancelledBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.Cancelled).count();
+            long pendingBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.PENDING).count();
+            long confirmedBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED).count();
+            long completedBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED).count();
+            long cancelledBookings = allBookings.stream().filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLED).count();
             BigDecimal totalRevenue = allBookings.stream()
-                .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.Completed || b.getConfirmationStatus() == Booking.ConfirmationStatus.Confirmed)
+                .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED || b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED)
                 .map(Booking::getFinalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
             
@@ -89,8 +89,8 @@ public class AdminDashboardController extends BaseController {
             ));
             
             // Partner statistics - CHỈ HOTEL VÀ RESTAURANT
-            List<Partner> hotels = partnerService.getPartnersByType(Partner.PartnerType.Hotel);
-            List<Partner> restaurants = partnerService.getPartnersByType(Partner.PartnerType.Restaurant);
+            List<Partner> hotels = partnerService.getPartnersByType(Partner.PartnerType.HOTEL);
+            List<Partner> restaurants = partnerService.getPartnersByType(Partner.PartnerType.RESTAURANT);
             
             overview.put("partners", Map.of(
                 "total", hotels.size() + restaurants.size(),

@@ -270,16 +270,26 @@ const AdminDashboard: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              booking.confirmationStatus === 'confirmed'
+                              booking.confirmationStatus === 'CONFIRMED'
                                 ? 'bg-green-100 text-green-800'
-                                : booking.confirmationStatus === 'pending'
+                                : booking.confirmationStatus === 'PENDING'
                                 ? 'bg-yellow-100 text-yellow-800'
-                                : booking.confirmationStatus === 'cancelled'
+                                : booking.confirmationStatus === 'CANCELLED'
                                 ? 'bg-red-100 text-red-800'
+                                : booking.confirmationStatus === 'COMPLETED'
+                                ? 'bg-blue-100 text-blue-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {booking.confirmationStatus}
+                            {booking.confirmationStatus === 'CONFIRMED'
+                              ? 'Đã xác nhận'
+                              : booking.confirmationStatus === 'PENDING'
+                              ? 'Chờ xác nhận'
+                              : booking.confirmationStatus === 'CANCELLED'
+                              ? 'Đã hủy'
+                              : booking.confirmationStatus === 'COMPLETED'
+                              ? 'Hoàn thành'
+                              : booking.confirmationStatus}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -404,7 +414,7 @@ const AdminDashboard: React.FC = () => {
                   <span className="ml-2 text-sm text-yellow-900">Chờ xác nhận</span>
                 </div>
                 <span className="text-sm font-bold text-yellow-700">
-                  {recentBookings.filter(b => b.status === 'pending').length}
+                  {recentBookings.filter(b => b.confirmationStatus === 'PENDING').length}
                 </span>
               </div>
               <div className="flex items-center justify-between p-2 bg-blue-50 rounded-md">
@@ -450,11 +460,11 @@ const AdminDashboard: React.FC = () => {
                       </div>
                       {activity.status && (
                         <span className={`flex-shrink-0 px-1.5 py-0.5 text-xs rounded ${
-                          activity.status === 'Pending' || activity.status === 'pending' 
+                          activity.status === 'PENDING' || activity.status === 'pending' 
                             ? 'bg-yellow-100 text-yellow-700' 
-                            : activity.status === 'Confirmed' || activity.status === 'confirmed'
+                            : activity.status === 'CONFIRMED' || activity.status === 'confirmed'
                             ? 'bg-green-100 text-green-700'
-                            : activity.status === 'Approved'
+                            : activity.status === 'APPROVED'
                             ? 'bg-blue-100 text-blue-700'
                             : 'bg-gray-100 text-gray-700'
                         }`}>

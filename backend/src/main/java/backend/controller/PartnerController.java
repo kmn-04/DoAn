@@ -35,7 +35,7 @@ public class PartnerController {
     public ResponseEntity<ApiResponse<List<PartnerResponse>>> getAllPartners() {
         try {
             log.info("Fetching all active partners.");
-            List<Partner> partners = partnerRepository.findByStatusOrderByNameAsc(Partner.PartnerStatus.Active);
+            List<Partner> partners = partnerRepository.findByStatusOrderByNameAsc(Partner.PartnerStatus.ACTIVE);
             
             List<PartnerResponse> responses = partners.stream()
                     .map(partner -> {

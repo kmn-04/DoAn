@@ -76,9 +76,9 @@ public class BookingParticipant {
     }
     
     public enum Gender {
-        Male("Nam"),
-        Female("Nữ"),
-        Other("Khác");
+        MALE("Nam"),
+        FEMALE("Nữ"),
+        OTHER("Khác");
         
         private final String displayName;
         
@@ -92,9 +92,9 @@ public class BookingParticipant {
     }
     
     public enum ParticipantType {
-        Adult("Người lớn"),      // >= 12 tuổi
-        Child("Trẻ em"),         // 5-11 tuổi
-        Infant("Trẻ nhỏ");       // 2-4 tuổi
+        ADULT("Người lớn"),      // >= 12 tuổi
+        CHILD("Trẻ em"),         // 5-11 tuổi
+        INFANT("Trẻ nhỏ");       // 2-4 tuổi
         
         private final String displayName;
         

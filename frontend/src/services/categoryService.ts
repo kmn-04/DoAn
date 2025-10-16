@@ -24,7 +24,7 @@ export interface CategoryResponse {
   parentId?: number;  // NEW: For hierarchical categories
   displayOrder?: number;  // NEW: Sort order
   isFeatured?: boolean;  // NEW: Featured categories
-  status: 'ACTIVE' | 'INACTIVE' | 'Active' | 'Inactive';  // Support both formats
+  status: 'ACTIVE' | 'INACTIVE';
   totalTours?: number;
   createdAt: string;
   updatedAt: string;

@@ -20,7 +20,7 @@ interface User {
   name: string;
   email: string;
   phone?: string;
-  status: 'Active' | 'Inactive' | 'Banned';
+  status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
   avatarUrl?: string;
   role: {
     id: number;
@@ -69,7 +69,7 @@ const AdminUsers: React.FC = () => {
     password: '',
     phone: '',
     roleId: 3, // Default to Customer
-    status: 'Active' as 'Active' | 'Inactive' | 'Banned'
+    status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE' | 'BANNED'
   });
   
   // Filters
@@ -229,7 +229,7 @@ const AdminUsers: React.FC = () => {
   };
 
   const handleToggleUserStatus = async (userId: number, currentStatus: string) => {
-    const newStatus = currentStatus === 'Active' ? 'Banned' : 'Active';
+    const newStatus = currentStatus === 'ACTIVE' ? 'BANNED' : 'ACTIVE';
     
     try {
       setLoading(true);
@@ -244,7 +244,7 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (userId: number, newStatus: 'Active' | 'Inactive' | 'Banned') => {
+  const handleStatusChange = async (userId: number, newStatus: 'ACTIVE' | 'INACTIVE' | 'BANNED') => {
     try {
       setLoading(true);
       await apiClient.patch(`/admin/users/${userId}/status?status=${newStatus}`);
@@ -272,7 +272,7 @@ const AdminUsers: React.FC = () => {
       password: '',
       phone: '',
       roleId: 3,
-      status: 'Active'
+      status: 'ACTIVE'
     });
     setIsCreateModalOpen(true);
   };
@@ -399,11 +399,11 @@ const AdminUsers: React.FC = () => {
 
   const getStatusClassName = (status: string) => {
     switch (status) {
-      case 'Active':
+      case 'ACTIVE':
         return 'admin-table-select-active';
-      case 'Inactive':
+      case 'INACTIVE':
         return 'admin-table-select-inactive';
-      case 'Banned':
+      case 'BANNED':
         return 'admin-table-select-rejected';
       default:
         return 'admin-table-select-inactive';
@@ -528,9 +528,9 @@ const AdminUsers: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="Active">Hoạt động</option>
-                <option value="Inactive">Không hoạt động</option>
-                <option value="Banned">Bị cấm</option>
+                <option value="ACTIVE">Hoạt động</option>
+                <option value="INACTIVE">Không hoạt động</option>
+                <option value="BANNED">Bị cấm</option>
               </select>
             </div>
 
@@ -618,13 +618,13 @@ const AdminUsers: React.FC = () => {
                     <td className="admin-table-td">
                       <select
                         value={user.status}
-                        onChange={(e) => handleStatusChange(user.id, e.target.value as 'Active' | 'Inactive' | 'Banned')}
+                        onChange={(e) => handleStatusChange(user.id, e.target.value as 'ACTIVE' | 'INACTIVE' | 'BANNED')}
                         className={getStatusClassName(user.status)}
                         disabled={loading || isAdmin(user)}
                       >
-                        <option value="Active">Hoạt động</option>
-                        <option value="Inactive">Không hoạt động</option>
-                        <option value="Banned">Bị cấm</option>
+                        <option value="ACTIVE">Hoạt động</option>
+                        <option value="INACTIVE">Không hoạt động</option>
+                        <option value="BANNED">Bị cấm</option>
                       </select>
                     </td>
                     <td className="admin-table-td">
@@ -733,12 +733,12 @@ const AdminUsers: React.FC = () => {
                         <p className="admin-view-label">Trạng thái</p>
                         <p className="admin-view-value">
                           <span className={
-                            viewingUser.status === 'Active' ? 'admin-badge-green' :
-                            viewingUser.status === 'Inactive' ? 'admin-badge-gray' :
+                            viewingUser.status === 'ACTIVE' ? 'admin-badge-green' :
+                            viewingUser.status === 'INACTIVE' ? 'admin-badge-gray' :
                             'admin-badge-red'
                           }>
-                            {viewingUser.status === 'Active' ? 'Hoạt động' :
-                             viewingUser.status === 'Inactive' ? 'Không hoạt động' :
+                            {viewingUser.status === 'ACTIVE' ? 'Hoạt động' :
+                             viewingUser.status === 'INACTIVE' ? 'Không hoạt động' :
                              'Bị cấm'}
                           </span>
                         </p>
@@ -928,12 +928,12 @@ const AdminUsers: React.FC = () => {
                     </label>
                     <select
                       value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' | 'Banned' })}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE' | 'BANNED' })}
                       className="admin-select w-full"
                     >
-                      <option value="Active">Hoạt động</option>
-                      <option value="Inactive">Không hoạt động</option>
-                      <option value="Banned">Bị cấm</option>
+                      <option value="ACTIVE">Hoạt động</option>
+                      <option value="INACTIVE">Không hoạt động</option>
+                      <option value="BANNED">Bị cấm</option>
                     </select>
                   </div>
                 </div>
@@ -1040,12 +1040,12 @@ const AdminUsers: React.FC = () => {
                     </label>
                     <select
                       value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' | 'Banned' })}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE' | 'BANNED' })}
                       className="admin-select w-full"
                     >
-                      <option value="Active">Hoạt động</option>
-                      <option value="Inactive">Không hoạt động</option>
-                      <option value="Banned">Bị cấm</option>
+                      <option value="ACTIVE">Hoạt động</option>
+                      <option value="INACTIVE">Không hoạt động</option>
+                      <option value="BANNED">Bị cấm</option>
                     </select>
                   </div>
                 </div>

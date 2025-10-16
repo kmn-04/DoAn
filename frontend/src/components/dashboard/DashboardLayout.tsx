@@ -21,22 +21,22 @@ const navigationItems = [
   },
   {
     name: 'Booking của tôi',
-    href: '/dashboard/bookings',
+    href: '/bookings',
     icon: TicketIcon
   },
   {
     name: 'Tour yêu thích',
-    href: '/dashboard/wishlist',
+    href: '/wishlist',
     icon: HeartIcon
   },
   {
     name: 'Thông báo',
-    href: '/dashboard/notifications',
+    href: '/notifications',
     icon: BellIcon
   },
   {
     name: 'Thông tin cá nhân',
-    href: '/dashboard/profile',
+    href: '/profile',
     icon: UserIcon
   },
 ];

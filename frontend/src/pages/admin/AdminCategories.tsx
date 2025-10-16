@@ -21,7 +21,7 @@ interface CategoryFormData {
   description: string;
   imageUrl: string;
   displayOrder: number;
-  status: 'Active' | 'Inactive';
+  status: 'ACTIVE' | 'INACTIVE';
   isFeatured: boolean;
 }
 
@@ -51,7 +51,7 @@ const AdminCategories: React.FC = () => {
     description: '',
     icon: '',
     displayOrder: 0,
-    status: 'Active',
+    status: 'ACTIVE',
     isFeatured: false
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -133,7 +133,7 @@ const AdminCategories: React.FC = () => {
       description: '',
       imageUrl: '',
       displayOrder: 0,
-      status: 'Active',
+      status: 'ACTIVE',
       isFeatured: false
     });
     setFormErrors({});
@@ -223,7 +223,7 @@ const AdminCategories: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (id: number, newStatus: 'Active' | 'Inactive') => {
+  const handleStatusChange = async (id: number, newStatus: 'ACTIVE' | 'INACTIVE') => {
     try {
       setLoading(true);
       await apiClient.patch(`/admin/categories/${id}/status?status=${newStatus}`);
@@ -354,8 +354,8 @@ const AdminCategories: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="Active">Hoạt động</option>
-                <option value="Inactive">Ngừng hoạt động</option>
+                <option value="ACTIVE">Hoạt động</option>
+                <option value="INACTIVE">Ngừng hoạt động</option>
               </select>
             </div>
 
@@ -441,16 +441,16 @@ const AdminCategories: React.FC = () => {
                     <td className="admin-table-td">
                       <select
                         value={category.status}
-                        onChange={(e) => handleStatusChange(category.id, e.target.value as 'Active' | 'Inactive')}
+                        onChange={(e) => handleStatusChange(category.id, e.target.value as 'ACTIVE' | 'INACTIVE')}
                         className={
-                          category.status === 'Active'
+                          category.status === 'ACTIVE'
                             ? 'admin-table-select-active'
                             : 'admin-table-select-inactive'
                         }
                         disabled={loading}
                       >
-                        <option value="Active">Hoạt động</option>
-                        <option value="Inactive">Ngừng hoạt động</option>
+                        <option value="ACTIVE">Hoạt động</option>
+                        <option value="INACTIVE">Ngừng hoạt động</option>
                       </select>
                     </td>
                     <td className="admin-table-td">
@@ -553,8 +553,8 @@ const AdminCategories: React.FC = () => {
                   <div className="admin-view-item">
                     <p className="admin-view-label">Trạng thái</p>
                     <p className="admin-view-value">
-                      <span className={viewingCategory.status === 'Active' ? 'admin-badge-green' : 'admin-badge-gray'}>
-                        {viewingCategory.status === 'Active' ? 'Hoạt động' : 'Ngừng hoạt động'}
+                      <span className={viewingCategory.status === 'ACTIVE' ? 'admin-badge-green' : 'admin-badge-gray'}>
+                        {viewingCategory.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'}
                       </span>
                     </p>
                   </div>
@@ -679,11 +679,11 @@ const AdminCategories: React.FC = () => {
                         <select
                           id="status"
                           value={formData.status}
-                          onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' })}
+                          onChange={(e) => setFormData({ ...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE' })}
                           className="admin-select"
                         >
-                          <option value="Active">Hoạt động</option>
-                          <option value="Inactive">Ngừng hoạt động</option>
+                          <option value="ACTIVE">Hoạt động</option>
+                          <option value="INACTIVE">Ngừng hoạt động</option>
                         </select>
                       </div>
                       <div>

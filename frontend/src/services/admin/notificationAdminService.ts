@@ -4,7 +4,7 @@ export interface NotificationRequest {
   userId?: number;
   title: string;
   message: string;
-  type?: 'Info' | 'Success' | 'Warning' | 'Error';
+  type?: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
   link?: string;
 }
 

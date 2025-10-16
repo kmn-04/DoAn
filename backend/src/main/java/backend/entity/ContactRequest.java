@@ -42,7 +42,7 @@ public class ContactRequest {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ContactStatus status = ContactStatus.New;
+    private ContactStatus status = ContactStatus.NEW;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to")
@@ -69,10 +69,10 @@ public class ContactRequest {
     }
     
     public enum ContactStatus {
-        New("Mới"),
-        In_Progress("Đang xử lý"),
-        Resolved("Đã giải quyết"),
-        Closed("Đã đóng");
+        NEW("Mới"),
+        IN_PROGRESS("Đang xử lý"),
+        RESOLVED("Đã giải quyết"),
+        CLOSED("Đã đóng");
         
         private final String displayName;
         

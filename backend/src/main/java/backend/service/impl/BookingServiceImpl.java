@@ -5,10 +5,13 @@ import backend.entity.Booking;
 import backend.entity.Booking.BookingStatus;
 import backend.entity.Booking.ConfirmationStatus;
 import backend.entity.Booking.PaymentStatus;
+import backend.entity.BookingCancellation;
 import backend.entity.Notification;
 import backend.entity.Promotion;
 import backend.entity.Tour;
+import backend.exception.BadRequestException;
 import backend.mapper.BookingMapper;
+import backend.repository.BookingCancellationRepository;
 import backend.repository.BookingRepository;
 import backend.repository.PromotionRepository;
 import backend.repository.TourRepository;
@@ -35,6 +38,7 @@ import java.util.Optional;
 public class BookingServiceImpl implements BookingService {
     
     private final BookingRepository bookingRepository;
+    private final BookingCancellationRepository cancellationRepository;
     private final TourRepository tourRepository;
     private final PromotionRepository promotionRepository;
     private final BookingMapper bookingMapper;
@@ -56,10 +60,10 @@ public class BookingServiceImpl implements BookingService {
         
         // Set default status
         if (booking.getConfirmationStatus() == null) {
-            booking.setConfirmationStatus(ConfirmationStatus.Pending);
+            booking.setConfirmationStatus(ConfirmationStatus.PENDING);
         }
         if (booking.getPaymentStatus() == null) {
-            booking.setPaymentStatus(PaymentStatus.Unpaid);
+            booking.setPaymentStatus(PaymentStatus.UNPAID);
         }
         
         // Calculate total price if not set
@@ -103,7 +107,7 @@ public class BookingServiceImpl implements BookingService {
     }
     
     private BigDecimal applyPromotion(BigDecimal totalPrice, Promotion promotion) {
-        if (promotion.getType() == Promotion.PromotionType.Percentage) {
+        if (promotion.getType() == Promotion.PromotionType.PERCENTAGE) {
             BigDecimal discount = totalPrice.multiply(promotion.getValue().divide(BigDecimal.valueOf(100)));
             return totalPrice.subtract(discount);
         } else {
@@ -237,12 +241,12 @@ public class BookingServiceImpl implements BookingService {
     
     private ConfirmationStatus mapToConfirmationStatus(BookingStatus status) {
         return switch (status) {
-            case Pending -> ConfirmationStatus.Pending;
-            case Confirmed, Paid -> ConfirmationStatus.Confirmed;
-            case Cancelled -> ConfirmationStatus.Cancelled;
-            case Completed -> ConfirmationStatus.Completed;
-            case CancellationRequested -> ConfirmationStatus.CancellationRequested;
-            default -> ConfirmationStatus.Pending;
+            case PENDING -> ConfirmationStatus.PENDING;
+            case CONFIRMED, PAID -> ConfirmationStatus.CONFIRMED;
+            case CANCELLED -> ConfirmationStatus.CANCELLED;
+            case COMPLETED -> ConfirmationStatus.COMPLETED;
+            case CANCELLATION_REQUESTED -> ConfirmationStatus.CANCELLATION_REQUESTED;
+            default -> ConfirmationStatus.PENDING;
         };
     }
     
@@ -286,11 +290,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        if (booking.getConfirmationStatus() != ConfirmationStatus.Pending) {
+        if (booking.getConfirmationStatus() != ConfirmationStatus.PENDING) {
             throw new RuntimeException("Only pending bookings can be confirmed");
         }
         
-        booking.setConfirmationStatus(ConfirmationStatus.Confirmed);
+        booking.setConfirmationStatus(ConfirmationStatus.CONFIRMED);
         Booking confirmedBooking = bookingRepository.save(booking);
         
         // Send confirmation notification
@@ -307,11 +311,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        if (booking.getConfirmationStatus() == ConfirmationStatus.Completed || booking.getConfirmationStatus() == ConfirmationStatus.Cancelled) {
+        if (booking.getConfirmationStatus() == ConfirmationStatus.COMPLETED || booking.getConfirmationStatus() == ConfirmationStatus.CANCELLED) {
             throw new RuntimeException("Cannot cancel booking with status: " + booking.getConfirmationStatus());
         }
         
-        booking.setConfirmationStatus(ConfirmationStatus.Cancelled);
+        booking.setConfirmationStatus(ConfirmationStatus.CANCELLED);
         if (reason != null) {
             booking.setSpecialRequests(booking.getSpecialRequests() + " | Cancelled: " + reason);
         }
@@ -332,7 +336,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        booking.setPaymentStatus(PaymentStatus.Paid);
+        booking.setPaymentStatus(PaymentStatus.PAID);
         Booking paidBooking = bookingRepository.save(booking);
         
         log.info("Booking marked as paid successfully with ID: {}", bookingId);
@@ -346,11 +350,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        if (booking.getPaymentStatus() != PaymentStatus.Paid) {
+        if (booking.getPaymentStatus() != PaymentStatus.PAID) {
             throw new RuntimeException("Only paid bookings can be completed");
         }
         
-        booking.setConfirmationStatus(ConfirmationStatus.Completed);
+        booking.setConfirmationStatus(ConfirmationStatus.COMPLETED);
         Booking completedBooking = bookingRepository.save(booking);
         
         log.info("Booking completed successfully with ID: {}", bookingId);
@@ -389,7 +393,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
         
         // Check if tour is active
-        if (tour.getStatus() != Tour.TourStatus.Active || tour.isDeleted()) {
+        if (tour.getStatus() != Tour.TourStatus.ACTIVE || tour.isDeleted()) {
             return false;
         }
         
@@ -402,8 +406,8 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> existingBookings = bookingRepository.findByStartDateBetween(startDate, startDate);
         int bookedPeople = existingBookings.stream()
                 .filter(booking -> booking.getTour().getId().equals(tourId))
-                .filter(booking -> booking.getConfirmationStatus() == ConfirmationStatus.Confirmed || 
-                                 booking.getPaymentStatus() == PaymentStatus.Paid)
+                .filter(booking -> booking.getConfirmationStatus() == ConfirmationStatus.CONFIRMED || 
+                                 booking.getPaymentStatus() == PaymentStatus.PAID)
                 .mapToInt(Booking::getTotalPeople)
                 .sum();
         
@@ -432,7 +436,7 @@ public class BookingServiceImpl implements BookingService {
     public List<Booking> getUpcomingBookings() {
         LocalDate today = LocalDate.now();
         List<ConfirmationStatus> activeStatuses = List.of(
-                ConfirmationStatus.Confirmed, ConfirmationStatus.Completed);
+                ConfirmationStatus.CONFIRMED, ConfirmationStatus.COMPLETED);
         return bookingRepository.findUpcomingBookings(today, activeStatuses);
     }
     
@@ -441,14 +445,14 @@ public class BookingServiceImpl implements BookingService {
     public BookingStatistics getBookingStatistics() {
         long totalBookings = bookingRepository.count();
         // Count by confirmation status
-        long pendingBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.Pending).size();
-        long confirmedBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.Confirmed).size();
-        long cancelledBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.Cancelled).size();
-        long completedBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.Completed).size();
+        long pendingBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.PENDING).size();
+        long confirmedBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.CONFIRMED).size();
+        long cancelledBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.CANCELLED).size();
+        long completedBookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus.COMPLETED).size();
         // Count by payment status
-        long paidBookings = bookingRepository.findByPaymentStatusOrderByCreatedAtDesc(PaymentStatus.Paid).size();
+        long paidBookings = bookingRepository.findByPaymentStatusOrderByCreatedAtDesc(PaymentStatus.PAID).size();
         
-        BigDecimal totalRevenue = bookingRepository.calculateTotalRevenueByPaymentStatus(PaymentStatus.Paid);
+        BigDecimal totalRevenue = bookingRepository.calculateTotalRevenueByPaymentStatus(PaymentStatus.PAID);
         if (totalRevenue == null) totalRevenue = BigDecimal.ZERO;
         
         // Calculate monthly revenue
@@ -456,7 +460,7 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
         List<Booking> monthlyBookings = bookingRepository.findByCreatedAtBetween(startOfMonth, endOfMonth);
         BigDecimal monthlyRevenue = monthlyBookings.stream()
-                .filter(booking -> booking.getPaymentStatus() == PaymentStatus.Paid)
+                .filter(booking -> booking.getPaymentStatus() == PaymentStatus.PAID)
                 .map(Booking::getFinalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
@@ -472,7 +476,7 @@ public class BookingServiceImpl implements BookingService {
         
         List<Booking> bookings = bookingRepository.findByCreatedAtBetween(startDateTime, endDateTime);
         return bookings.stream()
-                .filter(booking -> booking.getPaymentStatus() == PaymentStatus.Paid)
+                .filter(booking -> booking.getPaymentStatus() == PaymentStatus.PAID)
                 .map(Booking::getFinalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -502,7 +506,7 @@ public class BookingServiceImpl implements BookingService {
     public Page<BookingResponse> getBookingsByStatusDto(String status, Pageable pageable) {
         log.info("Getting bookings by status (DTO): {}", status);
         
-        ConfirmationStatus confirmationStatus = ConfirmationStatus.valueOf(status);
+        ConfirmationStatus confirmationStatus = ConfirmationStatus.valueOf(status.toUpperCase());
         // Get list and convert to Page manually
         List<Booking> bookingList = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(confirmationStatus);
         
@@ -525,7 +529,46 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        ConfirmationStatus newStatus = ConfirmationStatus.valueOf(status);
+        ConfirmationStatus oldStatus = booking.getConfirmationStatus();
+        ConfirmationStatus newStatus = ConfirmationStatus.valueOf(status.toUpperCase());
+        
+        // Admin cannot manually set status to CancellationRequested
+        // This status should only be set by user cancellation request
+        if (newStatus == ConfirmationStatus.CANCELLATION_REQUESTED) {
+            throw new BadRequestException("Cannot manually set status to CancellationRequested. Use cancellation request API instead.");
+        }
+        
+        // Handle status transitions
+        if (oldStatus == ConfirmationStatus.CANCELLATION_REQUESTED) {
+            if (newStatus == ConfirmationStatus.CANCELLED) {
+                // Changing from CancellationRequested to Cancelled = approving the cancellation
+                // This should be done through the cancellation approval API, not here
+                throw new BadRequestException("Please approve the cancellation request through the Cancellation Management page");
+            } else if (newStatus != ConfirmationStatus.CANCELLATION_REQUESTED) {
+                // Changing from CancellationRequested to other status (Pending/Confirmed) = rejecting cancellation
+                log.info("Booking status changing from CancellationRequested to {}, auto-rejecting cancellation", newStatus);
+                
+                Optional<BookingCancellation> cancellation = cancellationRepository.findByBookingId(bookingId);
+                if (cancellation.isPresent() && 
+                    cancellation.get().getStatus() != BookingCancellation.CancellationStatus.REJECTED) {
+                    
+                    BookingCancellation bc = cancellation.get();
+                    bc.setStatus(BookingCancellation.CancellationStatus.REJECTED);
+                    bc.setAdminNotes("Auto-rejected: Booking status restored by admin");
+                    bc.setProcessedAt(LocalDateTime.now());
+                    cancellationRepository.save(bc);
+                    
+                    log.info("✅ Auto-rejected cancellation request ID: {}", bc.getId());
+                }
+            }
+        } else if (newStatus == ConfirmationStatus.CANCELLED) {
+            // Admin directly cancelling a booking (without cancellation request)
+            // This is allowed but should create a cancellation record for audit trail
+            log.info("Admin directly cancelling booking {}", bookingId);
+            // Note: No cancellation record needed for direct admin cancellation
+            // The booking status change itself is the audit trail
+        }
+        
         booking.setConfirmationStatus(newStatus);
         booking.setUpdatedAt(LocalDateTime.now());
         
@@ -541,11 +584,25 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        PaymentStatus newPaymentStatus = PaymentStatus.valueOf(paymentStatus);
+        PaymentStatus newPaymentStatus = PaymentStatus.valueOf(paymentStatus.toUpperCase());
+        PaymentStatus oldPaymentStatus = booking.getPaymentStatus();
+        
         booking.setPaymentStatus(newPaymentStatus);
         booking.setUpdatedAt(LocalDateTime.now());
         
         Booking updated = bookingRepository.save(booking);
+        
+        // Sync refundStatus in BookingCancellation when payment status changes to REFUNDED
+        if (newPaymentStatus == PaymentStatus.REFUNDED && oldPaymentStatus != PaymentStatus.REFUNDED) {
+            cancellationRepository.findByBookingId(bookingId).ifPresent(cancellation -> {
+                if (cancellation.getStatus() == BookingCancellation.CancellationStatus.APPROVED) {
+                    cancellation.setRefundStatus(BookingCancellation.RefundStatus.COMPLETED);
+                    cancellation.setRefundProcessedAt(LocalDateTime.now());
+                    cancellationRepository.save(cancellation);
+                    log.info("✅ Auto-updated cancellation {} refundStatus to COMPLETED", cancellation.getId());
+                }
+            });
+        }
         
         return bookingMapper.toResponse(updated);
     }
@@ -557,7 +614,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
         
-        booking.setConfirmationStatus(ConfirmationStatus.Cancelled);
+        booking.setConfirmationStatus(ConfirmationStatus.CANCELLED);
         booking.setCancellationReason(reason);
         booking.setCancelledAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now());
@@ -586,7 +643,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public long getBookingCountByStatus(String status) {
         try {
-            ConfirmationStatus confirmationStatus = ConfirmationStatus.valueOf(status);
+            ConfirmationStatus confirmationStatus = ConfirmationStatus.valueOf(status.toUpperCase());
             return bookingRepository.countByConfirmationStatus(confirmationStatus);
         } catch (IllegalArgumentException e) {
             log.error("Invalid booking status: {}", status);
@@ -614,7 +671,7 @@ public class BookingServiceImpl implements BookingService {
                 booking.getUser().getId(),
                 title,
                 message,
-                Notification.NotificationType.Success,
+                Notification.NotificationType.SUCCESS,
                 link
             );
             
@@ -642,7 +699,7 @@ public class BookingServiceImpl implements BookingService {
                 booking.getUser().getId(),
                 title,
                 message,
-                Notification.NotificationType.Success,
+                Notification.NotificationType.SUCCESS,
                 link
             );
             
@@ -670,7 +727,7 @@ public class BookingServiceImpl implements BookingService {
                 booking.getUser().getId(),
                 title,
                 message,
-                Notification.NotificationType.Warning,
+                Notification.NotificationType.WARNING,
                 link
             );
             

@@ -40,7 +40,7 @@ public class User {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserStatus status = UserStatus.Active;
+    private UserStatus status = UserStatus.ACTIVE;
     
     @Column(name = "avatar_url")
     private String avatarUrl;
@@ -130,7 +130,7 @@ public class User {
     // Helper method for soft delete
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
-        this.status = UserStatus.Inactive;
+        this.status = UserStatus.INACTIVE;
     }
     
     public boolean isDeleted() {
@@ -164,6 +164,6 @@ public class User {
     }
     
     public enum UserStatus {
-        Active, Inactive, Banned
+        ACTIVE, INACTIVE, BANNED
     }
 }

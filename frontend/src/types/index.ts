@@ -54,7 +54,7 @@ export interface Tour {
   excludes?: string;
   notes?: string;
   isFeatured: boolean;
-  status: 'Active' | 'Inactive' | 'Draft';
+  status: 'ACTIVE' | 'INACTIVE';
   category: Category;
   targetAudiences: TargetAudience[];
   images: TourImage[];
@@ -97,7 +97,7 @@ export interface Booking {
   tourDate: string;
   numberOfParticipants: number;
   totalPrice: number;
-  status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed';
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'CANCELLATION_REQUESTED';
   specialRequests?: string;
   customerInfo: CustomerInfo;
   payment?: Payment;
@@ -118,7 +118,7 @@ export interface Payment {
   id: number;
   amount: number;
   paymentMethod: 'CreditCard' | 'BankTransfer' | 'Cash';
-  status: 'Pending' | 'Completed' | 'Failed' | 'Refunded';
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
   transactionId?: string;
   paidAt?: string;
 }
@@ -194,7 +194,7 @@ export interface TourCreateRequest {
   categoryId: number;
   targetAudienceIds: number[];
   isFeatured: boolean;
-  status: 'Active' | 'Inactive' | 'Draft';
+  status: 'ACTIVE' | 'INACTIVE';
 }
 
 export interface BookingCreateRequest {

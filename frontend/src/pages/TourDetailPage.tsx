@@ -278,7 +278,7 @@ const TourDetailPage: React.FC = () => {
           cancellationPolicy: tourResponse.cancellationPolicy || 'Miễn phí hủy trong 24h. Hủy trước 7 ngày không tính phí.',
           availableDates: tourResponse.schedules && tourResponse.schedules.length > 0
             ? tourResponse.schedules
-                .filter((schedule: any) => schedule.status === 'Available')
+                .filter((schedule: any) => schedule.status === 'AVAILABLE')
                 .map((schedule: any) => schedule.departureDate)
             : []
         };

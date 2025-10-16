@@ -120,7 +120,7 @@ class RecommendationService {
               averageRating: item.averageRating || 4.5,
               totalReviews: item.totalReviews || 0,
               isFeatured: item.isFeatured || false,
-              status: item.status || 'Active',
+              status: item.status || 'ACTIVE',
               category: item.category ? { 
                 id: item.category.id,
                 name: item.category.name,
@@ -177,7 +177,7 @@ class RecommendationService {
             averageRating: item.averageRating || 4.5,
             totalReviews: item.totalReviews || 0,
             isFeatured: item.isFeatured || false,
-            status: item.status || 'Active',
+            status: item.status || 'ACTIVE',
             category: item.category ? { 
               id: item.category.id,
               name: item.category.name,

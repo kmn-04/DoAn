@@ -28,7 +28,7 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
      * Find valid promotions (active and within date range)
      */
     @Query("SELECT p FROM Promotion p WHERE " +
-           "p.status = backend.entity.Promotion$PromotionStatus.Active AND " +
+           "p.status = backend.entity.Promotion$PromotionStatus.ACTIVE AND " +
            "p.startDate <= :currentDate AND " +
            "p.endDate >= :currentDate")
     List<Promotion> findValidPromotions(@Param("currentDate") LocalDateTime currentDate);
@@ -38,7 +38,7 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
      */
     @Query("SELECT p FROM Promotion p WHERE " +
            "p.code = :code AND " +
-           "p.status = backend.entity.Promotion$PromotionStatus.Active AND " +
+           "p.status = backend.entity.Promotion$PromotionStatus.ACTIVE AND " +
            "p.startDate <= :currentDate AND " +
            "p.endDate >= :currentDate")
     Optional<Promotion> findValidPromotionByCode(@Param("code") String code, 
@@ -47,7 +47,7 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
     /**
      * Find expired promotions
      */
-    @Query("SELECT p FROM Promotion p WHERE p.endDate < :currentDate AND p.status != backend.entity.Promotion$PromotionStatus.Expired")
+    @Query("SELECT p FROM Promotion p WHERE p.endDate < :currentDate AND p.status != backend.entity.Promotion$PromotionStatus.EXPIRED")
     List<Promotion> findExpiredPromotions(@Param("currentDate") LocalDateTime currentDate);
     
     /**

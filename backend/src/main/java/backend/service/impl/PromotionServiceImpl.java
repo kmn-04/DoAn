@@ -51,7 +51,7 @@ public class PromotionServiceImpl implements PromotionService {
         promotion.setEndDate(request.getEndDate());
         promotion.setStatus(request.getStatus() != null ? 
                 Promotion.PromotionStatus.valueOf(request.getStatus()) : 
-                Promotion.PromotionStatus.Active);
+                Promotion.PromotionStatus.ACTIVE);
         
         Promotion savedPromotion = promotionRepository.save(promotion);
         log.info("✅ Created promotion: {} (ID: {})", savedPromotion.getCode(), savedPromotion.getId());
@@ -114,7 +114,7 @@ public class PromotionServiceImpl implements PromotionService {
             // Instead of deleting, mark as Inactive
             log.warn("⚠️ Promotion {} is being used ({} times), marking as Inactive instead of deleting", 
                     promotion.getCode(), usageCount);
-            promotion.setStatus(Promotion.PromotionStatus.Inactive);
+            promotion.setStatus(Promotion.PromotionStatus.INACTIVE);
             promotionRepository.save(promotion);
         } else {
             promotionRepository.delete(promotion);
@@ -143,7 +143,7 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     @Transactional(readOnly = true)
     public List<Promotion> getActivePromotions() {
-        return promotionRepository.findByStatusOrderByCreatedAtDesc(Promotion.PromotionStatus.Active);
+        return promotionRepository.findByStatusOrderByCreatedAtDesc(Promotion.PromotionStatus.ACTIVE);
     }
     
     @Override
@@ -186,7 +186,7 @@ public class PromotionServiceImpl implements PromotionService {
         LocalDateTime now = LocalDateTime.now();
         
         // Check status
-        if (promotion.getStatus() != Promotion.PromotionStatus.Active) {
+        if (promotion.getStatus() != Promotion.PromotionStatus.ACTIVE) {
             return false;
         }
         
@@ -220,7 +220,7 @@ public class PromotionServiceImpl implements PromotionService {
         List<Promotion> expiredPromotions = promotionRepository.findExpiredPromotions(LocalDateTime.now());
         
         for (Promotion promotion : expiredPromotions) {
-            promotion.setStatus(Promotion.PromotionStatus.Expired);
+            promotion.setStatus(Promotion.PromotionStatus.EXPIRED);
             promotionRepository.save(promotion);
             log.info("Marked promotion {} as Expired", promotion.getCode());
         }

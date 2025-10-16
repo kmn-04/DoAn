@@ -32,7 +32,7 @@ public class Payment {
     private String paymentMethod; // COD, Bank Transfer, Credit Card
     
     @Column(name = "payment_provider", length = 50)
-    private String paymentProvider; // MoMo, ZaloPay, VNPay, Stripe...
+    private String paymentProvider; // ZaloPay, VNPay, Stripe...
     
     @Column(name = "transaction_id", length = 100)
     private String transactionId; // ID giao dịch nội bộ
@@ -42,7 +42,7 @@ public class Payment {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PaymentStatus status = PaymentStatus.Pending;
+    private PaymentStatus status = PaymentStatus.PENDING;
     
     @Column(name = "paid_at")
     private LocalDateTime paidAt; // Thời điểm thanh toán thành công
@@ -79,6 +79,6 @@ public class Payment {
     }
     
     public enum PaymentStatus {
-        Pending, Completed, Failed, Refunded
+        PENDING, COMPLETED, FAILED, REFUNDED
     }
 }

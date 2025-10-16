@@ -63,7 +63,7 @@ public class PartnerServiceImpl implements PartnerService {
             type,
             location != null && !location.trim().isEmpty() ? location.trim() : null,
             minRating,
-            Partner.PartnerStatus.Active,
+            Partner.PartnerStatus.ACTIVE,
             pageable
         );
     }

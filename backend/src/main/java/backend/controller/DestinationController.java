@@ -49,7 +49,7 @@ public class DestinationController {
             
             // Get aggregated destination data
             List<Object[]> results = tourRepository.findPopularDestinations(
-                Tour.TourStatus.Active, 
+                Tour.TourStatus.ACTIVE, 
                 minTourCount, 
                 PageRequest.of(0, limit)
             );
@@ -69,7 +69,7 @@ public class DestinationController {
                     log.debug("Processing destination: {} with {} tours and {} bookings", destination, tourCount, bookingCount);
                 
                     // Get tours for this destination to calculate average rating and get image
-                    List<Tour> tours = tourRepository.findByDestination(destination, Tour.TourStatus.Active);
+                    List<Tour> tours = tourRepository.findByDestination(destination, Tour.TourStatus.ACTIVE);
                     
                     if (tours.isEmpty()) {
                         log.warn("No tours found for destination: {}", destination);
@@ -142,7 +142,7 @@ public class DestinationController {
         for (Tour tour : tours) {
             List<Review> reviews = reviewRepository.findByTourIdAndStatusOrderByCreatedAtDesc(
                 tour.getId(), 
-                Review.ReviewStatus.Approved
+                Review.ReviewStatus.APPROVED
             );
             allReviews.addAll(reviews);
         }

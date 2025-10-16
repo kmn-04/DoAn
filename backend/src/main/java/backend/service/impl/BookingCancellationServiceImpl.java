@@ -7,6 +7,7 @@ import backend.exception.BadRequestException;
 import backend.exception.ResourceNotFoundException;
 import backend.repository.*;
 import backend.service.BookingCancellationService;
+import backend.service.NotificationService;
 import backend.mapper.EntityMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +35,7 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
     private final CancellationPolicyRepository policyRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     private final EntityMapper entityMapper;
 
     @Override
@@ -53,9 +56,26 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
             throw new BadRequestException("This booking cannot be cancelled");
         }
 
-        // Check if already cancelled
-        if (cancellationRepository.existsByBookingId(request.getBookingId())) {
-            throw new BadRequestException("Cancellation request already exists for this booking");
+        // Check if already has an active cancellation request (not rejected)
+        Optional<BookingCancellation> existingCancellation = cancellationRepository.findByBookingId(request.getBookingId());
+        BookingCancellation cancellation;
+        boolean isReattempt = false;
+        
+        if (existingCancellation.isPresent()) {
+            BookingCancellation.CancellationStatus cancellationStatus = existingCancellation.get().getStatus();
+            // Allow new cancellation only if previous one was rejected
+            if (cancellationStatus != BookingCancellation.CancellationStatus.REJECTED) {
+                throw new BadRequestException("Cancellation request already exists for this booking");
+            }
+            // Reuse the existing REJECTED record instead of creating new one
+            cancellation = existingCancellation.get();
+            isReattempt = true;
+            log.info("♻️ Reusing existing REJECTED cancellation record {} for re-attempt", cancellation.getId());
+        } else {
+            // Create new cancellation record
+            cancellation = new BookingCancellation();
+            cancellation.setBooking(booking);
+            log.info("🆕 Creating new cancellation record for booking {}", booking.getId());
         }
 
         User user = userRepository.findById(userId)
@@ -101,9 +121,7 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
             throw new BadRequestException("Cancellation not allowed: " + evaluation.reason);
         }
 
-        // Create cancellation record
-        BookingCancellation cancellation = new BookingCancellation();
-        cancellation.setBooking(booking);
+        // Update cancellation record (whether new or reused)
         cancellation.setCancelledBy(user);
         cancellation.setRequestedBy(user); // Set the requested_by field
         // Set the saved policy (required by database constraint)
@@ -112,6 +130,9 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
         cancellation.setReasonCategory(request.getReasonCategory());
         cancellation.setDetailedReason(request.getAdditionalNotes()); // Map additionalNotes to detailedReason
         cancellation.setAdditionalNotes(request.getAdditionalNotes());
+        
+        // Save previous booking status for auto-restore on reject
+        cancellation.setPreviousBookingStatus(booking.getConfirmationStatus());
         
         // Financial calculations
         cancellation.setOriginalAmount(booking.getTotalPrice());
@@ -135,21 +156,44 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
             cancellation.setSupportingDocuments(String.join(",", request.getSupportingDocuments()));
         }
 
-        // Set initial status - emergency cases go to review immediately
-        if (cancellation.isEmergencyException()) {
-            cancellation.setStatus(BookingCancellation.CancellationStatus.UNDER_REVIEW);
-        } else {
-            cancellation.setStatus(BookingCancellation.CancellationStatus.REQUESTED);
-        }
+        // Set status back to PENDING (for both new and reattempt)
+        cancellation.setStatus(BookingCancellation.CancellationStatus.PENDING);
 
         // Update booking confirmation status
-        booking.setConfirmationStatus(Booking.ConfirmationStatus.CancellationRequested);
+        booking.setConfirmationStatus(Booking.ConfirmationStatus.CANCELLATION_REQUESTED);
         bookingRepository.save(booking);
 
         // Save cancellation
         BookingCancellation savedCancellation = cancellationRepository.save(cancellation);
         
         log.info("Cancellation request created with ID: {}", savedCancellation.getId());
+        
+        // 🔔 Send notification to ADMIN about new cancellation request
+        try {
+            String tourName = booking.getTour() != null ? booking.getTour().getName() : "Tour";
+            String bookingCode = booking.getBookingCode();
+            String userName = user.getName() != null ? user.getName() : user.getEmail();
+            
+            String adminMessage = String.format(
+                "Khách hàng '%s' yêu cầu hủy tour '%s' (Booking: %s). " +
+                "Lý do: %s. Vui lòng xử lý trong vòng 24h.",
+                userName,
+                tourName,
+                bookingCode,
+                request.getReason() != null ? request.getReason() : "Không nêu rõ"
+            );
+            
+            notificationService.createNotificationForAdmins(
+                "🔔 Yêu cầu hủy tour mới",
+                adminMessage,
+                Notification.NotificationType.WARNING,
+                "/admin/cancellations"
+            );
+            
+            log.info("📧 Sent new cancellation notification to admins");
+        } catch (Exception e) {
+            log.error("Failed to send admin notification: {}", e.getMessage());
+        }
         
         return mapToResponse(savedCancellation);
     }
@@ -200,6 +244,11 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
 
+        log.info("🔍 Checking if booking {} can be cancelled by user {}", bookingId, userId);
+        log.info("  Booking confirmationStatus: {}", booking.getConfirmationStatus());
+        log.info("  Booking paymentStatus: {}", booking.getPaymentStatus());
+        log.info("  Booking startDate: {}", booking.getStartDate());
+
         // Temporarily disabled for testing - TODO: Fix user relationship  
         // Check ownership
         // if (!booking.getUser().getId().equals(userId)) {
@@ -207,23 +256,42 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
         // }
 
         // Check booking status
-        if (booking.getConfirmationStatus() == Booking.ConfirmationStatus.Cancelled || 
-            booking.getConfirmationStatus() == Booking.ConfirmationStatus.Completed ||
-            booking.getConfirmationStatus() == Booking.ConfirmationStatus.CancellationRequested) {
+        if (booking.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLED || 
+            booking.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED ||
+            booking.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLATION_REQUESTED) {
+            log.warn("❌ Booking status is {}, cannot cancel", booking.getConfirmationStatus());
             return false;
         }
 
-        // Check if already has cancellation request
-        if (cancellationRepository.existsByBookingId(bookingId)) {
-            return false;
+        // Check if already has an active cancellation request (not rejected)
+        Optional<BookingCancellation> existingCancellation = cancellationRepository.findByBookingId(bookingId);
+        if (existingCancellation.isPresent()) {
+            BookingCancellation.CancellationStatus cancellationStatus = existingCancellation.get().getStatus();
+            log.info("  Existing cancellation found with status: {}", cancellationStatus);
+            // Allow new cancellation if previous one was rejected
+            if (cancellationStatus != BookingCancellation.CancellationStatus.REJECTED) {
+                log.warn("❌ Active cancellation exists with status {}, cannot cancel", cancellationStatus);
+                return false;
+            } else {
+                log.info("  Previous cancellation was rejected, allowing new cancellation");
+            }
         }
 
         // Check timing constraints
         LocalDateTime now = LocalDateTime.now();
         long hoursBeforeDeparture = ChronoUnit.HOURS.between(now, booking.getStartDate().atStartOfDay());
+        log.info("  Hours before departure: {}", hoursBeforeDeparture);
         
         CancellationPolicy policy = findApplicablePolicy(booking);
-        return policy.isCancellationAllowed((int) hoursBeforeDeparture);
+        log.info("  Applicable policy: {}", policy.getName());
+        boolean allowed = policy.isCancellationAllowed((int) hoursBeforeDeparture);
+        log.info("  Policy allows cancellation: {}", allowed);
+        
+        if (!allowed) {
+            log.warn("❌ Cancellation not allowed according to policy");
+        }
+        
+        return allowed;
     }
 
     @Override
@@ -242,12 +310,41 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
 
         // Update booking confirmation status
         Booking booking = cancellation.getBooking();
-        booking.setConfirmationStatus(Booking.ConfirmationStatus.Cancelled);
+        booking.setConfirmationStatus(Booking.ConfirmationStatus.CANCELLED);
         bookingRepository.save(booking);
 
         BookingCancellation savedCancellation = cancellationRepository.save(cancellation);
         
         log.info("Cancellation {} approved by admin {}", cancellationId, adminId);
+        
+        // 🔔 Send notification to user
+        try {
+            Long userId = cancellation.getCancelledBy().getId();
+            String tourName = booking.getTour() != null ? booking.getTour().getName() : "Tour";
+            String bookingCode = booking.getBookingCode();
+            
+            String message = String.format(
+                "Yêu cầu hủy tour '%s' (Mã booking: %s) đã được phê duyệt. " +
+                "Số tiền hoàn lại: %s đ. Chúng tôi sẽ xử lý hoàn tiền trong vòng 5-7 ngày làm việc.",
+                tourName, 
+                bookingCode,
+                savedCancellation.getFinalRefundAmount() != null 
+                    ? String.format("%,.0f", savedCancellation.getFinalRefundAmount()) 
+                    : "0"
+            );
+            
+            notificationService.createNotificationForUser(
+                userId,
+                "✅ Yêu cầu hủy tour đã được phê duyệt",
+                message,
+                Notification.NotificationType.SUCCESS,
+                "/dashboard/cancellations"
+            );
+            
+            log.info("📧 Sent approval notification to user {}", userId);
+        } catch (Exception e) {
+            log.error("Failed to send approval notification: {}", e.getMessage());
+        }
         
         return mapToResponse(savedCancellation);
     }
@@ -266,14 +363,118 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
 
         cancellation.markAsRejected(admin, adminNotes);
 
-        // Restore booking confirmation status
+        // Auto-restore booking to previous status
         Booking booking = cancellation.getBooking();
-        booking.setConfirmationStatus(Booking.ConfirmationStatus.Confirmed); // Or original status
+        Booking.ConfirmationStatus restoreStatus = cancellation.getPreviousBookingStatus() != null 
+            ? cancellation.getPreviousBookingStatus() 
+            : Booking.ConfirmationStatus.CONFIRMED; // Fallback to Confirmed if null
+            
+        booking.setConfirmationStatus(restoreStatus);
         bookingRepository.save(booking);
+        
+        log.info("✅ Auto-restored booking {} from CancellationRequested to {}", booking.getId(), restoreStatus);
 
         BookingCancellation savedCancellation = cancellationRepository.save(cancellation);
         
         log.info("Cancellation {} rejected by admin {}", cancellationId, adminId);
+        
+        // 🔔 Send notification to user
+        try {
+            Long userId = cancellation.getCancelledBy().getId();
+            String tourName = booking.getTour() != null ? booking.getTour().getName() : "Tour";
+            String bookingCode = booking.getBookingCode();
+            
+            String message = String.format(
+                "Yêu cầu hủy tour '%s' (Mã booking: %s) đã bị từ chối. " +
+                "Booking của bạn vẫn còn hiệu lực. %s",
+                tourName, 
+                bookingCode,
+                adminNotes != null && !adminNotes.isEmpty() 
+                    ? "Lý do: " + adminNotes 
+                    : "Vui lòng liên hệ bộ phận hỗ trợ nếu có thắc mắc."
+            );
+            
+            notificationService.createNotificationForUser(
+                userId,
+                "❌ Yêu cầu hủy tour bị từ chối",
+                message,
+                Notification.NotificationType.WARNING,
+                "/dashboard/bookings"
+            );
+            
+            log.info("📧 Sent rejection notification to user {}", userId);
+        } catch (Exception e) {
+            log.error("Failed to send rejection notification: {}", e.getMessage());
+        }
+        
+        return mapToResponse(savedCancellation);
+    }
+
+    @Override
+    public BookingCancellationResponse updateRefundStatus(Long cancellationId, String refundStatus) {
+        log.info("🔄 Updating refund status for cancellation {} to {}", cancellationId, refundStatus);
+        
+        BookingCancellation cancellation = cancellationRepository.findById(cancellationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking cancellation", "id", cancellationId));
+
+        // Validate that cancellation is APPROVED before updating refund status
+        if (cancellation.getStatus() != BookingCancellation.CancellationStatus.APPROVED) {
+            throw new BadRequestException("Refund status can only be updated for APPROVED cancellations");
+        }
+
+        // Parse and set new refund status
+        BookingCancellation.RefundStatus newRefundStatus;
+        try {
+            newRefundStatus = BookingCancellation.RefundStatus.valueOf(refundStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid refund status: " + refundStatus);
+        }
+
+        cancellation.setRefundStatus(newRefundStatus);
+        
+        // If status is COMPLETED, set refund processed timestamp
+        if (newRefundStatus == BookingCancellation.RefundStatus.COMPLETED) {
+            cancellation.setRefundProcessedAt(LocalDateTime.now());
+            
+            // Auto-sync booking payment status
+            Booking booking = cancellation.getBooking();
+            booking.setPaymentStatus(Booking.PaymentStatus.REFUNDED);
+            bookingRepository.save(booking);
+            log.info("✅ Auto-updated booking {} paymentStatus to REFUNDED", booking.getId());
+            
+            // 🔔 Send refund completion notification to user
+            try {
+                Long userId = cancellation.getCancelledBy().getId();
+                String tourName = booking.getTour() != null ? booking.getTour().getName() : "Tour";
+                String bookingCode = booking.getBookingCode();
+                
+                String message = String.format(
+                    "Số tiền %s đ từ tour '%s' (Mã booking: %s) đã được hoàn lại vào tài khoản của bạn. " +
+                    "Vui lòng kiểm tra tài khoản ngân hàng.",
+                    cancellation.getFinalRefundAmount() != null 
+                        ? String.format("%,.0f", cancellation.getFinalRefundAmount()) 
+                        : "0",
+                    tourName,
+                    bookingCode
+                );
+                
+                notificationService.createNotificationForUser(
+                    userId,
+                    "💰 Hoàn tiền thành công",
+                    message,
+                    Notification.NotificationType.SUCCESS,
+                    "/dashboard/bookings"
+                );
+                
+                log.info("📧 Sent refund completion notification to user {}", userId);
+            } catch (Exception e) {
+                log.error("Failed to send refund completion notification: {}", e.getMessage());
+            }
+        }
+
+        BookingCancellation savedCancellation = cancellationRepository.save(cancellation);
+        
+        log.info("✅ Updated refund status for cancellation {} to {}", cancellationId, newRefundStatus);
         
         return mapToResponse(savedCancellation);
     }
@@ -283,6 +484,19 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
     public Page<BookingCancellationResponse> getPendingCancellations(Pageable pageable) {
         return cancellationRepository.findPendingCancellations(pageable)
                 .map(this::mapToResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BookingCancellationResponse> getAllCancellations(Pageable pageable) {
+        log.info("Fetching all cancellations - page: {}, size: {}", 
+                pageable.getPageNumber(), pageable.getPageSize());
+        
+        Page<BookingCancellation> cancellations = cancellationRepository.findAll(pageable);
+        
+        log.info("Found {} total cancellations", cancellations.getTotalElements());
+        
+        return cancellations.map(this::mapToResponse);
     }
 
     @Override
@@ -376,8 +590,7 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
         CancellationStatistics stats = new CancellationStatistics();
         
         stats.totalCancellations = cancellationRepository.countByDateRange(startDate, endDate);
-        stats.pendingCancellations = cancellationRepository.countByStatus(BookingCancellation.CancellationStatus.REQUESTED) +
-                                   cancellationRepository.countByStatus(BookingCancellation.CancellationStatus.UNDER_REVIEW);
+        stats.pendingCancellations = cancellationRepository.countByStatus(BookingCancellation.CancellationStatus.PENDING);
         stats.approvedCancellations = cancellationRepository.countByStatus(BookingCancellation.CancellationStatus.APPROVED);
         stats.rejectedCancellations = cancellationRepository.countByStatus(BookingCancellation.CancellationStatus.REJECTED);
         stats.totalRefundAmount = cancellationRepository.getTotalRefundAmount(startDate, endDate);

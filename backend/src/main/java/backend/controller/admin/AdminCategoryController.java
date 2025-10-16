@@ -192,7 +192,7 @@ public class AdminCategoryController extends BaseController {
     ) {
         try {
             log.info("Changing category {} status to: {}", id, status);
-            CategoryStatus categoryStatus = CategoryStatus.valueOf(status);
+            CategoryStatus categoryStatus = CategoryStatus.valueOf(status.toUpperCase());
             Category updatedCategory = categoryService.changeCategoryStatus(id, categoryStatus);
             CategoryResponse response = mapper.toCategoryResponse(updatedCategory);
             return ResponseEntity.ok(success("Category status updated successfully", response));
@@ -248,7 +248,7 @@ public class AdminCategoryController extends BaseController {
     public ResponseEntity<ApiResponse<Long>> getActiveCategoriesCount() {
         try {
             long count = categoryService.getAllCategories().stream()
-                .filter(c -> c.getStatus() == CategoryStatus.Active)
+                .filter(c -> c.getStatus() == CategoryStatus.ACTIVE)
                 .count();
             return ResponseEntity.ok(success("Active categories count retrieved successfully", count));
         } catch (Exception e) {
@@ -263,7 +263,7 @@ public class AdminCategoryController extends BaseController {
     public ResponseEntity<ApiResponse<Long>> getInactiveCategoriesCount() {
         try {
             long count = categoryService.getAllCategories().stream()
-                .filter(c -> c.getStatus() == CategoryStatus.Inactive)
+                .filter(c -> c.getStatus() == CategoryStatus.INACTIVE)
                 .count();
             return ResponseEntity.ok(success("Inactive categories count retrieved successfully", count));
         } catch (Exception e) {

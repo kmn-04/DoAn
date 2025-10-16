@@ -84,11 +84,11 @@ public class Booking {
     // Status fields - tách thành 2 trạng thái
     @Enumerated(EnumType.STRING)
     @Column(name = "confirmation_status", nullable = false, length = 30)
-    private ConfirmationStatus confirmationStatus = ConfirmationStatus.Pending;
+    private ConfirmationStatus confirmationStatus = ConfirmationStatus.PENDING;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false, length = 30)
-    private PaymentStatus paymentStatus = PaymentStatus.Unpaid;
+    private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
     
     // Cancellation information
     @Column(name = "cancellation_reason", columnDefinition = "TEXT")
@@ -167,7 +167,7 @@ public class Booking {
     
     // Helper method for cancellation
     public void cancel(Long userId, String reason) {
-        this.confirmationStatus = ConfirmationStatus.Cancelled;
+        this.confirmationStatus = ConfirmationStatus.CANCELLED;
         this.cancelledBy = userId;
         this.cancelledAt = LocalDateTime.now();
         this.cancellationReason = reason;
@@ -175,16 +175,16 @@ public class Booking {
     
     // Helper method to check if booking can be cancelled
     public boolean canBeCancelled() {
-        return confirmationStatus != ConfirmationStatus.Cancelled 
-            && confirmationStatus != ConfirmationStatus.Completed;
+        return confirmationStatus != ConfirmationStatus.CANCELLED 
+            && confirmationStatus != ConfirmationStatus.COMPLETED;
     }
     
     public enum ConfirmationStatus {
-        Pending("Chờ xác nhận"),
-        Confirmed("Đã xác nhận"),
-        Cancelled("Đã hủy"),
-        Completed("Đã hoàn thành"),
-        CancellationRequested("Yêu cầu hủy");
+        PENDING("Chờ xác nhận"),
+        CONFIRMED("Đã xác nhận"),
+        CANCELLED("Đã hủy"),
+        COMPLETED("Đã hoàn thành"),
+        CANCELLATION_REQUESTED("Yêu cầu hủy");
         
         private final String displayName;
         
@@ -198,10 +198,10 @@ public class Booking {
     }
     
     public enum PaymentStatus {
-        Unpaid("Chưa thanh toán"),
-        Paid("Đã thanh toán"),
-        Refunding("Đang hoàn tiền"),
-        Refunded("Đã hoàn tiền");
+        UNPAID("Chưa thanh toán"),
+        PAID("Đã thanh toán"),
+        REFUNDING("Đang hoàn tiền"),
+        REFUNDED("Đã hoàn tiền");
         
         private final String displayName;
         
@@ -217,6 +217,6 @@ public class Booking {
     // Deprecated - keep for backward compatibility
     @Deprecated
     public enum BookingStatus {
-        Pending, Confirmed, Paid, Cancelled, Completed, CancellationRequested
+        PENDING, CONFIRMED, PAID, CANCELLED, COMPLETED, CANCELLATION_REQUESTED
     }
 }
