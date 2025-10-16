@@ -11,6 +11,7 @@ import {
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
+  XCircleIcon,
   BellIcon,
   UserCircleIcon,
   ChevronLeftIcon,
@@ -53,6 +54,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       title: 'QUẢN LÝ ĐƠN HÀNG',
       items: [
         { name: 'Đặt tour', href: '/admin/bookings', icon: CalendarDaysIcon },
+        { name: 'Yêu cầu hủy', href: '/admin/cancellations', icon: XCircleIcon },
         { name: 'Đánh giá', href: '/admin/reviews', icon: StarIcon },
       ]
     },

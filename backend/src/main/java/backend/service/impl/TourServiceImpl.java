@@ -60,7 +60,7 @@ public class TourServiceImpl implements TourService {
         
         // Set default status
         if (tour.getStatus() == null) {
-            tour.setStatus(TourStatus.Active);
+            tour.setStatus(TourStatus.ACTIVE);
         }
         
         // Set default featured
@@ -179,7 +179,7 @@ public class TourServiceImpl implements TourService {
     @Override
     @Transactional(readOnly = true)
     public List<Tour> getAllActiveTours() {
-        return tourRepository.findActiveTours(TourStatus.Active);
+        return tourRepository.findActiveTours(TourStatus.ACTIVE);
     }
     
     @Override
@@ -191,50 +191,50 @@ public class TourServiceImpl implements TourService {
     @Override
     @Transactional(readOnly = true)
     public Page<Tour> searchTours(String keyword, Pageable pageable) {
-        return tourRepository.searchTours(keyword, TourStatus.Active, pageable);
+        return tourRepository.searchTours(keyword, TourStatus.ACTIVE, pageable);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<Tour> getToursByCategory(Long categoryId) {
-        return tourRepository.findByCategoryIdAndStatusAndDeletedAtIsNull(categoryId, TourStatus.Active);
+        return tourRepository.findByCategoryIdAndStatusAndDeletedAtIsNull(categoryId, TourStatus.ACTIVE);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<Tour> getToursByCategorySlug(String categorySlug) {
-        return tourRepository.findByCategorySlug(categorySlug, TourStatus.Active);
+        return tourRepository.findByCategorySlug(categorySlug, TourStatus.ACTIVE);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<Tour> getFeaturedTours() {
-        return tourRepository.findFeaturedTours(TourStatus.Active);
+        return tourRepository.findFeaturedTours(TourStatus.ACTIVE);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<Tour> getToursByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
-        return tourRepository.findByPriceRange(minPrice, maxPrice, TourStatus.Active);
+        return tourRepository.findByPriceRange(minPrice, maxPrice, TourStatus.ACTIVE);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<Tour> getToursByDurationRange(Integer minDuration, Integer maxDuration) {
-        return tourRepository.findByDurationBetweenAndStatusAndDeletedAtIsNull(minDuration, maxDuration, TourStatus.Active);
+        return tourRepository.findByDurationBetweenAndStatusAndDeletedAtIsNull(minDuration, maxDuration, TourStatus.ACTIVE);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<Tour> getToursByTargetAudience(String audienceName) {
-        return tourRepository.findByTargetAudience(audienceName, TourStatus.Active);
+        return tourRepository.findByTargetAudience(audienceName, TourStatus.ACTIVE);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<Tour> getTopRatedTours(int limit) {
         PageRequest pageRequest = PageRequest.of(0, limit);
-        return tourRepository.findTopRatedTours(TourStatus.Active, pageRequest)
+        return tourRepository.findTopRatedTours(TourStatus.ACTIVE, pageRequest)
                 .stream()
                 .map(objects -> (Tour) objects[0])
                 .toList();
@@ -360,8 +360,8 @@ public class TourServiceImpl implements TourService {
     @Transactional(readOnly = true)
     public TourStatistics getTourStatistics() {
         long totalTours = tourRepository.count();
-        long activeTours = tourRepository.findActiveTours(TourStatus.Active).size();
-        long featuredTours = tourRepository.findFeaturedTours(TourStatus.Active).size();
+        long activeTours = tourRepository.findActiveTours(TourStatus.ACTIVE).size();
+        long featuredTours = tourRepository.findFeaturedTours(TourStatus.ACTIVE).size();
         
         LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         long toursThisMonth = tourRepository.findAll().stream()
@@ -369,7 +369,7 @@ public class TourServiceImpl implements TourService {
                 .count();
         
         // Calculate average price
-        List<Tour> tours = tourRepository.findActiveTours(TourStatus.Active);
+        List<Tour> tours = tourRepository.findActiveTours(TourStatus.ACTIVE);
         BigDecimal averagePrice = tours.stream()
                 .map(Tour::getEffectivePrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
@@ -406,7 +406,7 @@ public class TourServiceImpl implements TourService {
         return tourRepository.findToursWithFilters(
             keyword, categoryId, minPrice, maxPrice, minDuration, maxDuration,
             tourType, location, countryCode, visaRequired, flightIncluded,
-            TourStatus.Active,
+            TourStatus.ACTIVE,
             pageable
         );
     }
@@ -415,28 +415,28 @@ public class TourServiceImpl implements TourService {
     @Transactional(readOnly = true)
     public List<Tour> getToursByType(Tour.TourType tourType) {
         log.info("Getting tours by type: {}", tourType);
-        return tourRepository.findByTourTypeAndStatus(tourType, TourStatus.Active);
+        return tourRepository.findByTourTypeAndStatus(tourType, TourStatus.ACTIVE);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Tour> getToursByCountry(Long countryId) {
         log.info("Getting tours by country: {}", countryId);
-        return tourRepository.findByCountryIdAndStatus(countryId, TourStatus.Active);
+        return tourRepository.findByCountryIdAndStatus(countryId, TourStatus.ACTIVE);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Tour> getInternationalToursByContinent(String continent) {
         log.info("Getting international tours by continent: {}", continent);
-        return tourRepository.findInternationalToursByContinent(continent, TourStatus.Active);
+        return tourRepository.findInternationalToursByContinent(continent, TourStatus.ACTIVE);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<String> getUniqueLocations() {
         log.info("Getting unique locations from tours");
-        return tourRepository.findDistinctLocations(TourStatus.Active);
+        return tourRepository.findDistinctLocations(TourStatus.ACTIVE);
     }
     
     // ========== NEW DTO METHODS ==========
@@ -641,7 +641,8 @@ public class TourServiceImpl implements TourService {
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new RuntimeException("Tour not found with id: " + tourId));
         
-        tour.setStatus(TourStatus.valueOf(status));
+        // Convert to uppercase to handle both PascalCase and UPPERCASE
+        tour.setStatus(TourStatus.valueOf(status.toUpperCase()));
         tour.setUpdatedAt(LocalDateTime.now());
         
         Tour updated = tourRepository.save(tour);

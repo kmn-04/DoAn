@@ -18,7 +18,7 @@ interface Contact {
   subject: string;
   message: string;
   tourInterest: string | null;
-  status: 'New' | 'In_Progress' | 'Resolved' | 'Closed';
+  status: 'NEW' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
   assignedToId: number | null;
   assignedToName: string | null;
   adminNote: string | null;
@@ -67,8 +67,8 @@ const AdminContacts: React.FC = () => {
       const allContactsRes = await apiClient.get('/admin/contacts?page=0&size=1000');
       const allContacts = allContactsRes.data.data?.content || [];
       
-      const inProgress = allContacts.filter((c: Contact) => c.status === 'In_Progress').length;
-      const resolved = allContacts.filter((c: Contact) => c.status === 'Resolved').length;
+      const inProgress = allContacts.filter((c: Contact) => c.status === 'IN_PROGRESS').length;
+      const resolved = allContacts.filter((c: Contact) => c.status === 'RESOLVED').length;
       
       setStats({
         total: totalRes.data.data || 0,
@@ -215,30 +215,30 @@ const AdminContacts: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      'New': 'admin-badge-blue',
-      'In_Progress': 'admin-badge-yellow',
-      'Resolved': 'admin-badge-green',
-      'Closed': 'admin-badge-gray'
+      'NEW': 'admin-badge-blue',
+      'IN_PROGRESS': 'admin-badge-yellow',
+      'RESOLVED': 'admin-badge-green',
+      'CLOSED': 'admin-badge-gray'
     };
     return badges[status as keyof typeof badges] || 'admin-badge-gray';
   };
 
   const getStatusLabel = (status: string) => {
     const labels = {
-      'New': 'Mới',
-      'In_Progress': 'Đang xử lý',
-      'Resolved': 'Đã giải quyết',
-      'Closed': 'Đã đóng'
+      'NEW': 'Mới',
+      'IN_PROGRESS': 'Đang xử lý',
+      'RESOLVED': 'Đã giải quyết',
+      'CLOSED': 'Đã đóng'
     };
     return labels[status as keyof typeof labels] || status;
   };
 
   const getStatusClassName = (status: string) => {
     const classes = {
-      'New': 'admin-table-select-pending',
-      'In_Progress': 'admin-table-select-confirmed',
-      'Resolved': 'admin-table-select-completed',
-      'Closed': 'admin-table-select-rejected'
+      'NEW': 'admin-table-select-pending',
+      'IN_PROGRESS': 'admin-table-select-confirmed',
+      'RESOLVED': 'admin-table-select-completed',
+      'CLOSED': 'admin-table-select-rejected'
     };
     return classes[status as keyof typeof classes] || '';
   };
@@ -333,10 +333,10 @@ const AdminContacts: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="New">Mới</option>
-                <option value="In_Progress">Đang xử lý</option>
-                <option value="Resolved">Đã giải quyết</option>
-                <option value="Closed">Đã đóng</option>
+                <option value="NEW">Mới</option>
+                <option value="IN_PROGRESS">Đang xử lý</option>
+                <option value="RESOLVED">Đã giải quyết</option>
+                <option value="CLOSED">Đã đóng</option>
               </select>
             </div>
 
@@ -422,10 +422,10 @@ const AdminContacts: React.FC = () => {
                         onChange={(e) => handleUpdateStatus(contact.id, e.target.value)}
                         className={`admin-table-select ${getStatusClassName(contact.status)}`}
                       >
-                        <option value="New">Mới</option>
-                        <option value="In_Progress">Đang xử lý</option>
-                        <option value="Resolved">Đã giải quyết</option>
-                        <option value="Closed">Đã đóng</option>
+                        <option value="NEW">Mới</option>
+                        <option value="IN_PROGRESS">Đang xử lý</option>
+                        <option value="RESOLVED">Đã giải quyết</option>
+                        <option value="CLOSED">Đã đóng</option>
                       </select>
                     </td>
                     <td className="admin-table-td">
@@ -588,10 +588,10 @@ const AdminContacts: React.FC = () => {
                     onChange={(e) => handleUpdateStatus(selectedContact.id, e.target.value)}
                     className="admin-select"
                   >
-                    <option value="New">Mới</option>
-                    <option value="In_Progress">Đang xử lý</option>
-                    <option value="Resolved">Đã giải quyết</option>
-                    <option value="Closed">Đã đóng</option>
+                    <option value="NEW">Mới</option>
+                    <option value="IN_PROGRESS">Đang xử lý</option>
+                    <option value="RESOLVED">Đã giải quyết</option>
+                    <option value="CLOSED">Đã đóng</option>
                   </select>
                 </div>
                 <button onClick={closeDetailModal} className="admin-btn-secondary">

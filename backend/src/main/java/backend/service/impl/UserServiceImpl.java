@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
         
         // Set default status
         if (user.getStatus() == null) {
-            user.setStatus(UserStatus.Active);
+            user.setStatus(UserStatus.ACTIVE);
         }
         
         User savedUser = userRepository.save(user);
@@ -157,7 +157,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
         
-        user.setStatus(UserStatus.Active);
+        user.setStatus(UserStatus.ACTIVE);
         user.setDeletedAt(null); // Remove soft delete if present
         
         User activatedUser = userRepository.save(user);
@@ -172,7 +172,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
         
-        user.setStatus(UserStatus.Inactive);
+        user.setStatus(UserStatus.INACTIVE);
         
         User deactivatedUser = userRepository.save(user);
         log.info("User deactivated successfully with ID: {}", deactivatedUser.getId());
@@ -236,8 +236,8 @@ public class UserServiceImpl implements UserService {
     public UserStatistics getUserStatistics() {
         // Only count non-deleted users
         long totalUsers = userRepository.countByDeletedAtIsNull();
-        long activeUsers = userRepository.countByStatusAndNotDeleted(UserStatus.Active);
-        long inactiveUsers = userRepository.countByStatusAndNotDeleted(UserStatus.Inactive);
+        long activeUsers = userRepository.countByStatusAndNotDeleted(UserStatus.ACTIVE);
+        long inactiveUsers = userRepository.countByStatusAndNotDeleted(UserStatus.INACTIVE);
         long bannedUsers = userRepository.countBannedUsers();
         long verifiedUsers = userRepository.findVerifiedUsers().size();
         

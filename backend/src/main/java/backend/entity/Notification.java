@@ -35,7 +35,7 @@ public class Notification {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private NotificationType type = NotificationType.Info;
+    private NotificationType type = NotificationType.INFO;
     
     private String link;
     
@@ -54,10 +54,10 @@ public class Notification {
     }
     
     public enum NotificationType {
-        Info("Thông tin"),
-        Success("Thành công"),
-        Warning("Cảnh báo"),
-        Error("Lỗi");
+        INFO("Thông tin"),
+        SUCCESS("Thành công"),
+        WARNING("Cảnh báo"),
+        ERROR("Lỗi");
         
         private final String displayName;
         

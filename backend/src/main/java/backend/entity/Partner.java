@@ -57,7 +57,7 @@ public class Partner {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private PartnerStatus status = PartnerStatus.Active;
+    private PartnerStatus status = PartnerStatus.ACTIVE;
     
     @Column(name = "specialties", columnDefinition = "TEXT")
     private String specialties; // JSON string of specialties array
@@ -88,12 +88,12 @@ public class Partner {
     }
     
     public enum PartnerType {
-        Hotel("Khách sạn"),
-        Restaurant("Nhà hàng"),
-        Transport("Vận chuyển"),
-        TourOperator("Công ty lữ hành"),
-        Insurance("Bảo hiểm"),
-        Other("Khác");
+        HOTEL("Khách sạn"),
+        RESTAURANT("Nhà hàng"),
+        TRANSPORT("Vận chuyển"),
+        TOUR_OPERATOR("Công ty lữ hành"),
+        INSURANCE("Bảo hiểm"),
+        OTHER("Khác");
         
         private final String displayName;
         
@@ -107,9 +107,9 @@ public class Partner {
     }
     
     public enum PartnerStatus {
-        Active("Đang hoạt động"),
-        Inactive("Tạm ngưng"),
-        Suspended("Đình chỉ");
+        ACTIVE("Đang hoạt động"),
+        INACTIVE("Tạm ngưng"),
+        SUSPENDED("Đình chỉ");
         
         private final String displayName;
         

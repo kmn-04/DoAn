@@ -70,7 +70,7 @@ public class RecommendationController {
                     // Get tours from these categories
                     tours = tourRepository.findByCategoryIds(
                         categoryIds, 
-                        Tour.TourStatus.Active, 
+                        Tour.TourStatus.ACTIVE, 
                         PageRequest.of(0, limit)
                     );
                     log.info("Found {} tours from user's preferred categories", tours.size());
@@ -80,7 +80,7 @@ public class RecommendationController {
             // Fallback to featured tours if no personalized tours found
             if (tours.isEmpty()) {
                 log.info("No personalized tours found, falling back to featured tours");
-                tours = tourRepository.findFeaturedTours(Tour.TourStatus.Active);
+                tours = tourRepository.findFeaturedTours(Tour.TourStatus.ACTIVE);
                 if (tours.size() > limit) {
                     tours = tours.subList(0, limit);
                 }
@@ -118,7 +118,7 @@ public class RecommendationController {
             // Get tours with most bookings in last 30 days
             LocalDateTime since = LocalDateTime.now().minusDays(30);
             List<Object[]> results = tourRepository.findTrendingTours(
-                Tour.TourStatus.Active, 
+                Tour.TourStatus.ACTIVE, 
                 since, 
                 PageRequest.of(0, limit)
             );

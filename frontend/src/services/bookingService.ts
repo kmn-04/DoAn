@@ -37,9 +37,9 @@ export interface BookingResponse {
   discountAmount?: number;
   finalAmount: number;
   
-  // Status (lowercase from backend)
-  confirmationStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  paymentStatus: 'unpaid' | 'partiallypaid' | 'paid' | 'refunding' | 'refunded';
+  // Status (UPPERCASE from backend)
+  confirmationStatus: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'CANCELLATION_REQUESTED';
+  paymentStatus: 'UNPAID' | 'PAID' | 'REFUNDING' | 'REFUNDED';
   
   // Additional info
   specialRequests?: string;

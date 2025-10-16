@@ -56,7 +56,7 @@ public class Promotion {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PromotionStatus status = PromotionStatus.Active;
+    private PromotionStatus status = PromotionStatus.ACTIVE;
     
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -80,10 +80,10 @@ public class Promotion {
     }
     
     public enum PromotionType {
-        Percentage, Fixed
+        PERCENTAGE, FIXED_AMOUNT
     }
     
     public enum PromotionStatus {
-        Active, Inactive, Expired
+        ACTIVE, INACTIVE, EXPIRED
     }
 }

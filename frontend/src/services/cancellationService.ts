@@ -27,8 +27,8 @@ export interface CancellationResponse {
   bookingCode: string;
   reason: string;
   reasonCategory: string;
-  status: 'REQUESTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
-  refundStatus: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  refundStatus: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'NOT_APPLICABLE';
   originalAmount: number;
   finalRefundAmount: number;
   cancellationFee: number;

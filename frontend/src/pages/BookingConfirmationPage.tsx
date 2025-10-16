@@ -178,7 +178,7 @@ const BookingConfirmationPage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up opacity-0 delay-600">
-          <Link to="/bookings">
+          <Link to={`/bookings${bookingResult?.id ? `?highlight=${bookingResult.id}` : ''}`}>
             <Button 
               className="w-full sm:w-auto text-white px-8 py-3 rounded-none hover:opacity-90 transition-all duration-300 font-medium tracking-wide"
               style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}

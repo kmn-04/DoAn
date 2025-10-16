@@ -110,7 +110,7 @@ const ContactPage: React.FC = () => {
     {
       id: 4,
       question: 'Các hình thức thanh toán được chấp nhận?',
-      answer: 'Chúng tôi chấp nhận đa dạng hình thức thanh toán: (1) Tiền mặt tại văn phòng; (2) Chuyển khoản ngân hàng (Vietcombank, BIDV, Techcombank); (3) Thẻ tín dụng/ghi nợ (Visa, Mastercard, JCB); (4) Ví điện tử (MoMo, ZaloPay, VNPay); (5) Trả góp qua thẻ tín dụng (0% lãi suất cho tour trên 10 triệu). Bạn có thể thanh toán 30% khi đặt tour và 70% trước ngày khởi hành 7 ngày.'
+      answer: 'Chúng tôi chấp nhận đa dạng hình thức thanh toán: (1) Tiền mặt tại văn phòng; (2) Chuyển khoản ngân hàng (Vietcombank, BIDV, Techcombank); (3) Thẻ tín dụng/ghi nợ (Visa, Mastercard, JCB); (4) Ví điện tử (ZaloPay, VNPay); (5) Trả góp qua thẻ tín dụng (0% lãi suất cho tour trên 10 triệu). Bạn có thể thanh toán 30% khi đặt tour và 70% trước ngày khởi hành 7 ngày.'
     },
     {
       id: 5,

@@ -14,7 +14,7 @@ export interface PromotionResponse {
   remainingUses?: number;
   startDate: string;
   endDate: string;
-  status: 'Active' | 'Inactive' | 'Expired';
+  status: 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
   isValid?: boolean;
   isExpired?: boolean;
   createdAt?: string;

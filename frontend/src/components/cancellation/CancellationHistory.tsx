@@ -9,7 +9,7 @@ import { CancellationRequestForm } from './CancellationRequestForm';
 import { CancellationDetails } from './CancellationDetails';
 
 // Inline types to fix import issues
-type CancellationStatusType = 'REQUESTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
+type CancellationStatusType = 'PENDING' | 'APPROVED' | 'REJECTED';
 type RefundStatusType = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'NOT_APPLICABLE';
 
 // UTC+7 timezone formatter for Vietnam
@@ -32,11 +32,9 @@ const formatDateVietnam = (dateString: string | undefined): string => {
 };
 
 const CancellationStatus = {
-  REQUESTED: 'REQUESTED',
-  UNDER_REVIEW: 'UNDER_REVIEW', 
+  PENDING: 'PENDING',
   APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED',
-  COMPLETED: 'COMPLETED'
+  REJECTED: 'REJECTED'
 } as const;
 
 const RefundStatus = {
@@ -91,11 +89,9 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
 
 
   const statusLabels = {
-    [CancellationStatus.REQUESTED]: 'Đã gửi yêu cầu',
-    [CancellationStatus.UNDER_REVIEW]: 'Đang xem xét',
+    [CancellationStatus.PENDING]: 'Chờ xử lý',
     [CancellationStatus.APPROVED]: 'Đã phê duyệt',
-    [CancellationStatus.REJECTED]: 'Bị từ chối',
-    [CancellationStatus.COMPLETED]: 'Hoàn tất'
+    [CancellationStatus.REJECTED]: 'Bị từ chối'
   };
 
   const refundStatusLabels = {
@@ -138,7 +134,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
         tourName: 'Tour được hủy',
         reason: 'Yêu cầu hủy từ khách hàng',
         reasonCategory: 'PERSONAL_EMERGENCY',
-        status: 'REQUESTED' as CancellationStatusType,
+        status: 'PENDING' as CancellationStatusType,
         refundStatus: 'PENDING' as RefundStatusType,
         originalAmount: 2500000,
         finalRefundAmount: 2000000,
@@ -167,7 +163,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
         tourName: newCancellation.tourName || 'Tour được chọn',
         reason: newCancellation.reason,
         reasonCategory: newCancellation.reasonCategory,
-        status: 'REQUESTED' as CancellationStatusType,
+        status: 'PENDING' as CancellationStatusType,
         refundStatus: 'PENDING' as RefundStatusType,
         originalAmount: newCancellation.originalAmount || 2500000,
         finalRefundAmount: newCancellation.finalRefundAmount || 2000000,
@@ -201,24 +197,52 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
       const response = await cancellationService.getUserCancellations(user.id, currentPage, pageSize);
       // Successfully loaded cancellations from API
       
-      // Convert API response to CancellationHistoryItem format
-      const apiCancellations = response.content.map(cancellation => ({
-        id: cancellation.id,
-        bookingId: cancellation.booking?.id || 0,
-        bookingCode: cancellation.booking?.bookingCode || 'N/A',
-        tourName: cancellation.booking?.tourName || 'Unknown Tour',
-        reason: cancellation.reason,
-        reasonCategory: cancellation.reasonCategory,
-        status: cancellation.status as CancellationStatusType,
-        refundStatus: cancellation.refundStatus as RefundStatusType,
-        originalAmount: cancellation.originalAmount,
-        finalRefundAmount: cancellation.finalRefundAmount,
-        cancelledAt: cancellation.cancelledAt || cancellation.createdAt,
-        processedAt: cancellation.processedAt,
-        hoursBeforeDeparture: cancellation.hoursBeforeDeparture || 0,
-        policyName: cancellation.policyName || 'Standard Policy',
-        isEmergencyCase: cancellation.isEmergencyCase
-      }));
+      // Convert API response to CancellationHistoryItem format and filter out REJECTED ones
+      console.log('📋 Total cancellations from API:', response.content.length);
+      response.content.forEach(c => {
+        console.log(`  - Cancellation ${c.id}: status=${c.status}, bookingCode=${c.booking?.bookingCode}`);
+      });
+      
+      const apiCancellations = response.content
+        .filter(cancellation => {
+          // Don't show rejected cancellations (booking was restored)
+          const shouldShow = cancellation.status !== 'REJECTED';
+          if (!shouldShow) {
+            console.log(`🚫 Filtering out REJECTED cancellation ${cancellation.id} for booking ${cancellation.booking?.bookingCode}`);
+          }
+          return shouldShow;
+        })
+        .map(cancellation => {
+          console.log('🔍 Cancellation data from API:', {
+            id: cancellation.id,
+            originalAmount: cancellation.originalAmount,
+            finalRefundAmount: cancellation.finalRefundAmount,
+            finalRefundAmountType: typeof cancellation.finalRefundAmount
+          });
+          
+          // Ensure numbers are parsed correctly
+          const parsedFinalRefund = Number(cancellation.finalRefundAmount) || 0;
+          
+          console.log('✅ Parsed finalRefundAmount:', parsedFinalRefund);
+          
+          return {
+            id: cancellation.id,
+            bookingId: cancellation.booking?.id || 0,
+            bookingCode: cancellation.booking?.bookingCode || 'N/A',
+            tourName: cancellation.booking?.tourName || 'Unknown Tour',
+            reason: cancellation.reason,
+            reasonCategory: cancellation.reasonCategory,
+            status: cancellation.status as CancellationStatusType,
+            refundStatus: cancellation.refundStatus as RefundStatusType,
+            originalAmount: Number(cancellation.originalAmount) || 0,
+            finalRefundAmount: parsedFinalRefund,
+            cancelledAt: cancellation.cancelledAt || cancellation.createdAt,
+            processedAt: cancellation.processedAt,
+            hoursBeforeDeparture: cancellation.hoursBeforeDeparture || 0,
+            policyName: cancellation.cancellationPolicy?.name || 'Standard Policy',
+            isEmergencyCase: cancellation.isMedicalEmergency || cancellation.isWeatherRelated || cancellation.isForceMajeure || false
+          };
+        });
       
       // Combine with new cancellations from form submissions
       let allCancellations = [...newCancellations, ...apiCancellations];
@@ -281,16 +305,12 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
 
   const getStatusColor = (status: CancellationStatusType) => {
     switch (status) {
-      case CancellationStatus.REQUESTED:
+      case CancellationStatus.PENDING:
         return 'bg-yellow-100 text-yellow-800';
-      case CancellationStatus.UNDER_REVIEW:
-        return 'bg-blue-100 text-blue-800';
       case CancellationStatus.APPROVED:
         return 'bg-green-100 text-green-800';
       case CancellationStatus.REJECTED:
         return 'bg-red-100 text-red-800';
-      case CancellationStatus.COMPLETED:
-        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -457,12 +477,18 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wide">Hoàn tiền</p>
                         <p className={`text-sm font-medium ${
-                          (cancellation.finalRefundAmount != null && cancellation.finalRefundAmount > 0) ? 'text-green-600' : 'text-red-600'
+                          (cancellation.finalRefundAmount && cancellation.finalRefundAmount > 0) ? 'text-green-600' : 'text-red-600'
                         }`}>
-                          {cancellation.finalRefundAmount != null && cancellation.finalRefundAmount > 0 
-                            ? `${cancellation.finalRefundAmount.toLocaleString('vi-VN')} ₫`
-                            : 'Không hoàn tiền'
-                          }
+                          {(() => {
+                            const refundAmount = Number(cancellation.finalRefundAmount);
+                            console.log('💰 Displaying refund for booking:', cancellation.bookingCode, 'Amount:', refundAmount);
+                            
+                            if (refundAmount && refundAmount > 0) {
+                              return `${refundAmount.toLocaleString('vi-VN')} ₫`;
+                            } else {
+                              return 'Không hoàn tiền';
+                            }
+                          })()}
                         </p>
                       </div>
                     </div>

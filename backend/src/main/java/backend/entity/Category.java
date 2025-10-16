@@ -51,7 +51,7 @@ public class Category {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CategoryStatus status = CategoryStatus.Active;
+    private CategoryStatus status = CategoryStatus.ACTIVE;
     
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -76,6 +76,6 @@ public class Category {
     }
     
     public enum CategoryStatus {
-        Active, Inactive
+        ACTIVE, INACTIVE
     }
 }

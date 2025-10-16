@@ -11,7 +11,7 @@ export interface PartnerRequest {
   website?: string;
   establishedYear?: number;
   avatarUrl?: string;
-  status?: 'Active' | 'Inactive' | 'Suspended';
+  status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   specialties?: string;
 }
 
@@ -106,7 +106,7 @@ const partnerAdminService = {
   },
 
   // Change partner status
-  changeStatus: async (id: number, status: 'Active' | 'Inactive' | 'Suspended') => {
+  changeStatus: async (id: number, status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED') => {
     const response = await apiClient.patch<PartnerResponse>(
       `/admin/partners/${id}/status?status=${status}`
     );

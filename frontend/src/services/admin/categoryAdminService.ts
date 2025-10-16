@@ -9,7 +9,7 @@ export interface CategoryRequest {
   parentId?: number;
   displayOrder?: number;
   isFeatured?: boolean;
-  status?: 'Active' | 'Inactive';
+  status?: 'ACTIVE' | 'INACTIVE';
 }
 
 export interface CategoryResponse {
@@ -100,7 +100,7 @@ const categoryAdminService = {
   },
 
   // Change category status
-  changeStatus: async (id: number, status: 'Active' | 'Inactive') => {
+  changeStatus: async (id: number, status: 'ACTIVE' | 'INACTIVE') => {
     const response = await apiClient.patch<CategoryResponse>(
       `/admin/categories/${id}/status?status=${status}`
     );

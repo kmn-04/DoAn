@@ -20,7 +20,7 @@ const PartnerDetailPage = React.lazy(() => import('./pages/PartnerDetailPage'));
 const PartnershipPage = React.lazy(() => import('./pages/PartnershipPage'));
 const BookingCheckoutPage = React.lazy(() => import('./pages/BookingCheckoutPage'));
 const BookingConfirmationPage = React.lazy(() => import('./pages/BookingConfirmationPage'));
-// PaymentReturnPage removed - MoMo payment under re-implementation
+const VnPayReturnPage = React.lazy(() => import('./pages/VnPayReturnPage'));
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage'));
@@ -40,6 +40,7 @@ const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminTours = React.lazy(() => import('./pages/admin/AdminTours'));
 const AdminCategories = React.lazy(() => import('./pages/admin/AdminCategories'));
 const AdminBookings = React.lazy(() => import('./pages/admin/AdminBookings'));
+const CancellationsPage = React.lazy(() => import('./pages/admin/CancellationsPage'));
 const AdminReviews = React.lazy(() => import('./pages/admin/AdminReviews'));
 const AdminUsers = React.lazy(() => import('./pages/admin/AdminUsers'));
 const AdminPartners = React.lazy(() => import('./pages/admin/AdminPartners'));
@@ -148,7 +149,13 @@ function App() {
               </ProtectedRoute>
             } />
             
-            {/* Payment Routes - MoMo removed, to be re-implemented */}
+            
+            {/* Payment Routes */}
+            <Route path="/payment/vnpay-return" element={
+              <Suspense fallback={<PageLoader message="Đang xử lý kết quả thanh toán..." />}>
+                <VnPayReturnPage />
+              </Suspense>
+            } />
 
             <Route path="/bookings" element={
               <ProtectedRoute>
@@ -209,6 +216,7 @@ function App() {
             } />
 
 
+
             <Route path="/my-reviews" element={
               <ProtectedRoute>
                 <Layout>
@@ -255,6 +263,16 @@ function App() {
                 <AdminLayout>
                   <Suspense fallback={<DashboardPageLoader />}>
                     <AdminBookings />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/cancellations" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <CancellationsPage />
                   </Suspense>
                 </AdminLayout>
               </ProtectedRoute>

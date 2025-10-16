@@ -15,6 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card, Button, Pagination, BookingCardSkeleton } from '../../components/ui';
 import { bookingService } from '../../services';
+import { vnpayService } from '../../services/vnpayService';
 import { useAuth } from '../../hooks/useAuth';
 import { CancellationRequestForm, CancellationHistory } from '../../components/cancellation';
 import { TourDetailModal } from '../../components/tour';
@@ -46,6 +47,9 @@ const BookingHistoryPage: React.FC = () => {
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0); // 0-based indexing to match Pagination component
+  const [highlightBookingId, setHighlightBookingId] = useState<string | null>(
+    searchParams.get('highlight')
+  );
   
   // Tab state
   const [activeTab, setActiveTab] = useState<'bookings' | 'cancellations'>(
@@ -86,19 +90,31 @@ const BookingHistoryPage: React.FC = () => {
         
         // Get bookings for current user
         const bookingResponses = await bookingService.getBookingsByUser(user.id);
+        
+        console.log('📊 All bookings from API:', bookingResponses.length);
+        bookingResponses.forEach(booking => {
+          console.log(`  - Booking ${booking.id}: confirmationStatus = "${booking.confirmationStatus}"`);
+        });
+        
         // Filter out cancelled bookings first
-        const activeBookingResponses = bookingResponses.filter(booking => 
-          !['Cancelled', 'CancellationRequested'].includes(booking.confirmationStatus || '')
-        );
+        const activeBookingResponses = bookingResponses.filter(booking => {
+          const status = booking.confirmationStatus || '';
+          // Backend returns status in UPPERCASE (e.g., "CANCELLED", "CANCELLATION_REQUESTED")
+          const shouldExclude = ['CANCELLED', 'CANCELLATION_REQUESTED'].includes(status);
+          console.log(`  Filter booking ${booking.id}: status="${status}", exclude=${shouldExclude}`);
+          return !shouldExclude;
+        });
+        
+        console.log('✅ Active bookings after filter:', activeBookingResponses.length);
         
         // Convert BookingResponse to local Booking interface
         const convertedBookings: Booking[] = activeBookingResponses.map(booking => {
           // Map confirmationStatus from backend enum (Pending, Confirmed, etc.) to lowercase
           const mapConfirmationStatus = (status: string | undefined): 'confirmed' | 'pending' | 'completed' | 'cancelled' | 'cancellation_requested' => {
             if (!status) return 'pending';
-            const statusLower = status.toLowerCase();
-            if (statusLower === 'cancellationrequested') return 'cancellation_requested';
-            return statusLower as 'confirmed' | 'pending' | 'completed' | 'cancelled';
+            const statusUpper = status.toUpperCase();
+            if (statusUpper === 'CANCELLATION_REQUESTED') return 'cancellation_requested';
+            return statusUpper.toLowerCase() as 'confirmed' | 'pending' | 'completed' | 'cancelled';
           };
 
           // Map paymentStatus from backend enum (Unpaid, Paid, etc.) to frontend format
@@ -159,6 +175,48 @@ const BookingHistoryPage: React.FC = () => {
   useEffect(() => {
     fetchBookings();
   }, [user?.id]);
+
+  // Handle highlight and auto-scroll
+  useEffect(() => {
+    if (highlightBookingId && bookings.length > 0) {
+      // Find the booking to get its name for toast
+      const highlightedBooking = bookings.find(b => b.id === highlightBookingId);
+      
+      // Show toast notification
+      if (highlightedBooking) {
+        const event = new CustomEvent('show-toast', {
+          detail: {
+            type: 'success',
+            title: 'Đã tìm thấy booking!',
+            message: `Booking "${highlightedBooking.tourName}" đã được highlight.`
+          }
+        });
+        window.dispatchEvent(event);
+      }
+      
+      // Auto-scroll to highlighted booking after a short delay
+      const timer = setTimeout(() => {
+        const element = document.getElementById(`booking-${highlightBookingId}`);
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          
+          // Remove highlight after 5 seconds
+          setTimeout(() => {
+            setHighlightBookingId(null);
+            // Remove highlight param from URL
+            const newSearchParams = new URLSearchParams(searchParams);
+            newSearchParams.delete('highlight');
+            setSearchParams(newSearchParams, { replace: true });
+          }, 5000);
+        }
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [highlightBookingId, bookings, searchParams, setSearchParams]);
 
   useEffect(() => {
     // Update URL params
@@ -287,25 +345,28 @@ const BookingHistoryPage: React.FC = () => {
     setShowTourDetailModal(true);
   };
 
-  const handleRetryPayment = (booking: Booking) => {
-    // Store booking data for payment page
-    const bookingData = {
-      bookingId: booking.id,
-      tourId: booking.tourId,
-      tourName: booking.tourName,
-      tourSlug: booking.tourSlug,
-      tourImage: booking.tourImage, // Include tour image
-      startDate: booking.startDate,
-      adults: booking.adults,
-      children: booking.children,
-      totalPrice: booking.totalPrice,
-      specialRequests: booking.specialRequests
-    };
-    // Store in sessionStorage for payment page
-    sessionStorage.setItem('retryPaymentBooking', JSON.stringify(bookingData));
-    
-    // Navigate to checkout page with retry flag
-    navigate(`/booking/checkout?bookingId=${booking.id}&retry=true`);
+  const handleRetryPayment = async (booking: Booking) => {
+    try {
+      // Create VNPay payment directly
+      const vnpayRequest = {
+        bookingId: parseInt(booking.id),
+        amount: booking.totalPrice,
+        orderInfo: `Thanh toan tour ${booking.tourName} - ${booking.id}`
+      };
+      
+      console.log('Creating VNPay payment for retry:', vnpayRequest);
+      
+      const response = await vnpayService.createPayment(vnpayRequest);
+      
+      console.log('VNPay payment URL created:', response.paymentUrl);
+      
+      // Redirect to VNPay
+      window.location.href = response.paymentUrl;
+    } catch (error: any) {
+      console.error('Error creating VNPay payment:', error);
+      const errorMessage = error?.response?.data?.message || 'Có lỗi xảy ra khi tạo thanh toán VNPay';
+      alert(`Lỗi thanh toán: ${errorMessage}`);
+    }
   };
 
   const handleCancellationSuccess = (cancellationData: any) => {
@@ -546,7 +607,15 @@ const BookingHistoryPage: React.FC = () => {
           };
 
           return (
-            <Card key={booking.id} className="p-6 bg-white border border-stone-200 rounded-none hover:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in opacity-0">
+            <Card 
+              key={booking.id} 
+              id={`booking-${booking.id}`}
+              className={`p-6 bg-white border rounded-none hover:border-slate-700 hover:shadow-lg transition-all duration-300 animate-fade-in opacity-0 ${
+                highlightBookingId === booking.id 
+                  ? 'border-yellow-400 bg-yellow-50 shadow-lg ring-2 ring-yellow-200' 
+                  : 'border-stone-200'
+              }`}
+            >
               <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                 {/* Tour Image & Info */}
                 <div className="flex space-x-4 flex-1">

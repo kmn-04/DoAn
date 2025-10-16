@@ -4,15 +4,13 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 
 // Inline types to fix import issues
-type CancellationStatusType = 'REQUESTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
+type CancellationStatusType = 'PENDING' | 'APPROVED' | 'REJECTED';
 type RefundStatusType = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'NOT_APPLICABLE';
 
 const CancellationStatus = {
-  REQUESTED: 'REQUESTED',
-  UNDER_REVIEW: 'UNDER_REVIEW', 
+  PENDING: 'PENDING',
   APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED',
-  COMPLETED: 'COMPLETED'
+  REJECTED: 'REJECTED'
 } as const;
 
 const RefundStatus = {
@@ -55,11 +53,9 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
   cancellation
 }) => {
   const statusLabels = {
-    [CancellationStatus.REQUESTED]: 'Đã gửi yêu cầu',
-    [CancellationStatus.UNDER_REVIEW]: 'Đang xem xét',
+    [CancellationStatus.PENDING]: 'Chờ xử lý',
     [CancellationStatus.APPROVED]: 'Đã phê duyệt',
-    [CancellationStatus.REJECTED]: 'Bị từ chối',
-    [CancellationStatus.COMPLETED]: 'Hoàn tất'
+    [CancellationStatus.REJECTED]: 'Bị từ chối'
   };
 
   const refundStatusLabels = {
@@ -86,16 +82,12 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
 
   const getStatusColor = (status: CancellationStatusType) => {
     switch (status) {
-      case CancellationStatus.REQUESTED:
+      case CancellationStatus.PENDING:
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case CancellationStatus.UNDER_REVIEW:
-        return 'bg-blue-100 text-blue-800 border-blue-200';
       case CancellationStatus.APPROVED:
         return 'bg-green-100 text-green-800 border-green-200';
       case CancellationStatus.REJECTED:
         return 'bg-red-100 text-red-800 border-red-200';
-      case CancellationStatus.COMPLETED:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -135,13 +127,13 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
 
   const getStatusIcon = (status: CancellationStatusType) => {
     switch (status) {
-      case CancellationStatus.REQUESTED:
+      case CancellationStatus.PENDING:
         return (
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
           </svg>
         );
-      case CancellationStatus.UNDER_REVIEW:
+      case CancellationStatus.APPROVED:
         return (
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
@@ -159,7 +151,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
         );
-      case CancellationStatus.COMPLETED:
+      case CancellationStatus.APPROVED:
         return (
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />

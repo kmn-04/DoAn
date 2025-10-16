@@ -54,7 +54,7 @@ export interface TourResponse {
   viewCount?: number;  // NEW
   
   isFeatured: boolean;
-  status: 'Active' | 'Inactive' | 'ACTIVE' | 'INACTIVE' | 'DRAFT';
+  status: 'ACTIVE' | 'INACTIVE';
   
   // Main image
   mainImage?: string;  // NEW: Direct field

@@ -58,7 +58,7 @@ public class TourSchedule {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ScheduleStatus status = ScheduleStatus.Available;
+    private ScheduleStatus status = ScheduleStatus.AVAILABLE;
     
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
@@ -93,7 +93,7 @@ public class TourSchedule {
         this.availableSeats -= seats;
         
         if (this.availableSeats == 0) {
-            this.status = ScheduleStatus.Full;
+            this.status = ScheduleStatus.FULL;
         }
     }
     
@@ -101,16 +101,16 @@ public class TourSchedule {
         this.bookedSeats -= seats;
         this.availableSeats += seats;
         
-        if (this.status == ScheduleStatus.Full && this.availableSeats > 0) {
-            this.status = ScheduleStatus.Available;
+        if (this.status == ScheduleStatus.FULL && this.availableSeats > 0) {
+            this.status = ScheduleStatus.AVAILABLE;
         }
     }
     
     public enum ScheduleStatus {
-        Available,      // Còn chỗ
-        Full,          // Đã đầy
-        Confirmed,     // Đã xác nhận khởi hành
-        Cancelled,     // Đã hủy
-        Completed      // Đã hoàn thành
+        AVAILABLE,      // Còn chỗ
+        FULL,          // Đã đầy
+        CONFIRMED,     // Đã xác nhận khởi hành
+        CANCELLED,     // Đã hủy
+        COMPLETED      // Đã hoàn thành
     }
 }

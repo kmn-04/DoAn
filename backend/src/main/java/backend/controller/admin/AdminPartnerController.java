@@ -216,7 +216,7 @@ public class AdminPartnerController extends BaseController {
     public ResponseEntity<ApiResponse<Long>> getActivePartnersCount() {
         try {
             long count = partnerRepository.findAll().stream()
-                .filter(p -> p.getStatus() == Partner.PartnerStatus.Active)
+                .filter(p -> p.getStatus() == Partner.PartnerStatus.ACTIVE)
                 .count();
             return ResponseEntity.ok(success("Active partners count retrieved successfully", count));
         } catch (Exception e) {
@@ -231,7 +231,7 @@ public class AdminPartnerController extends BaseController {
     public ResponseEntity<ApiResponse<Long>> getInactivePartnersCount() {
         try {
             long count = partnerRepository.findAll().stream()
-                .filter(p -> p.getStatus() == Partner.PartnerStatus.Inactive)
+                .filter(p -> p.getStatus() == Partner.PartnerStatus.INACTIVE)
                 .count();
             return ResponseEntity.ok(success("Inactive partners count retrieved successfully", count));
         } catch (Exception e) {
@@ -246,7 +246,7 @@ public class AdminPartnerController extends BaseController {
     public ResponseEntity<ApiResponse<Long>> getSuspendedPartnersCount() {
         try {
             long count = partnerRepository.findAll().stream()
-                .filter(p -> p.getStatus() == Partner.PartnerStatus.Suspended)
+                .filter(p -> p.getStatus() == Partner.PartnerStatus.SUSPENDED)
                 .count();
             return ResponseEntity.ok(success("Suspended partners count retrieved successfully", count));
         } catch (Exception e) {

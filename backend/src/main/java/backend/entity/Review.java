@@ -38,7 +38,7 @@ public class Review {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ReviewStatus status = ReviewStatus.Pending;
+    private ReviewStatus status = ReviewStatus.PENDING;
     
     @Column(name = "admin_reply", columnDefinition = "TEXT")
     private String adminReply; // Phản hồi từ admin
@@ -91,6 +91,6 @@ public class Review {
     }
     
     public enum ReviewStatus {
-        Pending, Approved, Rejected
+        PENDING, APPROVED, REJECTED
     }
 }

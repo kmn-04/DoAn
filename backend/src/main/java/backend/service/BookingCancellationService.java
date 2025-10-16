@@ -24,7 +24,9 @@ public interface BookingCancellationService {
     // Admin operations
     BookingCancellationResponse approveCancellation(Long cancellationId, Long adminId, String adminNotes);
     BookingCancellationResponse rejectCancellation(Long cancellationId, Long adminId, String adminNotes);
+    BookingCancellationResponse updateRefundStatus(Long cancellationId, String refundStatus);
     Page<BookingCancellationResponse> getPendingCancellations(Pageable pageable);
+    Page<BookingCancellationResponse> getAllCancellations(Pageable pageable);
     Page<BookingCancellationResponse> getCancellationsByStatus(
             BookingCancellation.CancellationStatus status, 
             Pageable pageable

@@ -13,8 +13,7 @@ import {
   type TourSchedule,
   type Participant
 } from '../components/tours';
-import PaymentMethodSelection from '../components/payment/PaymentMethodSelection';
-import { bookingService, paymentService, tourService } from '../services';
+import { bookingService, tourService } from '../services';
 
 interface TourInfo {
   id: number;
@@ -57,9 +56,9 @@ const BookingCheckoutPageNew: React.FC = () => {
   const [specialRequests, setSpecialRequests] = useState('');
   
   // Payment
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'VNPAY' | 'LATER' | null>(null);
 
   // Load tour data and prefilled data from navigation state
   useEffect(() => {
@@ -318,21 +317,54 @@ const BookingCheckoutPageNew: React.FC = () => {
         return;
       }
       
+      // Validate selected date is not in the past
+      const selectedDate = selectedSchedule?.departureDate;
+      if (selectedDate) {
+        const startDate = new Date(selectedDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+        
+        if (startDate < today) {
+          alert('Ngày khởi hành đã chọn đã qua. Vui lòng chọn ngày khác.');
+          return;
+        }
+      }
+
       // Create booking using the simpler BookingCreateRequest format
       const bookingRequest = {
         tourId: tour.id,
-        startDate: selectedSchedule?.departureDate || new Date().toISOString().split('T')[0],
+        startDate: selectedDate || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3 days from now if no schedule selected
         numAdults: numAdults || 1,
         numChildren: numChildren || 0,
         specialRequests: specialRequests || undefined,
         contactPhone: cleanPhone,
         promotionCode: undefined
       };
+      
+      console.log('🔄 Creating booking with request:', bookingRequest);
       const booking = await bookingService.createBooking(bookingRequest);
+      console.log('✅ Booking created successfully:', booking);
+      
+      if (!booking || !booking.id) {
+        throw new Error('Booking creation failed - no booking ID returned');
+      }
 
-      // Initiate payment based on method
-      if (selectedPaymentMethod === 'CASH' || selectedPaymentMethod === 'BANK_TRANSFER') {
-        // For cash/bank transfer, no payment gateway needed - go directly to confirmation
+      // Handle payment based on selected method
+      if (selectedPaymentMethod === 'VNPAY') {
+        // Create VNPay payment and redirect
+        const vnpayRequest = {
+          bookingId: booking.id,
+          amount: booking.finalAmount || total,
+          orderInfo: `Thanh toan tour ${tour?.name || ''} - ${booking.bookingCode}`
+        };
+        
+        const { vnpayService } = await import('../services/vnpayService');
+        const paymentResponse = await vnpayService.createPayment(vnpayRequest);
+        
+        // Redirect to VNPay
+        window.location.href = paymentResponse.paymentUrl;
+      } else {
+        // Payment later - redirect to confirmation
         navigate(`/booking/confirmation/${booking.bookingCode}`, {
           state: {
             bookingData: booking,
@@ -341,39 +373,23 @@ const BookingCheckoutPageNew: React.FC = () => {
               email: booking.customerEmail || '',
               phone: booking.customerPhone || ''
             },
-            paymentMethod: selectedPaymentMethod,
+            paymentMethod: 'PENDING',
             bookingResult: {
               success: true,
               bookingCode: booking.bookingCode,
               bookingId: booking.id,
-              message: selectedPaymentMethod === 'CASH' 
-                ? 'Vui lòng thanh toán trực tiếp khi nhận tour'
-                : 'Vui lòng chuyển khoản theo hướng dẫn'
+              message: 'Đặt tour thành công! Vui lòng hoàn tất thanh toán.'
             }
           }
         });
-      } else if (selectedPaymentMethod === 'MOMO') {
-        const paymentRequest = {
-          bookingId: booking.id.toString(),
-          amount: total,
-          orderInfo: `Thanh toán tour: ${tour.name}`,
-          paymentMethod: 'MOMO' as const
-        };
-
-        const paymentResponse = await paymentService.createMoMoPayment(paymentRequest);
-        if (paymentResponse.payUrl) {
-          window.location.href = paymentResponse.payUrl;
-        } else {
-          alert('Không thể tạo link thanh toán. Vui lòng thử lại.');
-        }
-      } else {
-        // Other payment methods
-        alert('Phương thức thanh toán này đang được phát triển');
       }
     } catch (error) {
       console.error('Error creating booking:', error);
       const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
       alert(errorMessage);
+      
+      // Don't redirect to success page on error
+      return;
     } finally {
       setIsSubmitting(false);
     }
@@ -454,7 +470,19 @@ const BookingCheckoutPageNew: React.FC = () => {
                   <TourScheduleSelector
                     schedules={schedules}
                     selectedScheduleId={selectedSchedule?.id}
-                    onScheduleSelect={setSelectedSchedule}
+                    onScheduleSelect={(schedule: TourSchedule) => {
+                      // Validate that the selected schedule is not in the past
+                      const startDate = new Date(schedule.departureDate);
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      
+                      if (startDate < today) {
+                        alert('Ngày khởi hành này đã qua. Vui lòng chọn ngày khác.');
+                        return;
+                      }
+                      
+                      setSelectedSchedule(schedule);
+                    }}
                     basePrice={tour.price}
                   />
                   {errors.schedule && (
@@ -553,17 +581,102 @@ const BookingCheckoutPageNew: React.FC = () => {
               <div className="bg-white border border-stone-200 rounded-none p-6">
                 <h3 className="text-xl font-normal text-slate-900 mb-6 tracking-tight">Phương thức thanh toán</h3>
                 
-                <PaymentMethodSelection
-                  selectedMethod={selectedPaymentMethod}
-                  onMethodSelect={setSelectedPaymentMethod}
-                  onPaymentInitiate={handleSubmitBooking}
-                  amount={total}
-                  disabled={isSubmitting}
-                />
-                
-                {errors.payment && (
-                  <p className="text-red-500 text-sm mt-2">{errors.payment}</p>
-                )}
+                <div className="space-y-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-blue-900 mb-2">Tổng thanh toán</h4>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND'
+                      }).format(total)}
+                    </p>
+                  </div>
+                  
+                  {/* Payment Method Selection */}
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Chọn phương thức thanh toán:</h4>
+                    
+                    <div className="space-y-3">
+                      {/* VNPay Option */}
+                      <button
+                        onClick={() => setSelectedPaymentMethod('VNPAY')}
+                        className={`w-full p-4 border-2 rounded-lg text-left transition-all ${
+                          selectedPaymentMethod === 'VNPAY'
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              selectedPaymentMethod === 'VNPAY' ? 'border-blue-500' : 'border-gray-300'
+                            }`}>
+                              {selectedPaymentMethod === 'VNPAY' && (
+                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">Thanh toán qua VNPay</p>
+                              <p className="text-sm text-gray-500">Thanh toán ngay bằng thẻ ATM/Visa/MasterCard</p>
+                            </div>
+                          </div>
+                          <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+                          </svg>
+                        </div>
+                      </button>
+                      
+                      {/* Pay Later Option */}
+                      <button
+                        onClick={() => setSelectedPaymentMethod('LATER')}
+                        className={`w-full p-4 border-2 rounded-lg text-left transition-all ${
+                          selectedPaymentMethod === 'LATER'
+                            ? 'border-gray-500 bg-gray-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              selectedPaymentMethod === 'LATER' ? 'border-gray-500' : 'border-gray-300'
+                            }`}>
+                              {selectedPaymentMethod === 'LATER' && (
+                                <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">Thanh toán sau</p>
+                              <p className="text-sm text-gray-500">Hoàn tất thanh toán trong vòng 24h</p>
+                            </div>
+                          </div>
+                          <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                      </button>
+                    </div>
+                    
+                    {errors.payment && (
+                      <p className="text-red-500 text-sm mt-2">{errors.payment}</p>
+                    )}
+                  </div>
+                  
+                  {/* Submit Button */}
+                  <div className="text-center">
+                    <button
+                      onClick={handleSubmitBooking}
+                      disabled={isSubmitting || !selectedPaymentMethod}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? 'Đang xử lý...' : 'Xác nhận đặt tour'}
+                    </button>
+                    {selectedPaymentMethod === 'VNPAY' && (
+                      <p className="text-sm text-gray-500 mt-2">
+                        Bạn sẽ được chuyển đến trang thanh toán VNPay
+                      </p>
+                    )}
+                  </div>
+                </div>
 
                 <div className="mt-6 bg-stone-50 border border-stone-200 rounded-none p-5">
                   <div className="flex items-start">

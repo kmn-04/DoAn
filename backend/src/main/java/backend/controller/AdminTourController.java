@@ -53,7 +53,7 @@ public class AdminTourController extends BaseController {
                 notificationService.createNotificationForUsers(
                     title, 
                     message, 
-                    Notification.NotificationType.Info,
+                    Notification.NotificationType.INFO,
                     link
                 );
                 log.info("Sent notification to all users about new tour: {}", tour.getName());

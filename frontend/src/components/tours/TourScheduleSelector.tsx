@@ -13,7 +13,7 @@ export interface TourSchedule {
   adultPrice: number;
   childPrice: number;
   infantPrice?: number;
-  status: string; // 'Available', 'Full', 'Cancelled', etc.
+  status: string; // 'AVAILABLE', 'FULL', 'CANCELLED', etc.
   note?: string;
 }
 
@@ -38,7 +38,7 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
   const availableSchedules = schedules
     .filter(schedule => {
       // Only show Available schedules that haven't started yet
-      if (schedule.status !== 'Available') return false;
+      if (schedule.status !== 'AVAILABLE') return false;
       const startDate = parseISO(schedule.departureDate);
       const threeDaysFromNow = addDays(new Date(), 3);
       return isBefore(threeDaysFromNow, startDate); // Must be at least 3 days in advance

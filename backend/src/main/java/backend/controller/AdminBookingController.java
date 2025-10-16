@@ -60,6 +60,11 @@ public class AdminBookingController extends BaseController {
             // Apply filters
             List<Booking> filteredList = allBookings.stream()
                 .filter(booking -> {
+                    // ALWAYS exclude CancellationRequested bookings (they are managed in /admin/cancellations)
+                    if (booking.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLATION_REQUESTED) {
+                        return false;
+                    }
+                    
                     // Search filter (bookingCode, customerName, customerEmail)
                     if (search != null && !search.isEmpty()) {
                         String searchLower = search.toLowerCase();

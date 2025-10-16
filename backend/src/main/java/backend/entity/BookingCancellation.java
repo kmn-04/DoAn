@@ -51,6 +51,11 @@ public class BookingCancellation {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CancellationReason reasonCategory;
+    
+    // Previous booking status (to restore if rejected)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "previous_booking_status")
+    private Booking.ConfirmationStatus previousBookingStatus;
 
     @Column(name = "detailed_reason", columnDefinition = "TEXT")
     private String detailedReason;
@@ -90,7 +95,7 @@ public class BookingCancellation {
     // Status and processing
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CancellationStatus status = CancellationStatus.REQUESTED;
+    private CancellationStatus status = CancellationStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -137,6 +142,14 @@ public class BookingCancellation {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+    
+    @PostLoad
+    private void normalizeStatus() {
+        // Auto-convert deprecated REQUESTED status to PENDING
+        if (this.status == CancellationStatus.REQUESTED) {
+            this.status = CancellationStatus.PENDING;
+        }
+    }
 
     public enum CancellationReason {
         PERSONAL_EMERGENCY,
@@ -153,11 +166,11 @@ public class BookingCancellation {
     }
 
     public enum CancellationStatus {
-        REQUESTED,      // Initial request
-        UNDER_REVIEW,   // Being reviewed by admin
-        APPROVED,       // Cancellation approved
-        REJECTED,       // Cancellation rejected
-        COMPLETED       // Fully processed
+        PENDING,    // Chờ xử lý (bao gồm: yêu cầu mới + đang xem xét)
+        APPROVED,   // Đã phê duyệt (bao gồm: đã hoàn tiền)
+        REJECTED,   // Đã từ chối
+        @Deprecated
+        REQUESTED   // Old value - will be migrated to PENDING
     }
 
     public enum RefundStatus {
@@ -180,7 +193,7 @@ public class BookingCancellation {
     }
 
     public boolean canBeProcessed() {
-        return status == CancellationStatus.REQUESTED || status == CancellationStatus.UNDER_REVIEW;
+        return status == CancellationStatus.PENDING;
     }
 
     public void markAsApproved(User admin, String notes) {
@@ -209,6 +222,6 @@ public class BookingCancellation {
         this.refundTransactionId = transactionId;
         this.refundMethod = method;
         this.refundProcessedAt = LocalDateTime.now();
-        this.status = CancellationStatus.COMPLETED;
+        // Status stays APPROVED (no need for COMPLETED status anymore)
     }
 }

@@ -113,7 +113,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
       tourName: 'Tokyo - Kyoto - Osaka 7N6D',
       startDate: '2024-01-15',
       totalPrice: 15000000,
-      status: 'Confirmed',
+      status: 'CONFIRMED',
       canCancel: true
     },
     {
@@ -122,7 +122,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
       tourName: 'Hạ Long Bay Adventure 3N2D',
       startDate: '2024-02-20',
       totalPrice: 3500000,
-      status: 'Paid',
+      status: 'PAID',
       canCancel: true
     },
     {
@@ -131,7 +131,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
       tourName: 'Sapa Trekking Experience 2N1D',
       startDate: '2024-01-05',
       totalPrice: 2000000,
-      status: 'Completed',
+      status: 'COMPLETED',
       canCancel: false
     }
   ];
@@ -186,7 +186,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
         .filter(booking => {
           // Debug each booking's cancellation eligibility
           // Allow cancellation for various booking statuses
-          const validStatuses = ['Confirmed', 'Pending'];
+          const validStatuses = ['CONFIRMED', 'PENDING'];
           const isValidStatus = validStatuses.includes(booking.confirmationStatus || '');
           
           // Check if booking is in the future (more lenient - allow same day)
@@ -203,7 +203,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           tourName: booking.tour?.name || 'Unknown Tour',
           startDate: booking.startDate,
           totalPrice: Number(booking.totalPrice),
-          status: booking.confirmationStatus || 'Pending',
+          status: booking.confirmationStatus || 'PENDING',
           canCancel: true
         }));
       // If no bookings pass the filter, show all bookings for debugging
@@ -214,7 +214,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
           tourName: booking.tour?.name || 'Unknown Tour',
           startDate: booking.startDate,
           totalPrice: Number(booking.totalPrice),
-          status: booking.confirmationStatus || 'Pending',
+          status: booking.confirmationStatus || 'PENDING',
           canCancel: true // Allow all for debugging
         }));
         setUserBookings(allUserBookings);
@@ -456,8 +456,8 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
                       {booking.totalPrice != null ? booking.totalPrice.toLocaleString('vi-VN') : '0'} ₫
                     </p>
                     <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
-                      booking.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
-                      booking.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                      booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                      booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                       {booking.status}

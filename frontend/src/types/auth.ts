@@ -7,7 +7,7 @@ export interface User {
   address?: string;
   dateOfBirth?: string;
   avatarUrl?: string;
-  status: 'Active' | 'Inactive';
+  status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
   role: Role;
   createdAt: string;
   updatedAt: string;

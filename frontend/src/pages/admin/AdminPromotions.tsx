@@ -26,7 +26,7 @@ interface Promotion {
   usageCount: number;
   startDate: string;
   endDate: string;
-  status: 'Active' | 'Inactive' | 'Expired';
+  status: 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
   createdAt: string;
   updatedAt: string;
   isValid: boolean;
@@ -45,7 +45,7 @@ interface PromotionFormData {
   usageLimit: number;
   startDate: string;
   endDate: string;
-  status?: 'Active' | 'Inactive' | 'Expired';
+  status?: 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
 }
 
 const AdminPromotions: React.FC = () => {
@@ -78,7 +78,7 @@ const AdminPromotions: React.FC = () => {
     usageLimit: 100,
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    status: 'Active'
+    status: 'ACTIVE'
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
@@ -119,11 +119,11 @@ const AdminPromotions: React.FC = () => {
       
       // Count by status AND date logic
       const expired = allPromos.filter((p: Promotion) => 
-        p.status === 'Expired' || (p.status === 'Active' && new Date(p.endDate) < now)
+        p.status === 'EXPIRED' || (p.status === 'ACTIVE' && new Date(p.endDate) < now)
       ).length;
       
       const upcoming = allPromos.filter((p: Promotion) => 
-        p.status === 'Active' && new Date(p.startDate) > now
+        p.status === 'ACTIVE' && new Date(p.startDate) > now
       ).length;
       
       setStats({
@@ -160,14 +160,14 @@ const AdminPromotions: React.FC = () => {
         const now = new Date();
         if (statusFilter === 'active') {
           filteredData = filteredData.filter((p: Promotion) => 
-            p.status === 'Active' && new Date(p.startDate) <= now && new Date(p.endDate) >= now
+            p.status === 'ACTIVE' && new Date(p.startDate) <= now && new Date(p.endDate) >= now
           );
         } else if (statusFilter === 'expired') {
-          filteredData = filteredData.filter((p: Promotion) => p.status === 'Expired' || new Date(p.endDate) < now);
+          filteredData = filteredData.filter((p: Promotion) => p.status === 'EXPIRED' || new Date(p.endDate) < now);
         } else if (statusFilter === 'upcoming') {
           filteredData = filteredData.filter((p: Promotion) => new Date(p.startDate) > now);
         } else if (statusFilter === 'inactive') {
-          filteredData = filteredData.filter((p: Promotion) => p.status === 'Inactive');
+          filteredData = filteredData.filter((p: Promotion) => p.status === 'INACTIVE');
         }
       }
       if (typeFilter !== 'all') {
@@ -237,7 +237,7 @@ const AdminPromotions: React.FC = () => {
       usageLimit: 100,
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      status: 'Active'
+      status: 'ACTIVE'
     });
     setFormErrors({});
     setIsModalOpen(true);
@@ -286,7 +286,7 @@ const AdminPromotions: React.FC = () => {
     if (formData.value <= 0) {
       errors.value = 'Giá trị phải lớn hơn 0';
     }
-    if (formData.type === 'Percentage' && formData.value > 100) {
+    if (formData.type === 'PERCENTAGE' && formData.value > 100) {
       errors.value = 'Phần trăm không được vượt quá 100';
     }
     if (formData.usageLimit < 1) {
@@ -353,7 +353,7 @@ const AdminPromotions: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (id: number, newStatus: 'Active' | 'Inactive' | 'Expired') => {
+  const handleStatusChange = async (id: number, newStatus: 'ACTIVE' | 'INACTIVE' | 'EXPIRED') => {
     try {
       setLoading(true);
       const promotion = promotions.find(p => p.id === id);
@@ -384,13 +384,13 @@ const AdminPromotions: React.FC = () => {
     }
   };
 
-  const getStatusClassName = (status: 'Active' | 'Inactive' | 'Expired') => {
+  const getStatusClassName = (status: 'ACTIVE' | 'INACTIVE' | 'EXPIRED') => {
     switch (status) {
-      case 'Active':
+      case 'ACTIVE':
         return 'admin-table-select-active';
-      case 'Inactive':
+      case 'INACTIVE':
         return 'admin-table-select-inactive';
-      case 'Expired':
+      case 'EXPIRED':
         return 'admin-table-select-rejected';
       default:
         return '';
@@ -402,8 +402,8 @@ const AdminPromotions: React.FC = () => {
     const start = new Date(promotion.startDate);
     const end = new Date(promotion.endDate);
     
-    if (promotion.status === 'Inactive') return { label: 'Tắt', className: 'admin-badge-gray' };
-    if (promotion.status === 'Expired' || end < now) return { label: 'Hết hạn', className: 'admin-badge-red' };
+    if (promotion.status === 'INACTIVE') return { label: 'Tắt', className: 'admin-badge-gray' };
+    if (promotion.status === 'EXPIRED' || end < now) return { label: 'Hết hạn', className: 'admin-badge-red' };
     if (start > now) return { label: 'Sắp diễn ra', className: 'admin-badge-blue' };
     return { label: 'Đang hoạt động', className: 'admin-badge-green' };
   };
@@ -512,8 +512,8 @@ const AdminPromotions: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="Percentage">Phần trăm</option>
-                <option value="Fixed">Số tiền cố định</option>
+                <option value="PERCENTAGE">Phần trăm</option>
+                <option value="FIXED_AMOUNT">Số tiền cố định</option>
               </select>
             </div>
 
@@ -594,11 +594,11 @@ const AdminPromotions: React.FC = () => {
                       </td>
                       <td className="admin-table-td">
                         <span className="admin-badge-blue">
-                          {promotion.type === 'Percentage' ? 'Phần trăm' : 'Số tiền'}
+                          {promotion.type === 'PERCENTAGE' ? 'Phần trăm' : 'Số tiền'}
                         </span>
                       </td>
                       <td className="admin-table-td font-semibold text-green-600">
-                        {promotion.type === 'Percentage'
+                        {promotion.type === 'PERCENTAGE'
                           ? `${promotion.value}%` 
                           : formatPrice(promotion.value)
                         }
@@ -622,13 +622,13 @@ const AdminPromotions: React.FC = () => {
                           // Edit dropdown for other statuses
                           <select
                             value={promotion.status}
-                            onChange={(e) => handleStatusChange(promotion.id, e.target.value as 'Active' | 'Inactive' | 'Expired')}
+                            onChange={(e) => handleStatusChange(promotion.id, e.target.value as 'ACTIVE' | 'INACTIVE' | 'EXPIRED')}
                             className={`admin-table-select ${getStatusClassName(promotion.status)}`}
                             disabled={loading}
                           >
-                            <option value="Active">Đang hoạt động</option>
-                            <option value="Inactive">Tắt</option>
-                            <option value="Expired">Hết hạn</option>
+                            <option value="ACTIVE">Đang hoạt động</option>
+                            <option value="INACTIVE">Tắt</option>
+                            <option value="EXPIRED">Hết hạn</option>
                           </select>
                         )}
                       </td>
@@ -706,7 +706,7 @@ const AdminPromotions: React.FC = () => {
                         <p className="admin-view-label">Loại</p>
                         <p className="admin-view-value">
                           <span className="admin-badge-blue">
-                            {viewingPromotion.type === 'Percentage' ? 'Phần trăm' : 'Số tiền cố định'}
+                            {viewingPromotion.type === 'PERCENTAGE' ? 'Phần trăm' : 'Số tiền cố định'}
                           </span>
                         </p>
                       </div>
@@ -727,7 +727,7 @@ const AdminPromotions: React.FC = () => {
                       <div className="admin-view-item">
                         <p className="admin-view-label">Giá trị giảm</p>
                         <p className="admin-view-value font-semibold text-green-600">
-                          {viewingPromotion.type === 'Percentage' 
+                          {viewingPromotion.type === 'PERCENTAGE' 
                             ? `${viewingPromotion.value}%` 
                             : formatPrice(viewingPromotion.value)
                           }
@@ -886,13 +886,13 @@ const AdminPromotions: React.FC = () => {
                           onChange={(e) => setFormData({ ...formData, type: e.target.value as 'Percentage' | 'Fixed' })}
                           className="admin-select"
                         >
-                          <option value="Percentage">Phần trăm (%)</option>
-                          <option value="Fixed">Số tiền cố định (VNĐ)</option>
+                          <option value="PERCENTAGE">Phần trăm (%)</option>
+                          <option value="FIXED_AMOUNT">Số tiền cố định (VNĐ)</option>
                         </select>
                       </div>
                       <div>
                         <label htmlFor="value" className="admin-label">
-                          Giá trị giảm {formData.type === 'Percentage' ? '(%)' : '(VNĐ)'} <span className="text-red-500">*</span>
+                          Giá trị giảm {formData.type === 'PERCENTAGE' ? '(%)' : '(VNĐ)'} <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
                           <input
@@ -902,28 +902,28 @@ const AdminPromotions: React.FC = () => {
                             onChange={(e) => {
                               let value = parseFloat(e.target.value) || 0;
                               // Giới hạn percentage tối đa 100
-                              if (formData.type === 'Percentage' && value > 100) {
+                              if (formData.type === 'PERCENTAGE' && value > 100) {
                                 value = 100;
                               }
                               setFormData({ ...formData, value });
                             }}
                             className={`admin-input ${formErrors.value ? 'admin-input-error' : ''}`}
                             min="0"
-                            max={formData.type === 'Percentage' ? '100' : undefined}
-                            step={formData.type === 'Percentage' ? '1' : '1000'}
-                            placeholder={formData.type === 'Percentage' ? 'Ví dụ: 10' : 'Ví dụ: 50000'}
+                            max={formData.type === 'PERCENTAGE' ? '100' : undefined}
+                            step={formData.type === 'PERCENTAGE' ? '1' : '1000'}
+                            placeholder={formData.type === 'PERCENTAGE' ? 'Ví dụ: 10' : 'Ví dụ: 50000'}
                           />
                           <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium pointer-events-none">
-                            {formData.type === 'Percentage' ? '%' : 'đ'}
+                            {formData.type === 'PERCENTAGE' ? '%' : 'đ'}
                           </div>
                         </div>
                         {formErrors.value && <p className="admin-error-text">{formErrors.value}</p>}
-                        {formData.type === 'Percentage' && formData.value > 0 && (
+                        {formData.type === 'PERCENTAGE' && formData.value > 0 && (
                           <p className="mt-1 text-xs text-gray-500">
                             Giảm {formData.value}% cho đơn hàng
                           </p>
                         )}
-                        {formData.type === 'Fixed' && formData.value > 0 && (
+                        {formData.type === 'FIXED_AMOUNT' && formData.value > 0 && (
                           <p className="mt-1 text-xs text-gray-500">
                             Giảm {formData.value.toLocaleString('vi-VN')}đ cho đơn hàng
                           </p>
@@ -1014,13 +1014,13 @@ const AdminPromotions: React.FC = () => {
                       <label htmlFor="status" className="admin-label">Trạng thái</label>
                       <select
                         id="status"
-                        value={formData.status || 'Active'}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' | 'Expired' })}
+                        value={formData.status || 'ACTIVE'}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE' | 'EXPIRED' })}
                         className="admin-input"
                       >
-                        <option value="Active">Đang hoạt động</option>
-                        <option value="Inactive">Tắt</option>
-                        <option value="Expired">Hết hạn</option>
+                        <option value="ACTIVE">Đang hoạt động</option>
+                        <option value="INACTIVE">Tắt</option>
+                        <option value="EXPIRED">Hết hạn</option>
                       </select>
                     </div>
                   </div>

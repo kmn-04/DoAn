@@ -73,7 +73,7 @@ public class Tour {
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TourStatus status = TourStatus.Active;
+    private TourStatus status = TourStatus.ACTIVE;
     
     @Column(name = "is_featured", nullable = false)
     private Boolean isFeatured = false;
@@ -229,7 +229,7 @@ public class Tour {
     // Helper method for soft delete
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
-        this.status = TourStatus.Inactive;
+        this.status = TourStatus.INACTIVE;
     }
     
     public boolean isDeleted() {
@@ -242,7 +242,7 @@ public class Tour {
     }
     
     public enum TourStatus {
-        Active, Inactive
+        ACTIVE, INACTIVE
     }
     
     public enum TourType {

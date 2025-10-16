@@ -42,7 +42,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public List<ReviewResponse> getAllApprovedReviews() {
-        List<Review> reviews = reviewRepository.findByStatusOrderByCreatedAtDesc(ReviewStatus.Approved);
+        List<Review> reviews = reviewRepository.findByStatusOrderByCreatedAtDesc(ReviewStatus.APPROVED);
         return reviews.stream()
                 .map(mapper::toReviewResponse)
                 .collect(Collectors.toList());
@@ -73,11 +73,11 @@ public class ReviewServiceImpl implements ReviewService {
         }
         
         // Check if booking is confirmed and paid
-        if (booking.getConfirmationStatus() != Booking.ConfirmationStatus.Confirmed) {
+        if (booking.getConfirmationStatus() != Booking.ConfirmationStatus.CONFIRMED) {
             throw new RuntimeException("Can only review confirmed bookings");
         }
         
-        if (booking.getPaymentStatus() != Booking.PaymentStatus.Paid) {
+        if (booking.getPaymentStatus() != Booking.PaymentStatus.PAID) {
             throw new RuntimeException("Can only review paid bookings");
         }
         
@@ -93,7 +93,7 @@ public class ReviewServiceImpl implements ReviewService {
         review.setBooking(booking);
         review.setRating(request.getRating());
         review.setComment(request.getComment());
-        review.setStatus(ReviewStatus.Pending); // Pending approval
+        review.setStatus(ReviewStatus.PENDING); // Pending approval
         review.setHelpfulCount(0);
         
         Review savedReview = reviewRepository.save(review);
@@ -120,7 +120,7 @@ public class ReviewServiceImpl implements ReviewService {
         // Update review
         review.setRating(request.getRating());
         review.setComment(request.getComment());
-        review.setStatus(ReviewStatus.Pending); // Reset to pending after update
+        review.setStatus(ReviewStatus.PENDING); // Reset to pending after update
         
         Review updatedReview = reviewRepository.save(review);
         
@@ -165,7 +165,7 @@ public class ReviewServiceImpl implements ReviewService {
     public List<ReviewResponse> getReviewsByTourId(Long tourId) {
         // Only return approved reviews for public view
         List<Review> reviews = reviewRepository.findByTourIdAndStatusOrderByCreatedAtDesc(
-                tourId, ReviewStatus.Approved);
+                tourId, ReviewStatus.APPROVED);
         return reviews.stream()
                 .map(mapper::toReviewResponse)
                 .collect(Collectors.toList());
@@ -176,7 +176,7 @@ public class ReviewServiceImpl implements ReviewService {
     public Page<ReviewResponse> getReviewsByTourId(Long tourId, Pageable pageable) {
         // Only return approved reviews for public view
         Page<Review> reviews = reviewRepository.findByTourIdAndStatusOrderByCreatedAtDesc(
-                tourId, ReviewStatus.Approved, pageable);
+                tourId, ReviewStatus.APPROVED, pageable);
         return reviews.map(mapper::toReviewResponse);
     }
     
@@ -251,8 +251,8 @@ public class ReviewServiceImpl implements ReviewService {
         // Check if booking belongs to user, is for this tour, is confirmed and paid
         return booking.getUser().getId().equals(userId)
                 && booking.getTour().getId().equals(tourId)
-                && booking.getConfirmationStatus() == Booking.ConfirmationStatus.Confirmed
-                && booking.getPaymentStatus() == Booking.PaymentStatus.Paid
+                && booking.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED
+                && booking.getPaymentStatus() == Booking.PaymentStatus.PAID
                 && !reviewRepository.existsByUserIdAndTourId(userId, tourId);
     }
     
@@ -266,14 +266,14 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public Double calculateAverageRating(Long tourId) {
-        return reviewRepository.calculateAverageRatingByTour(tourId, ReviewStatus.Approved);
+        return reviewRepository.calculateAverageRatingByTour(tourId, ReviewStatus.APPROVED);
     }
     
     @Override
     @Transactional(readOnly = true)
     public Map<Integer, Long> getRatingDistribution(Long tourId) {
         List<Object[]> distribution = reviewRepository.countReviewsByRatingForTour(
-                tourId, ReviewStatus.Approved);
+                tourId, ReviewStatus.APPROVED);
         
         return distribution.stream()
                 .collect(Collectors.toMap(
@@ -289,8 +289,8 @@ public class ReviewServiceImpl implements ReviewService {
      * TODO: Consider adding these fields to Tour entity for performance
      */
     private void updateTourRating(Long tourId) {
-        Double avgRating = reviewRepository.calculateAverageRatingByTour(tourId, ReviewStatus.Approved);
-        long reviewCount = reviewRepository.countByTourIdAndStatus(tourId, ReviewStatus.Approved);
+        Double avgRating = reviewRepository.calculateAverageRatingByTour(tourId, ReviewStatus.APPROVED);
+        long reviewCount = reviewRepository.countByTourIdAndStatus(tourId, ReviewStatus.APPROVED);
         
         log.info("Tour {} has average rating {} with {} reviews", tourId, avgRating, reviewCount);
         // Note: Not updating Tour entity as it doesn't have rating fields yet
@@ -309,7 +309,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public Page<ReviewResponse> getReviewsByStatus(String status, Pageable pageable) {
-        ReviewStatus reviewStatus = ReviewStatus.valueOf(status);
+        ReviewStatus reviewStatus = ReviewStatus.valueOf(status.toUpperCase());
         Page<Review> reviews = reviewRepository.findByStatus(reviewStatus, pageable);
         return reviews.map(mapper::toReviewResponse);
     }
@@ -321,7 +321,7 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
         
-        review.setStatus(ReviewStatus.Approved);
+        review.setStatus(ReviewStatus.APPROVED);
         Review approvedReview = reviewRepository.save(review);
         
         // Update tour rating
@@ -338,7 +338,7 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
         
-        review.setStatus(ReviewStatus.Rejected);
+        review.setStatus(ReviewStatus.REJECTED);
         // Note: Review entity doesn't have rejectionReason field
         // You may want to add it if needed
         
@@ -356,12 +356,12 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
         
         ReviewStatus oldStatus = review.getStatus();
-        ReviewStatus newStatus = ReviewStatus.valueOf(status);
+        ReviewStatus newStatus = ReviewStatus.valueOf(status.toUpperCase());
         review.setStatus(newStatus);
         Review updatedReview = reviewRepository.save(review);
         
         // Update tour rating if status is Approved or if it was Approved before
-        if (newStatus == ReviewStatus.Approved || oldStatus == ReviewStatus.Approved) {
+        if (newStatus == ReviewStatus.APPROVED || oldStatus == ReviewStatus.APPROVED) {
             updateTourRating(review.getTour().getId());
         }
         
@@ -436,7 +436,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public long getPendingReviewsCount() {
-        return reviewRepository.countByStatus(ReviewStatus.Pending);
+        return reviewRepository.countByStatus(ReviewStatus.PENDING);
     }
     
     // ==================== NOTIFICATION HELPERS ====================
@@ -451,25 +451,25 @@ public class ReviewServiceImpl implements ReviewService {
             String link = "/tours/" + review.getTour().getId() + "/reviews";
             
             switch (newStatus) {
-                case Approved:
+                case APPROVED:
                     notificationService.createNotificationForUser(
                         userId,
                         "Đánh giá đã được duyệt",
                         String.format("Đánh giá của bạn về tour '%s' đã được phê duyệt và hiển thị công khai. Cảm ơn bạn đã chia sẻ!", 
                             tourName),
-                        Notification.NotificationType.Success,
+                        Notification.NotificationType.SUCCESS,
                         link
                     );
                     log.info("Sent review approved notification for review ID: {}", review.getId());
                     break;
                     
-                case Rejected:
+                case REJECTED:
                     notificationService.createNotificationForUser(
                         userId,
                         "Đánh giá bị từ chối",
                         String.format("Đánh giá của bạn về tour '%s' không được phê duyệt. Vui lòng kiểm tra nội dung và gửi lại.", 
                             tourName),
-                        Notification.NotificationType.Warning,
+                        Notification.NotificationType.WARNING,
                         link
                     );
                     log.info("Sent review rejected notification for review ID: {}", review.getId());
@@ -497,7 +497,7 @@ public class ReviewServiceImpl implements ReviewService {
                 "Quản trị viên đã phản hồi",
                 String.format("Quản trị viên đã phản hồi đánh giá của bạn về tour '%s'. Xem ngay!", 
                     tourName),
-                Notification.NotificationType.Info,
+                Notification.NotificationType.INFO,
                 link
             );
             

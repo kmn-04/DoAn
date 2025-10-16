@@ -28,7 +28,7 @@ public class PromotionRequest {
     private String description;
     
     @NotBlank(message = "Promotion type is required")
-    @Pattern(regexp = "^(Percentage|Fixed)$", message = "Type must be either 'Percentage' or 'Fixed'")
+    @Pattern(regexp = "^(PERCENTAGE|FIXED_AMOUNT)$", message = "Type must be either 'PERCENTAGE' or 'FIXED_AMOUNT'")
     private String type;
     
     @NotNull(message = "Promotion value is required")
@@ -50,7 +50,7 @@ public class PromotionRequest {
     @NotNull(message = "End date is required")
     private LocalDateTime endDate;
     
-    @Pattern(regexp = "^(Active|Inactive|Expired)$", message = "Status must be either 'Active', 'Inactive', or 'Expired'")
+    @Pattern(regexp = "^(ACTIVE|INACTIVE|EXPIRED)$", message = "Status must be either 'ACTIVE', 'INACTIVE', or 'EXPIRED'")
     private String status;
 }
 
