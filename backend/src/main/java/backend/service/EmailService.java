@@ -36,6 +36,11 @@ public interface EmailService {
     void sendWelcomeEmail(User user);
     
     /**
+     * Send email verification
+     */
+    void sendVerificationEmail(User user, String token);
+    
+    /**
      * Send generic email
      */
     void sendEmail(String to, String subject, String body);

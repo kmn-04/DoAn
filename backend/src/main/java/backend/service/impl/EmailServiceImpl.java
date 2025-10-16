@@ -154,6 +154,23 @@ public class EmailServiceImpl implements EmailService {
     
     @Override
     @Async
+    public void sendVerificationEmail(User user, String token) {
+        try {
+            String subject = String.format("🔐 [%s] Xác thực email của bạn", appName);
+            
+            String body = buildVerificationEmailHtml(user, token);
+            
+            sendHtmlEmail(user.getEmail(), subject, body);
+            
+            log.info("✅ Sent verification email to: {}", user.getEmail());
+            
+        } catch (Exception e) {
+            log.error("❌ Failed to send verification email", e);
+        }
+    }
+    
+    @Override
+    @Async
     public void sendEmail(String to, String subject, String body) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -377,6 +394,67 @@ public class EmailServiceImpl implements EmailService {
                 user.getName(),
                 appName,
                 appUrl + "/tours",
+                appName
+        );
+    }
+    
+    private String buildVerificationEmailHtml(User user, String token) {
+        String verificationUrl = appUrl + "/auth/verify-email?token=" + token;
+        
+        return String.format("""
+                <html>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <h1 style="color: #2563eb; margin: 0;">🔐 Xác thực Email</h1>
+                        </div>
+                        
+                        <p>Xin chào <strong>%s</strong>,</p>
+                        <p>Cảm ơn bạn đã đăng ký tài khoản tại <strong>%s</strong>!</p>
+                        
+                        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+                            <p style="margin: 0; color: #92400e;">
+                                ⚠️ <strong>Bạn cần xác thực email để sử dụng tài khoản.</strong>
+                            </p>
+                        </div>
+                        
+                        <p>Vui lòng nhấn vào nút bên dưới để xác thực email của bạn:</p>
+                        
+                        <div style="margin: 30px 0; text-align: center;">
+                            <a href="%s" style="background: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                                ✅ Xác thực Email
+                            </a>
+                        </div>
+                        
+                        <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                                Hoặc copy link sau vào trình duyệt:<br/>
+                                <a href="%s" style="color: #2563eb; word-break: break-all;">%s</a>
+                            </p>
+                        </div>
+                        
+                        <div style="background: #fee2e2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <p style="margin: 0; font-size: 14px; color: #991b1b;">
+                                ⏰ <strong>Link xác thực có hiệu lực trong 24 giờ.</strong><br/>
+                                Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.
+                            </p>
+                        </div>
+                        
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;"/>
+                        
+                        <p style="font-size: 14px; color: #6b7280;">
+                            Trân trọng,<br/>
+                            <strong>%s Team</strong>
+                        </p>
+                    </div>
+                </body>
+                </html>
+                """,
+                user.getName(),
+                appName,
+                verificationUrl,
+                verificationUrl,
+                verificationUrl,
                 appName
         );
     }

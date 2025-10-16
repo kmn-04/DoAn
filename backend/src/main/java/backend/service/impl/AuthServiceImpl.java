@@ -12,13 +12,11 @@ import backend.repository.RoleRepository;
 import backend.repository.UserRepository;
 import backend.entity.RefreshToken;
 import backend.security.JwtUtils;
-import backend.security.UserDetailsImpl;
 import backend.service.AuthService;
 import backend.service.RefreshTokenService;
 import backend.service.TokenBlacklistService;
 import backend.mapper.EntityMapper;
 
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final EntityMapper mapper;
     private final RefreshTokenService refreshTokenService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final backend.service.EmailVerificationService emailVerificationService;
     
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -71,22 +70,34 @@ public class AuthServiceImpl implements AuthService {
         user.setAddress(request.getAddress());
         user.setDateOfBirth(request.getDateOfBirth());
         user.setRole(customerRole);
-        user.setStatus(User.UserStatus.ACTIVE);
+        user.setStatus(User.UserStatus.PENDING); // Set to PENDING until email verified
         
         User savedUser = userRepository.save(user);
         
-        // Generate JWT token
-        String jwt = jwtUtils.generateTokenFromEmail(savedUser.getEmail());
+        // Send verification email
+        emailVerificationService.sendVerificationEmail(savedUser);
         
+        // Don't generate JWT token yet - user must verify email first
+        // Return response without token
         UserResponse userResponse = mapper.toUserResponse(savedUser);
         
-        log.info("User registered successfully with ID: {}", savedUser.getId());
-        return new AuthResponse(jwt, userResponse);
+        log.info("User registered successfully with ID: {}. Verification email sent.", savedUser.getId());
+        return new AuthResponse(null, userResponse);
     }
     
     @Override
     public AuthResponse login(LoginRequest request) {
         log.info("User login attempt with email: {}", request.getEmail());
+        
+        // Check if user exists first
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BadRequestException("Invalid email or password"));
+        
+        // Check if email is verified
+        if (user.getEmailVerifiedAt() == null) {
+            log.warn("Login attempt with unverified email: {}", request.getEmail());
+            throw new BadRequestException("Email chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản.");
+        }
         
         // Authenticate user
         Authentication authentication = authenticationManager.authenticate(
@@ -97,11 +108,6 @@ public class AuthServiceImpl implements AuthService {
         
         // Generate JWT token
         String jwt = jwtUtils.generateJwtToken(authentication);
-        
-        // Get user details
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        User user = userRepository.findByEmail(userDetails.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", userDetails.getEmail()));
         
         UserResponse userResponse = mapper.toUserResponse(user);
         
