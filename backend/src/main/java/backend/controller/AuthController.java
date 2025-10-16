@@ -18,6 +18,10 @@ import backend.exception.ResourceNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +50,75 @@ public class AuthController extends BaseController {
     private final PasswordEncoder passwordEncoder;
     
     @PostMapping("/register")
-    @Operation(summary = "Register new user account")
+    @Operation(
+        summary = "Register new user account",
+        description = "Create a new user account with email, password, and personal information. Returns JWT token upon successful registration.",
+        tags = {"Authentication"}
+    )
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "User registered successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = AuthResponse.class),
+                examples = @ExampleObject(
+                    name = "Successful Registration",
+                    value = """
+                        {
+                          "message": "User registered successfully",
+                          "status": "SUCCESS",
+                          "data": {
+                            "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                            "refreshToken": "550e8400-e29b-41d4-a716-446655440000",
+                            "user": {
+                              "id": 1,
+                              "email": "user@example.com",
+                              "name": "John Doe",
+                              "phone": "0123456789",
+                              "role": "USER",
+                              "status": "ACTIVE"
+                            }
+                          }
+                        }
+                        """
+                )
+            )
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400",
+            description = "Invalid input or email already exists",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "message": "Email already exists",
+                          "status": "ERROR",
+                          "data": null
+                        }
+                        """
+                )
+            )
+        )
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        description = "User registration details",
+        required = true,
+        content = @Content(
+            examples = @ExampleObject(
+                name = "Registration Request",
+                value = """
+                    {
+                      "email": "user@example.com",
+                      "password": "SecurePass123!",
+                      "name": "John Doe",
+                      "phone": "0123456789"
+                    }
+                    """
+            )
+        )
+    )
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
         
         AuthResponse authResponse = authService.register(request);
@@ -55,7 +127,66 @@ public class AuthController extends BaseController {
     }
     
     @PostMapping("/login")
-    @Operation(summary = "Login with email and password")
+    @Operation(
+        summary = "User login",
+        description = "Authenticate user with email and password. Returns JWT access token and refresh token.",
+        tags = {"Authentication"}
+    )
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Login successful",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "message": "Login successful",
+                          "status": "SUCCESS",
+                          "data": {
+                            "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                            "refreshToken": "550e8400-e29b-41d4-a716-446655440000",
+                            "user": {
+                              "id": 1,
+                              "email": "user@example.com",
+                              "name": "John Doe",
+                              "role": "USER"
+                            }
+                          }
+                        }
+                        """
+                )
+            )
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "401",
+            description = "Invalid credentials",
+            content = @Content(
+                examples = @ExampleObject(
+                    value = """
+                        {
+                          "message": "Invalid email or password",
+                          "status": "ERROR"
+                        }
+                        """
+                )
+            )
+        )
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        description = "Login credentials",
+        required = true,
+        content = @Content(
+            examples = @ExampleObject(
+                value = """
+                    {
+                      "email": "user@example.com",
+                      "password": "SecurePass123!"
+                    }
+                    """
+            )
+        )
+    )
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         
         AuthResponse authResponse = authService.login(request);

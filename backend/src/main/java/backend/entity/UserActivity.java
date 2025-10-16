@@ -64,6 +64,7 @@ public class UserActivity {
     // Activity types constants
     public static class ActivityType {
         public static final String LOGIN = "LOGIN";
+        public static final String FAILED_LOGIN = "FAILED_LOGIN";
         public static final String LOGOUT = "LOGOUT";
         public static final String VIEW_TOUR = "VIEW_TOUR";
         public static final String VIEW_TOUR_LIST = "VIEW_TOUR_LIST";

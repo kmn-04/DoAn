@@ -283,18 +283,23 @@ public class ReviewServiceImpl implements ReviewService {
     }
     
     /**
-     * Helper method to update tour rating
-     * Note: Tour entity doesn't have rating/reviewCount fields yet.
-     * This is calculated on-the-fly via ReviewRepository queries.
-     * TODO: Consider adding these fields to Tour entity for performance
+     * Helper method to update tour rating cache
+     * Updates the cached averageRating and reviewCount fields in Tour entity
+     * This is called whenever a review is approved, rejected, or deleted
      */
     private void updateTourRating(Long tourId) {
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
+        
         Double avgRating = reviewRepository.calculateAverageRatingByTour(tourId, ReviewStatus.APPROVED);
         long reviewCount = reviewRepository.countByTourIdAndStatus(tourId, ReviewStatus.APPROVED);
         
-        log.info("Tour {} has average rating {} with {} reviews", tourId, avgRating, reviewCount);
-        // Note: Not updating Tour entity as it doesn't have rating fields yet
-        // Rating is calculated on-demand when needed
+        // Update cached fields
+        tour.setAverageRating(avgRating != null ? avgRating : 0.0);
+        tour.setReviewCount(reviewCount);
+        tourRepository.save(tour);
+        
+        log.info("Updated tour {} rating cache: {} stars ({} reviews)", tourId, tour.getAverageRating(), tour.getReviewCount());
     }
     
     // ========== ADMIN METHODS ==========

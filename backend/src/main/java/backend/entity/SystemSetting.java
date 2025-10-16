@@ -6,15 +6,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "system_settings")
+@Table(name = "system_settings", indexes = {
+    @Index(name = "idx_system_settings_key", columnList = "setting_key", unique = true)
+})
 @Data
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class SystemSetting {
     
@@ -23,47 +27,42 @@ public class SystemSetting {
     @EqualsAndHashCode.Include
     private Long id;
     
-    @Column(nullable = false, unique = true, name = "setting_key")
+    @Column(name = "setting_key", nullable = false, unique = true, length = 100)
     private String key;
     
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "setting_value", columnDefinition = "TEXT")
     private String value;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "setting_type", length = 50)
+    private String type; // STRING, BOOLEAN, NUMBER, JSON
+    
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
     
-    @Column(nullable = false)
-    private String category; // General, Email, Payment, Notification, etc.
+    @Column(name = "category", length = 50)
+    private String category; // GENERAL, FEATURE, NOTIFICATION, etc.
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "value_type")
-    private ValueType valueType = ValueType.STRING;
-    
-    @Column(name = "is_public")
-    private Boolean isPublic = false; // Can be accessed by non-admin users
-    
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+    // Constructors
+    public SystemSetting(String key, String value, String type, String category) {
+        this.key = key;
+        this.value = value;
+        this.type = type;
+        this.category = category;
     }
     
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-    
-    public enum ValueType {
-        STRING,
-        NUMBER,
-        BOOLEAN,
-        JSON
+    public SystemSetting(String key, String value, String type, String category, String description) {
+        this.key = key;
+        this.value = value;
+        this.type = type;
+        this.category = category;
+        this.description = description;
     }
 }
-

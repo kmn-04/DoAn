@@ -28,6 +28,7 @@ import java.util.Map;
 public class AdminDashboardController extends BaseController {
     
     private final UserService userService;
+    private final UserSessionService userSessionService;
     private final TourService tourService;
     private final BookingService bookingService;
     private final PartnerService partnerService;
@@ -45,11 +46,13 @@ public class AdminDashboardController extends BaseController {
         try {
             // User statistics
             UserService.UserStatistics userStats = userService.getUserStatistics();
+            Long onlineUsersCount = userSessionService.countActiveSessions();
+            
             overview.put("users", Map.of(
                 "total", userStats.getTotalUsers(),
                 "active", userStats.getActiveUsers(),
                 "newThisMonth", userStats.getNewUsersThisMonth(),
-                "onlineNow", 0 // TODO: Implement online users count
+                "onlineNow", onlineUsersCount != null ? onlineUsersCount : 0L
             ));
             
             // Tour statistics - using available methods
@@ -124,35 +127,95 @@ public class AdminDashboardController extends BaseController {
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getRecentActivities(
             @RequestParam(defaultValue = "20") int limit) {
         
-        // TODO: Implement when UserActivityService is ready
-        List<Map<String, Object>> activities = List.of(
-            Map.of(
-                "id", 1L,
-                "type", "USER_REGISTRATION",
-                "description", "New user registered: john@example.com",
-                "timestamp", LocalDateTime.now().minusMinutes(5),
-                "userId", 123L,
-                "userName", "John Doe"
-            ),
-            Map.of(
-                "id", 2L,
-                "type", "BOOKING_CREATED",
-                "description", "New booking created for Hanoi City Tour",
-                "timestamp", LocalDateTime.now().minusMinutes(15),
-                "userId", 124L,
-                "userName", "Jane Smith"
-            ),
-            Map.of(
-                "id", 3L,
-                "type", "TOUR_UPDATED",
-                "description", "Tour updated: Sapa Adventure",
-                "timestamp", LocalDateTime.now().minusMinutes(30),
-                "userId", 1L,
-                "userName", "Admin"
-            )
-        );
-        
-        return ResponseEntity.ok(success("Recent activities retrieved successfully", activities));
+        try {
+            List<Map<String, Object>> activities = new java.util.ArrayList<>();
+            
+            // Get recent bookings (last 24 hours)
+            LocalDateTime last24Hours = LocalDateTime.now().minusHours(24);
+            List<Booking> recentBookings = bookingService.getAllBookings().stream()
+                    .filter(b -> b.getCreatedAt() != null && b.getCreatedAt().isAfter(last24Hours))
+                    .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                    .limit(limit / 2)
+                    .toList();
+            
+            for (Booking booking : recentBookings) {
+                Map<String, Object> activity = new HashMap<>();
+                activity.put("id", "booking_" + booking.getId());
+                activity.put("type", "BOOKING_CREATED");
+                activity.put("description", String.format("Booking mới: %s (%s)", 
+                        booking.getTour() != null ? booking.getTour().getName() : "Unknown Tour",
+                        booking.getBookingCode()));
+                activity.put("timestamp", booking.getCreatedAt());
+                activity.put("userId", booking.getUser() != null ? booking.getUser().getId() : null);
+                activity.put("userName", booking.getUser() != null ? booking.getUser().getName() : booking.getCustomerName());
+                activity.put("amount", booking.getFinalAmount());
+                activity.put("status", booking.getConfirmationStatus().toString());
+                activities.add(activity);
+            }
+            
+            // Get recent user registrations (last 7 days)
+            LocalDateTime last7Days = LocalDateTime.now().minusDays(7);
+            org.springframework.data.domain.Pageable topUsersPageable = 
+                    org.springframework.data.domain.PageRequest.of(0, limit / 3, 
+                    org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+            List<backend.entity.User> recentUsers = userService.getAllUsers(topUsersPageable)
+                    .stream()
+                    .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(last7Days))
+                    .toList();
+            
+            for (backend.entity.User user : recentUsers) {
+                Map<String, Object> activity = new HashMap<>();
+                activity.put("id", "user_" + user.getId());
+                activity.put("type", "USER_REGISTRATION");
+                activity.put("description", String.format("User mới đăng ký: %s", user.getEmail()));
+                activity.put("timestamp", user.getCreatedAt());
+                activity.put("userId", user.getId());
+                activity.put("userName", user.getName());
+                activity.put("userRole", user.getRole() != null ? user.getRole().getName() : "Customer");
+                activities.add(activity);
+            }
+            
+            // Get recent sessions (last 2 hours - represents logins)
+            LocalDateTime last2Hours = LocalDateTime.now().minusHours(2);
+            List<UserSession> recentSessions = userSessionService.getActiveSessions().stream()
+                    .filter(s -> s.getCreatedAt() != null && s.getCreatedAt().isAfter(last2Hours))
+                    .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                    .limit(limit / 4)
+                    .toList();
+            
+            for (UserSession session : recentSessions) {
+                Map<String, Object> activity = new HashMap<>();
+                activity.put("id", "session_" + session.getId());
+                activity.put("type", "USER_LOGIN");
+                activity.put("description", String.format("User đăng nhập từ %s", 
+                        session.getCountry() != null ? session.getCountry() : session.getIpAddress()));
+                activity.put("timestamp", session.getCreatedAt());
+                activity.put("userId", session.getUser() != null ? session.getUser().getId() : null);
+                activity.put("userName", session.getUser() != null ? session.getUser().getName() : "Unknown");
+                activity.put("deviceType", session.getDeviceType());
+                activity.put("ipAddress", session.getIpAddress());
+                activities.add(activity);
+            }
+            
+            // Sort all activities by timestamp (newest first) and limit
+            activities.sort((a, b) -> {
+                LocalDateTime timeA = (LocalDateTime) a.get("timestamp");
+                LocalDateTime timeB = (LocalDateTime) b.get("timestamp");
+                return timeB.compareTo(timeA);
+            });
+            
+            List<Map<String, Object>> limitedActivities = activities.stream()
+                    .limit(limit)
+                    .toList();
+            
+            log.info("Retrieved {} recent activities", limitedActivities.size());
+            
+            return ResponseEntity.ok(success("Recent activities retrieved successfully", limitedActivities));
+            
+        } catch (Exception e) {
+            log.error("Error getting recent activities", e);
+            return ResponseEntity.ok(success("Recent activities retrieved (empty)", List.of()));
+        }
     }
     
     // ================================
@@ -165,30 +228,102 @@ public class AdminDashboardController extends BaseController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         
-        if (startDate == null) startDate = LocalDateTime.now().minusDays(30);
-        if (endDate == null) endDate = LocalDateTime.now();
+        final LocalDateTime finalStartDate = (startDate == null) ? LocalDateTime.now().minusDays(30) : startDate;
+        final LocalDateTime finalEndDate = (endDate == null) ? LocalDateTime.now() : endDate;
         
-        // TODO: Implement real chart data
-        Map<String, Object> chartData = Map.of(
-            "daily", List.of(
-                Map.of("date", "2025-09-01", "bookings", 12, "revenue", 15000000),
-                Map.of("date", "2025-09-02", "bookings", 8, "revenue", 9500000),
-                Map.of("date", "2025-09-03", "bookings", 15, "revenue", 18750000)
-            ),
-            "monthly", List.of(
-                Map.of("month", "2025-07", "bookings", 245, "revenue", 312500000),
-                Map.of("month", "2025-08", "bookings", 289, "revenue", 367800000),
-                Map.of("month", "2025-09", "bookings", 156, "revenue", 198750000)
-            ),
-            "byStatus", List.of(
-                Map.of("status", "CONFIRMED", "count", 156, "percentage", 52.0),
-                Map.of("status", "PENDING", "count", 89, "percentage", 29.7),
-                Map.of("status", "COMPLETED", "count", 45, "percentage", 15.0),
-                Map.of("status", "CANCELLED", "count", 10, "percentage", 3.3)
-            )
-        );
-        
-        return ResponseEntity.ok(success("Booking chart data retrieved successfully", chartData));
+        try {
+            Map<String, Object> chartData = new HashMap<>();
+            
+            // Get all bookings in date range
+            List<Booking> allBookings = bookingService.getAllBookings().stream()
+                    .filter(b -> b.getCreatedAt() != null && 
+                                 b.getCreatedAt().isAfter(finalStartDate) && 
+                                 b.getCreatedAt().isBefore(finalEndDate))
+                    .toList();
+            
+            // Calculate daily bookings and revenue
+            Map<String, Long> dailyBookingsMap = new java.util.TreeMap<>();
+            Map<String, BigDecimal> dailyRevenueMap = new java.util.TreeMap<>();
+            
+            for (Booking booking : allBookings) {
+                String dateKey = booking.getCreatedAt().toLocalDate().toString();
+                dailyBookingsMap.merge(dateKey, 1L, Long::sum);
+                if (booking.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                    booking.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED) {
+                    dailyRevenueMap.merge(dateKey, booking.getFinalAmount(), BigDecimal::add);
+                }
+            }
+            
+            List<Map<String, Object>> dailyData = dailyBookingsMap.keySet().stream()
+                    .map(date -> Map.of(
+                            "date", (Object) date,
+                            "bookings", dailyBookingsMap.get(date),
+                            "revenue", dailyRevenueMap.getOrDefault(date, BigDecimal.ZERO)
+                    ))
+                    .toList();
+            
+            // Calculate monthly bookings and revenue
+            Map<String, Long> monthlyBookingsMap = new java.util.TreeMap<>();
+            Map<String, BigDecimal> monthlyRevenueMap = new java.util.TreeMap<>();
+            
+            for (Booking booking : allBookings) {
+                String monthKey = booking.getCreatedAt().toLocalDate().withDayOfMonth(1).toString().substring(0, 7);
+                monthlyBookingsMap.merge(monthKey, 1L, Long::sum);
+                if (booking.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                    booking.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED) {
+                    monthlyRevenueMap.merge(monthKey, booking.getFinalAmount(), BigDecimal::add);
+                }
+            }
+            
+            List<Map<String, Object>> monthlyData = monthlyBookingsMap.keySet().stream()
+                    .map(month -> Map.of(
+                            "month", (Object) month,
+                            "bookings", monthlyBookingsMap.get(month),
+                            "revenue", monthlyRevenueMap.getOrDefault(month, BigDecimal.ZERO)
+                    ))
+                    .toList();
+            
+            // Calculate bookings by status
+            Map<String, Long> statusCountMap = new HashMap<>();
+            long totalBookings = allBookings.size();
+            
+            for (Booking booking : allBookings) {
+                String statusKey = booking.getConfirmationStatus().toString();
+                statusCountMap.merge(statusKey, 1L, Long::sum);
+            }
+            
+            final long finalTotalBookings = totalBookings > 0 ? totalBookings : 1;
+            List<Map<String, Object>> statusData = statusCountMap.entrySet().stream()
+                    .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                    .map(entry -> {
+                        double percentage = (entry.getValue() * 100.0) / finalTotalBookings;
+                        return Map.of(
+                                "status", (Object) entry.getKey(),
+                                "count", entry.getValue(),
+                                "percentage", Math.round(percentage * 10.0) / 10.0
+                        );
+                    })
+                    .toList();
+            
+            chartData.put("daily", dailyData);
+            chartData.put("monthly", monthlyData);
+            chartData.put("byStatus", statusData);
+            
+            log.info("Generated booking chart data: {} daily points, {} monthly points, {} statuses",
+                    dailyData.size(), monthlyData.size(), statusData.size());
+            
+            return ResponseEntity.ok(success("Booking chart data retrieved successfully", chartData));
+            
+        } catch (Exception e) {
+            log.error("Error generating booking chart data", e);
+            // Return empty data on error
+            Map<String, Object> emptyData = Map.of(
+                    "daily", List.of(),
+                    "monthly", List.of(),
+                    "byStatus", List.of()
+            );
+            return ResponseEntity.ok(success("Booking chart data retrieved (empty)", emptyData));
+        }
     }
     
     @GetMapping("/charts/users")
@@ -197,28 +332,103 @@ public class AdminDashboardController extends BaseController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         
-        if (startDate == null) startDate = LocalDateTime.now().minusDays(30);
-        if (endDate == null) endDate = LocalDateTime.now();
+        final LocalDateTime finalStartDate = (startDate == null) ? LocalDateTime.now().minusDays(30) : startDate;
+        final LocalDateTime finalEndDate = (endDate == null) ? LocalDateTime.now() : endDate;
         
-        // TODO: Implement real chart data
-        Map<String, Object> chartData = Map.of(
-            "registrations", List.of(
-                Map.of("date", "2025-09-01", "users", 5),
-                Map.of("date", "2025-09-02", "users", 8),
-                Map.of("date", "2025-09-03", "users", 3)
-            ),
-            "activity", List.of(
-                Map.of("date", "2025-09-01", "activeUsers", 234),
-                Map.of("date", "2025-09-02", "activeUsers", 189),
-                Map.of("date", "2025-09-03", "activeUsers", 267)
-            ),
-            "byStatus", List.of(
-                Map.of("status", "ACTIVE", "count", 1245, "percentage", 87.5),
-                Map.of("status", "INACTIVE", "count", 178, "percentage", 12.5)
-            )
-        );
-        
-        return ResponseEntity.ok(success("User chart data retrieved successfully", chartData));
+        try {
+            Map<String, Object> chartData = new HashMap<>();
+            
+            // Get all users with pagination (get enough for analysis)
+            org.springframework.data.domain.Pageable pageable = 
+                    org.springframework.data.domain.PageRequest.of(0, 10000, 
+                    org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+            List<backend.entity.User> allUsers = userService.getAllUsers(pageable).getContent();
+            
+            // Filter users in date range
+            List<backend.entity.User> usersInRange = allUsers.stream()
+                    .filter(u -> u.getCreatedAt() != null && 
+                                 u.getCreatedAt().isAfter(finalStartDate) && 
+                                 u.getCreatedAt().isBefore(finalEndDate))
+                    .toList();
+            
+            // Calculate daily registrations
+            Map<String, Long> dailyRegistrationsMap = new java.util.TreeMap<>();
+            for (backend.entity.User user : usersInRange) {
+                String dateKey = user.getCreatedAt().toLocalDate().toString();
+                dailyRegistrationsMap.merge(dateKey, 1L, Long::sum);
+            }
+            
+            List<Map<String, Object>> registrationsData = dailyRegistrationsMap.entrySet().stream()
+                    .map(entry -> Map.of(
+                            "date", (Object) entry.getKey(),
+                            "users", entry.getValue()
+                    ))
+                    .toList();
+            
+            // Calculate daily active users (from sessions)
+            List<UserSession> allSessions = userSessionService.getActiveSessions();
+            Map<String, Long> dailyActiveUsersMap = new java.util.TreeMap<>();
+            
+            for (UserSession session : allSessions) {
+                if (session.getLastActivity() != null && 
+                    session.getLastActivity().isAfter(finalStartDate) && 
+                    session.getLastActivity().isBefore(finalEndDate)) {
+                    String dateKey = session.getLastActivity().toLocalDate().toString();
+                    dailyActiveUsersMap.merge(dateKey, 1L, Long::sum);
+                }
+            }
+            
+            List<Map<String, Object>> activityData = dailyActiveUsersMap.entrySet().stream()
+                    .map(entry -> Map.of(
+                            "date", (Object) entry.getKey(),
+                            "activeUsers", entry.getValue()
+                    ))
+                    .toList();
+            
+            // Calculate users by status
+            Map<String, Long> statusCountMap = new HashMap<>();
+            long totalUsers = 0;
+            
+            for (backend.entity.User user : allUsers) {
+                if (user.getStatus() != null) {
+                    String statusKey = user.getStatus().toString();
+                    statusCountMap.merge(statusKey, 1L, Long::sum);
+                    totalUsers++;
+                }
+            }
+            
+            final long finalTotalUsers = totalUsers > 0 ? totalUsers : 1;
+            List<Map<String, Object>> statusData = statusCountMap.entrySet().stream()
+                    .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                    .map(entry -> {
+                        double percentage = (entry.getValue() * 100.0) / finalTotalUsers;
+                        return Map.of(
+                                "status", (Object) entry.getKey(),
+                                "count", entry.getValue(),
+                                "percentage", Math.round(percentage * 10.0) / 10.0
+                        );
+                    })
+                    .toList();
+            
+            chartData.put("registrations", registrationsData);
+            chartData.put("activity", activityData);
+            chartData.put("byStatus", statusData);
+            
+            log.info("Generated user chart data: {} registration points, {} activity points, {} statuses",
+                    registrationsData.size(), activityData.size(), statusData.size());
+            
+            return ResponseEntity.ok(success("User chart data retrieved successfully", chartData));
+            
+        } catch (Exception e) {
+            log.error("Error generating user chart data", e);
+            // Return empty data on error
+            Map<String, Object> emptyData = Map.of(
+                    "registrations", List.of(),
+                    "activity", List.of(),
+                    "byStatus", List.of()
+            );
+            return ResponseEntity.ok(success("User chart data retrieved (empty)", emptyData));
+        }
     }
     
     @GetMapping("/charts/revenue")
@@ -227,30 +437,96 @@ public class AdminDashboardController extends BaseController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         
-        if (startDate == null) startDate = LocalDateTime.now().minusDays(30);
-        if (endDate == null) endDate = LocalDateTime.now();
+        final LocalDateTime finalStartDate = (startDate == null) ? LocalDateTime.now().minusDays(30) : startDate;
+        final LocalDateTime finalEndDate = (endDate == null) ? LocalDateTime.now() : endDate;
         
-        // TODO: Implement real revenue data
-        Map<String, Object> chartData = Map.of(
-            "daily", List.of(
-                Map.of("date", "2025-09-01", "revenue", 15000000),
-                Map.of("date", "2025-09-02", "revenue", 9500000),
-                Map.of("date", "2025-09-03", "revenue", 18750000)
-            ),
-            "monthly", List.of(
-                Map.of("month", "2025-07", "revenue", 312500000),
-                Map.of("month", "2025-08", "revenue", 367800000),
-                Map.of("month", "2025-09", "revenue", 198750000)
-            ),
-            "byCategory", List.of(
-                Map.of("category", "Adventure Tours", "revenue", 125000000, "percentage", 35.2),
-                Map.of("category", "Cultural Tours", "revenue", 98750000, "percentage", 27.8),
-                Map.of("category", "Beach Tours", "revenue", 76250000, "percentage", 21.5),
-                Map.of("category", "City Tours", "revenue", 55000000, "percentage", 15.5)
-            )
-        );
-        
-        return ResponseEntity.ok(success("Revenue chart data retrieved successfully", chartData));
+        try {
+            Map<String, Object> chartData = new HashMap<>();
+            
+            // Get all bookings in date range
+            List<Booking> allBookings = bookingService.getAllBookings().stream()
+                    .filter(b -> b.getCreatedAt() != null && 
+                                 b.getCreatedAt().isAfter(finalStartDate) && 
+                                 b.getCreatedAt().isBefore(finalEndDate))
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                 b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                    .toList();
+            
+            // Calculate daily revenue
+            Map<String, BigDecimal> dailyRevenueMap = new java.util.TreeMap<>();
+            for (Booking booking : allBookings) {
+                String dateKey = booking.getCreatedAt().toLocalDate().toString();
+                dailyRevenueMap.merge(dateKey, booking.getFinalAmount(), BigDecimal::add);
+            }
+            
+            List<Map<String, Object>> dailyData = dailyRevenueMap.entrySet().stream()
+                    .map(entry -> Map.of(
+                            "date", (Object) entry.getKey(),
+                            "revenue", entry.getValue()
+                    ))
+                    .toList();
+            
+            // Calculate monthly revenue
+            Map<String, BigDecimal> monthlyRevenueMap = new java.util.TreeMap<>();
+            for (Booking booking : allBookings) {
+                String monthKey = booking.getCreatedAt().toLocalDate().withDayOfMonth(1).toString().substring(0, 7);
+                monthlyRevenueMap.merge(monthKey, booking.getFinalAmount(), BigDecimal::add);
+            }
+            
+            List<Map<String, Object>> monthlyData = monthlyRevenueMap.entrySet().stream()
+                    .map(entry -> Map.of(
+                            "month", (Object) entry.getKey(),
+                            "revenue", entry.getValue()
+                    ))
+                    .toList();
+            
+            // Calculate revenue by category
+            Map<String, BigDecimal> categoryRevenueMap = new HashMap<>();
+            BigDecimal totalRevenue = BigDecimal.ZERO;
+            
+            for (Booking booking : allBookings) {
+                if (booking.getTour() != null && booking.getTour().getCategory() != null) {
+                    String categoryName = booking.getTour().getCategory().getName();
+                    categoryRevenueMap.merge(categoryName, booking.getFinalAmount(), BigDecimal::add);
+                    totalRevenue = totalRevenue.add(booking.getFinalAmount());
+                }
+            }
+            
+            final BigDecimal finalTotalRevenue = totalRevenue.compareTo(BigDecimal.ZERO) > 0 ? totalRevenue : BigDecimal.ONE;
+            List<Map<String, Object>> categoryData = categoryRevenueMap.entrySet().stream()
+                    .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                    .map(entry -> {
+                        double percentage = entry.getValue()
+                                .multiply(new BigDecimal("100"))
+                                .divide(finalTotalRevenue, 2, java.math.RoundingMode.HALF_UP)
+                                .doubleValue();
+                        return Map.of(
+                                "category", (Object) entry.getKey(),
+                                "revenue", entry.getValue(),
+                                "percentage", percentage
+                        );
+                    })
+                    .toList();
+            
+            chartData.put("daily", dailyData);
+            chartData.put("monthly", monthlyData);
+            chartData.put("byCategory", categoryData);
+            
+            log.info("Generated revenue chart data: {} daily points, {} monthly points, {} categories",
+                    dailyData.size(), monthlyData.size(), categoryData.size());
+            
+            return ResponseEntity.ok(success("Revenue chart data retrieved successfully", chartData));
+            
+        } catch (Exception e) {
+            log.error("Error generating revenue chart data", e);
+            // Return empty data on error
+            Map<String, Object> emptyData = Map.of(
+                    "daily", List.of(),
+                    "monthly", List.of(),
+                    "byCategory", List.of()
+            );
+            return ResponseEntity.ok(success("Revenue chart data retrieved (empty)", emptyData));
+        }
     }
     
     // ================================

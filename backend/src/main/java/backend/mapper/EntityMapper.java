@@ -801,15 +801,8 @@ public class EntityMapper {
                         tourResp.setDuration(tour.getDuration());
                         tourResp.setLocation(tour.getDestination());
                         
-                        // Calculate average rating from reviews
-                        double avgRating = 0.0;
-                        if (tour.getReviews() != null && !tour.getReviews().isEmpty()) {
-                            avgRating = tour.getReviews().stream()
-                                .mapToDouble(backend.entity.Review::getRating)
-                                .average()
-                                .orElse(0.0);
-                        }
-                        tourResp.setRating(avgRating);
+                        // Use cached average rating for performance
+                        tourResp.setRating(tour.getAverageRating() != null ? tour.getAverageRating() : 0.0);
                         
                         tourResp.setMaxGroupSize(tour.getMaxPeople());
                         tourResp.setDifficulty(null); // Not available in current schema
@@ -825,8 +818,8 @@ public class EntityMapper {
                             tourResp.setImages(new ArrayList<>());
                         }
                         
-                        // Count reviews
-                        tourResp.setTotalReviews(tour.getReviews() != null ? tour.getReviews().size() : 0);
+                        // Use cached review count for performance
+                        tourResp.setTotalReviews(tour.getReviewCount() != null ? tour.getReviewCount().intValue() : 0);
                         
                         // Map category
                         if (tour.getCategory() != null) {

@@ -106,6 +106,13 @@ public class Booking {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    // Reminder tracking fields
+    @Column(name = "reminder_sent")
+    private Boolean reminderSent = false;
+    
+    @Column(name = "reminder_sent_at")
+    private LocalDateTime reminderSentAt;
+    
     // Relationship with User (Many-to-One)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

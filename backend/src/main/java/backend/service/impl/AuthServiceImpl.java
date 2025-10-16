@@ -10,9 +10,12 @@ import backend.exception.BadRequestException;
 import backend.exception.ResourceNotFoundException;
 import backend.repository.RoleRepository;
 import backend.repository.UserRepository;
+import backend.entity.RefreshToken;
 import backend.security.JwtUtils;
 import backend.security.UserDetailsImpl;
 import backend.service.AuthService;
+import backend.service.RefreshTokenService;
+import backend.service.TokenBlacklistService;
 import backend.mapper.EntityMapper;
 
 import java.util.Set;
@@ -38,6 +41,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final EntityMapper mapper;
+    private final RefreshTokenService refreshTokenService;
+    private final TokenBlacklistService tokenBlacklistService;
     
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -114,29 +119,57 @@ public class AuthServiceImpl implements AuthService {
     }
     
     @Override
-    public AuthResponse refreshToken(String refreshToken) {
-        // TODO: Implement refresh token logic if needed
-        // For now, we'll just validate the current token and generate a new one
+    public AuthResponse refreshToken(String refreshTokenString) {
+        log.info("Refreshing token with refresh token");
         
-        if (!jwtUtils.validateJwtToken(refreshToken)) {
-            throw new BadRequestException("Invalid refresh token");
-        }
+        // Find refresh token in database
+        RefreshToken refreshToken = refreshTokenService.findByToken(refreshTokenString)
+                .orElseThrow(() -> new BadRequestException("Invalid refresh token"));
         
-        String email = jwtUtils.getEmailFromJwtToken(refreshToken);
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        // Verify refresh token is valid (not expired, not revoked)
+        refreshToken = refreshTokenService.verifyExpiration(refreshToken);
         
-        String newJwt = jwtUtils.generateTokenFromEmail(email);
+        User user = refreshToken.getUser();
+        
+        // Generate new access token
+        String newAccessToken = jwtUtils.generateTokenFromEmail(user.getEmail());
+        
+        // Rotate refresh token (revoke old, create new) for better security
+        RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(
+                refreshTokenString,
+                refreshToken.getIpAddress(),
+                refreshToken.getUserAgent()
+        );
+        
         UserResponse userResponse = mapper.toUserResponse(user);
         
-        return new AuthResponse(newJwt, userResponse);
+        log.info("Token refreshed successfully for user: {}", user.getEmail());
+        return new AuthResponse(newAccessToken, newRefreshToken.getToken(), userResponse);
     }
     
     @Override
     public void logout(String token) {
-        // TODO: Implement token blacklisting if needed
-        // For stateless JWT, logout is handled on the client side
-        log.info("User logout - token invalidated on client side");
+        try {
+            // Extract user email from token
+            String email = jwtUtils.getEmailFromJwtToken(token);
+            
+            // Blacklist the access token
+            tokenBlacklistService.blacklistToken(token, email, "User logout", null);
+            
+            // Revoke all refresh tokens for the user
+            User user = userRepository.findByEmail(email)
+                    .orElse(null);
+            
+            if (user != null) {
+                refreshTokenService.revokeAllUserTokens(user, "User logout");
+            }
+            
+            log.info("User logged out successfully: {}", email);
+        } catch (Exception e) {
+            log.error("Error during logout: {}", e.getMessage());
+            // Still consider logout successful even if blacklisting fails
+            // Client-side token removal is the primary logout mechanism
+        }
     }
     
     @Override

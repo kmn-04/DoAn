@@ -14,8 +14,5 @@ public interface SystemSettingRepository extends JpaRepository<SystemSetting, Lo
     
     List<SystemSetting> findByCategory(String category);
     
-    List<SystemSetting> findByIsPublicTrue();
-    
     boolean existsByKey(String key);
 }
-

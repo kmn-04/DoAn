@@ -3,24 +3,48 @@ package backend.service;
 import backend.entity.SystemSetting;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface SystemSettingService {
     
+    /**
+     * Get all settings
+     */
     List<SystemSetting> getAllSettings();
     
+    /**
+     * Get settings by category
+     */
     List<SystemSetting> getSettingsByCategory(String category);
     
-    List<SystemSetting> getPublicSettings();
-    
+    /**
+     * Get setting by key
+     */
     Optional<SystemSetting> getSettingByKey(String key);
     
+    /**
+     * Get setting value by key
+     */
     String getSettingValue(String key, String defaultValue);
     
-    SystemSetting createOrUpdateSetting(String key, String value, String description, String category, SystemSetting.ValueType valueType, Boolean isPublic);
+    /**
+     * Update or create setting
+     */
+    SystemSetting saveSetting(String key, String value, String type, String category);
     
-    SystemSetting updateSetting(Long id, SystemSetting setting);
+    /**
+     * Batch update settings
+     */
+    void batchUpdateSettings(Map<String, String> settings);
     
-    void deleteSetting(Long id);
+    /**
+     * Delete setting
+     */
+    void deleteSetting(String key);
+    
+    /**
+     * Get all settings as Map
+     */
+    Map<String, String> getAllSettingsAsMap();
 }
-

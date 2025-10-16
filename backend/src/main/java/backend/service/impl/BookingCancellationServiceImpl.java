@@ -46,10 +46,17 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
         Booking booking = bookingRepository.findById(request.getBookingId())
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", request.getBookingId()));
 
-        // Temporarily disabled for testing - TODO: Fix user relationship
-        // if (!booking.getUser().getId().equals(userId)) {
-        //     throw new BadRequestException("You can only cancel your own bookings");
-        // }
+        // Validate user ownership
+        if (booking.getUser() == null) {
+            log.warn("Booking {} has no user associated", request.getBookingId());
+            throw new BadRequestException("Invalid booking: no user associated");
+        }
+        
+        if (!booking.getUser().getId().equals(userId)) {
+            log.warn("User {} attempted to cancel booking {} which belongs to user {}", 
+                    userId, request.getBookingId(), booking.getUser().getId());
+            throw new BadRequestException("You can only cancel your own bookings");
+        }
 
         // Check if booking can be cancelled
         if (!canUserCancelBooking(request.getBookingId(), userId)) {
@@ -249,11 +256,17 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
         log.info("  Booking paymentStatus: {}", booking.getPaymentStatus());
         log.info("  Booking startDate: {}", booking.getStartDate());
 
-        // Temporarily disabled for testing - TODO: Fix user relationship  
         // Check ownership
-        // if (!booking.getUser().getId().equals(userId)) {
-        //     return false;
-        // }
+        if (booking.getUser() == null) {
+            log.warn("  ❌ Booking {} has no user associated", bookingId);
+            return false;
+        }
+        
+        if (!booking.getUser().getId().equals(userId)) {
+            log.warn("  ❌ User {} does not own booking {} (owner: {})", 
+                    userId, bookingId, booking.getUser().getId());
+            return false;
+        }
 
         // Check booking status
         if (booking.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLED || 
