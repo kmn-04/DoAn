@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { apiClient } from '../../services';
 
 const AdminSettings: React.FC = () => {
   const [settings, setSettings] = useState({
@@ -11,10 +12,60 @@ const AdminSettings: React.FC = () => {
     enableReviews: true,
     autoApproveReviews: false,
   });
+  const [loading, setLoading] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const handleSave = () => {
-    // TODO: Save settings to API
-    alert('Cài đặt đã được lưu!');
+  // Load settings from API on mount
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await apiClient.get('/admin/settings');
+      if (response.data.success && response.data.data) {
+        const apiSettings = response.data.data;
+        setSettings({
+          siteName: apiSettings.siteName || 'Tour Management System',
+          siteEmail: apiSettings.siteEmail || 'admin@tourmanagement.com',
+          currency: apiSettings.currency || 'VND',
+          timezone: apiSettings.timezone || 'Asia/Ho_Chi_Minh',
+          enableNotifications: apiSettings.enableNotifications === 'true',
+          enableReviews: apiSettings.enableReviews === 'true',
+          autoApproveReviews: apiSettings.autoApproveReviews === 'true',
+        });
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    setSaveSuccess(false);
+    
+    try {
+      // Convert settings to API format
+      const apiSettings = {
+        siteName: settings.siteName,
+        siteEmail: settings.siteEmail,
+        currency: settings.currency,
+        timezone: settings.timezone,
+        enableNotifications: settings.enableNotifications.toString(),
+        enableReviews: settings.enableReviews.toString(),
+        autoApproveReviews: settings.autoApproveReviews.toString(),
+      };
+
+      await apiClient.put('/admin/settings', apiSettings);
+      
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Có lỗi xảy ra khi lưu cài đặt!');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -154,14 +205,24 @@ const AdminSettings: React.FC = () => {
         </div>
 
         {/* Save Button */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end items-center space-x-3">
+          {saveSuccess && (
+            <span className="text-sm text-green-600 font-medium">
+              ✓ Đã lưu thành công!
+            </span>
+          )}
           <button
             type="button"
             onClick={handleSave}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            disabled={loading}
+            className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+              loading 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-blue-600 hover:bg-blue-700'
+            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
           >
             <Cog6ToothIcon className="-ml-1 mr-2 h-5 w-5" />
-            Lưu cài đặt
+            {loading ? 'Đang lưu...' : 'Lưu cài đặt'}
           </button>
         </div>
         </div>

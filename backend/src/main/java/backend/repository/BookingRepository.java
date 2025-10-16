@@ -31,6 +31,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUserIdOrderByCreatedAtDesc(Long userId);
     
     /**
+     * Find bookings by user ID with pagination
+     */
+    Page<Booking> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    
+    /**
      * Find bookings by tour ID
      */
     List<Booking> findByTourId(Long tourId);
@@ -41,9 +46,19 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus confirmationStatus);
     
     /**
+     * Find bookings by confirmation status with pagination
+     */
+    Page<Booking> findByConfirmationStatusOrderByCreatedAtDesc(ConfirmationStatus confirmationStatus, Pageable pageable);
+    
+    /**
      * Find bookings by payment status
      */
     List<Booking> findByPaymentStatusOrderByCreatedAtDesc(PaymentStatus paymentStatus);
+    
+    /**
+     * Find bookings by payment status with pagination
+     */
+    Page<Booking> findByPaymentStatusOrderByCreatedAtDesc(PaymentStatus paymentStatus, Pageable pageable);
     
     /**
      * Find bookings by user and confirmation status

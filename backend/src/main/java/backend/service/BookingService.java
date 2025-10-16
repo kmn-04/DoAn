@@ -88,6 +88,11 @@ public interface BookingService {
     List<Booking> getBookingsByUser(Long userId);
     
     /**
+     * Get bookings by user with pagination
+     */
+    Page<Booking> getBookingsByUser(Long userId, Pageable pageable);
+    
+    /**
      * Get bookings by tour
      */
     List<Booking> getBookingsByTour(Long tourId);

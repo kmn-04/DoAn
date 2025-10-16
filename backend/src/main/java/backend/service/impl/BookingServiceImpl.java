@@ -226,6 +226,59 @@ public class BookingServiceImpl implements BookingService {
     
     @Override
     @Transactional(readOnly = true)
+    public Page<Booking> getBookingsByUser(Long userId, Pageable pageable) {
+        log.info("Getting bookings for user {} with pagination - page: {}, size: {}", 
+                userId, pageable.getPageNumber(), pageable.getPageSize());
+        
+        Page<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        
+        // Force initialization of lazy-loaded relationships
+        bookings.forEach(booking -> {
+            if (booking.getTour() != null) {
+                booking.getTour().getName(); // Force load tour
+                
+                // Force load itineraries and their partners
+                try {
+                    if (booking.getTour().getItineraries() != null) {
+                        booking.getTour().getItineraries().size();
+                        booking.getTour().getItineraries().forEach(itinerary -> {
+                            try {
+                                if (itinerary.getAccommodationPartner() != null) {
+                                    itinerary.getAccommodationPartner().getName();
+                                }
+                            } catch (Exception e) {
+                                log.debug("Could not load accommodation partner: {}", e.getMessage());
+                            }
+                            try {
+                                if (itinerary.getMealsPartner() != null) {
+                                    itinerary.getMealsPartner().getName();
+                                }
+                            } catch (Exception e) {
+                                log.debug("Could not load meals partner: {}", e.getMessage());
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    log.debug("Could not load itineraries: {}", e.getMessage());
+                }
+            }
+            if (booking.getUser() != null) {
+                booking.getUser().getName(); // Force load user
+            }
+            if (booking.getSchedule() != null) {
+                booking.getSchedule().getDepartureDate(); // Force load schedule
+            }
+        });
+        
+        log.info("Found {} bookings for user {} (page {} of {})", 
+                bookings.getNumberOfElements(), userId, 
+                bookings.getNumber() + 1, bookings.getTotalPages());
+        
+        return bookings;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
     public List<Booking> getBookingsByTour(Long tourId) {
         return bookingRepository.findByTourId(tourId);
     }
@@ -504,20 +557,18 @@ public class BookingServiceImpl implements BookingService {
     
     @Override
     public Page<BookingResponse> getBookingsByStatusDto(String status, Pageable pageable) {
-        log.info("Getting bookings by status (DTO): {}", status);
+        log.info("Getting bookings by status (DTO): {} with pagination - page: {}, size: {}", 
+                status, pageable.getPageNumber(), pageable.getPageSize());
         
         ConfirmationStatus confirmationStatus = ConfirmationStatus.valueOf(status.toUpperCase());
-        // Get list and convert to Page manually
-        List<Booking> bookingList = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(confirmationStatus);
         
-        // Simple pagination - just return all as one page for now
-        // TODO: Implement proper pagination in repository
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), bookingList.size());
-        List<Booking> pageContent = bookingList.subList(start, end);
+        // Use proper pagination from repository
+        Page<Booking> bookings = bookingRepository.findByConfirmationStatusOrderByCreatedAtDesc(
+                confirmationStatus, pageable);
         
-        Page<Booking> bookings = new org.springframework.data.domain.PageImpl<>(
-                pageContent, pageable, bookingList.size());
+        log.info("Found {} bookings with status {} (page {} of {})", 
+                bookings.getNumberOfElements(), status, 
+                bookings.getNumber() + 1, bookings.getTotalPages());
         
         return bookings.map(bookingMapper::toResponse);
     }

@@ -9,12 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class SystemSettingServiceImpl implements SystemSettingService {
     
     private final SystemSettingRepository systemSettingRepository;
@@ -33,12 +34,6 @@ public class SystemSettingServiceImpl implements SystemSettingService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<SystemSetting> getPublicSettings() {
-        return systemSettingRepository.findByIsPublicTrue();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
     public Optional<SystemSetting> getSettingByKey(String key) {
         return systemSettingRepository.findByKey(key);
     }
@@ -52,53 +47,52 @@ public class SystemSettingServiceImpl implements SystemSettingService {
     }
     
     @Override
-    public SystemSetting createOrUpdateSetting(String key, String value, String description, 
-                                               String category, SystemSetting.ValueType valueType, Boolean isPublic) {
-        log.info("Creating/Updating system setting: {}", key);
+    @Transactional
+    public SystemSetting saveSetting(String key, String value, String type, String category) {
+        SystemSetting setting = systemSettingRepository.findByKey(key)
+                .orElse(new SystemSetting());
         
-        Optional<SystemSetting> existingSetting = systemSettingRepository.findByKey(key);
+        setting.setKey(key);
+        setting.setValue(value);
+        setting.setType(type);
+        setting.setCategory(category);
         
-        SystemSetting setting;
-        if (existingSetting.isPresent()) {
-            setting = existingSetting.get();
-            setting.setValue(value);
-            if (description != null) setting.setDescription(description);
-            if (category != null) setting.setCategory(category);
-            if (valueType != null) setting.setValueType(valueType);
-            if (isPublic != null) setting.setIsPublic(isPublic);
-        } else {
-            setting = new SystemSetting();
-            setting.setKey(key);
-            setting.setValue(value);
-            setting.setDescription(description);
-            setting.setCategory(category != null ? category : "General");
-            setting.setValueType(valueType != null ? valueType : SystemSetting.ValueType.STRING);
-            setting.setIsPublic(isPublic != null ? isPublic : false);
+        SystemSetting saved = systemSettingRepository.save(setting);
+        log.info("Saved setting: {} = {}", key, value);
+        
+        return saved;
+    }
+    
+    @Override
+    @Transactional
+    public void batchUpdateSettings(Map<String, String> settings) {
+        for (Map.Entry<String, String> entry : settings.entrySet()) {
+            SystemSetting setting = systemSettingRepository.findByKey(entry.getKey())
+                    .orElse(new SystemSetting(entry.getKey(), entry.getValue(), "STRING", "GENERAL"));
+            
+            setting.setValue(entry.getValue());
+            systemSettingRepository.save(setting);
         }
         
-        return systemSettingRepository.save(setting);
+        log.info("Batch updated {} settings", settings.size());
     }
     
     @Override
-    public SystemSetting updateSetting(Long id, SystemSetting setting) {
-        log.info("Updating system setting with ID: {}", id);
-        
-        SystemSetting existingSetting = systemSettingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("System setting not found with ID: " + id));
-        
-        existingSetting.setValue(setting.getValue());
-        if (setting.getDescription() != null) existingSetting.setDescription(setting.getDescription());
-        if (setting.getCategory() != null) existingSetting.setCategory(setting.getCategory());
-        if (setting.getValueType() != null) existingSetting.setValueType(setting.getValueType());
-        if (setting.getIsPublic() != null) existingSetting.setIsPublic(setting.getIsPublic());
-        
-        return systemSettingRepository.save(existingSetting);
+    @Transactional
+    public void deleteSetting(String key) {
+        systemSettingRepository.findByKey(key).ifPresent(setting -> {
+            systemSettingRepository.delete(setting);
+            log.info("Deleted setting: {}", key);
+        });
     }
     
     @Override
-    public void deleteSetting(Long id) {
-        log.info("Deleting system setting with ID: {}", id);
-        systemSettingRepository.deleteById(id);
+    @Transactional(readOnly = true)
+    public Map<String, String> getAllSettingsAsMap() {
+        return systemSettingRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        SystemSetting::getKey,
+                        SystemSetting::getValue
+                ));
     }
 }
-

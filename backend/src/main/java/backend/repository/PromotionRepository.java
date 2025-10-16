@@ -77,4 +77,15 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
      * Find promotions by date range
      */
     List<Promotion> findByStartDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    
+    /**
+     * Search promotions by code or description (with pagination)
+     */
+    @Query("SELECT p FROM Promotion p WHERE " +
+           "LOWER(p.code) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "ORDER BY p.createdAt DESC")
+    org.springframework.data.domain.Page<Promotion> searchPromotions(
+            @Param("keyword") String keyword, 
+            org.springframework.data.domain.Pageable pageable);
 }

@@ -393,23 +393,235 @@ public class AdminUserController extends BaseController {
     @GetMapping("/suspicious-activity")
     @Operation(summary = "Get users with suspicious activity")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getSuspiciousActivity() {
-        // TODO: Implement suspicious activity detection
-        List<Map<String, Object>> suspiciousUsers = List.of();
-        return ResponseEntity.ok(success("Suspicious activity retrieved", suspiciousUsers));
+        try {
+            List<Map<String, Object>> suspiciousUsers = new java.util.ArrayList<>();
+            
+            // Get all users
+            Pageable pageable = PageRequest.of(0, 1000, Sort.by(Sort.Direction.DESC, "createdAt"));
+            List<User> allUsers = userService.getAllUsers(pageable).getContent();
+            
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime last7Days = now.minusDays(7);
+            LocalDateTime last24Hours = now.minusDays(1);
+            
+            for (User user : allUsers) {
+                List<String> suspiciousReasons = new java.util.ArrayList<>();
+                int suspicionScore = 0;
+                
+                // Check 1: Banned or Suspended status
+                if (user.getStatus() == User.UserStatus.BANNED) {
+                    suspiciousReasons.add("Account banned");
+                    suspicionScore += 100;
+                } else if (user.getStatus() == User.UserStatus.INACTIVE) {
+                    suspiciousReasons.add("Account inactive");
+                    suspicionScore += 20;
+                }
+                
+                // Check 2: Multiple active sessions from different IPs
+                List<UserSession> userSessions = userSessionService.getActiveSessions().stream()
+                        .filter(s -> s.getUser() != null && s.getUser().getId().equals(user.getId()))
+                        .toList();
+                
+                if (userSessions.size() > 3) {
+                    suspiciousReasons.add(String.format("Multiple active sessions (%d)", userSessions.size()));
+                    suspicionScore += 30;
+                }
+                
+                // Check 3: Multiple different IP locations
+                long distinctIPs = userSessions.stream()
+                        .filter(s -> s.getIpAddress() != null)
+                        .map(UserSession::getIpAddress)
+                        .distinct()
+                        .count();
+                
+                if (distinctIPs > 3) {
+                    suspiciousReasons.add(String.format("Multiple IP addresses (%d)", distinctIPs));
+                    suspicionScore += 40;
+                }
+                
+                // Check 4: Recent account creation (new accounts are often flagged for review)
+                if (user.getCreatedAt() != null && user.getCreatedAt().isAfter(last7Days)) {
+                    suspiciousReasons.add("Recently created account");
+                    suspicionScore += 15;
+                }
+                
+                // Check 5: Multiple sessions from same IP or device
+                // (We can expand this check later with booking data if needed)
+                long sameIPCount = userSessions.stream()
+                        .filter(s -> s.getIpAddress() != null)
+                        .collect(java.util.stream.Collectors.groupingBy(UserSession::getIpAddress, java.util.stream.Collectors.counting()))
+                        .values().stream()
+                        .max(Long::compareTo)
+                        .orElse(0L);
+                
+                if (sameIPCount > 5) {
+                    suspiciousReasons.add(String.format("Multiple sessions from same IP (%d)", sameIPCount));
+                    suspicionScore += 25;
+                }
+                
+                // Only add users with suspicion score >= 30
+                if (suspicionScore >= 30) {
+                    Map<String, Object> suspiciousUser = new java.util.HashMap<>();
+                    suspiciousUser.put("userId", user.getId());
+                    suspiciousUser.put("email", user.getEmail());
+                    suspiciousUser.put("name", user.getName());
+                    suspiciousUser.put("status", user.getStatus().toString());
+                    suspiciousUser.put("createdAt", user.getCreatedAt());
+                    suspiciousUser.put("suspicionScore", suspicionScore);
+                    suspiciousUser.put("reasons", suspiciousReasons);
+                    suspiciousUser.put("activeSessions", userSessions.size());
+                    suspiciousUser.put("distinctIPs", distinctIPs);
+                    
+                    suspiciousUsers.add(suspiciousUser);
+                }
+            }
+            
+            // Sort by suspicion score DESC
+            suspiciousUsers.sort((a, b) -> 
+                Integer.compare((Integer) b.get("suspicionScore"), (Integer) a.get("suspicionScore"))
+            );
+            
+            log.info("Found {} users with suspicious activity", suspiciousUsers.size());
+            return ResponseEntity.ok(success("Suspicious activity retrieved", suspiciousUsers));
+            
+        } catch (Exception e) {
+            log.error("Error detecting suspicious activity", e);
+            return ResponseEntity.ok(success("Suspicious activity retrieved (error)", List.of()));
+        }
     }
     
     @GetMapping("/login-attempts")
     @Operation(summary = "Get failed login attempts")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getFailedLoginAttempts(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getFailedLoginAttempts(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(defaultValue = "100") int limit) {
         
-        if (startDate == null) startDate = LocalDateTime.now().minusDays(7);
-        if (endDate == null) endDate = LocalDateTime.now();
+        final LocalDateTime finalStartDate = (startDate == null) ? LocalDateTime.now().minusDays(7) : startDate;
+        final LocalDateTime finalEndDate = (endDate == null) ? LocalDateTime.now() : endDate;
         
-        // TODO: Implement failed login tracking
-        List<Map<String, Object>> failedAttempts = List.of();
-        return ResponseEntity.ok(success("Failed login attempts retrieved", failedAttempts));
+        try {
+            List<Map<String, Object>> failedAttempts = new java.util.ArrayList<>();
+            
+            // Get failed login activities
+            List<UserActivity> failedLogins = userActivityService
+                    .getActivitiesByType(UserActivity.ActivityType.FAILED_LOGIN).stream()
+                    .filter(a -> a.getCreatedAt() != null && 
+                                 a.getCreatedAt().isAfter(finalStartDate) && 
+                                 a.getCreatedAt().isBefore(finalEndDate))
+                    .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                    .limit(limit)
+                    .toList();
+            
+            // Group by email/IP to detect patterns
+            Map<String, Long> attemptsByEmail = new java.util.HashMap<>();
+            Map<String, Long> attemptsByIP = new java.util.HashMap<>();
+            
+            for (UserActivity activity : failedLogins) {
+                Map<String, Object> attempt = new java.util.HashMap<>();
+                attempt.put("id", activity.getId());
+                attempt.put("timestamp", activity.getCreatedAt());
+                attempt.put("ipAddress", activity.getIpAddress());
+                attempt.put("userAgent", activity.getUserAgent());
+                
+                // Parse activity data (JSON) to get email
+                String activityData = activity.getActivityData();
+                String email = null;
+                if (activityData != null && activityData.contains("email")) {
+                    try {
+                        // Simple JSON parsing for email
+                        int emailStart = activityData.indexOf("\"email\"");
+                        if (emailStart > 0) {
+                            int valueStart = activityData.indexOf(":", emailStart) + 1;
+                            int valueEnd = activityData.indexOf(",", valueStart);
+                            if (valueEnd < 0) valueEnd = activityData.indexOf("}", valueStart);
+                            if (valueStart > 0 && valueEnd > valueStart) {
+                                email = activityData.substring(valueStart, valueEnd)
+                                        .trim()
+                                        .replace("\"", "")
+                                        .replace("'", "");
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.debug("Could not parse email from activity data: {}", e.getMessage());
+                    }
+                }
+                
+                attempt.put("email", email);
+                attempt.put("reason", "Invalid credentials");
+                
+                // Count attempts
+                if (email != null) {
+                    attemptsByEmail.merge(email, 1L, Long::sum);
+                    attempt.put("emailAttemptCount", attemptsByEmail.get(email));
+                }
+                
+                if (activity.getIpAddress() != null) {
+                    attemptsByIP.merge(activity.getIpAddress(), 1L, Long::sum);
+                    attempt.put("ipAttemptCount", attemptsByIP.get(activity.getIpAddress()));
+                }
+                
+                // Flag suspicious patterns
+                boolean suspicious = false;
+                List<String> flags = new java.util.ArrayList<>();
+                
+                if (email != null && attemptsByEmail.get(email) > 5) {
+                    suspicious = true;
+                    flags.add("Multiple attempts on same email");
+                }
+                
+                if (activity.getIpAddress() != null && attemptsByIP.get(activity.getIpAddress()) > 10) {
+                    suspicious = true;
+                    flags.add("Multiple attempts from same IP");
+                }
+                
+                attempt.put("suspicious", suspicious);
+                attempt.put("flags", flags);
+                
+                failedAttempts.add(attempt);
+            }
+            
+            // Add summary statistics
+            Map<String, Object> summary = new java.util.HashMap<>();
+            summary.put("totalAttempts", failedLogins.size());
+            summary.put("uniqueEmails", attemptsByEmail.size());
+            summary.put("uniqueIPs", attemptsByIP.size());
+            summary.put("dateRange", Map.of(
+                    "start", finalStartDate,
+                    "end", finalEndDate
+            ));
+            
+            // Find top offenders
+            List<Map<String, Object>> topEmails = attemptsByEmail.entrySet().stream()
+                    .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                    .limit(5)
+                    .map(e -> Map.of("email", (Object) e.getKey(), "attempts", e.getValue()))
+                    .toList();
+            
+            List<Map<String, Object>> topIPs = attemptsByIP.entrySet().stream()
+                    .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                    .limit(5)
+                    .map(e -> Map.of("ip", (Object) e.getKey(), "attempts", e.getValue()))
+                    .toList();
+            
+            summary.put("topEmails", topEmails);
+            summary.put("topIPs", topIPs);
+            
+            Map<String, Object> response = new java.util.HashMap<>();
+            response.put("attempts", failedAttempts);
+            response.put("summary", summary);
+            
+            log.info("Retrieved {} failed login attempts", failedLogins.size());
+            return ResponseEntity.ok(success("Failed login attempts retrieved", response));
+            
+        } catch (Exception e) {
+            log.error("Error retrieving failed login attempts", e);
+            Map<String, Object> emptyResponse = Map.of(
+                    "attempts", List.of(),
+                    "summary", Map.of("totalAttempts", 0)
+            );
+            return ResponseEntity.ok(success("Failed login attempts retrieved (error)", emptyResponse));
+        }
     }
     
     @GetMapping("/count")

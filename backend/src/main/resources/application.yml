@@ -113,6 +113,16 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    doc-expansion: none
+    display-request-duration: true
+    filter: true
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  paths-to-match: /api/**
+  packages-to-scan: backend.controller
 
 # Logging Configuration
 logging:

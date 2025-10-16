@@ -267,9 +267,23 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     @Transactional(readOnly = true)
     public Page<Promotion> searchPromotions(String keyword, Pageable pageable) {
-        // For now, return all promotions
-        // TODO: Implement proper search by code or description if needed
-        return promotionRepository.findAll(pageable);
+        log.info("Searching promotions with keyword: '{}', page: {}, size: {}", 
+                keyword, pageable.getPageNumber(), pageable.getPageSize());
+        
+        // If keyword is empty or null, return all promotions
+        if (keyword == null || keyword.trim().isEmpty()) {
+            log.info("Empty keyword, returning all promotions");
+            return promotionRepository.findAll(pageable);
+        }
+        
+        // Search by code or description
+        Page<Promotion> results = promotionRepository.searchPromotions(keyword.trim(), pageable);
+        
+        log.info("Found {} promotions matching keyword '{}' (page {} of {})", 
+                results.getNumberOfElements(), keyword, 
+                results.getNumber() + 1, results.getTotalPages());
+        
+        return results;
     }
     
     @Override

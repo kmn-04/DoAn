@@ -146,6 +146,13 @@ public class Tour {
     @Column(name = "view_count")
     private Integer viewCount = 0;
     
+    // Cached rating fields for performance optimization
+    @Column(name = "average_rating")
+    private Double averageRating = 0.0; // Cached average rating from approved reviews (0.0 - 5.0)
+    
+    @Column(name = "review_count")
+    private Long reviewCount = 0L; // Cached count of approved reviews
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

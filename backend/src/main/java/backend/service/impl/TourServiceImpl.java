@@ -375,8 +375,8 @@ public class TourServiceImpl implements TourService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .divide(BigDecimal.valueOf(Math.max(tours.size(), 1)), 2, RoundingMode.HALF_UP);
         
-        // Calculate average rating (simplified)
-        double averageRating = 4.5; // TODO: Implement actual calculation
+        // Calculate average rating across all tours
+        double averageRating = calculateGlobalAverageRating(tours);
         
         return new TourStatistics(totalTours, activeTours, featuredTours, toursThisMonth, averagePrice, averageRating);
     }
@@ -665,5 +665,42 @@ public class TourServiceImpl implements TourService {
     @Override
     public long getTotalTours() {
         return tourRepository.count();
+    }
+    
+    /**
+     * Calculate global average rating across all tours
+     * Uses cached averageRating and reviewCount fields for optimal performance
+     * @param tours List of tours to calculate average for
+     * @return Average rating (0.0 - 5.0), or 0.0 if no reviews
+     */
+    private double calculateGlobalAverageRating(List<Tour> tours) {
+        if (tours == null || tours.isEmpty()) {
+            return 0.0;
+        }
+        
+        double totalRating = 0.0;
+        long totalReviews = 0;
+        
+        for (Tour tour : tours) {
+            // Use cached fields instead of querying database
+            Double tourAvgRating = tour.getAverageRating();
+            Long reviewCount = tour.getReviewCount();
+            
+            if (tourAvgRating != null && reviewCount != null && reviewCount > 0) {
+                // Weight by number of reviews
+                totalRating += tourAvgRating * reviewCount;
+                totalReviews += reviewCount;
+            }
+        }
+        
+        if (totalReviews == 0) {
+            return 0.0; // No reviews yet
+        }
+        
+        // Calculate weighted average
+        double average = totalRating / totalReviews;
+        
+        // Round to 1 decimal place
+        return Math.round(average * 10.0) / 10.0;
     }
 }

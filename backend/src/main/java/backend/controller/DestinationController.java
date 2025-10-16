@@ -3,10 +3,8 @@ package backend.controller;
 import backend.dto.response.ApiResponse;
 import backend.dto.response.PopularDestinationResponse;
 import backend.entity.Country;
-import backend.entity.Review;
 import backend.entity.Tour;
 import backend.repository.CountryRepository;
-import backend.repository.ReviewRepository;
 import backend.repository.TourRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,7 +29,6 @@ public class DestinationController {
 
     private final TourRepository tourRepository;
     private final CountryRepository countryRepository;
-    private final ReviewRepository reviewRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -135,26 +132,35 @@ public class DestinationController {
     
     /**
      * Calculate average rating from reviews for given tours
+     * Uses cached averageRating and reviewCount fields for optimal performance
      */
     private Double calculateAverageRating(List<Tour> tours) {
-        List<Review> allReviews = new ArrayList<>();
+        if (tours.isEmpty()) {
+            return 0.0; // No tours, no rating
+        }
+        
+        double totalRating = 0.0;
+        long totalReviews = 0;
         
         for (Tour tour : tours) {
-            List<Review> reviews = reviewRepository.findByTourIdAndStatusOrderByCreatedAtDesc(
-                tour.getId(), 
-                Review.ReviewStatus.APPROVED
-            );
-            allReviews.addAll(reviews);
+            // Use cached fields instead of querying database
+            Double tourAvgRating = tour.getAverageRating();
+            Long reviewCount = tour.getReviewCount();
+            
+            if (tourAvgRating != null && reviewCount != null && reviewCount > 0) {
+                // Weight by number of reviews
+                totalRating += tourAvgRating * reviewCount;
+                totalReviews += reviewCount;
+            }
         }
         
-        if (allReviews.isEmpty()) {
-            return 4.5; // Default rating
+        if (totalReviews == 0) {
+            return 0.0; // No reviews yet
         }
         
-        return allReviews.stream()
-                .mapToDouble(Review::getRating)
-                .average()
-                .orElse(4.5);
+        // Calculate weighted average and round to 1 decimal place
+        double average = totalRating / totalReviews;
+        return Math.round(average * 10.0) / 10.0;
     }
     
     /**
