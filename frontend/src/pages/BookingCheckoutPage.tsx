@@ -59,6 +59,12 @@ const BookingCheckoutPageNew: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'VNPAY' | 'LATER' | null>(null);
+  
+  // Promotion code
+  const [promotionCode, setPromotionCode] = useState('');
+  const [appliedPromotion, setAppliedPromotion] = useState<{code: string; discount: number} | null>(null);
+  const [isValidatingPromotion, setIsValidatingPromotion] = useState(false);
+  const [promotionError, setPromotionError] = useState('');
 
   // Load tour data and prefilled data from navigation state
   useEffect(() => {
@@ -169,11 +175,67 @@ const BookingCheckoutPageNew: React.FC = () => {
       (numAdults * adultPrice) + 
       (numChildren * childPrice);
 
-    // TODO: Apply discounts/promotions
-    const discount = 0;
+    // Apply promotion discount if exists
+    const discount = appliedPromotion?.discount || 0;
     const total = subtotal - discount;
 
     return { subtotal, total, discount, adultPrice, childPrice };
+  };
+  
+  // Apply promotion code
+  const handleApplyPromotion = async () => {
+    if (!promotionCode.trim()) {
+      setPromotionError('Vui lòng nhập mã giảm giá');
+      return;
+    }
+    
+    if (!tour) return;
+    
+    setIsValidatingPromotion(true);
+    setPromotionError('');
+    
+    try {
+      // Calculate current subtotal without promotion
+      const adultPrice = selectedSchedule?.adultPrice || tour.price;
+      const childPrice = selectedSchedule?.childPrice || tour.childPrice || adultPrice * 0.7;
+      const subtotal = (numAdults * adultPrice) + (numChildren * childPrice);
+      
+      // Call API to calculate price with promotion
+      const priceWithPromotion = await bookingService.calculatePrice({
+        tourId: tour.id,
+        adults: numAdults,
+        children: numChildren,
+        promotionCode: promotionCode.toUpperCase()
+      });
+      
+      // Calculate discount amount
+      const discountAmount = subtotal - priceWithPromotion;
+      
+      if (discountAmount > 0) {
+        // Promotion is valid and gives discount
+        setAppliedPromotion({
+          code: promotionCode.toUpperCase(),
+          discount: discountAmount
+        });
+        setPromotionError('');
+      } else {
+        setPromotionError('Mã giảm giá không hợp lệ hoặc không áp dụng được');
+        setAppliedPromotion(null);
+      }
+    } catch (error: any) {
+      console.error('Error validating promotion:', error);
+      setPromotionError(error.response?.data?.message || 'Mã giảm giá không hợp lệ');
+      setAppliedPromotion(null);
+    } finally {
+      setIsValidatingPromotion(false);
+    }
+  };
+  
+  // Remove applied promotion
+  const handleRemovePromotion = () => {
+    setAppliedPromotion(null);
+    setPromotionCode('');
+    setPromotionError('');
   };
 
   const { total, discount, adultPrice, childPrice } = calculatePrices();
@@ -338,7 +400,7 @@ const BookingCheckoutPageNew: React.FC = () => {
         numChildren: numChildren || 0,
         specialRequests: specialRequests || undefined,
         contactPhone: cleanPhone,
-        promotionCode: undefined
+        promotionCode: appliedPromotion?.code || undefined
       };
       
       console.log('🔄 Creating booking with request:', bookingRequest);
@@ -729,6 +791,50 @@ const BookingCheckoutPageNew: React.FC = () => {
                 </div>
               )}
 
+              {/* Promotion Code Section */}
+              <div className="mb-6 pb-4 border-b border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  🎁 Mã giảm giá
+                </label>
+                {!appliedPromotion ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promotionCode}
+                      onChange={(e) => setPromotionCode(e.target.value.toUpperCase())}
+                      placeholder="Nhập mã giảm giá"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm uppercase"
+                      disabled={isValidatingPromotion}
+                    />
+                    <button
+                      onClick={handleApplyPromotion}
+                      disabled={isValidatingPromotion || !promotionCode.trim()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                    >
+                      {isValidatingPromotion ? '...' : 'Áp dụng'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600">✓</span>
+                      <span className="text-sm font-medium text-green-700">
+                        Mã "{appliedPromotion.code}" đã được áp dụng
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleRemovePromotion}
+                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                )}
+                {promotionError && (
+                  <p className="mt-2 text-sm text-red-600">{promotionError}</p>
+                )}
+              </div>
+
               {/* Price Breakdown */}
               <div className="space-y-3 mb-6">
                 {numAdults > 0 && (
@@ -746,9 +852,9 @@ const BookingCheckoutPageNew: React.FC = () => {
               </div>
 
               {discount > 0 && (
-                <div className="flex justify-between text-sm mb-4" style={{ color: '#D4AF37' }}>
-                  <span className="font-normal">Giảm giá</span>
-                  <span className="font-medium">-{discount.toLocaleString('vi-VN')}đ</span>
+                <div className="flex justify-between text-sm mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <span className="font-medium text-yellow-800">💰 Giảm giá ({appliedPromotion?.code})</span>
+                  <span className="font-bold text-yellow-600">-{discount.toLocaleString('vi-VN')}đ</span>
                 </div>
               )}
 

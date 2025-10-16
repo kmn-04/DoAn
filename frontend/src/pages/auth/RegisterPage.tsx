@@ -27,10 +27,16 @@ const registerSchema = z.object({
     .email('Email không hợp lệ'),
   phone: z
     .string()
-    .optional()
+    .min(1, 'Số điện thoại là bắt buộc')
+    .min(10, 'Số điện thoại phải có ít nhất 10 chữ số')
+    .max(15, 'Số điện thoại không được quá 15 chữ số')
+    .regex(
+      /^[0-9+\-\s()]*$/,
+      'Số điện thoại chỉ được chứa số và ký tự +, -, (, )'
+    )
     .refine(
-      (val) => !val || /^[0-9+\-\s()]*$/.test(val),
-      'Số điện thoại không hợp lệ'
+      (val) => val.replace(/[^0-9]/g, '').length >= 10,
+      'Số điện thoại phải có ít nhất 10 chữ số'
     ),
   password: z
     .string()
@@ -91,8 +97,11 @@ const RegisterPage: React.FC = () => {
     });
     
     if (result.success) {
-      // Sau khi đăng ký thành công, chuyển sang trang login
-      navigate('/login', { replace: true });
+      // Redirect to email verification pending page with email
+      navigate('/auth/verification-pending', { 
+        replace: true,
+        state: { email: data.email }
+      });
     }
     // Error handling is done in the useAuth hook
   };
@@ -159,12 +168,13 @@ const RegisterPage: React.FC = () => {
               {/* Phone Input */}
               <Input
                 {...register('phone')}
-                label="Số điện thoại (tùy chọn)"
+                label="Số điện thoại"
                 type="tel"
-                placeholder="Nhập số điện thoại"
+                placeholder="Nhập số điện thoại (VD: 0912345678)"
                 leftIcon={<PhoneIcon className="h-4 w-4" />}
                 error={errors.phone?.message}
                 disabled={isLoading}
+                required
               />
 
               {/* Password Input */}

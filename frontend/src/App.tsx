@@ -25,6 +25,9 @@ const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = React.lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = React.lazy(() => import('./pages/auth/ResetPasswordPage'));
+const VerifyEmailPage = React.lazy(() => import('./pages/auth/VerifyEmailPage'));
+const ResendVerificationPage = React.lazy(() => import('./pages/auth/ResendVerificationPage'));
+const EmailVerificationPendingPage = React.lazy(() => import('./pages/auth/EmailVerificationPendingPage'));
 const AboutPage = React.lazy(() => import('./pages/AboutPage'));
 const ContactPage = React.lazy(() => import('./pages/ContactPage'));
 
@@ -386,6 +389,21 @@ function App() {
             <Route path="/reset-password/:token" element={
               <Suspense fallback={<AuthPageLoader />}>
                 <ResetPasswordPage />
+              </Suspense>
+            } />
+            <Route path="/auth/verify-email" element={
+              <Suspense fallback={<AuthPageLoader />}>
+                <VerifyEmailPage />
+              </Suspense>
+            } />
+            <Route path="/auth/resend-verification" element={
+              <Suspense fallback={<AuthPageLoader />}>
+                <ResendVerificationPage />
+              </Suspense>
+            } />
+            <Route path="/auth/verification-pending" element={
+              <Suspense fallback={<AuthPageLoader />}>
+                <EmailVerificationPendingPage />
               </Suspense>
             } />
 

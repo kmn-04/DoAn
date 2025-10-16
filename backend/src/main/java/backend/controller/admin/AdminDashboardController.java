@@ -311,8 +311,8 @@ public class AdminDashboardController extends BaseController {
             
             log.info("Generated booking chart data: {} daily points, {} monthly points, {} statuses",
                     dailyData.size(), monthlyData.size(), statusData.size());
-            
-            return ResponseEntity.ok(success("Booking chart data retrieved successfully", chartData));
+        
+        return ResponseEntity.ok(success("Booking chart data retrieved successfully", chartData));
             
         } catch (Exception e) {
             log.error("Error generating booking chart data", e);
@@ -416,8 +416,8 @@ public class AdminDashboardController extends BaseController {
             
             log.info("Generated user chart data: {} registration points, {} activity points, {} statuses",
                     registrationsData.size(), activityData.size(), statusData.size());
-            
-            return ResponseEntity.ok(success("User chart data retrieved successfully", chartData));
+        
+        return ResponseEntity.ok(success("User chart data retrieved successfully", chartData));
             
         } catch (Exception e) {
             log.error("Error generating user chart data", e);
@@ -514,8 +514,8 @@ public class AdminDashboardController extends BaseController {
             
             log.info("Generated revenue chart data: {} daily points, {} monthly points, {} categories",
                     dailyData.size(), monthlyData.size(), categoryData.size());
-            
-            return ResponseEntity.ok(success("Revenue chart data retrieved successfully", chartData));
+        
+        return ResponseEntity.ok(success("Revenue chart data retrieved successfully", chartData));
             
         } catch (Exception e) {
             log.error("Error generating revenue chart data", e);

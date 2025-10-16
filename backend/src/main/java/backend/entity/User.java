@@ -164,6 +164,9 @@ public class User {
     }
     
     public enum UserStatus {
-        ACTIVE, INACTIVE, BANNED
+        PENDING,    // Email not verified yet
+        ACTIVE,     // Email verified and account active
+        INACTIVE,   // Account temporarily inactive
+        BANNED      // Account banned by admin
     }
 }
