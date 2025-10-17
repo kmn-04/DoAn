@@ -261,11 +261,21 @@ const bookingService = {
     adults: number;
     children?: number;
     promotionCode?: string;
-  }): Promise<number> => {
-    const response = await apiClient.get<number>('/bookings/calculate-price', {
+  }): Promise<{
+    subtotal: number;
+    discount: number;
+    total: number;
+    adultPrice: number;
+    childPrice: number;
+    adults: number;
+    children: number;
+    promotionCode?: string;
+    promotionDescription?: string;
+  }> => {
+    const response = await apiClient.get('/bookings/calculate-price', {
       params
     });
-    return response.data.data!;
+    return response.data.data;
   },
 
   // Check availability

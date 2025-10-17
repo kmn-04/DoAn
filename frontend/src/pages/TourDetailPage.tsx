@@ -769,9 +769,9 @@ const TourDetailPage: React.FC = () => {
                 </div>
               )}
 
-              {activeTab === 'reviews' && (
+              {activeTab === 'reviews' && tour && (
                 <TourReviews
-                  reviews={[]}
+                  tourId={tour.id}
                   overallRating={tour.rating}
                   totalReviews={tour.reviewCount}
                   ratingDistribution={ratingDistribution}

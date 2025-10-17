@@ -58,7 +58,7 @@ const AdminNotifications: React.FC = () => {
   const [formData, setFormData] = useState<NotificationFormData>({
     title: '',
     message: '',
-    type: 'Info',
+    type: 'INFO',
     recipientType: 'ALL',
     specificUserIds: []
   });
@@ -176,7 +176,7 @@ const AdminNotifications: React.FC = () => {
     setFormData({
       title: '',
       message: '',
-      type: 'Info',
+      type: 'INFO',
       recipientType: 'ALL',
       specificUserIds: []
     });
@@ -293,11 +293,11 @@ const AdminNotifications: React.FC = () => {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'Success':
+      case 'SUCCESS':
         return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
-      case 'Warning':
+      case 'WARNING':
         return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600" />;
-      case 'Error':
+      case 'ERROR':
         return <XCircleIcon className="h-5 w-5 text-red-600" />;
       default:
         return <InformationCircleIcon className="h-5 w-5 text-blue-600" />;
@@ -306,11 +306,11 @@ const AdminNotifications: React.FC = () => {
 
   const getTypeBadge = (type: string) => {
     switch (type) {
-      case 'Success':
+      case 'SUCCESS':
         return 'admin-badge-green';
-      case 'Warning':
+      case 'WARNING':
         return 'admin-badge-yellow';
-      case 'Error':
+      case 'ERROR':
         return 'admin-badge-red';
       default:
         return 'admin-badge-blue';
@@ -319,10 +319,10 @@ const AdminNotifications: React.FC = () => {
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      'Info': 'Thông tin',
-      'Success': 'Thành công',
-      'Warning': 'Cảnh báo',
-      'Error': 'Lỗi'
+      'INFO': 'Thông tin',
+      'SUCCESS': 'Thành công',
+      'WARNING': 'Cảnh báo',
+      'ERROR': 'Lỗi'
     };
     return labels[type] || type;
   };
@@ -409,10 +409,10 @@ const AdminNotifications: React.FC = () => {
                 className="admin-select"
               >
                 <option value="all">Tất cả</option>
-                <option value="Info">Thông tin</option>
-                <option value="Success">Thành công</option>
-                <option value="Warning">Cảnh báo</option>
-                <option value="Error">Lỗi</option>
+                <option value="INFO">Thông tin</option>
+                <option value="SUCCESS">Thành công</option>
+                <option value="WARNING">Cảnh báo</option>
+                <option value="ERROR">Lỗi</option>
               </select>
             </div>
 
@@ -620,10 +620,10 @@ const AdminNotifications: React.FC = () => {
                           onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                           className="admin-select"
                         >
-                          <option value="Info">ℹ️ Thông tin</option>
-                          <option value="Success">✅ Thành công</option>
-                          <option value="Warning">⚠️ Cảnh báo</option>
-                          <option value="Error">❌ Lỗi</option>
+                          <option value="INFO">ℹ️ Thông tin</option>
+                          <option value="SUCCESS">✅ Thành công</option>
+                          <option value="WARNING">⚠️ Cảnh báo</option>
+                          <option value="ERROR">❌ Lỗi</option>
                         </select>
                       </div>
                       <div>
@@ -787,10 +787,10 @@ const AdminNotifications: React.FC = () => {
                           onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                           className="admin-select"
                         >
-                          <option value="Info">ℹ️ Thông tin</option>
-                          <option value="Success">✅ Thành công</option>
-                          <option value="Warning">⚠️ Cảnh báo</option>
-                          <option value="Error">❌ Lỗi</option>
+                          <option value="INFO">ℹ️ Thông tin</option>
+                          <option value="SUCCESS">✅ Thành công</option>
+                          <option value="WARNING">⚠️ Cảnh báo</option>
+                          <option value="ERROR">❌ Lỗi</option>
                         </select>
                       </div>
                       <div>

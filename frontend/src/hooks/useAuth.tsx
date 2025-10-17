@@ -5,7 +5,7 @@ import { showToast } from '../components/ui/Toast';
 import authService from '../services/authService';
 
 export const useAuth = () => {
-  const { user, isAuthenticated, login, logout, setLoading, isLoading } = useAuthStore();
+  const { user, isAuthenticated, login, logout, setLoading, isLoading, updateUser } = useAuthStore();
   const navigate = useNavigate();
 
   // Login function
@@ -93,6 +93,7 @@ export const useAuth = () => {
     login: handleLogin,
     register: handleRegister,
     logout: handleLogout,
+    updateUser,
     
     // Utilities
     hasRole,

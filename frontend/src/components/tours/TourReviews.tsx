@@ -1,117 +1,226 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StarIcon,
   UserCircleIcon,
   HandThumbUpIcon,
   ChatBubbleLeftIcon,
-  PhotoIcon
+  PhotoIcon,
+  LockClosedIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 import { Button } from '../ui';
+import { useAuth } from '../../hooks/useAuth';
+import { reviewService } from '../../services';
 
 interface Review {
   id: number;
-  user: {
+  user?: {
+    id: number;
     name: string;
-    avatar?: string;
-    verified: boolean;
+    avatarUrl?: string;
   };
   rating: number;
-  title: string;
-  content: string;
-  date: string;
-  helpful: number;
+  comment: string;
+  status: string;
+  helpfulCount: number;
   images?: string[];
-  tourDate: string;
-  travelerType: 'family' | 'couple' | 'solo' | 'friends' | 'business';
+  createdAt: string;
+  updatedAt?: string;
+  adminReply?: string;
+  repliedAt?: string;
+  bookingId?: number;
+  tour?: {
+    id: number;
+    name: string;
+    slug: string;
+    mainImage?: string;
+  };
 }
 
 interface TourReviewsProps {
-  reviews: Review[];
+  tourId: number;
   overallRating: number;
   totalReviews: number;
   ratingDistribution: { [key: number]: number };
 }
 
-const mockReviews: Review[] = [
-  {
-    id: 1,
-    user: {
-      name: "Nguyễn Minh Anh",
-      verified: true
-    },
-    rating: 5,
-    title: "Chuyến đi tuyệt vời, đáng nhớ!",
-    content: "Tour được tổ chức rất chuyên nghiệp, hướng dẫn viên nhiệt tình và am hiểu. Khách sạn sạch sẽ, thức ăn ngon. Cảnh đẹp không thể tả được bằng lời. Sẽ quay lại lần nữa!",
-    date: "2024-01-15",
-    helpful: 12,
-    images: [
-      "https://images.unsplash.com/photo-1528127269322-539801943592?w=400",
-      "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=400"
-    ],
-    tourDate: "2024-01-10",
-    travelerType: "family"
-  },
-  {
-    id: 2,
-    user: {
-      name: "Trần Văn Hùng",
-      verified: true
-    },
-    rating: 4,
-    title: "Tour tốt, có một số điểm cần cải thiện",
-    content: "Nhìn chung tour khá ổn, cảnh đẹp, lịch trình hợp lý. Tuy nhiên xe hơi cũ và thời gian di chuyển hơi lâu. Hy vọng công ty sẽ cải thiện phương tiện.",
-    date: "2024-01-12",
-    helpful: 8,
-    tourDate: "2024-01-07",
-    travelerType: "couple"
-  },
-  {
-    id: 3,
-    user: {
-      name: "Lê Thị Mai",
-      verified: false
-    },
-    rating: 5,
-    title: "Trải nghiệm tuyệt vời cho lần đầu đi tour",
-    content: "Lần đầu đi tour nhóm nhưng cảm thấy rất hài lòng. Mọi thứ được sắp xếp chu đáo, không phải lo lắng gì cả. Đặc biệt ấn tượng với bữa tối BBQ trên bãi biển.",
-    date: "2024-01-10",
-    helpful: 15,
-    tourDate: "2024-01-05",
-    travelerType: "solo"
-  }
-];
 
 const TourReviews: React.FC<TourReviewsProps> = ({
-  reviews = mockReviews,
+  tourId,
   overallRating,
   totalReviews,
   ratingDistribution
 }) => {
+  const { user, isAuthenticated } = useAuth();
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [canReview, setCanReview] = useState(false);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest' | 'helpful'>('newest');
   const [filterRating, setFilterRating] = useState<number | null>(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
-
-  const travelerTypeLabels = {
-    family: 'Gia đình',
-    couple: 'Cặp đôi',
-    solo: 'Một mình',
-    friends: 'Bạn bè',
-    business: 'Công tác'
+  
+  // Review modal state
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  
+  // Like review state
+  const [likedReviews, setLikedReviews] = useState<Set<number>>(new Set());
+  
+  // Load reviews from API
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        setIsLoadingReviews(true);
+        const data = await reviewService.getTourReviews(tourId);
+        setReviews(data);
+      } catch (error) {
+        console.error('Error loading reviews:', error);
+        setReviews([]);
+      } finally {
+        setIsLoadingReviews(false);
+      }
+    };
+    
+    loadReviews();
+  }, [tourId]);
+  
+  // Check if user can review (only if authenticated and has completed tour)
+  useEffect(() => {
+    const checkCanReview = async () => {
+      if (!isAuthenticated || !user) {
+        setCanReview(false);
+        return;
+      }
+      
+      try {
+        // Check if user has completed booking for this tour
+        const canUserReview = await reviewService.canUserReviewTour(tourId);
+        setCanReview(canUserReview);
+      } catch (error) {
+        console.error('Error checking review permission:', error);
+        setCanReview(false);
+      }
+    };
+    
+    checkCanReview();
+  }, [isAuthenticated, user, tourId]);
+  
+  // Handle like review
+  const handleLikeReview = async (reviewId: number) => {
+    if (!isAuthenticated) {
+      alert('Vui lòng đăng nhập để thích đánh giá');
+      return;
+    }
+    
+    try {
+      await reviewService.voteHelpful(reviewId);
+      
+      // Update local state
+      setLikedReviews(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(reviewId)) {
+          newSet.delete(reviewId);
+        } else {
+          newSet.add(reviewId);
+        }
+        return newSet;
+      });
+      
+      // Update review count
+      setReviews(prevReviews => 
+        prevReviews.map(r => 
+          r.id === reviewId 
+            ? { ...r, helpfulCount: (r.helpfulCount || 0) + (likedReviews.has(reviewId) ? -1 : 1) }
+            : r
+        )
+      );
+      
+    } catch (error) {
+      console.error('Error liking review:', error);
+    }
+  };
+  
+  // Handle review submission
+  const handleSubmitReview = async () => {
+    if (!user) return;
+    
+    // Validate comment length
+    const commentLength = reviewComment.trim().length;
+    if (commentLength < 10) {
+      setReviewError('Nhận xét phải có ít nhất 10 ký tự');
+      return;
+    }
+    if (commentLength > 1000) {
+      setReviewError('Nhận xét không được vượt quá 1000 ký tự');
+      return;
+    }
+    
+    setReviewError('');
+    
+    try {
+      setIsSubmittingReview(true);
+      
+      // Find user's booking for this tour
+      const userBookings = await fetch(`http://localhost:8080/api/bookings/user/${user.id}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      }).then(r => r.json());
+      
+      const tourBooking = userBookings.data?.find((b: any) => 
+        b.tour?.id === tourId && 
+        (b.confirmationStatus === 'COMPLETED' || b.confirmationStatus === 'CONFIRMED') &&
+        b.paymentStatus === 'PAID'
+      );
+      
+      if (!tourBooking) {
+        setReviewError('Không tìm thấy booking hợp lệ cho tour này');
+        return;
+      }
+      
+      // Submit review
+      await reviewService.createReview({
+        tourId: tourId,
+        bookingId: tourBooking.id,
+        rating: reviewRating,
+        comment: reviewComment
+      });
+      
+      alert('Đánh giá của bạn đã được gửi thành công!');
+      
+      // Reset form
+      setShowReviewModal(false);
+      setReviewRating(5);
+      setReviewComment('');
+      setReviewError('');
+      setCanReview(false);
+      
+      // Reload reviews
+      const data = await reviewService.getTourReviews(tourId);
+      setReviews(data);
+      
+    } catch (error: any) {
+      console.error('Error submitting review:', error);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Có lỗi xảy ra khi gửi đánh giá';
+      setReviewError(errorMsg);
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
 
   const sortedReviews = [...reviews].sort((a, b) => {
     switch (sortBy) {
       case 'oldest':
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       case 'highest':
         return b.rating - a.rating;
       case 'lowest':
         return a.rating - b.rating;
       case 'helpful':
-        return b.helpful - a.helpful;
+        return (b.helpfulCount || 0) - (a.helpfulCount || 0);
       default: // newest
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
   });
 
@@ -235,10 +344,10 @@ const TourReviews: React.FC<TourReviewsProps> = ({
             {/* Review Header */}
             <div className="flex items-start space-x-4 mb-4">
               <div className="flex-shrink-0">
-                {review.user.avatar ? (
+                {review.user?.avatarUrl ? (
                   <img
-                    src={review.user.avatar}
-                    alt={review.user.name}
+                    src={review.user.avatarUrl}
+                    alt={review.user?.name || 'User'}
                     className="h-12 w-12 rounded-full object-cover"
                   />
                 ) : (
@@ -248,12 +357,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <h4 className="font-semibold text-gray-900">{review.user.name}</h4>
-                  {review.user.verified && (
-                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                      Đã xác minh
-                    </span>
-                  )}
+                  <h4 className="font-semibold text-gray-900">{review.user?.name || 'Người dùng ẩn danh'}</h4>
                 </div>
 
                 <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
@@ -262,21 +366,14 @@ const TourReviews: React.FC<TourReviewsProps> = ({
                     <span className="font-medium">{review.rating}/5</span>
                   </div>
                   <span>•</span>
-                  <span>{formatDate(review.date)}</span>
-                  <span>•</span>
-                  <span>{travelerTypeLabels[review.travelerType]}</span>
+                  <span>{formatDate(review.createdAt)}</span>
                 </div>
-
-                <p className="text-sm text-gray-600">
-                  Đã tham gia tour: {formatDate(review.tourDate)}
-                </p>
               </div>
             </div>
 
             {/* Review Content */}
             <div className="ml-16">
-              <h5 className="font-semibold text-gray-900 mb-2">{review.title}</h5>
-              <p className="text-gray-700 mb-4 leading-relaxed">{review.content}</p>
+              <p className="text-gray-700 mb-4 leading-relaxed">{review.comment}</p>
 
               {/* Review Images */}
               {review.images && review.images.length > 0 && (
@@ -294,14 +391,16 @@ const TourReviews: React.FC<TourReviewsProps> = ({
 
               {/* Review Actions */}
               <div className="flex items-center space-x-4 text-sm">
-                <button className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors">
-                  <HandThumbUpIcon className="h-4 w-4" />
-                  <span>Hữu ích ({review.helpful})</span>
-                </button>
-                
-                <button className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors">
-                  <ChatBubbleLeftIcon className="h-4 w-4" />
-                  <span>Trả lời</span>
+                <button 
+                  onClick={() => handleLikeReview(review.id)}
+                  className={`flex items-center space-x-1 transition-colors ${
+                    likedReviews.has(review.id) 
+                      ? 'text-blue-600' 
+                      : 'text-gray-600 hover:text-blue-600'
+                  }`}
+                >
+                  <HandThumbUpIcon className={`h-4 w-4 ${likedReviews.has(review.id) ? 'fill-blue-600' : ''}`} />
+                  <span>Hữu ích ({review.helpfulCount || 0})</span>
                 </button>
               </div>
             </div>
@@ -328,15 +427,148 @@ const TourReviews: React.FC<TourReviewsProps> = ({
       {/* Write Review CTA */}
       <div className="mt-8 pt-6 border-t">
         <div className="text-center">
-          <h4 className="text-lg font-semibold text-gray-900 mb-2">
-            Bạn đã từng tham gia tour này?
-          </h4>
-          <p className="text-gray-600 mb-4">
-            Chia sẻ trải nghiệm của bạn để giúp những khách hàng khác
-          </p>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2">
-            Viết đánh giá
-          </Button>
+          {!isAuthenticated ? (
+            // Not logged in
+            <>
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                Đăng nhập để viết đánh giá
+              </h4>
+              <p className="text-gray-600 mb-4">
+                Bạn cần đăng nhập và hoàn thành tour để có thể đánh giá
+              </p>
+              <Button 
+                onClick={() => window.location.href = '/login'}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2"
+              >
+                <LockClosedIcon className="h-5 w-5 inline mr-2" />
+                Đăng nhập
+              </Button>
+            </>
+          ) : canReview ? (
+            // Can write review
+            <>
+              {!showReviewModal ? (
+                <>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                    Bạn đã từng tham gia tour này?
+                  </h4>
+                  <p className="text-gray-600 mb-4">
+                    Chia sẻ trải nghiệm của bạn để giúp những khách hàng khác
+                  </p>
+                  <Button 
+                    onClick={() => setShowReviewModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+                  >
+                    Viết đánh giá
+                  </Button>
+                </>
+              ) : (
+                // Inline review form
+                <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                    Viết đánh giá của bạn
+                  </h4>
+                  
+                  {/* Rating */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Đánh giá *
+                    </label>
+                    <div className="flex items-center space-x-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewRating(star)}
+                          className="focus:outline-none transition-transform hover:scale-110"
+                        >
+                          <StarSolidIcon
+                            className={`h-8 w-8 ${
+                              star <= reviewRating ? 'text-yellow-400' : 'text-gray-300'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                      <span className="ml-2 text-sm font-medium text-gray-700">
+                        {reviewRating}/5
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Comment */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nhận xét *
+                    </label>
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => {
+                        setReviewComment(e.target.value);
+                        if (reviewError) setReviewError('');
+                      }}
+                      rows={4}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm ${
+                        reviewError ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Chia sẻ trải nghiệm của bạn về tour này (10-1000 ký tự)..."
+                    />
+                    <div className="flex justify-between items-center mt-1">
+                      <p className={`text-xs ${reviewComment.length < 10 || reviewComment.length > 1000 ? 'text-red-500' : 'text-gray-500'}`}>
+                        {reviewComment.length}/1000 ký tự (tối thiểu 10)
+                      </p>
+                    </div>
+                    {reviewError && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {reviewError}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex items-center justify-between">
+                    <button
+                      onClick={() => {
+                        setShowReviewModal(false);
+                        setReviewRating(5);
+                        setReviewComment('');
+                      }}
+                      className="text-sm text-gray-600 hover:text-gray-800"
+                    >
+                      Hủy
+                    </button>
+                    <Button
+                      onClick={handleSubmitReview}
+                      disabled={isSubmittingReview || reviewComment.trim().length < 10 || reviewComment.trim().length > 1000}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
+                    </Button>
+                  </div>
+                  
+                  <p className="mt-3 text-xs text-gray-500">
+                    Đánh giá sẽ được hiển thị ngay sau khi gửi
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            // Cannot write review (no completed booking)
+            <>
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                Bạn chưa thể đánh giá tour này
+              </h4>
+              <p className="text-gray-600 mb-4">
+                Chỉ khách hàng đã hoàn thành tour mới có thể viết đánh giá
+              </p>
+              <Button 
+                disabled
+                className="bg-gray-300 text-gray-600 px-6 py-2 cursor-not-allowed"
+              >
+                <LockClosedIcon className="h-5 w-5 inline mr-2" />
+                Chưa thể đánh giá
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -1,0 +1,13 @@
+### Trigger Booking Completion Job
+POST http://localhost:8080/api/bookings/completion/trigger
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN_HERE
+Content-Type: application/json
+
+###
+
+### Check if user can review tour (replace tourId)
+GET http://localhost:8080/api/reviews/tour/2/can-review
+Authorization: Bearer YOUR_USER_JWT_TOKEN_HERE
+
+###
+

@@ -32,12 +32,14 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     /**
      * Find reviews by status
      */
-    List<Review> findByStatusOrderByCreatedAtDesc(ReviewStatus status);
+    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user LEFT JOIN FETCH r.tour WHERE r.status = :status ORDER BY r.createdAt DESC")
+    List<Review> findByStatusOrderByCreatedAtDesc(@Param("status") ReviewStatus status);
     
     /**
      * Find approved reviews for tour
      */
-    List<Review> findByTourIdAndStatusOrderByCreatedAtDesc(Long tourId, ReviewStatus status);
+    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user LEFT JOIN FETCH r.tour WHERE r.tour.id = :tourId AND r.status = :status ORDER BY r.createdAt DESC")
+    List<Review> findByTourIdAndStatusOrderByCreatedAtDesc(@Param("tourId") Long tourId, @Param("status") ReviewStatus status);
     
     /**
      * Find approved reviews for tour with pagination

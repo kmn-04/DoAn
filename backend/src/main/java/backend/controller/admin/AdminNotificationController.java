@@ -89,26 +89,28 @@ public class AdminNotificationController extends BaseController {
             String recipientType = request.getRecipientType() != null ? request.getRecipientType() : "ALL";
             Notification.NotificationType type = request.getType() != null ? request.getType() : Notification.NotificationType.INFO;
             
-            // Always create a single notification with recipientType metadata
-            Notification notification = new Notification();
-            notification.setUser(null); // Always null - system notification
-            notification.setTitle(request.getTitle());
-            notification.setMessage(request.getMessage());
-            notification.setType(type);
-            notification.setLink(request.getLink());
-            notification.setRecipientType(recipientType); // Store recipient type
-            notification.setIsRead(false);
+            String title = request.getTitle();
+            String message = request.getMessage();
+            String link = request.getLink();
             
-            notificationService.createNotification(notification);
-            
-            String message = switch (recipientType.toUpperCase()) {
-                case "ADMIN" -> "Notification sent to all admins successfully";
-                case "USER" -> "Notification sent to all users successfully";
-                default -> "Notification sent to all users successfully";
-            };
-            
-            log.info("System notification created with recipientType: {}", recipientType);
-            return ResponseEntity.ok(success(message, "Notification created"));
+            // Create notifications based on recipient type
+            switch (recipientType.toUpperCase()) {
+                case "ADMIN" -> {
+                    notificationService.createNotificationForAdmins(title, message, type, link);
+                    log.info("Notification sent to all admins");
+                    return ResponseEntity.ok(success("Thông báo đã được gửi đến tất cả quản trị viên", "Notification sent"));
+                }
+                case "USER" -> {
+                    notificationService.createNotificationForUsers(title, message, type, link);
+                    log.info("Notification sent to all users (customers)");
+                    return ResponseEntity.ok(success("Thông báo đã được gửi đến tất cả người dùng", "Notification sent"));
+                }
+                default -> {
+                    notificationService.createNotificationForAllUsers(title, message, type);
+                    log.info("Notification sent to ALL users (admins + customers)");
+                    return ResponseEntity.ok(success("Thông báo đã được gửi đến tất cả người dùng", "Notification sent"));
+                }
+            }
         } catch (Exception e) {
             log.error("Error creating notification", e);
             return ResponseEntity.internalServerError()

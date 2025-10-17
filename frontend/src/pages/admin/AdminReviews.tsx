@@ -68,7 +68,7 @@ const AdminReviews: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('id');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     // Reset to page 1 when filters change
@@ -455,6 +455,7 @@ const AdminReviews: React.FC = () => {
           <table className="admin-table min-w-full">
             <thead className="admin-table-header">
               <tr>
+                <th className="admin-table-th">ID</th>
                 <th className="admin-table-th">Tour</th>
                 <th className="admin-table-th">Người dùng</th>
                 <th className="admin-table-th">Đánh giá</th>
@@ -467,7 +468,7 @@ const AdminReviews: React.FC = () => {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="admin-loading">
+                  <td colSpan={8} className="admin-loading">
                     <div className="admin-spinner">
                       <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -478,13 +479,14 @@ const AdminReviews: React.FC = () => {
                 </tr>
               ) : reviews.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="admin-empty">
+                  <td colSpan={8} className="admin-empty">
                     Không có dữ liệu
                   </td>
                 </tr>
               ) : (
                 reviews.map((review) => (
                   <tr key={review.id} className="admin-table-row">
+                    <td className="admin-table-td font-semibold text-gray-900">{review.id}</td>
                     <td className="admin-table-td font-medium">{review.tourName}</td>
                     <td className="admin-table-td">
                       <div className="text-sm">

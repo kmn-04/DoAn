@@ -211,6 +211,25 @@ public class ReviewController extends BaseController {
     }
     
     /**
+     * Check if current user can review a tour (without bookingId)
+     */
+    @GetMapping("/tour/{tourId}/can-review")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Check if current user can review this tour (has completed booking)")
+    public ResponseEntity<ApiResponse<Boolean>> canCurrentUserReviewTour(
+            @Parameter(description = "Tour ID") @PathVariable Long tourId) {
+        
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Long userId = userDetails.getId();
+        
+        // Check if user has any completed/confirmed booking for this tour and hasn't reviewed yet
+        boolean canReview = reviewService.hasCompletedBookingForTour(userId, tourId);
+        
+        return ResponseEntity.ok(success(canReview));
+    }
+    
+    /**
      * Get review by booking ID
      */
     @GetMapping("/booking/{bookingId}")

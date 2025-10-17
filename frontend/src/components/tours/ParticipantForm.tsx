@@ -22,6 +22,13 @@ interface ParticipantFormProps {
   numInfants: number;
   isInternational?: boolean;
   className?: string;
+  currentUser?: {
+    name: string;
+    email: string;
+    phone?: string;
+    dateOfBirth?: string;
+    gender?: 'MALE' | 'FEMALE' | 'OTHER';
+  };
 }
 
 const ParticipantForm: React.FC<ParticipantFormProps> = ({
@@ -31,7 +38,8 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
   numChildren,
   numInfants,
   isInternational = false,
-  className = ''
+  className = '',
+  currentUser
 }) => {
   const totalParticipants = numAdults + numChildren + numInfants;
 
@@ -44,13 +52,26 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
       
       // Add adults
       for (let i = 0; i < numAdults; i++) {
-        initial.push({
-          fullName: '',
-          dateOfBirth: '',
-          gender: 'MALE',
-          type: 'ADULT',
-          nationality: isInternational ? '' : 'Việt Nam'
-        });
+        // Auto-fill first adult with current user info
+        if (i === 0 && currentUser) {
+          initial.push({
+            fullName: currentUser.name || '',
+            dateOfBirth: currentUser.dateOfBirth || '',
+            gender: currentUser.gender || 'MALE',
+            type: 'ADULT',
+            nationality: isInternational ? '' : 'Việt Nam',
+            email: currentUser.email || '',
+            phone: currentUser.phone || ''
+          });
+        } else {
+          initial.push({
+            fullName: '',
+            dateOfBirth: '',
+            gender: 'MALE',
+            type: 'ADULT',
+            nationality: isInternational ? '' : 'Việt Nam'
+          });
+        }
       }
       
       // Add children
@@ -77,7 +98,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
       
       onParticipantsChange(initial);
     }
-  }, [numAdults, numChildren, numInfants, totalParticipants, participants.length, onParticipantsChange, isInternational]);
+  }, [numAdults, numChildren, numInfants, totalParticipants, participants.length, onParticipantsChange, isInternational, currentUser]);
 
   const updateParticipant = (index: number, field: keyof Participant, value: string) => {
     const updated = [...participants];

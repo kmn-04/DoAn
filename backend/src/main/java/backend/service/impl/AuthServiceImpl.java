@@ -68,7 +68,15 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhone(request.getPhone());
         user.setAddress(request.getAddress());
-        user.setDateOfBirth(request.getDateOfBirth());
+        
+        // Parse dateOfBirth from String
+        if (request.getDateOfBirth() != null && !request.getDateOfBirth().isEmpty()) {
+            user.setDateOfBirth(java.time.LocalDate.parse(request.getDateOfBirth()));
+        }
+        
+        // Set gender (now required)
+        user.setGender(User.Gender.valueOf(request.getGender()));
+        
         user.setRole(customerRole);
         user.setStatus(User.UserStatus.PENDING); // Set to PENDING until email verified
         

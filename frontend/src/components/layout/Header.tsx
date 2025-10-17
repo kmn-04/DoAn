@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useResponsive, touchTargets } from '../../utils/responsive';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Bars3Icon, 
   XMarkIcon, 
@@ -19,9 +18,10 @@ const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isTourDropdownOpen, setIsTourDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user, isAuthenticated, logout, getUserInitials } = useAuth();
   const location = useLocation();
-  const responsive = useResponsive();
+  const navigate = useNavigate();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const tourDropdownRef = useRef<HTMLDivElement>(null);
   const tourDropdownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -58,6 +58,14 @@ const Header: React.FC = () => {
   const handleLogout = () => {
     logout(); // This calls the logout from useAuth hook
     setIsUserMenuOpen(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/tours?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
   };
 
   const handleTourDropdownEnter = () => {
@@ -131,24 +139,25 @@ const Header: React.FC = () => {
           </div>
 
             {/* Search Bar */}
-            <div className="hidden md:flex items-center flex-1 max-w-lg mx-8">
+            <form onSubmit={handleSearch} className="hidden md:flex items-center flex-1 max-w-lg mx-8">
               <div className="relative w-full">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <MagnifyingGlassIcon className="h-5 w-5 text-gray-500" />
                 </div>
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Bạn muốn đi đâu?"
                   className="block w-full pl-12 pr-3 py-2.5 border border-slate-700 rounded-none leading-5 bg-slate-800 text-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-500 focus:ring-1 focus:border-[#D4AF37] font-normal text-sm"
-                  style={{ focusRingColor: '#D4AF37' }}
                 />
-                <button className="absolute inset-y-0 right-0 pr-2 flex items-center">
-                  <div className="text-white p-2 rounded-none transition-all shadow-md" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
+                <button type="submit" className="absolute inset-y-0 right-0 pr-2 flex items-center">
+                  <div className="text-white p-2 rounded-none transition-all shadow-md hover:opacity-90" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                     <MagnifyingGlassIcon className="h-4 w-4" />
                   </div>
                 </button>
               </div>
-            </div>
+            </form>
 
             {/* Hotline */}
             <div className="hidden lg:flex items-center space-x-3 text-white px-5 py-2.5 rounded-none transition-all border shadow-lg" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)', borderColor: '#C5A028' }}>
@@ -163,7 +172,7 @@ const Header: React.FC = () => {
 
             {/* Mobile Search Icon */}
             <button 
-              className={`md:hidden p-3 text-gray-300 hover:text-white hover:bg-slate-800 rounded-none transition-colors ${touchTargets.button}`}
+              className="md:hidden p-3 text-gray-300 hover:text-white hover:bg-slate-800 rounded-none transition-colors"
               aria-label="Tìm kiếm"
             >
               <MagnifyingGlassIcon className="h-6 w-6" />
@@ -265,8 +274,7 @@ const Header: React.FC = () => {
                   onClick={() => {
                     setIsUserMenuOpen(!isUserMenuOpen);
                   }}
-                  className="flex items-center space-x-2 text-sm rounded-none focus:outline-none focus:ring-1 focus:ring-offset-2"
-                  style={{ focusRingColor: '#D4AF37' }}
+                  className="flex items-center space-x-2 text-sm rounded-none focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-[#D4AF37]"
                 >
                   <div className="h-9 w-9 rounded-none bg-slate-900 border flex items-center justify-center" style={{ borderColor: '#D4AF37' }}>
                     {user?.avatarUrl ? (
@@ -357,7 +365,7 @@ const Header: React.FC = () => {
 
             {/* Mobile menu button */}
             <button
-              className={`md:hidden inline-flex items-center justify-center p-3 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors ${touchTargets.button}`}
+              className="md:hidden inline-flex items-center justify-center p-3 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors min-h-[48px] min-w-[48px]"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? 'Đóng menu' : 'Mở menu'}
             >
@@ -384,7 +392,7 @@ const Header: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Bạn muốn đi đâu?"
-                  className={`block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${touchTargets.input}`}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[48px]"
                 />
               </div>
             </div>

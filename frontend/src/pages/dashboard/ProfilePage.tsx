@@ -100,10 +100,8 @@ const ProfilePage: React.FC = () => {
         setEditData(profileData);
         setCurrentAvatarUrl(userProfile.avatarUrl || null);
         
-        // Update auth store with avatar from database
-        if (updateUser && userProfile.avatarUrl) {
-          updateUser({ avatarUrl: userProfile.avatarUrl });
-        }
+        // DON'T update auth store here - it causes infinite loop
+        // Auth store will be updated after avatar upload in handleAvatarUpload()
         
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -123,11 +121,6 @@ const ProfilePage: React.FC = () => {
           setProfileData(fallbackData);
           setEditData(fallbackData);
           setCurrentAvatarUrl(user.avatarUrl || null);
-          
-          // Update auth store with avatar from fallback
-          if (updateUser && user.avatarUrl) {
-            updateUser({ avatarUrl: user.avatarUrl });
-          }
         }
       } finally {
         setIsLoadingProfile(false);
@@ -135,7 +128,7 @@ const ProfilePage: React.FC = () => {
     };
 
     loadProfile();
-  }, [user]);
+  }, []); // Run only once on mount
 
   // Load user statistics
   useEffect(() => {
@@ -146,7 +139,10 @@ const ProfilePage: React.FC = () => {
         // Get user's booking count
         const bookings = await userService.getUserBookings(user.id);
         const totalBookings = bookings.length;
-        const completedBookings = bookings.filter(b => b.status === 'completed').length;
+        // Backend returns confirmationStatus in UPPERCASE (e.g., "COMPLETED")
+        const completedBookings = bookings.filter(b => 
+          b.confirmationStatus === 'COMPLETED' || b.status?.toUpperCase() === 'COMPLETED'
+        ).length;
         
         // Get user's review count from API
         const reviews = await reviewService.getMyReviews();
@@ -288,39 +284,54 @@ const ProfilePage: React.FC = () => {
           // Force avatar re-render
           setAvatarKey(prev => prev + 1);
           
-          // Convert file to base64 for storage
-          const reader = new FileReader();
-          reader.onload = async (e) => {
-            const base64String = e.target?.result as string;
+          // Upload file to server first
+          const formData = new FormData();
+          formData.append('file', file);
+          
+          try {
+            // Upload image to get URL
+            const uploadResponse = await fetch('http://localhost:8080/api/upload/avatar', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: formData
+            });
             
-            // Update profile with base64 avatar
+            if (!uploadResponse.ok) {
+              throw new Error('Failed to upload image');
+            }
+            
+            const uploadData = await uploadResponse.json();
+            const imageUrl = uploadData.data; // API returns { success: true, data: "url" }
+            
+            // Now update profile with image URL
             const updateRequest: UserUpdateRequest = {
               name: profileData.name,
               phone: profileData.phone || undefined,
               address: profileData.address || undefined,
               dateOfBirth: profileData.dateOfBirth || undefined,
-              avatarUrl: base64String
+              avatarUrl: imageUrl
             };
             
-            try {
-              await userService.updateProfile(updateRequest);
-              
-              // Update auth store with base64 URL
-              if (updateUser) {
-                updateUser({ avatarUrl: base64String });
-              }
-            } catch (error) {
-              console.error('Error updating profile with avatar:', error);
-              toast.error('Không thể lưu ảnh đại diện. Vui lòng thử lại');
+            await userService.updateProfile(updateRequest);
+            
+            // Update auth store with new URL
+            if (updateUser) {
+              updateUser({ avatarUrl: imageUrl });
             }
-          };
-          reader.readAsDataURL(file);
-          
-          toast.success('Ảnh đại diện đã được cập nhật thành công');
+            
+            toast.success('Ảnh đại diện đã được cập nhật thành công');
+            
+          } catch (error) {
+            console.error('Error updating profile with avatar:', error);
+            toast.error('Không thể lưu ảnh đại diện. Vui lòng thử lại');
+          } finally {
+            setIsUploadingAvatar(false);
+          }
         } catch (error) {
           console.error('Error uploading avatar:', error);
           toast.error('Không thể upload ảnh. Vui lòng thử lại');
-        } finally {
           setIsUploadingAvatar(false);
         }
       }

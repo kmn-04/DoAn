@@ -53,6 +53,10 @@ public class User {
     @Column(name = "dob")
     private LocalDate dateOfBirth;
     
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private Gender gender;
+    
     @Column(name = "email_verified_at")
     private LocalDateTime emailVerifiedAt;
     
@@ -168,5 +172,11 @@ public class User {
         ACTIVE,     // Email verified and account active
         INACTIVE,   // Account temporarily inactive
         BANNED      // Account banned by admin
+    }
+    
+    public enum Gender {
+        MALE,
+        FEMALE,
+        OTHER
     }
 }

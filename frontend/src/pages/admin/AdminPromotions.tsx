@@ -557,6 +557,7 @@ const AdminPromotions: React.FC = () => {
           <table className="admin-table">
             <thead className="admin-table-header">
               <tr>
+                <th className="admin-table-th">ID</th>
                 <th className="admin-table-th">Mã khuyến mãi</th>
                 <th className="admin-table-th">Loại</th>
                 <th className="admin-table-th">Giá trị</th>
@@ -569,7 +570,7 @@ const AdminPromotions: React.FC = () => {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="admin-loading">
+                  <td colSpan={8} className="admin-loading">
                     <div className="admin-spinner">
                       <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -580,7 +581,7 @@ const AdminPromotions: React.FC = () => {
                 </tr>
               ) : promotions.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="admin-empty">
+                  <td colSpan={8} className="admin-empty">
                     Không có dữ liệu
                   </td>
                 </tr>
@@ -589,6 +590,7 @@ const AdminPromotions: React.FC = () => {
                   const status = getPromotionStatus(promotion);
                   return (
                     <tr key={promotion.id} className="admin-table-row">
+                      <td className="admin-table-td font-semibold text-gray-900">{promotion.id}</td>
                       <td className="admin-table-td">
                         <span className="font-mono font-semibold text-purple-600">{promotion.code}</span>
                       </td>
