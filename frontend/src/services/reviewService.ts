@@ -64,7 +64,7 @@ const reviewService = {
    * Update own review
    */
   updateReview: async (reviewId: number, data: ReviewUpdateRequest): Promise<ReviewResponse> => {
-    const response = await api.put(`/api/reviews/${reviewId}`, data);
+    const response = await api.put(`/reviews/${reviewId}`, data);
     return response.data.data;
   },
 
@@ -72,14 +72,14 @@ const reviewService = {
    * Delete own review
    */
   deleteReview: async (reviewId: number): Promise<void> => {
-    await api.delete(`/api/reviews/${reviewId}`);
+    await api.delete(`/reviews/${reviewId}`);
   },
 
   /**
    * Get review by ID
    */
   getReviewById: async (reviewId: number): Promise<ReviewResponse> => {
-    const response = await api.get(`/api/reviews/${reviewId}`);
+    const response = await api.get(`/reviews/${reviewId}`);
     return response.data.data;
   },
 
@@ -87,7 +87,7 @@ const reviewService = {
    * Get reviews by tour ID
    */
   getReviewsByTourId: async (tourId: number): Promise<ReviewResponse[]> => {
-    const response = await api.get(`/api/reviews/tour/${tourId}`);
+    const response = await api.get(`/reviews/tour/${tourId}`);
     return response.data.data;
   },
 
@@ -110,7 +110,7 @@ const reviewService = {
     last: boolean;
     empty: boolean;
   }> => {
-    const response = await api.get(`/api/reviews/tour/${tourId}/paginated`, {
+    const response = await api.get(`/reviews/tour/${tourId}/paginated`, {
       params: { page, size, sortBy, sortDirection }
     });
     return response.data.data;
@@ -128,7 +128,7 @@ const reviewService = {
    * Get reviews by user ID
    */
   getReviewsByUserId: async (userId: number): Promise<ReviewResponse[]> => {
-    const response = await api.get(`/api/reviews/user/${userId}`);
+    const response = await api.get(`/reviews/user/${userId}`);
     return response.data.data;
   },
 
@@ -136,7 +136,7 @@ const reviewService = {
    * Vote a review as helpful
    */
   voteHelpful: async (reviewId: number): Promise<ReviewResponse> => {
-    const response = await api.post(`/api/reviews/${reviewId}/helpful`);
+    const response = await api.post(`/reviews/${reviewId}/helpful`);
     return response.data.data;
   },
 
@@ -154,7 +154,7 @@ const reviewService = {
    * Get review by booking ID
    */
   getReviewByBookingId: async (bookingId: number): Promise<ReviewResponse | null> => {
-    const response = await api.get(`/api/reviews/booking/${bookingId}`);
+    const response = await api.get(`/reviews/booking/${bookingId}`);
     return response.data.data;
   },
 
@@ -162,8 +162,27 @@ const reviewService = {
    * Get tour rating statistics
    */
   getTourRatingStats: async (tourId: number): Promise<TourRatingStats> => {
-    const response = await api.get(`/api/reviews/tour/${tourId}/stats`);
+    const response = await api.get(`/reviews/tour/${tourId}/stats`);
     return response.data.data;
+  },
+
+  /**
+   * Check if current user can review a tour (has completed booking)
+   */
+  canUserReviewTour: async (tourId: number): Promise<boolean> => {
+    try {
+      const response = await api.get(`/reviews/tour/${tourId}/can-review`);
+      return response.data.data === true || response.data.data?.canReview === true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Get tour reviews (alias for getReviewsByTourId)
+   */
+  getTourReviews: async (tourId: number): Promise<ReviewResponse[]> => {
+    return reviewService.getReviewsByTourId(tourId);
   },
 };
 

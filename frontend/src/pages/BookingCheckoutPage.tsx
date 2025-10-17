@@ -30,7 +30,7 @@ const BookingCheckoutPageNew: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   
   // Redirect if not authenticated
   useEffect(() => {
@@ -195,21 +195,16 @@ const BookingCheckoutPageNew: React.FC = () => {
     setPromotionError('');
     
     try {
-      // Calculate current subtotal without promotion
-      const adultPrice = selectedSchedule?.adultPrice || tour.price;
-      const childPrice = selectedSchedule?.childPrice || tour.childPrice || adultPrice * 0.7;
-      const subtotal = (numAdults * adultPrice) + (numChildren * childPrice);
-      
       // Call API to calculate price with promotion
-      const priceWithPromotion = await bookingService.calculatePrice({
+      const priceResult = await bookingService.calculatePrice({
         tourId: tour.id,
         adults: numAdults,
         children: numChildren,
         promotionCode: promotionCode.toUpperCase()
       });
       
-      // Calculate discount amount
-      const discountAmount = subtotal - priceWithPromotion;
+      // Backend returns discount amount directly
+      const discountAmount = priceResult.discount;
       
       if (discountAmount > 0) {
         // Promotion is valid and gives discount
@@ -224,7 +219,9 @@ const BookingCheckoutPageNew: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error validating promotion:', error);
-      setPromotionError(error.response?.data?.message || 'Mã giảm giá không hợp lệ');
+      // Backend returns error message in 'error' field, not 'message'
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Mã giảm giá không hợp lệ';
+      setPromotionError(errorMessage);
       setAppliedPromotion(null);
     } finally {
       setIsValidatingPromotion(false);
@@ -615,6 +612,13 @@ const BookingCheckoutPageNew: React.FC = () => {
                     numChildren={numChildren}
                     numInfants={0}
                     isInternational={tour.tourType === 'INTERNATIONAL'}
+                    currentUser={user ? {
+                      name: user.name,
+                      email: user.email,
+                      phone: user.phone,
+                      dateOfBirth: user.dateOfBirth,
+                      gender: user.gender
+                    } : undefined}
                   />
                   {errors.participants && (
                     <p className="text-red-500 text-sm mt-2">{errors.participants}</p>

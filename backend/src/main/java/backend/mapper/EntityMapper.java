@@ -717,7 +717,14 @@ public class EntityMapper {
         
         Partner partner = new Partner();
         partner.setName(request.getName());
-        partner.setSlug(request.getSlug());
+        
+        // Auto-generate slug if not provided
+        if (request.getSlug() == null || request.getSlug().trim().isEmpty()) {
+            partner.setSlug(generateSlug(request.getName()));
+        } else {
+            partner.setSlug(request.getSlug());
+        }
+        
         partner.setDescription(request.getDescription());
         partner.setType(request.getType());
         partner.setAddress(request.getAddress());
@@ -726,7 +733,7 @@ public class EntityMapper {
         partner.setWebsite(request.getWebsite());
         partner.setEstablishedYear(request.getEstablishedYear());
         partner.setAvatarUrl(request.getAvatarUrl());
-        partner.setStatus(request.getStatus());
+        partner.setStatus(request.getStatus() != null ? request.getStatus() : backend.entity.Partner.PartnerStatus.ACTIVE);
         partner.setSpecialties(request.getSpecialties());
         
         return partner;
@@ -913,5 +920,30 @@ public class EntityMapper {
                     .filter(line -> !line.isEmpty())
                     .collect(Collectors.toList());
         }
+    }
+    
+    // ========== HELPER METHODS ==========
+    private String generateSlug(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return "partner-" + System.currentTimeMillis();
+        }
+        
+        // Convert to lowercase and replace spaces with hyphens
+        String slug = name.toLowerCase()
+                .trim()
+                .replaceAll("[àáạảãâầấậẩẫăằắặẳẵ]", "a")
+                .replaceAll("[èéẹẻẽêềếệểễ]", "e")
+                .replaceAll("[ìíịỉĩ]", "i")
+                .replaceAll("[òóọỏõôồốộổỗơờớợởỡ]", "o")
+                .replaceAll("[ùúụủũưừứựửữ]", "u")
+                .replaceAll("[ỳýỵỷỹ]", "y")
+                .replaceAll("[đ]", "d")
+                .replaceAll("[^a-z0-9\\s-]", "") // Remove special chars
+                .replaceAll("\\s+", "-")         // Replace spaces with hyphens
+                .replaceAll("-+", "-")           // Replace multiple hyphens with single
+                .replaceAll("^-|-$", "");        // Remove leading/trailing hyphens
+        
+        // Add timestamp to ensure uniqueness
+        return slug + "-" + System.currentTimeMillis();
     }
 }

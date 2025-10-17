@@ -482,7 +482,7 @@ public class AdminUserController extends BaseController {
             );
             
             log.info("Found {} users with suspicious activity", suspiciousUsers.size());
-            return ResponseEntity.ok(success("Suspicious activity retrieved", suspiciousUsers));
+        return ResponseEntity.ok(success("Suspicious activity retrieved", suspiciousUsers));
             
         } catch (Exception e) {
             log.error("Error detecting suspicious activity", e);

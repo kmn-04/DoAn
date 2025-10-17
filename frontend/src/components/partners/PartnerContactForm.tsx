@@ -57,9 +57,19 @@ const PartnerContactForm: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const response = await fetch('http://localhost:8080/api/contact/partner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit application');
+      }
+
       setIsSubmitted(true);
       // Reset form
       setFormData({
@@ -72,7 +82,12 @@ const PartnerContactForm: React.FC = () => {
         website: '',
         message: ''
       });
-    }, 2000);
+    } catch (error) {
+      console.error('Error submitting partner application:', error);
+      alert('Có lỗi xảy ra khi gửi đơn đăng ký. Vui lòng thử lại sau.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {

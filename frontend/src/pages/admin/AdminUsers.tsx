@@ -20,6 +20,8 @@ interface User {
   name: string;
   email: string;
   phone?: string;
+  address?: string;
+  dateOfBirth?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
   avatarUrl?: string;
   role: {
@@ -27,6 +29,11 @@ interface User {
     name: string;
   };
   createdAt?: string;
+  emailVerifiedAt?: string;
+  lastLoginAt?: string;
+  totalBookings?: number;
+  totalTourViews?: number;
+  loginCount?: number;
 }
 
 interface Role {
@@ -746,6 +753,50 @@ const AdminUsers: React.FC = () => {
                       <div className="admin-view-item">
                         <p className="admin-view-label">Ngày tạo</p>
                         <p className="admin-view-value">{formatDate(viewingUser.createdAt)}</p>
+                      </div>
+                      {viewingUser.address && (
+                        <div className="admin-view-item col-span-2">
+                          <p className="admin-view-label">Địa chỉ</p>
+                          <p className="admin-view-value">{viewingUser.address}</p>
+                        </div>
+                      )}
+                      {viewingUser.dateOfBirth && (
+                        <div className="admin-view-item">
+                          <p className="admin-view-label">Ngày sinh</p>
+                          <p className="admin-view-value">{formatDate(viewingUser.dateOfBirth)}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="admin-view-section">
+                    <h4 className="admin-view-section-title">Thông tin hoạt động</h4>
+                    <div className="admin-view-grid">
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Email đã xác thực</p>
+                        <p className="admin-view-value">
+                          {viewingUser.emailVerifiedAt ? (
+                            <span className="admin-badge-green">✓ Đã xác thực</span>
+                          ) : (
+                            <span className="admin-badge-gray">Chưa xác thực</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Lần đăng nhập cuối</p>
+                        <p className="admin-view-value">{formatDate(viewingUser.lastLoginAt) || 'Chưa đăng nhập'}</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Số lần đăng nhập</p>
+                        <p className="admin-view-value">{viewingUser.loginCount || 0}</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Tổng số đặt tour</p>
+                        <p className="admin-view-value">{viewingUser.totalBookings || 0}</p>
+                      </div>
+                      <div className="admin-view-item">
+                        <p className="admin-view-label">Lượt xem tour</p>
+                        <p className="admin-view-value">{viewingUser.totalTourViews || 0}</p>
                       </div>
                     </div>
                   </div>

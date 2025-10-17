@@ -33,7 +33,7 @@ public class FileUploadController extends BaseController {
     private String serverPort;
 
     @PostMapping("/image")
-    @Operation(summary = "Upload single image")
+    @Operation(summary = "Upload single image (Admin only)")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
@@ -43,6 +43,19 @@ public class FileUploadController extends BaseController {
             log.error("Error uploading image", e);
             return ResponseEntity.internalServerError()
                     .body(error("Failed to upload image: " + e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/avatar")
+    @Operation(summary = "Upload avatar image (Authenticated users)")
+    public ResponseEntity<ApiResponse<String>> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        try {
+            String imageUrl = saveFile(file);
+            return ResponseEntity.ok(success("Avatar uploaded successfully", imageUrl));
+        } catch (Exception e) {
+            log.error("Error uploading avatar", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to upload avatar: " + e.getMessage()));
         }
     }
 

@@ -8,8 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -40,7 +38,12 @@ public class RegisterRequest {
     @Size(max = 255, message = "Address must not exceed 255 characters")
     private String address;
     
-    private LocalDate dateOfBirth;
+    @NotBlank(message = "Date of birth is required")
+    private String dateOfBirth; // Changed to String for validation, will convert to LocalDate
+    
+    @NotBlank(message = "Gender is required")
+    @Pattern(regexp = "^(MALE|FEMALE|OTHER)$", message = "Gender must be MALE, FEMALE, or OTHER")
+    private String gender;
     
     // Custom validation method
     public boolean isPasswordMatching() {

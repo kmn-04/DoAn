@@ -38,6 +38,21 @@ const registerSchema = z.object({
       (val) => val.replace(/[^0-9]/g, '').length >= 10,
       'Số điện thoại phải có ít nhất 10 chữ số'
     ),
+  dateOfBirth: z
+    .string()
+    .min(1, 'Ngày sinh là bắt buộc')
+    .refine(
+      (val) => {
+        const date = new Date(val);
+        const age = (new Date().getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 365);
+        return age >= 16 && age <= 120;
+      },
+      'Bạn phải từ 16 tuổi trở lên'
+    ),
+  gender: z
+    .enum(['MALE', 'FEMALE', 'OTHER'], {
+      errorMap: () => ({ message: 'Vui lòng chọn giới tính' })
+    }),
   password: z
     .string()
     .min(1, 'Mật khẩu là bắt buộc')
@@ -79,6 +94,8 @@ const RegisterPage: React.FC = () => {
       name: '',
       email: '',
       phone: '',
+      dateOfBirth: '',
+      gender: 'MALE',
       password: '',
       confirmPassword: '',
       acceptTerms: false,
@@ -92,6 +109,8 @@ const RegisterPage: React.FC = () => {
       name: data.name,
       email: data.email,
       phone: data.phone,
+      dateOfBirth: data.dateOfBirth,
+      gender: data.gender,
       password: data.password,
       confirmPassword: data.confirmPassword,
     });
@@ -176,6 +195,44 @@ const RegisterPage: React.FC = () => {
                 disabled={isLoading}
                 required
               />
+
+              {/* Date of Birth */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ngày sinh <span className="text-red-500">*</span>
+                </label>
+                <input
+                  {...register('dateOfBirth')}
+                  type="date"
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split('T')[0]}
+                  className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
+                  disabled={isLoading}
+                  required
+                />
+                {errors.dateOfBirth && (
+                  <p className="mt-1 text-sm text-red-600 font-normal">{errors.dateOfBirth.message}</p>
+                )}
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Giới tính <span className="text-red-500">*</span>
+                </label>
+                <select
+                  {...register('gender')}
+                  className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
+                  disabled={isLoading}
+                  required
+                >
+                  <option value="MALE">Nam</option>
+                  <option value="FEMALE">Nữ</option>
+                  <option value="OTHER">Khác</option>
+                </select>
+                {errors.gender && (
+                  <p className="mt-1 text-sm text-red-600 font-normal">{errors.gender.message}</p>
+                )}
+              </div>
 
               {/* Password Input */}
               <div className="relative">

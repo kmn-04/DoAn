@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Tag(name = "Admin Contact Management", description = "Admin APIs for managing contact requests")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
-// @PreAuthorize("hasRole('ADMIN')") // Temporarily disabled for testing
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminContactController extends BaseController {
     
     private final ContactRequestService contactRequestService;

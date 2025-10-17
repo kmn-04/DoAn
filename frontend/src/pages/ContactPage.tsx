@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   PhoneIcon,
   EnvelopeIcon,
@@ -8,11 +8,13 @@ import {
   PaperAirplaneIcon,
   CheckCircleIcon,
   ChevronDownIcon,
-  ChevronUpIcon
+  ChevronUpIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Card, Button, Input } from '../components/ui';
 import { showToast } from '../components/ui/Toast';
-import { contactService } from '../services';
+import { contactService, tourService } from '../services';
 import type { ContactRequest } from '../services/contactService';
 
 interface ContactForm {
@@ -50,6 +52,13 @@ const ContactPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
+  
+  // Tour search states
+  const [tourSearchQuery, setTourSearchQuery] = useState('');
+  const [tourSearchResults, setTourSearchResults] = useState<any[]>([]);
+  const [showTourDropdown, setShowTourDropdown] = useState(false);
+  const [isSearchingTours, setIsSearchingTours] = useState(false);
+  const tourSearchRef = useRef<HTMLDivElement>(null);
 
   // Contact information
   const contactInfo: ContactInfo[] = [
@@ -79,16 +88,60 @@ const ContactPage: React.FC = () => {
     }
   ];
 
-  // Tour interest options
-  const tourInterests = [
-    'Tour trong nước',
-    'Tour quốc tế',
-    'Tour cao cấp',
-    'Tour tiết kiệm',
-    'Tour gia đình',
-    'Tour doanh nghiệp',
-    'Khác'
-  ];
+  // Search tours with debounce
+  useEffect(() => {
+    if (tourSearchQuery.trim().length < 2) {
+      setTourSearchResults([]);
+      setShowTourDropdown(false);
+      return;
+    }
+
+    const searchTours = async () => {
+      setIsSearchingTours(true);
+      try {
+        const response = await tourService.searchTours({
+          keyword: tourSearchQuery,
+          page: 0,
+          size: 5
+        });
+        setTourSearchResults(response.content || []);
+        setShowTourDropdown(true);
+      } catch (error) {
+        console.error('Error searching tours:', error);
+        setTourSearchResults([]);
+      } finally {
+        setIsSearchingTours(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchTours, 300);
+    return () => clearTimeout(timeoutId);
+  }, [tourSearchQuery]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tourSearchRef.current && !tourSearchRef.current.contains(event.target as Node)) {
+        setShowTourDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectTour = (tour: any) => {
+    setFormData(prev => ({ ...prev, tourInterest: tour.name }));
+    setTourSearchQuery(tour.name);
+    setShowTourDropdown(false);
+  };
+
+  const handleClearTourSearch = () => {
+    setTourSearchQuery('');
+    setFormData(prev => ({ ...prev, tourInterest: '' }));
+    setTourSearchResults([]);
+    setShowTourDropdown(false);
+  };
 
   // FAQ data with detailed answers
   const faqItems: FAQItem[] = [
@@ -356,22 +409,75 @@ const ContactPage: React.FC = () => {
                       className="w-full"
                     />
                   </div>
-                  <div>
+                  <div ref={tourSearchRef} className="relative">
                     <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-                      Quan tâm đến tour
+                      Tour quan tâm (không bắt buộc)
                     </label>
-                    <select
-                      value={formData.tourInterest}
-                      onChange={(e) => handleInputChange('tourInterest', e.target.value)}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
-                    >
-                      <option value="">Chọn loại tour quan tâm</option>
-                      {tourInterests.map((interest) => (
-                        <option key={interest} value={interest}>
-                          {interest}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={tourSearchQuery}
+                        onChange={(e) => setTourSearchQuery(e.target.value)}
+                        onFocus={() => tourSearchQuery.length >= 2 && setShowTourDropdown(true)}
+                        placeholder="Tìm kiếm tour (VD: Sapa, Đà Nẵng...)"
+                        className="w-full pl-10 pr-10 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
+                      />
+                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      {tourSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={handleClearTourSearch}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          <XMarkIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                      {isSearchingTours && (
+                        <div className="absolute right-10 top-1/2 -translate-y-1/2">
+                          <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-slate-700 rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Tour Search Dropdown */}
+                    {showTourDropdown && tourSearchResults.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-stone-300 rounded-none shadow-lg max-h-60 overflow-y-auto">
+                        {tourSearchResults.map((tour) => (
+                          <button
+                            key={tour.id}
+                            type="button"
+                            onClick={() => handleSelectTour(tour)}
+                            className="w-full px-4 py-3 text-left hover:bg-stone-50 transition-colors border-b border-stone-100 last:border-b-0"
+                          >
+                            <div className="flex items-start space-x-3">
+                              {tour.mainImage && (
+                                <img 
+                                  src={tour.mainImage} 
+                                  alt={tour.name}
+                                  className="w-12 h-12 object-cover rounded-none flex-shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-slate-900 text-sm truncate">
+                                  {tour.name}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {tour.duration} • {tour.priceAdult?.toLocaleString('vi-VN')}đ
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {showTourDropdown && tourSearchQuery.length >= 2 && tourSearchResults.length === 0 && !isSearchingTours && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-stone-300 rounded-none shadow-lg p-4">
+                        <p className="text-sm text-gray-500 text-center">
+                          Không tìm thấy tour nào với từ khóa "{tourSearchQuery}"
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -72,9 +72,10 @@ public class ReviewServiceImpl implements ReviewService {
             throw new RuntimeException("Booking is not for this tour");
         }
         
-        // Check if booking is confirmed and paid
-        if (booking.getConfirmationStatus() != Booking.ConfirmationStatus.CONFIRMED) {
-            throw new RuntimeException("Can only review confirmed bookings");
+        // Check if booking is confirmed or completed
+        if (booking.getConfirmationStatus() != Booking.ConfirmationStatus.CONFIRMED 
+                && booking.getConfirmationStatus() != Booking.ConfirmationStatus.COMPLETED) {
+            throw new RuntimeException("Can only review confirmed or completed bookings");
         }
         
         if (booking.getPaymentStatus() != Booking.PaymentStatus.PAID) {
@@ -93,7 +94,7 @@ public class ReviewServiceImpl implements ReviewService {
         review.setBooking(booking);
         review.setRating(request.getRating());
         review.setComment(request.getComment());
-        review.setStatus(ReviewStatus.PENDING); // Pending approval
+        review.setStatus(ReviewStatus.APPROVED); // Auto-approve
         review.setHelpfulCount(0);
         
         Review savedReview = reviewRepository.save(review);
@@ -248,12 +249,40 @@ public class ReviewServiceImpl implements ReviewService {
             return false;
         }
         
-        // Check if booking belongs to user, is for this tour, is confirmed and paid
+        // Check if booking belongs to user, is for this tour
+        // Allow review if booking is CONFIRMED or COMPLETED (tour finished)
+        // Must be PAID and user hasn't reviewed yet
+        boolean isValidStatus = booking.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED
+                || booking.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED;
+        
         return booking.getUser().getId().equals(userId)
                 && booking.getTour().getId().equals(tourId)
-                && booking.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED
+                && isValidStatus
                 && booking.getPaymentStatus() == Booking.PaymentStatus.PAID
                 && !reviewRepository.existsByUserIdAndTourId(userId, tourId);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasCompletedBookingForTour(Long userId, Long tourId) {
+        // Check if user has any completed or confirmed booking for this tour
+        // and hasn't reviewed it yet
+        List<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        
+        for (Booking booking : bookings) {
+            if (booking.getTour().getId().equals(tourId)) {
+                boolean isValidStatus = booking.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED
+                        || booking.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED;
+                boolean isPaid = booking.getPaymentStatus() == Booking.PaymentStatus.PAID;
+                boolean notReviewed = !reviewRepository.existsByUserIdAndTourId(userId, tourId);
+                
+                if (isValidStatus && isPaid && notReviewed) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
     
     @Override

@@ -71,6 +71,11 @@ public interface ReviewService {
     boolean canUserReviewTour(Long userId, Long tourId, Long bookingId);
     
     /**
+     * Check if user has completed booking for a tour (without specific bookingId)
+     */
+    boolean hasCompletedBookingForTour(Long userId, Long tourId);
+    
+    /**
      * Get review by booking ID
      */
     ReviewResponse getReviewByBookingId(Long bookingId);
