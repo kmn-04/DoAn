@@ -8,7 +8,8 @@ import {
   BellIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -23,6 +24,12 @@ const navigationItems = [
     name: 'Booking của tôi',
     href: '/bookings',
     icon: TicketIcon
+  },
+  {
+    name: 'Điểm thưởng',
+    href: '/loyalty',
+    icon: SparklesIcon,
+    badge: true
   },
   {
     name: 'Tour yêu thích',

@@ -37,6 +37,7 @@ const ProfilePage = React.lazy(() => import('./pages/dashboard/ProfilePage'));
 const WishlistPage = React.lazy(() => import('./pages/dashboard/WishlistPage'));
 const NotificationsPage = React.lazy(() => import('./pages/dashboard/NotificationsPage'));
 const MyReviewsPage = React.lazy(() => import('./pages/dashboard/MyReviewsPage'));
+const LoyaltyPage = React.lazy(() => import('./pages/dashboard/LoyaltyPage'));
 
 // Admin pages - lazy loaded
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
@@ -225,6 +226,16 @@ function App() {
                 <Layout>
                   <Suspense fallback={<DashboardPageLoader />}>
                     <MyReviewsPage />
+                  </Suspense>
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/loyalty" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <LoyaltyPage />
                   </Suspense>
                 </Layout>
               </ProtectedRoute>

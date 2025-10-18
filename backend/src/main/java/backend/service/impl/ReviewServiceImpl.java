@@ -38,6 +38,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final BookingRepository bookingRepository;
     private final EntityMapper mapper;
     private final NotificationService notificationService;
+    private final backend.service.LoyaltyService loyaltyService;
     
     @Override
     @Transactional(readOnly = true)
@@ -101,6 +102,19 @@ public class ReviewServiceImpl implements ReviewService {
         
         // Update tour rating
         updateTourRating(request.getTourId());
+        
+        // Award loyalty points for review
+        try {
+            // Check if review has photos (for future implementation)
+            boolean hasPhotos = false; // TODO: Add images support to ReviewCreateRequest
+            int contentLength = request.getComment() != null ? request.getComment().length() : 0;
+            
+            loyaltyService.awardReviewPoints(userId, savedReview.getId(), hasPhotos, contentLength);
+            log.info("Awarded loyalty points for review {}", savedReview.getId());
+        } catch (Exception e) {
+            log.error("Error awarding loyalty points for review {}: {}", savedReview.getId(), e.getMessage());
+            // Don't fail review creation if loyalty points fail
+        }
         
         log.info("Review created successfully with ID: {}", savedReview.getId());
         return mapper.toReviewResponse(savedReview);
@@ -355,11 +369,33 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
         
+        // Check if review was pending (not yet awarded points)
+        boolean wasPending = review.getStatus() == ReviewStatus.PENDING;
+        
         review.setStatus(ReviewStatus.APPROVED);
         Review approvedReview = reviewRepository.save(review);
         
         // Update tour rating
         updateTourRating(review.getTour().getId());
+        
+        // Award loyalty points if review was just approved (not auto-approved)
+        if (wasPending) {
+            try {
+                // Check if review has photos (assuming images field exists in Review entity)
+                boolean hasPhotos = false; // You may need to check review images
+                int contentLength = review.getComment() != null ? review.getComment().length() : 0;
+                
+                loyaltyService.awardReviewPoints(
+                    review.getUser().getId(), 
+                    review.getId(), 
+                    hasPhotos, 
+                    contentLength
+                );
+                log.info("Awarded loyalty points for approved review {}", reviewId);
+            } catch (Exception e) {
+                log.error("Error awarding loyalty points for review {}: {}", reviewId, e.getMessage());
+            }
+        }
         
         log.info("Review approved successfully: {}", reviewId);
         return mapper.toReviewResponse(approvedReview);

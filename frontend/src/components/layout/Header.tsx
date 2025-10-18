@@ -9,7 +9,8 @@ import {
   ArrowRightOnRectangleIcon,
   UserCircleIcon,
   ChevronDownIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
 import { NotificationCenter } from '../notifications';
@@ -109,6 +110,7 @@ const Header: React.FC = () => {
   const userNavigation = [
     { name: 'Hồ sơ cá nhân', href: '/profile', icon: UserCircleIcon },
     { name: 'Booking của tôi', href: '/bookings', icon: ShoppingBagIcon },
+    { name: 'Điểm thưởng', href: '/loyalty', icon: SparklesIcon },
     { name: 'Tour yêu thích', href: '/wishlist', icon: HeartIcon },
   ];
 
