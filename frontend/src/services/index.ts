@@ -6,6 +6,7 @@ export { default as bookingService } from './bookingService';
 export { default as categoryService } from './categoryService';
 export { default as userService } from './userService';
 export { default as wishlistService } from './wishlistService';
+export { default as loyaltyService } from './loyaltyService';
 export { default as notificationService } from './notificationService';
 export { default as recommendationService } from './recommendationService';
 export { default as cancellationService } from './cancellationService';

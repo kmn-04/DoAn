@@ -43,6 +43,8 @@ public class BookingServiceImpl implements BookingService {
     private final PromotionRepository promotionRepository;
     private final BookingMapper bookingMapper;
     private final NotificationService notificationService;
+    private final backend.service.LoyaltyService loyaltyService;
+    private final backend.service.ReferralService referralService;
     
     @Override
     public Booking createBooking(Booking booking) {
@@ -410,6 +412,35 @@ public class BookingServiceImpl implements BookingService {
         booking.setConfirmationStatus(ConfirmationStatus.COMPLETED);
         Booking completedBooking = bookingRepository.save(booking);
         
+        // Award loyalty points for completed booking
+        try {
+            if (booking.getUser() != null) {
+                String tourType = booking.getTour().getTourType() != null 
+                    ? booking.getTour().getTourType().name() 
+                    : "DOMESTIC";
+                
+                loyaltyService.awardBookingPoints(
+                    booking.getUser().getId(),
+                    booking.getId(),
+                    booking.getFinalAmount(),
+                    tourType
+                );
+                
+                log.info("Awarded loyalty points for booking {}", bookingId);
+                
+                // Complete referral if this is user's first booking
+                try {
+                    referralService.completeReferral(booking.getUser().getId(), booking.getId());
+                } catch (Exception e) {
+                    log.debug("No referral to complete for user {}: {}", 
+                        booking.getUser().getId(), e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error awarding loyalty points for booking {}: {}", bookingId, e.getMessage());
+            // Don't fail the booking completion if loyalty points fail
+        }
+        
         log.info("Booking completed successfully with ID: {}", bookingId);
         return completedBooking;
     }
@@ -624,6 +655,37 @@ public class BookingServiceImpl implements BookingService {
         booking.setUpdatedAt(LocalDateTime.now());
         
         Booking updated = bookingRepository.save(booking);
+        
+        // Award loyalty points if booking is completed and paid
+        if (newStatus == ConfirmationStatus.COMPLETED && booking.getPaymentStatus() == PaymentStatus.PAID) {
+            try {
+                if (booking.getUser() != null) {
+                    String tourType = booking.getTour().getTourType() != null 
+                        ? booking.getTour().getTourType().name() 
+                        : "DOMESTIC";
+                    
+                    loyaltyService.awardBookingPoints(
+                        booking.getUser().getId(),
+                        booking.getId(),
+                        booking.getFinalAmount(),
+                        tourType
+                    );
+                    
+                    log.info("✅ Awarded loyalty points for manually completed booking {}", bookingId);
+                    
+                    // Complete referral if applicable
+                    try {
+                        referralService.completeReferral(booking.getUser().getId(), booking.getId());
+                    } catch (Exception e) {
+                        log.debug("No referral to complete for user {}", booking.getUser().getId());
+                    }
+                }
+            } catch (Exception e) {
+                log.error("❌ Error awarding loyalty points for manually completed booking {}: {}", 
+                    bookingId, e.getMessage());
+                // Don't fail the status update if loyalty points fail
+            }
+        }
         
         return bookingMapper.toResponse(updated);
     }

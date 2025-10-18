@@ -478,5 +478,298 @@ public class EmailServiceImpl implements EmailService {
             throw new RuntimeException("Failed to send email", e);
         }
     }
+    
+    // ================== Loyalty Email Methods ==================
+    
+    @Override
+    @Async
+    public void sendPointsEarnedEmail(User user, int points, String source, String description) {
+        try {
+            String subject = String.format("🎉 [%s] Bạn vừa nhận được %d điểm thưởng!", appName, points);
+            String body = buildPointsEarnedHtml(user, points, source, description);
+            sendHtmlEmail(user.getEmail(), subject, body);
+            log.info("✅ Sent points earned email to: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("❌ Failed to send points earned email to: {}", user.getEmail(), e);
+        }
+    }
+    
+    @Override
+    @Async
+    public void sendLevelUpEmail(User user, String oldLevel, String newLevel, int pointsBalance) {
+        try {
+            String subject = String.format("🏆 [%s] Chúc mừng! Bạn đã lên hạng %s!", appName, newLevel);
+            String body = buildLevelUpHtml(user, oldLevel, newLevel, pointsBalance);
+            sendHtmlEmail(user.getEmail(), subject, body);
+            log.info("✅ Sent level up email to: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("❌ Failed to send level up email to: {}", user.getEmail(), e);
+        }
+    }
+    
+    @Override
+    @Async
+    public void sendVoucherRedeemedEmail(User user, String voucherCode, int pointsCost, double voucherValue) {
+        try {
+            String subject = String.format("🎁 [%s] Bạn đã đổi voucher thành công!", appName);
+            String body = buildVoucherRedeemedHtml(user, voucherCode, pointsCost, voucherValue);
+            sendHtmlEmail(user.getEmail(), subject, body);
+            log.info("✅ Sent voucher redeemed email to: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("❌ Failed to send voucher redeemed email to: {}", user.getEmail(), e);
+        }
+    }
+    
+    // ================== Loyalty HTML Template Builders ==================
+    
+    private String buildPointsEarnedHtml(User user, int points, String source, String description) {
+        String emoji = getSourceEmoji(source);
+        return String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                    .content { background: #f8f9fa; padding: 30px; }
+                    .points-box { background: white; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .points-number { font-size: 48px; font-weight: bold; color: #667eea; text-align: center; }
+                    .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+                    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>%s Điểm Thưởng Mới!</h1>
+                    </div>
+                    <div class="content">
+                        <p>Xin chào <strong>%s</strong>,</p>
+                        <p>Chúc mừng! Bạn vừa nhận được điểm thưởng từ %s:</p>
+                        
+                        <div class="points-box">
+                            <div class="points-number">+%d điểm</div>
+                            <p style="text-align: center; margin-top: 10px; color: #666;">%s</p>
+                        </div>
+                        
+                        <p>💡 <strong>Mẹo:</strong> Tích lũy điểm để đổi voucher giảm giá và nâng cấp hạng thành viên!</p>
+                        
+                        <div style="text-align: center;">
+                            <a href="%s/loyalty" class="button">Xem Điểm Thưởng</a>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p>© 2024 %s. All rights reserved.</p>
+                        <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """,
+            emoji,
+            user.getName(),
+            getSourceName(source),
+            points,
+            description,
+            appUrl,
+            appName
+        );
+    }
+    
+    private String buildLevelUpHtml(User user, String oldLevel, String newLevel, int pointsBalance) {
+        String newLevelEmoji = getLevelEmoji(newLevel);
+        String benefits = getLevelBenefitsHtml(newLevel);
+        
+        return String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background: linear-gradient(135deg, #f093fb 0%%, #f5576c 100%%); color: white; padding: 40px; text-align: center; border-radius: 10px 10px 0 0; }
+                    .level-badge { font-size: 80px; margin: 20px 0; }
+                    .content { background: #f8f9fa; padding: 30px; }
+                    .benefits { background: white; padding: 20px; margin: 20px 0; border-radius: 5px; }
+                    .benefit-item { padding: 10px; margin: 10px 0; background: #f0f7ff; border-left: 3px solid #4299e1; }
+                    .button { display: inline-block; padding: 12px 30px; background: #f5576c; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+                    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🎊 Chúc Mừng Lên Hạng! 🎊</h1>
+                        <div class="level-badge">%s</div>
+                        <h2>%s</h2>
+                    </div>
+                    <div class="content">
+                        <p>Xin chào <strong>%s</strong>,</p>
+                        <p>Thật tuyệt vời! Bạn đã được nâng cấp từ hạng <strong>%s</strong> lên <strong>%s</strong>!</p>
+                        
+                        <p>📊 Tổng điểm hiện tại: <strong>%d điểm</strong></p>
+                        
+                        <div class="benefits">
+                            <h3>🎁 Quyền lợi của hạng %s:</h3>
+                            %s
+                        </div>
+                        
+                        <p>Tiếp tục tích điểm để mở khóa nhiều ưu đãi hơn nữa!</p>
+                        
+                        <div style="text-align: center;">
+                            <a href="%s/loyalty" class="button">Khám Phá Quyền Lợi</a>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p>© 2024 %s. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """,
+            newLevelEmoji,
+            newLevel,
+            user.getName(),
+            oldLevel,
+            newLevel,
+            pointsBalance,
+            newLevel,
+            benefits,
+            appUrl,
+            appName
+        );
+    }
+    
+    private String buildVoucherRedeemedHtml(User user, String voucherCode, int pointsCost, double voucherValue) {
+        return String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background: linear-gradient(135deg, #a8edea 0%%, #fed6e3 100%%); color: #333; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                    .content { background: #f8f9fa; padding: 30px; }
+                    .voucher-box { background: white; border: 2px dashed #48bb78; padding: 25px; margin: 20px 0; border-radius: 10px; text-align: center; }
+                    .voucher-code { font-size: 32px; font-weight: bold; color: #48bb78; letter-spacing: 2px; margin: 15px 0; padding: 15px; background: #f0fff4; border-radius: 5px; }
+                    .voucher-value { font-size: 36px; font-weight: bold; color: #e53e3e; }
+                    .info-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px; }
+                    .button { display: inline-block; padding: 12px 30px; background: #48bb78; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+                    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🎁 Voucher Của Bạn</h1>
+                    </div>
+                    <div class="content">
+                        <p>Xin chào <strong>%s</strong>,</p>
+                        <p>Bạn đã đổi thành công <strong>%d điểm</strong> lấy voucher giảm giá!</p>
+                        
+                        <div class="voucher-box">
+                            <p>💰 Giá trị voucher</p>
+                            <div class="voucher-value">%s</div>
+                            <p style="margin-top: 20px;">🔑 Mã voucher</p>
+                            <div class="voucher-code">%s</div>
+                        </div>
+                        
+                        <div class="info-box">
+                            <p><strong>📝 Hướng dẫn sử dụng:</strong></p>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li>Sao chép mã voucher bên trên</li>
+                                <li>Nhập mã khi thanh toán booking</li>
+                                <li>Giảm giá sẽ được áp dụng tự động</li>
+                            </ul>
+                            <p><strong>⚠️ Lưu ý:</strong> Voucher có thể có hạn sử dụng, vui lòng kiểm tra trong tài khoản.</p>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <a href="%s/tours" class="button">Đặt Tour Ngay</a>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p>© 2024 %s. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """,
+            user.getName(),
+            pointsCost,
+            CURRENCY_FORMATTER.format(voucherValue),
+            voucherCode,
+            appUrl,
+            appName
+        );
+    }
+    
+    // Helper methods
+    private String getSourceEmoji(String source) {
+        return switch (source.toUpperCase()) {
+            case "BOOKING" -> "✈️";
+            case "REVIEW" -> "⭐";
+            case "REFERRAL" -> "👥";
+            case "BIRTHDAY" -> "🎂";
+            case "PROMOTION" -> "🎉";
+            default -> "🎁";
+        };
+    }
+    
+    private String getSourceName(String source) {
+        return switch (source.toUpperCase()) {
+            case "BOOKING" -> "đặt tour";
+            case "REVIEW" -> "đánh giá tour";
+            case "REFERRAL" -> "giới thiệu bạn bè";
+            case "BIRTHDAY" -> "sinh nhật";
+            case "PROMOTION" -> "chương trình khuyến mãi";
+            default -> "hệ thống";
+        };
+    }
+    
+    private String getLevelEmoji(String level) {
+        return switch (level.toUpperCase()) {
+            case "DIAMOND" -> "💎";
+            case "PLATINUM" -> "🏆";
+            case "GOLD" -> "🥇";
+            case "SILVER" -> "🥈";
+            case "BRONZE" -> "🥉";
+            default -> "⭐";
+        };
+    }
+    
+    private String getLevelBenefitsHtml(String level) {
+        return switch (level.toUpperCase()) {
+            case "SILVER" -> """
+                <div class="benefit-item">💰 Giảm 5%% mọi booking</div>
+                <div class="benefit-item">⚡ Ưu tiên xử lý booking</div>
+                """;
+            case "GOLD" -> """
+                <div class="benefit-item">💰 Giảm 10%% mọi booking</div>
+                <div class="benefit-item">⚡ Ưu tiên xử lý booking</div>
+                <div class="benefit-item">⬆️ Nâng cấp miễn phí phòng & dịch vụ</div>
+                """;
+            case "PLATINUM" -> """
+                <div class="benefit-item">💰 Giảm 15%% mọi booking</div>
+                <div class="benefit-item">⚡ Ưu tiên xử lý booking</div>
+                <div class="benefit-item">⬆️ Nâng cấp miễn phí phòng & dịch vụ</div>
+                <div class="benefit-item">👤 Quản lý cá nhân hỗ trợ 24/7</div>
+                """;
+            case "DIAMOND" -> """
+                <div class="benefit-item">💰 Giảm 20%% mọi booking</div>
+                <div class="benefit-item">⚡ Ưu tiên xử lý booking</div>
+                <div class="benefit-item">⬆️ Nâng cấp miễn phí phòng & dịch vụ</div>
+                <div class="benefit-item">👤 Quản lý cá nhân hỗ trợ 24/7</div>
+                <div class="benefit-item">🎉 Trải nghiệm sự kiện VIP độc quyền</div>
+                """;
+            default -> """
+                <div class="benefit-item">💰 Giảm 2%% mọi booking</div>
+                """;
+        };
+    }
 }
 

@@ -54,5 +54,20 @@ public interface EmailService {
      * Send simple text email
      */
     void sendSimpleEmail(String to, String subject, String body);
+    
+    /**
+     * Send loyalty points earned email
+     */
+    void sendPointsEarnedEmail(User user, int points, String source, String description);
+    
+    /**
+     * Send loyalty level up email
+     */
+    void sendLevelUpEmail(User user, String oldLevel, String newLevel, int pointsBalance);
+    
+    /**
+     * Send voucher redeemed email
+     */
+    void sendVoucherRedeemedEmail(User user, String voucherCode, int pointsCost, double voucherValue);
 }
 

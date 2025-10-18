@@ -23,6 +23,8 @@ import java.util.List;
 public class BookingCompletionScheduler {
     
     private final BookingRepository bookingRepository;
+    private final backend.service.LoyaltyService loyaltyService;
+    private final backend.service.ReferralService referralService;
     
     /**
      * Auto-complete confirmed bookings after tour end date
@@ -58,6 +60,33 @@ public class BookingCompletionScheduler {
                     booking.setConfirmationStatus(ConfirmationStatus.COMPLETED);
                     booking.setUpdatedAt(LocalDateTime.now());
                     bookingRepository.save(booking);
+                    
+                    // Award loyalty points
+                    try {
+                        if (booking.getUser() != null) {
+                            String tourType = booking.getTour().getTourType() != null 
+                                ? booking.getTour().getTourType().name() 
+                                : "DOMESTIC";
+                            
+                            loyaltyService.awardBookingPoints(
+                                booking.getUser().getId(),
+                                booking.getId(),
+                                booking.getFinalAmount(),
+                                tourType
+                            );
+                            
+                            // Complete referral if applicable
+                            try {
+                                referralService.completeReferral(booking.getUser().getId(), booking.getId());
+                            } catch (Exception e) {
+                                log.debug("No referral to complete for user {}", booking.getUser().getId());
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("Error awarding loyalty points for booking {}: {}", 
+                            booking.getBookingCode(), e.getMessage());
+                    }
+                    
                     completedCount++;
                     
                     log.info("✅ Auto-completed booking {} (Tour ended on: {})", 
@@ -97,6 +126,31 @@ public class BookingCompletionScheduler {
                 booking.setConfirmationStatus(ConfirmationStatus.COMPLETED);
                 booking.setUpdatedAt(LocalDateTime.now());
                 bookingRepository.save(booking);
+                
+                // Award loyalty points
+                try {
+                    if (booking.getUser() != null) {
+                        String tourType = booking.getTour().getTourType() != null 
+                            ? booking.getTour().getTourType().name() 
+                            : "DOMESTIC";
+                        
+                        loyaltyService.awardBookingPoints(
+                            booking.getUser().getId(),
+                            booking.getId(),
+                            booking.getFinalAmount(),
+                            tourType
+                        );
+                        
+                        try {
+                            referralService.completeReferral(booking.getUser().getId(), booking.getId());
+                        } catch (Exception e) {
+                            // Ignore if no referral
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("Error awarding loyalty points: {}", e.getMessage());
+                }
+                
                 completedCount++;
             }
         }
