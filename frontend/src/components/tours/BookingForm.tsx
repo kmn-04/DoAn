@@ -64,8 +64,20 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
         const schedules = await tourService.getTourSchedules(tour.id);
         
         if (schedules && schedules.length > 0) {
-          // Store full schedule objects
-          setAvailableSchedules(schedules);
+          // Filter out past schedules - only show schedules from today onwards
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Reset to start of day for accurate comparison
+          
+          const upcomingSchedules = schedules.filter(schedule => {
+            const departureDate = new Date(schedule.departureDate);
+            return departureDate >= today;
+          });
+          
+          setAvailableSchedules(upcomingSchedules);
+          
+          if (upcomingSchedules.length === 0) {
+            console.warn('No upcoming schedules found for tour', tour.id);
+          }
         } else {
           console.warn('No schedules found for tour', tour.id);
           setAvailableSchedules([]);

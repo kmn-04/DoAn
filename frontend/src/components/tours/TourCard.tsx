@@ -145,7 +145,7 @@ const TourCard: React.FC<TourCardProps> = memo(({
             <span className="truncate">
               {tour.tourType === 'international' && tour.country 
                 ? tour.country.name 
-                : tour.location || 'Việt Nam'}
+                : tour.location || 'quốc tế'}
             </span>
           </div>
           <div className="flex items-center space-x-1.5 font-normal">

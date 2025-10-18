@@ -223,7 +223,7 @@ const TourDetailPage: React.FC = () => {
           price: tourResponse.salePrice || tourResponse.price, // Giá hiệu quả (đã sale hoặc gốc)
           originalPrice: (tourResponse.salePrice && tourResponse.salePrice < tourResponse.price) ? tourResponse.price : undefined, // Giá gốc chỉ khi có sale
           duration: `${tourResponse.duration} ngày`,
-          location: tourResponse.destination || tourResponse.departureLocation || 'Việt Nam',
+          location: tourResponse.destination || tourResponse.departureLocation || 'quốc tế',
           rating: 4.5, // TODO: Add rating to backend
           reviewCount: 0, // TODO: Add review count to backend
           maxPeople: tourResponse.maxPeople || 20,
