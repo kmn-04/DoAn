@@ -10,6 +10,7 @@ import { ProtectedRoute } from './components/auth';
 import { ErrorBoundary, PageErrorBoundary } from './components/error';
 import AppInitializer from './components/AppInitializer';
 import ScrollToTop from './components/ScrollToTop';
+import { ChatBotButton } from './components/chatbot';
 
 // Lazy import pages for better performance
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
@@ -433,6 +434,9 @@ function App() {
 
           {/* Toast notifications */}
           <ToastContainer />
+          
+          {/* AI ChatBot */}
+          <ChatBotButton />
         </Router>
         </AppInitializer>
       </QueryClientProvider>
