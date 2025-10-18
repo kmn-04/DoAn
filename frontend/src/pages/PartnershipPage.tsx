@@ -205,7 +205,7 @@ const PartnershipPage: React.FC = () => {
               </h1>
             </div>
             <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-12 font-normal leading-relaxed animate-fade-in opacity-0 delay-300">
-              Cùng xây dựng hệ sinh thái du lịch Việt Nam với hơn <span className="font-medium" style={{ color: '#D4AF37' }}>1,250+</span> đối tác tin cậy
+              Cùng xây dựng hệ sinh thái du lịch toàn cầu với hơn <span className="font-medium" style={{ color: '#D4AF37' }}>1,250+</span> đối tác tin cậy
             </p>
             
             {/* Quick Benefits */}

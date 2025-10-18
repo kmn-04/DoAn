@@ -470,7 +470,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
         <div className="flex items-center text-sm text-gray-600 mb-3 space-x-4">
           <div className="flex items-center">
             <MapPinIcon className="h-4 w-4 mr-1 flex-shrink-0" />
-            <span className="truncate">{tour.destination || tour.region || tour.location || 'Việt Nam'}</span>
+            <span className="truncate">{tour.destination || tour.region || tour.location || 'quốc tế'}</span>
           </div>
           <div className="flex items-center flex-shrink-0">
             <ClockIcon className="h-4 w-4 mr-1" />

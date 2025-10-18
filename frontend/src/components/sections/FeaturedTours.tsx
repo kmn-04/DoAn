@@ -227,7 +227,7 @@ const FeaturedTours: React.FC = () => {
             <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">Tour Nổi Bật</span>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            Khám phá những điểm đến tuyệt vời nhất Việt Nam với các tour du lịch được yêu thích nhất
+            Khám phá những điểm đến tuyệt vời nhất thế giới với các tour du lịch được yêu thích nhất
           </p>
         </div>
 
@@ -327,7 +327,7 @@ const FeaturedTours: React.FC = () => {
                   <div className="flex gap-4 text-xs text-gray-600 mb-5">
                     <div className="flex items-center space-x-1.5">
                       <MapPinIcon className="h-4 w-4" />
-                      <span className="font-normal">{tour.destination || tour.region || 'Việt Nam'}</span>
+                      <span className="font-normal">{tour.destination || tour.region || 'quốc tế'}</span>
                     </div>
                     <div className="flex items-center space-x-1.5">
                       <ClockIcon className="h-4 w-4" />

@@ -77,7 +77,7 @@ const ContactPage: React.FC = () => {
     {
       icon: <MapPinIcon className="h-6 w-6" />,
       title: 'Địa chỉ',
-      details: ['123 Đường ABC, Quận 1', 'TP. Hồ Chí Minh, Việt Nam'],
+      details: ['Số 47A Phường Phú Diễn', 'TP. Hà Nội, Việt Nam'],
       color: 'bg-red-500'
     },
     {
@@ -559,7 +559,7 @@ const ContactPage: React.FC = () => {
             {/* Embedded Map */}
             <div className="relative h-96 bg-gray-200">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.4326002352983!2d106.69831731533349!3d10.776530992320153!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f4b3332a4bd%3A0x5a981a5efee9fd7d!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBLaG9hIGjhu41jIFThu7Egbmhpw6puIFRQLkhDTQ!5e0!3m2!1svi!2s!4v1635123456789!5m2!1svi!2s"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.4326002352983!2d106.69831731533349!3d10.776530992320153!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f4b3332a4bd%3A0x5a981a5efee9fd7d!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBLaG9hIGjhu41jIFThu7Egbmhpw6puIFRQLkhDTQ!5e0!3m2!1svi!2s!4v1635123456789!5m2!1svi!https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.640805332102!2d105.75986217471494!3d21.04705358715107!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x313454c3ce577141%3A0xb1a1ac92701777bc!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBUw6BpIG5ndXnDqm4gdsOgIE3DtGkgdHLGsOG7nW5nIEjDoCBO4buZaQ!5e0!3m2!1svi!2s!4v1760759195668!5m2!1svi!2s2s"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
@@ -578,8 +578,8 @@ const ContactPage: React.FC = () => {
                       Văn Phòng Chính
                     </h3>
                     <p className="text-gray-600 text-xs mt-1 font-normal leading-relaxed">
-                      123 Đường ABC, Quận 1<br />
-                      TP. Hồ Chí Minh
+                      Số 47A, Phường Phú Diễn<br />
+                      TP. Hà Nội
                     </p>
                   </div>
                 </div>

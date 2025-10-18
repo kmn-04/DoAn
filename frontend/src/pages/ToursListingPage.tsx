@@ -62,7 +62,7 @@ const convertTourResponse = (tourResponse: TourResponse): Tour => {
     price: tourResponse.salePrice || tourResponse.price, // Giá hiệu quả (đã sale hoặc gốc)
     originalPrice: (tourResponse.salePrice && tourResponse.salePrice < tourResponse.price) ? tourResponse.price : undefined, // Giá gốc chỉ khi có sale
     duration: `${tourResponse.duration} ngày`,
-    location: tourResponse.destination || tourResponse.departureLocation || 'Việt Nam', // Use new fields
+    location: tourResponse.destination || tourResponse.departureLocation || 'quốc tế', // Use new fields
     tourType: tourResponse.tourType === 'DOMESTIC' ? 'domestic' : 'international',
     country: tourResponse.country ? {
       name: tourResponse.country.name,
@@ -348,7 +348,7 @@ const ToursListingPage: React.FC = () => {
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&h=800&fit=crop"
-            alt="Du lịch Việt Nam"
+            alt="Du lịch quốc tế"
             className="w-full h-full object-cover opacity-30"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90"></div>
@@ -363,7 +363,7 @@ const ToursListingPage: React.FC = () => {
           <div className="text-white text-center animate-fade-in-up opacity-0">
             {/* Label */}
             <div className="inline-block px-6 py-2 border rounded-none mb-6" style={{ borderColor: '#D4AF37' }}>
-              <span className="text-xs font-medium tracking-[0.3em] uppercase" style={{ color: '#D4AF37' }}>Khám Phá Việt Nam</span>
+              <span className="text-xs font-medium tracking-[0.3em] uppercase" style={{ color: '#D4AF37' }}>Khám Phá Thế Giới</span>
             </div>
             
             <h1 className="text-5xl md:text-7xl font-normal mb-6 tracking-tight">Tours Du Lịch</h1>
@@ -372,7 +372,7 @@ const ToursListingPage: React.FC = () => {
             <div className="w-20 h-px mx-auto mb-6" style={{ background: 'linear-gradient(to right, transparent, #D4AF37, transparent)' }}></div>
             
             <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto font-normal leading-relaxed">
-              Khám phá vẻ đẹp Việt Nam với hơn <span className="font-medium" style={{ color: '#D4AF37' }}>{totalTours}</span> tour đa dạng từ biển đảo đến miền núi
+              Khám phá vẻ đẹp thế giới với hơn <span className="font-medium" style={{ color: '#D4AF37' }}>{totalTours}</span> tour đa dạng từ trong nước đến quốc tế
             </p>
           </div>
         </div>

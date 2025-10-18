@@ -116,30 +116,37 @@ const TourReviews: React.FC<TourReviewsProps> = ({
     }
     
     try {
-      await reviewService.voteHelpful(reviewId);
+      // Call API and get updated review from backend
+      const updatedReview = await reviewService.voteHelpful(reviewId);
       
-      // Update local state
-      setLikedReviews(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(reviewId)) {
-          newSet.delete(reviewId);
-        } else {
-          newSet.add(reviewId);
-        }
-        return newSet;
-      });
-      
-      // Update review count
+      // Update reviews with backend response
       setReviews(prevReviews => 
         prevReviews.map(r => 
           r.id === reviewId 
-            ? { ...r, helpfulCount: (r.helpfulCount || 0) + (likedReviews.has(reviewId) ? -1 : 1) }
+            ? { ...r, helpfulCount: updatedReview.helpfulCount }
             : r
         )
       );
       
+      // Update liked state based on backend response
+      // Backend toggles, so we track if count increased or decreased
+      const currentReview = reviews.find(r => r.id === reviewId);
+      if (currentReview) {
+        const didIncrease = updatedReview.helpfulCount > currentReview.helpfulCount;
+        setLikedReviews(prev => {
+          const newSet = new Set(prev);
+          if (didIncrease) {
+            newSet.add(reviewId);
+          } else {
+            newSet.delete(reviewId);
+          }
+          return newSet;
+        });
+      }
+      
     } catch (error) {
       console.error('Error liking review:', error);
+      alert('Có lỗi xảy ra khi đánh giá. Vui lòng thử lại.');
     }
   };
   
@@ -403,6 +410,30 @@ const TourReviews: React.FC<TourReviewsProps> = ({
                   <span>Hữu ích ({review.helpfulCount || 0})</span>
                 </button>
               </div>
+
+              {/* Admin Reply */}
+              {review.adminReply && (
+                <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                        <ChatBubbleLeftIcon className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="font-semibold text-blue-900">Phản hồi từ Quản trị viên</span>
+                        {review.repliedAt && (
+                          <span className="text-xs text-blue-600">
+                            • {formatDate(review.repliedAt)}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-blue-800 text-sm leading-relaxed">{review.adminReply}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}

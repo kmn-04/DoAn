@@ -50,7 +50,7 @@ const AboutPage: React.FC = () => {
     {
       year: '2015',
       title: 'Khởi Đầu Đam Mê',
-      description: 'Được thành lập bởi nhóm bạn trẻ yêu thích khám phá, bắt đầu với các tour nội địa khám phá vẻ đẹp Việt Nam.'
+      description: 'Được thành lập bởi nhóm bạn trẻ yêu thích khám phá, bắt đầu với các tour nội địa và quốc tế khám phá vẻ đẹp thế giới.'
     },
     {
       year: '2018',
@@ -82,7 +82,7 @@ const AboutPage: React.FC = () => {
       position: 'Giám Đốc Điều Hành Tour Quốc Tế',
       image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face',
       experience: '6 năm kinh nghiệm tổ chức tour nội địa và quốc tế',
-      quote: '"Từ Việt Nam đến thế giới, mỗi hành trình đều là trải nghiệm đáng nhớ."'
+      quote: '"Từ trong nước đến quốc tế, mỗi hành trình đều là trải nghiệm đáng nhớ."'
     },
     {
       name: 'Lê Văn Đức',
@@ -125,7 +125,7 @@ const AboutPage: React.FC = () => {
     {
       icon: GlobeAltIcon,
       title: 'Tour Đa Dạng',
-      description: 'Từ khám phá Việt Nam đến chinh phục thế giới với hơn 20 quốc gia điểm đến.'
+      description: 'Từ khám phá trong nước đến chinh phục thế giới với hơn 20 quốc gia điểm đến.'
     },
     {
       icon: PhoneIcon,
@@ -135,7 +135,7 @@ const AboutPage: React.FC = () => {
     {
       icon: CheckBadgeIcon,
       title: 'Đối Tác Quốc Tế',
-      description: 'Mạng lưới đối tác uy tín từ Việt Nam đến các quốc gia trên thế giới.'
+      description: 'Mạng lưới đối tác uy tín từ trong nước đến các quốc gia trên thế giới.'
     }
   ];
 
@@ -158,7 +158,7 @@ const AboutPage: React.FC = () => {
               Đam Mê Khám Phá, Tận Tâm Phục Vụ
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-gray-300 font-normal leading-relaxed animate-fade-in-up opacity-0 delay-200">
-              Kết nối bạn với thế giới - Từ Việt Nam đến năm châu
+              Kết nối bạn với thế giới - Từ trong nước đến năm châu
             </p>
             
             {/* Quick Stats */}
@@ -241,7 +241,7 @@ const AboutPage: React.FC = () => {
               <h3 className="text-2xl font-medium text-slate-900 mb-4 tracking-tight">Sứ Mệnh</h3>
               <p className="text-gray-600 text-base leading-relaxed font-normal">
                 Mang đến những trải nghiệm du lịch đích thực, an toàn và đáng nhớ 
-                cho du khách Việt Nam, kết nối họ với thế giới và quảng bá văn hóa Việt ra toàn cầu.
+                cho du khách trong nước và quốc tế, kết nối họ với thế giới và quảng bá văn hóa Việt ra toàn cầu.
               </p>
             </div>
 
