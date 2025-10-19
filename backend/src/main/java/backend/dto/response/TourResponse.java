@@ -66,6 +66,11 @@ public class TourResponse {
     // Statistics
     private Integer viewCount;
     
+    // Weather coordinates
+    private Double latitude;
+    private Double longitude;
+    private Boolean weatherEnabled;
+    
     // Timestamps
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

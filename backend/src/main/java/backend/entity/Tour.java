@@ -146,6 +146,16 @@ public class Tour {
     @Column(name = "view_count")
     private Integer viewCount = 0;
     
+    // Weather coordinates
+    @Column(name = "latitude")
+    private Double latitude; // Vĩ độ
+    
+    @Column(name = "longitude")
+    private Double longitude; // Kinh độ
+    
+    @Column(name = "weather_enabled")
+    private Boolean weatherEnabled = true; // Bật/tắt hiển thị thời tiết
+    
     // Cached rating fields for performance optimization
     @Column(name = "average_rating")
     private Double averageRating = 0.0; // Cached average rating from approved reviews (0.0 - 5.0)

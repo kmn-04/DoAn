@@ -1590,7 +1590,7 @@ const AdminTours: React.FC = () => {
                       <div className="border-t pt-4">
                         <ImageUpload
                           label="Ảnh chính"
-                          value={formData.mainImage}
+                          value={formData.mainImage || ''}
                           onChange={(url) => setFormData({ ...formData, mainImage: url as string })}
                           multiple={false}
                           required={true}

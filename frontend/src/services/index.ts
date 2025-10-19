@@ -16,6 +16,7 @@ export { default as partnerService } from './partnerService';
 export { default as promotionService } from './promotionService';
 export { default as destinationService } from './destinationService';
 export { default as bannerService } from './bannerService';
+export { default as newsletterService } from './newsletterService';
 export { apiClient } from './api';
 
 // Export types

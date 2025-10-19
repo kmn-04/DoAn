@@ -135,6 +135,17 @@ public class TourServiceImpl implements TourService {
                 tour.getCategory().getName(); // Trigger lazy load
             }
             
+            // Force load images
+            if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+                log.debug("Force loading {} images for tour {}", tour.getImages().size(), tour.getId());
+                tour.getImages().forEach(image -> {
+                    image.getId();
+                    image.getImageUrl();
+                });
+            } else {
+                log.debug("Tour {} has no images", tour.getId());
+            }
+            
             // Access itineraries to trigger lazy load
             if (tour.getItineraries() != null && !tour.getItineraries().isEmpty()) {
                 // Iterate to force load each itinerary

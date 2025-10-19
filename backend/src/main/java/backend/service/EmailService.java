@@ -1,29 +1,28 @@
 package backend.service;
 
-import backend.entity.Booking;
 import backend.entity.User;
 
 public interface EmailService {
     
     /**
+     * Send welcome email to new newsletter subscriber
+     */
+    void sendNewsletterWelcomeEmail(String to, String subscriberEmail);
+    
+    /**
+     * Send new tour notification to all active subscribers
+     */
+    void sendNewTourNotification(Long tourId, String tourName, String tourSlug);
+    
+    /**
+     * Send promotion notification to all active subscribers
+     */
+    void sendPromotionNotification(String promotionCode, String promotionName, Integer discountPercent);
+    
+    /**
      * Send booking confirmation email
      */
-    void sendBookingConfirmationEmail(Booking booking);
-    
-    /**
-     * Send payment confirmation email
-     */
-    void sendPaymentConfirmationEmail(Booking booking);
-    
-    /**
-     * Send booking cancellation email
-     */
-    void sendBookingCancellationEmail(Booking booking, String reason);
-    
-    /**
-     * Send booking reminder email (before tour starts)
-     */
-    void sendBookingReminderEmail(Booking booking);
+    void sendBookingConfirmation(String to, String bookingCode, String tourName);
     
     /**
      * Send password reset email
@@ -31,43 +30,27 @@ public interface EmailService {
     void sendPasswordResetEmail(User user, String resetToken);
     
     /**
-     * Send welcome email
+     * Send verification email
      */
-    void sendWelcomeEmail(User user);
+    void sendVerificationEmail(User user, String verificationToken);
     
     /**
-     * Send email verification
+     * Send simple email
      */
-    void sendVerificationEmail(User user, String token);
+    void sendSimpleEmail(String to, String subject, String content);
     
     /**
-     * Send generic email
+     * Send points earned email (loyalty)
      */
-    void sendEmail(String to, String subject, String body);
+    void sendPointsEarnedEmail(User user, Integer points, String tourName, String transactionType);
     
     /**
-     * Send HTML email
+     * Send level up email (loyalty)
      */
-    void sendHtmlEmail(String to, String subject, String htmlBody);
-    
-    /**
-     * Send simple text email
-     */
-    void sendSimpleEmail(String to, String subject, String body);
-    
-    /**
-     * Send loyalty points earned email
-     */
-    void sendPointsEarnedEmail(User user, int points, String source, String description);
-    
-    /**
-     * Send loyalty level up email
-     */
-    void sendLevelUpEmail(User user, String oldLevel, String newLevel, int pointsBalance);
+    void sendLevelUpEmail(User user, String oldLevel, String newLevel, Integer totalPoints);
     
     /**
      * Send voucher redeemed email
      */
-    void sendVoucherRedeemedEmail(User user, String voucherCode, int pointsCost, double voucherValue);
+    void sendVoucherRedeemedEmail(User user, String voucherCode, Integer pointsUsed, double discountAmount);
 }
-

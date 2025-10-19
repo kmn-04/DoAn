@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   MapPinIcon,
@@ -6,9 +6,41 @@ import {
   EnvelopeIcon,
   GlobeAltIcon,
 } from '@heroicons/react/24/outline';
+import newsletterService from '../../services/newsletterService';
+import toast from 'react-hot-toast';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const [email, setEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleNewsletterSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.trim()) {
+      toast.error('Vui lòng nhập email');
+      return;
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Email không hợp lệ');
+      return;
+    }
+    
+    setIsSubscribing(true);
+    
+    try {
+      await newsletterService.subscribe(email);
+      toast.success('🎉 Đăng ký nhận tin thành công! Cảm ơn bạn đã quan tâm.');
+      setEmail(''); // Clear input
+    } catch (error: any) {
+      toast.error(error.message || 'Đăng ký không thành công. Vui lòng thử lại.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   const quickLinks = [
     { name: 'Trang chủ', href: '/dashboard' },
@@ -181,17 +213,26 @@ const Footer: React.FC = () => {
             <p className="text-gray-400 text-sm mb-6 font-normal">
               Nhận thông tin về các tour mới và ưu đãi đặc biệt
             </p>
-            <div className="max-w-md mx-auto flex">
+            <form onSubmit={handleNewsletterSubscribe} className="max-w-md mx-auto flex">
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Nhập email của bạn"
                 className="flex-1 px-5 py-3 bg-slate-800 border border-slate-700 rounded-none text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:border-[#D4AF37] font-normal text-sm"
                 style={{ '--focus-ring-color': '#D4AF37' } as React.CSSProperties}
+                disabled={isSubscribing}
+                required
               />
-              <button className="px-8 py-3 text-white rounded-none transition-all text-sm font-medium tracking-wider uppercase shadow-md" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
-                Đăng ký
+              <button 
+                type="submit"
+                disabled={isSubscribing}
+                className="px-8 py-3 text-white rounded-none transition-all text-sm font-medium tracking-wider uppercase shadow-md disabled:opacity-50 disabled:cursor-not-allowed" 
+                style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
+              >
+                {isSubscribing ? 'Đang xử lý...' : 'Đăng ký'}
               </button>
-            </div>
+            </form>
           </div>
         </div>
 

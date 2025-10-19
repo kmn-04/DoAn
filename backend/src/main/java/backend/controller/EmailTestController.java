@@ -38,7 +38,11 @@ public class EmailTestController extends BaseController {
                 Booking booking = bookingRepository.findById(bookingId)
                         .orElseThrow(() -> new RuntimeException("Booking not found"));
                 
-                emailService.sendBookingConfirmationEmail(booking);
+                emailService.sendBookingConfirmation(
+                    booking.getUser().getEmail(), 
+                    booking.getBookingCode(), 
+                    booking.getTour().getName()
+                );
                 
                 return ResponseEntity.ok(success(
                         "Booking confirmation email sent successfully to: " + toEmail,
