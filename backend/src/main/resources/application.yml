@@ -51,11 +51,6 @@ spring:
           connection-timeout: 5000
           write-timeout: 5000
 
-# App Configuration
-app:
-  name: ${APP_NAME:Tour Booking System}
-  url: ${APP_URL:http://localhost:5173}
-
 # JWT Configuration
 jwt:
   secret: dG91ckJvb2tpbmdTZWNyZXRLZXlGb3JEZXZlbG9wbWVudFB1cnBvc2VPbmx5MTIzNDU2Nzg5MA==
@@ -82,6 +77,20 @@ cors:
 # File Upload Configuration
 file:
   upload-dir: ${FILE_UPLOAD_DIR:uploads}
+
+# Weather API Configuration
+weather:
+  api:
+    key: 384ec2b8713781d926f1826d65dea929
+    base-url: https://api.openweathermap.org/data/2.5
+
+# Application Settings
+app:
+  name: ${APP_NAME:Tour Booking System}
+  url: ${APP_URL:http://localhost:5173}
+  email:
+    from: ${MAIL_FROM:khoi14112004@gmail.com}
+    from-name: TourBooking.com
   max-file-size: ${FILE_MAX_SIZE:10485760} # 10MB in bytes
   allowed-image-types:
     - image/jpeg

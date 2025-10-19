@@ -23,6 +23,7 @@ import BookingForm from '../components/tours/BookingForm';
 import TourReviews from '../components/tours/TourReviews';
 import TourCard from '../components/tours/TourCard';
 import { Button } from '../components/ui';
+import { WeatherWidget } from '../components/weather';
 import tourService from '../services/tourService';
 import { TourCardSkeleton, BookingFormSkeleton } from '../components/ui/Skeleton';
 
@@ -53,6 +54,9 @@ interface TourDetail {
   importantInfo: string[];
   cancellationPolicy: string;
   availableDates: string[];
+  latitude?: number;
+  longitude?: number;
+  weatherEnabled?: boolean;
 }
 
 // Mock tour detail data
@@ -154,7 +158,7 @@ const TourDetailPage: React.FC = () => {
   const [tour, setTour] = useState<TourDetail | null>(null);
   const [relatedTours, setRelatedTours] = useState<any[]>([]);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'reviews' | 'info'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'reviews' | 'weather' | 'info'>('overview');
   const [isLoading, setIsLoading] = useState(true);
   const [expandedDays, setExpandedDays] = useState<number[]>([1]); // Mặc định mở rộng ngày đầu tiên
 
@@ -214,6 +218,17 @@ const TourDetailPage: React.FC = () => {
             'Tip cho hướng dẫn viên'
           ];
         }
+        // Combine mainImage and additional images
+        let allImages = [];
+        if (tourResponse.mainImage) {
+          allImages.push(tourResponse.mainImage);
+        }
+        if (tourResponse.images && tourResponse.images.length > 0) {
+          allImages = allImages.concat(tourResponse.images.map((img: any) => img.imageUrl));
+        }
+        // Remove duplicates
+        allImages = [...new Set(allImages)];
+        
         // Map API response to TourDetail interface
         const mappedTour: TourDetail = {
           id: tourResponse.id,
@@ -227,7 +242,7 @@ const TourDetailPage: React.FC = () => {
           rating: 4.5, // TODO: Add rating to backend
           reviewCount: 0, // TODO: Add review count to backend
           maxPeople: tourResponse.maxPeople || 20,
-          images: tourResponse.images?.map((img: any) => img.imageUrl) || ['/default-tour.jpg'],
+          images: allImages.length > 0 ? allImages : ['/default-tour.jpg'],
           badge: tourResponse.isFeatured ? 'Nổi bật' : undefined,
           category: tourResponse.category?.name || 'Tour',
           highlights: Array.isArray(tourResponse.highlights) 
@@ -280,7 +295,10 @@ const TourDetailPage: React.FC = () => {
             ? tourResponse.schedules
                 .filter((schedule: any) => schedule.status === 'AVAILABLE')
                 .map((schedule: any) => schedule.departureDate)
-            : []
+            : [],
+          latitude: tourResponse.latitude,
+          longitude: tourResponse.longitude,
+          weatherEnabled: tourResponse.weatherEnabled !== false
         };
         
         setTour(mappedTour);
@@ -289,7 +307,7 @@ const TourDetailPage: React.FC = () => {
         if (tourResponse.category?.id) {
           try {
             const categoryResponse = await tourService.getToursByCategory(tourResponse.category.id);
-            const allToursInCategory = categoryResponse.content || categoryResponse.data || categoryResponse;
+            const allToursInCategory = categoryResponse.content || categoryResponse;
             
             // Filter out current tour
             const availableTours = (Array.isArray(allToursInCategory) ? allToursInCategory : [])
@@ -356,7 +374,25 @@ const TourDetailPage: React.FC = () => {
               relatedToursList = [...relatedToursList, ...tier3];
             }
             
-            setRelatedTours(relatedToursList);
+            // Map API response to TourCard format
+            const mappedRelatedTours = relatedToursList.map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              slug: t.slug,
+              description: t.shortDescription || t.description || '',
+              price: t.salePrice || t.price,
+              originalPrice: (t.salePrice && t.salePrice < t.price) ? t.price : undefined,
+              duration: `${t.duration} ngày`,
+              location: t.destination || t.departureLocation || '',
+              tourType: t.tourType === 'INTERNATIONAL' ? 'international' : 'domestic',
+              rating: 4.5, // TODO: Get from backend
+              reviewCount: 0, // TODO: Get from backend
+              image: t.mainImage || (t.images && t.images.length > 0 ? t.images[0].imageUrl : '/default-tour.jpg'),
+              badge: t.isFeatured ? 'Nổi bật' : undefined,
+              category: t.category?.name || 'Tour'
+            }));
+            
+            setRelatedTours(mappedRelatedTours);
           } catch (relatedError) {
             console.error('❌ Error fetching related tours:', relatedError);
             setRelatedTours([]);
@@ -598,6 +634,7 @@ const TourDetailPage: React.FC = () => {
                   { key: 'overview', label: 'Tổng quan' },
                   { key: 'itinerary', label: 'Lịch trình' },
                   { key: 'reviews', label: 'Đánh giá' },
+                  { key: 'weather', label: 'Thời tiết' },
                   { key: 'info', label: 'Thông tin' }
                 ].map((tab) => (
                   <button
@@ -776,6 +813,21 @@ const TourDetailPage: React.FC = () => {
                   totalReviews={tour.reviewCount}
                   ratingDistribution={ratingDistribution}
                 />
+              )}
+
+              {activeTab === 'weather' && tour && (
+                <div>
+                  <h3 className="text-3xl font-normal text-slate-900 mb-6 tracking-tight">
+                    Thời tiết tại điểm đến
+                  </h3>
+                  <WeatherWidget
+                    tourId={tour.id}
+                    destination={tour.location}
+                    latitude={tour.latitude}
+                    longitude={tour.longitude}
+                    weatherEnabled={tour.weatherEnabled}
+                  />
+                </div>
               )}
 
               {activeTab === 'info' && (

@@ -53,6 +53,11 @@ export interface TourResponse {
   suitableFor?: string;  // NEW
   viewCount?: number;  // NEW
   
+  // Weather coordinates
+  latitude?: number;  // NEW
+  longitude?: number;  // NEW
+  weatherEnabled?: boolean;  // NEW
+  
   isFeatured: boolean;
   status: 'ACTIVE' | 'INACTIVE';
   
@@ -78,6 +83,46 @@ export interface TourResponse {
     imageUrl: string;
     altText?: string;
     isPrimary: boolean;
+  }>;
+  
+  itineraries?: Array<{
+    id: number;
+    dayNumber: number;
+    title: string;
+    description?: string;
+    location?: string;
+    activities?: string[];
+    meals?: string;
+    accommodation?: string;
+    partner?: {
+      id: number;
+      name: string;
+      type?: string;
+      address?: string;
+      rating?: number;
+    };
+    accommodationPartner?: {
+      id: number;
+      name: string;
+      type?: string;
+      address?: string;
+      rating?: number;
+    };
+    mealsPartner?: {
+      id: number;
+      name: string;
+      type?: string;
+      address?: string;
+      rating?: number;
+    };
+  }>;
+  
+  schedules?: Array<{
+    id: number;
+    departureDate: string;
+    returnDate: string;
+    availableSlots: number;
+    status: string;
   }>;
   
   averageRating?: number;

@@ -118,6 +118,11 @@ public class EntityMapper {
         // Statistics
         response.setViewCount(tour.getViewCount());
         
+        // Weather coordinates
+        response.setLatitude(tour.getLatitude());
+        response.setLongitude(tour.getLongitude());
+        response.setWeatherEnabled(tour.getWeatherEnabled());
+        
         // Timestamps
         response.setCreatedAt(tour.getCreatedAt());
         response.setUpdatedAt(tour.getUpdatedAt());
@@ -125,6 +130,30 @@ public class EntityMapper {
         // Category
         if (tour.getCategory() != null) {
             response.setCategory(toCategoryResponseForTour(tour.getCategory()));
+        }
+        
+        // Images - Always load for detail view
+        if (includeDetails) {
+            try {
+                log.info("🖼️ Mapping images for tour {} (includeDetails={})", tour.getId(), includeDetails);
+                if (tour.getImages() != null && !tour.getImages().isEmpty()) {
+                    log.info("✅ Found {} images for tour {}", tour.getImages().size(), tour.getId());
+                    List<TourResponse.TourImageResponse> imageResponses = tour.getImages().stream()
+                            .map(this::toTourImageResponse)
+                            .collect(Collectors.toList());
+                    response.setImages(imageResponses);
+                    log.info("📦 Set {} image responses", imageResponses != null ? imageResponses.size() : 0);
+                } else {
+                    log.warn("⚠️ No images found for tour {}", tour.getId());
+                    response.setImages(new ArrayList<>());
+                }
+            } catch (Exception e) {
+                // Ignore lazy loading exceptions
+                log.error("❌ Could not load images for tour {}: {}", tour.getId(), e.getMessage(), e);
+                response.setImages(new ArrayList<>());
+            }
+        } else {
+            log.debug("⏩ Skipping images for tour {} (includeDetails=false)", tour.getId());
         }
         
         // Itineraries (with partners) - Only load for detail view
@@ -161,6 +190,17 @@ public class EntityMapper {
         response.setIcon(category.getIcon());
         response.setParentId(category.getParentId());
         response.setIsFeatured(category.getIsFeatured());
+        return response;
+    }
+    
+    public TourResponse.TourImageResponse toTourImageResponse(TourImage image) {
+        if (image == null) return null;
+        
+        TourResponse.TourImageResponse response = new TourResponse.TourImageResponse();
+        response.setId(image.getId());
+        response.setImageUrl(image.getImageUrl());
+        response.setCaption(null); // Not available in current entity
+        response.setIsPrimary(false); // Additional images are not primary
         return response;
     }
     

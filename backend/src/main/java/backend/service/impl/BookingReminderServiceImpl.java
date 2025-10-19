@@ -138,7 +138,7 @@ public class BookingReminderServiceImpl implements BookingReminderService {
         
         String emailBody = buildReminderEmailBody(booking, tour, customerName);
         
-        emailService.sendEmail(customerEmail, subject, emailBody);
+        emailService.sendSimpleEmail(customerEmail, subject, emailBody);
     }
     
     /**

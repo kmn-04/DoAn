@@ -82,15 +82,40 @@ public class FileUploadController extends BaseController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> deleteImage(@RequestParam("url") String imageUrl) {
         try {
-            // Extract filename from URL
-            String filename = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
-            Path filePath = Paths.get(uploadDir, filename);
+            // Only delete if it's a local file (uploaded image)
+            // External images (e.g., from Unsplash) should not be deleted
+            if (imageUrl == null || imageUrl.isEmpty()) {
+                return ResponseEntity.ok(success("No image to delete"));
+            }
             
-            Files.deleteIfExists(filePath);
+            // Check if it's an external URL (http:// or https://)
+            if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+                // Check if it's from our server
+                if (imageUrl.contains("localhost:" + serverPort) || imageUrl.contains("/uploads/")) {
+                    // Extract filename from local URL
+                    String filename = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+                    Path filePath = Paths.get(uploadDir, filename);
+                    
+                    if (Files.exists(filePath)) {
+                        Files.delete(filePath);
+                        log.info("Deleted local image file: {}", filename);
+                    }
+                } else {
+                    // External image (e.g., Unsplash) - just return success without deleting
+                    log.info("Skipping deletion of external image: {}", imageUrl);
+                }
+            } else {
+                // Relative path - try to delete
+                Path filePath = Paths.get(uploadDir, imageUrl);
+                if (Files.exists(filePath)) {
+                    Files.delete(filePath);
+                    log.info("Deleted image file: {}", imageUrl);
+                }
+            }
             
             return ResponseEntity.ok(success("Image deleted successfully"));
         } catch (Exception e) {
-            log.error("Error deleting image", e);
+            log.error("Error deleting image: {}", imageUrl, e);
             return ResponseEntity.internalServerError()
                     .body(error("Failed to delete image: " + e.getMessage()));
         }
