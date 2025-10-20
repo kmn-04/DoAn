@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -98,23 +99,37 @@ public class BookingServiceImpl implements BookingService {
         BigDecimal childPrice = basePrice.multiply(BigDecimal.valueOf(0.7)) // 30% discount for children
                                         .multiply(BigDecimal.valueOf(booking.getNumChildren()));
         
-        BigDecimal totalPrice = adultPrice.add(childPrice);
+        BigDecimal subtotal = adultPrice.add(childPrice);
         
         // Apply promotion if exists
+        BigDecimal discountAmount = BigDecimal.ZERO;
         if (booking.getPromotion() != null) {
-            totalPrice = applyPromotion(totalPrice, booking.getPromotion());
+            BigDecimal originalTotal = subtotal;
+            subtotal = applyPromotion(subtotal, booking.getPromotion());
+            discountAmount = originalTotal.subtract(subtotal);
+            booking.setDiscountAmount(discountAmount);
         }
         
-        return totalPrice;
+        return subtotal;
     }
     
     private BigDecimal applyPromotion(BigDecimal totalPrice, Promotion promotion) {
+        BigDecimal discount = BigDecimal.ZERO;
+        
         if (promotion.getType() == Promotion.PromotionType.PERCENTAGE) {
-            BigDecimal discount = totalPrice.multiply(promotion.getValue().divide(BigDecimal.valueOf(100)));
-            return totalPrice.subtract(discount);
+            discount = totalPrice.multiply(promotion.getValue().divide(BigDecimal.valueOf(100)))
+                    .setScale(0, RoundingMode.HALF_UP);
+            
+            // Apply max discount if set
+            if (promotion.getMaxDiscount() != null && discount.compareTo(promotion.getMaxDiscount()) > 0) {
+                discount = promotion.getMaxDiscount();
+            }
         } else {
-            return totalPrice.subtract(promotion.getValue());
+            // Fixed amount discount
+            discount = promotion.getValue();
         }
+        
+        return totalPrice.subtract(discount);
     }
     
     @Override

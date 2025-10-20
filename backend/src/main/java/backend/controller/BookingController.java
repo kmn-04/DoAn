@@ -206,6 +206,14 @@ public class BookingController extends BaseController {
         booking.setCustomerEmail(user.getEmail());
         booking.setCustomerPhone(user.getPhone() != null ? user.getPhone() : request.getContactPhone());
         
+        // Apply promotion if provided
+        if (request.getPromotionCode() != null && !request.getPromotionCode().trim().isEmpty()) {
+            Promotion promotion = promotionService.validatePromotionCode(request.getPromotionCode().trim())
+                    .orElseThrow(() -> new BadRequestException("Mã giảm giá không hợp lệ hoặc đã hết hạn"));
+            booking.setPromotion(promotion);
+            log.info("🎫 Applied promotion: {} - {}", promotion.getCode(), promotion.getDescription());
+        }
+        
         // Create booking
         Booking createdBooking = bookingService.createBooking(booking);
         log.info("✅ Created booking: {} for user: {}", createdBooking.getBookingCode(), createdBooking.getUser().getId());
