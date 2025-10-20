@@ -15,6 +15,7 @@ import partnerAdminService from '../../services/admin/partnerAdminService';
 import type { PartnerResponse } from '../../services/admin/partnerAdminService';
 import Pagination from '../../components/ui/Pagination';
 import ImageUpload from '../../components/admin/ImageUpload';
+import type { AxiosResponse } from 'axios';
 
 interface PartnerFormData {
   name: string;
@@ -27,6 +28,8 @@ interface PartnerFormData {
   specialties: string;
   avatarUrl?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  coverImages?: string[];
+  galleryImages?: string[];
 }
 
 const AdminPartners: React.FC = () => {
@@ -145,6 +148,8 @@ const AdminPartners: React.FC = () => {
       specialties: '',
       avatarUrl: '',
       status: 'ACTIVE'
+      ,coverImages: [],
+      galleryImages: []
     });
     setFormErrors({});
     setIsModalOpen(true);
@@ -160,12 +165,27 @@ const AdminPartners: React.FC = () => {
       address: partner.address || '',
       website: partner.website || '',
       description: partner.description || '',
-      specialties: partner.specialties || '',
+      specialties: Array.isArray((partner as any).specialties)
+        ? ((partner as any).specialties as string[]).join(', ')
+        : ((partner as any).specialties || ''),
       avatarUrl: partner.avatarUrl || '',
       status: partner.status as 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
+      ,coverImages: partner.images?.filter(i=>i.imageType==='cover').map(i=>i.imageUrl) || [],
+      galleryImages: partner.images?.filter(i=>i.imageType==='gallery').map(i=>i.imageUrl) || []
     });
     setFormErrors({});
     setIsModalOpen(true);
+
+    // Ensure images are loaded even if list API didn't include them (lazy load)
+    partnerAdminService.listImages(partner.id)
+      .then(images => {
+        setFormData(prev => ({
+          ...prev,
+          coverImages: images.filter(i=>i.imageType==='cover').map(i=>i.imageUrl),
+          galleryImages: images.filter(i=>i.imageType==='gallery').map(i=>i.imageUrl)
+        }));
+      })
+      .catch(() => {/* ignore */});
   };
 
   const openViewModal = (partner: PartnerResponse) => {
@@ -213,8 +233,40 @@ const AdminPartners: React.FC = () => {
       
       if (editingPartner) {
         await partnerAdminService.updatePartner(editingPartner.id, formData);
+        // Sync newly uploaded images
+        if (formData.coverImages) {
+          const current = await partnerAdminService.listImages(editingPartner.id);
+          const existingCovers = new Set(current.filter(i=>i.imageType==='cover').map(i=>i.imageUrl));
+          for (const [idx,url] of (formData.coverImages||[]).entries()) {
+            if (!existingCovers.has(url)) {
+              await partnerAdminService.addImage(editingPartner.id, { imageUrl: url, imageType: 'cover', displayOrder: idx });
+            }
+          }
+        }
+        if (formData.galleryImages) {
+          const current = await partnerAdminService.listImages(editingPartner.id);
+          const existingGallery = new Set(current.filter(i=>i.imageType==='gallery').map(i=>i.imageUrl));
+          for (const [idx,url] of (formData.galleryImages||[]).entries()) {
+            if (!existingGallery.has(url)) {
+              await partnerAdminService.addImage(editingPartner.id, { imageUrl: url, imageType: 'gallery', displayOrder: idx });
+            }
+          }
+        }
       } else {
-        await partnerAdminService.createPartner(formData);
+        const created = await partnerAdminService.createPartner(formData);
+        const newId = (created as any)?.id;
+        if (newId) {
+          if (formData.coverImages && formData.coverImages.length) {
+            for (const [idx,url] of (formData.coverImages||[]).entries()) {
+              await partnerAdminService.addImage(newId, { imageUrl: url, imageType: 'cover', displayOrder: idx });
+            }
+          }
+          if (formData.galleryImages && formData.galleryImages.length) {
+            for (const [idx,url] of (formData.galleryImages||[]).entries()) {
+              await partnerAdminService.addImage(newId, { imageUrl: url, imageType: 'gallery', displayOrder: idx });
+            }
+          }
+        }
       }
       
       closeModal();
@@ -792,6 +844,29 @@ const AdminPartners: React.FC = () => {
                         value={formData.avatarUrl}
                         onChange={(url) => setFormData({ ...formData, avatarUrl: url as string })}
                         multiple={false}
+                      />
+                    </div>
+
+                    {/* Cover Images */}
+                    <div className="border-t pt-4">
+                      <ImageUpload
+                        label="Ảnh bìa (cover)"
+                        value={formData.coverImages || []}
+                        onChange={(urls) => setFormData({ ...formData, coverImages: urls as string[] })}
+                        multiple
+                        maxFiles={3}
+                        showPrimaryBadge
+                      />
+                    </div>
+
+                    {/* Gallery Images */}
+                    <div className="border-t pt-4">
+                      <ImageUpload
+                        label="Thư viện ảnh (gallery)"
+                        value={formData.galleryImages || []}
+                        onChange={(urls) => setFormData({ ...formData, galleryImages: urls as string[] })}
+                        multiple
+                        maxFiles={10}
                       />
                     </div>
 

@@ -38,15 +38,17 @@ export interface CategoryCreateRequest {
 }
 
 export interface CategoryWithTourCount {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  imageUrl?: string;
-  status: 'ACTIVE' | 'INACTIVE';
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string;
+    imageUrl?: string;
+    status: 'ACTIVE' | 'INACTIVE';
+    createdAt: string;
+    updatedAt: string;
+  };
   tourCount: number;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export type CategoryStatus = 'ACTIVE' | 'INACTIVE';

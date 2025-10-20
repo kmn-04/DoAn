@@ -188,6 +188,7 @@ const partnerService = {
       phone: response.phone,
       email: response.email,
       website: response.website,
+      avatarUrl: response.avatarUrl, // ensure legacy single logo is passed through
       rating: response.rating,
       totalReviews: response.totalReviews,
       totalTours: response.totalTours,
