@@ -34,24 +34,63 @@ from datetime import datetime
 import io
 
 app = Flask(__name__)
-# Cập nhật CORS để hỗ trợ Spring Boot Backend và React Frontend
-# Fix: Remove supports_credentials when using wildcard origin
-CORS(app, 
-     resources={r"/*": {
-         "origins": "*",
-         "allow_headers": ["Content-Type", "Authorization"],
-         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         "expose_headers": ["Content-Type"]
-     }},
-     supports_credentials=False)
+# Cập nhật CORS để hỗ trợ React Frontend (Vite) và đảm bảo header có trên mọi phản hồi (kể cả SSE / lỗi)
+_ALLOWED_ORIGINS = [
+    FRONTEND_URL if 'FRONTEND_URL' in globals() and FRONTEND_URL else 'http://localhost:5173',
+    'http://localhost:5173'
+]
 
-# Add CORS headers to all responses
+CORS(
+    app,
+    resources={r"/*": {
+        "origins": _ALLOWED_ORIGINS,
+        "allow_headers": ["Content-Type", "Authorization", "Accept", "X-Requested-With", "Cache-Control"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "expose_headers": ["Content-Type"]
+    }},
+    supports_credentials=False
+)
+
+# Đảm bảo mọi response đều có CORS headers (bao gồm cả SSE và lỗi 4xx/5xx)
 @app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+def add_cors_headers(response):
+    origin = (request.headers.get('Origin') or '').rstrip('/')
+    if origin in [o.rstrip('/') for o in _ALLOWED_ORIGINS]:
+        response.headers['Access-Control-Allow-Origin'] = origin
+    else:
+        # fallback dùng FRONTEND_URL mặc định khi không match
+        response.headers['Access-Control-Allow-Origin'] = _ALLOWED_ORIGINS[0]
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Accept, X-Requested-With, Cache-Control'
+    response.headers['Access-Control-Max-Age'] = '86400'
     return response
+
+# Bổ sung error handler để đảm bảo phản hồi lỗi cũng có CORS headers
+@app.errorhandler(Exception)
+def handle_exception(e):
+    try:
+        # Nếu là HTTPException, dùng status code sẵn có
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            status_code = e.code or 500
+            message = getattr(e, 'description', 'Server error')
+        else:
+            status_code = 500
+            message = 'Server error'
+    except Exception:
+        status_code = 500
+        message = 'Server error'
+
+    origin = (request.headers.get('Origin') or '').rstrip('/')
+    allow_origin = origin if origin in [o.rstrip('/') for o in _ALLOWED_ORIGINS] else _ALLOWED_ORIGINS[0]
+
+    resp = jsonify({'error': message})
+    resp.status_code = status_code
+    resp.headers['Access-Control-Allow-Origin'] = allow_origin
+    resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    resp.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Accept, X-Requested-With, Cache-Control'
+    resp.headers['Access-Control-Max-Age'] = '86400'
+    return resp
 
 # Khởi tạo ứng dụng
 init_app_context(app)
@@ -128,7 +167,7 @@ def get_conversation_context(session_id, max_messages=10):
 @app.route('/ask', methods=['POST', 'OPTIONS'])
 def ask():
     if request.method == 'OPTIONS':
-        return '', 204
+        return Response('', status=204)
     print(f"=== NEW REQUEST TO /ask ===")
     print(f"Request content type: {request.content_type}")
     print(f"Request data: {request.get_data()[:200]}...")  # First 200 chars
@@ -206,13 +245,13 @@ def ask():
                 # Chỉ tìm tour trong nước (Việt Nam)
                 if not filters:
                     filters = {}
-                filters['is_domestic'] = True
+                filters['tour_type'] = 'domestic'
             elif any(keyword in query_lower for keyword in ['nước ngoài', 'quốc tế', 'international', 'châu á', 'châu âu', 'mỹ']):
                 print("🌍 Detected: INTERNATIONAL tours only")
                 # Chỉ tìm tour nước ngoài
                 if not filters:
                     filters = {}
-                filters['is_domestic'] = False
+                filters['tour_type'] = 'international'
             
             search_results = search_with_metadata_filtering(user_query, top_k=5, filters=filters if filters else None,app=app)
             
@@ -222,6 +261,9 @@ def ask():
             context_data = create_enhanced_context(search_results)
             context = context_data['plain_context']
             html_cards = context_data['html_cards']
+            # Whitelist slugs & tour names from search results to prevent hallucinated links
+            allowed_slugs = [r.get('metadata', {}).get('slug') for r in search_results if r.get('metadata', {}).get('slug')]
+            allowed_names = [r.get('metadata', {}).get('tour_name') for r in search_results if r.get('metadata', {}).get('tour_name')]
         
         elif user_intent == "booking_intent":
             tour_data = extract_tours_data_from_query_intent(user_query)
@@ -333,7 +375,13 @@ def ask():
             
             VÍ DỤ SLUG ĐÚNG:
             - Context có "Slug: ha-noi-ha-long-ninh-binh-3n2d" → Dùng slug này
-            - KHÔNG được tạo "da-lat-2n1d" hay "phu-quoc-3n2d" tự do"""
+            - KHÔNG được tạo "da-lat-2n1d" hay "phu-quoc-3n2d" tự do
+
+            DANH SÁCH SLUG HỢP LỆ (CHỈ ĐƯỢC DÙNG NHỮNG SLUG NÀY):
+            {', '.join(allowed_slugs) if 'allowed_slugs' in locals() and allowed_slugs else '(không có slug → KHÔNG chèn link)'}
+
+            DANH SÁCH TÊN TOUR HỢP LỆ:
+            {', '.join(allowed_names) if 'allowed_names' in locals() and allowed_names else '(không có)'}"""
             
         elif user_intent == "destination_query":
             system_content = f"""Bạn là một trợ lý tư vấn du lịch của Tour Booking System - hệ thống đặt tour du lịch hàng đầu.
@@ -487,15 +535,24 @@ def ask():
             print(f"=== END ERROR ===")
             yield "data: " + json.dumps({'error': str(e), 'session_id': session_id}) + "\n\n"
     
-    return Response(stream_with_context(generate()), mimetype='text/event-stream', 
-                   headers={'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no'})
+    cors_origin = (request.headers.get('Origin') or _ALLOWED_ORIGINS[0])
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'X-Accel-Buffering': 'no',
+            'Access-Control-Allow-Origin': cors_origin
+        }
+    )
 
 # 5. Thêm các route mới để quản lý session
 @app.route('/session/new', methods=['POST', 'OPTIONS'])
 def create_new_session():
     """Tạo session mới"""
     if request.method == 'OPTIONS':
-        return '', 204
+        return Response('', status=204)
     session_id = get_or_create_session()
     return jsonify({
         'session_id': session_id,
@@ -750,7 +807,17 @@ def ask_endpoint():
                     print(f"=== END ERROR ===")
                     yield "data: " + json.dumps({'error': str(e), 'session_id': session_id}) + "\n\n"
 
-            return Response(stream_with_context(generate()), mimetype='text/event-stream')
+            cors_origin = (request.headers.get('Origin') or _ALLOWED_ORIGINS[0])
+            return Response(
+                stream_with_context(generate()),
+                mimetype='text/event-stream',
+                headers={
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                    'X-Accel-Buffering': 'no',
+                    'Access-Control-Allow-Origin': cors_origin
+                }
+            )
 
         except Exception as e:
             print("Lỗi xử lý hình ảnh: " + str(e))

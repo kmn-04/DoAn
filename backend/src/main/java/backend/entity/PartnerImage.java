@@ -1,6 +1,7 @@
 package backend.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,6 +35,7 @@ public class PartnerImage {
     // Relationship with Partner (Many-to-One)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "partner_id", nullable = false)
+    @JsonIgnore
     private Partner partner;
     
     public PartnerImage(String imageUrl, Partner partner) {

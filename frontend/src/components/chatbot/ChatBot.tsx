@@ -40,6 +40,7 @@ const ChatBot = ({ onClose }: ChatBotProps) => {
       console.log('🔄 Creating chatbot session...');
       const response = await fetch('http://localhost:5000/session/new', {
         method: 'POST',
+        mode: 'cors',
         headers: { 'Content-Type': 'application/json' }
       });
       
@@ -95,7 +96,12 @@ const ChatBot = ({ onClose }: ChatBotProps) => {
       console.log('📤 Sending message:', queryText);
       const response = await fetch('http://localhost:5000/ask', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+          'Cache-Control': 'no-cache'
+        },
         body: JSON.stringify({
           query: queryText,
           session_id: sessionId

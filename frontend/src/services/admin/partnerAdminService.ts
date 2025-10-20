@@ -118,6 +118,24 @@ const partnerAdminService = {
     const response = await apiClient.get<number>('/admin/partners/count');
     return response.data.data;
   },
+
+  // Partner images
+  listImages: async (partnerId: number) => {
+    const res = await apiClient.get(`/admin/partners/${partnerId}/images`);
+    return res.data.data as Array<{id:number,imageUrl:string,imageType:string,displayOrder:number,altText?:string}>;
+  },
+  addImage: async (partnerId: number, payload: { imageUrl: string; imageType: 'cover' | 'logo' | 'gallery'; displayOrder?: number; altText?: string; }) => {
+    const res = await apiClient.post(`/admin/partners/${partnerId}/images`, payload);
+    return res.data.data;
+  },
+  updateImage: async (imageId: number, payload: { imageType?: 'cover' | 'logo' | 'gallery'; displayOrder?: number; altText?: string; }) => {
+    const res = await apiClient.patch(`/admin/partners/images/${imageId}`, payload);
+    return res.data.data;
+  },
+  deleteImage: async (imageId: number) => {
+    const res = await apiClient.delete(`/admin/partners/images/${imageId}`);
+    return res.data;
+  }
 };
 
 export default partnerAdminService;

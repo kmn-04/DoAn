@@ -115,39 +115,38 @@ def search_with_metadata_filtering(query, top_k=5, filters=None, app=None):
             skip = False
             for key, value in filters.items():
                 if key == 'tour_type':
-                    # Filter cho tour trong nước vs ngoài nước
-                    country = metadata.get('country', '').lower()
-                    tour_name = metadata.get('tour_name', '').lower()
-                    destination = metadata.get('destination', '').lower()
+                    # Filter cho tour trong nước vs ngoài nước - sử dụng field is_domestic
+                    is_domestic = metadata.get('is_domestic', None)
                     
                     if value == 'domestic':
-                        # Tour trong nước - phải là Việt Nam hoặc không có country nhưng có địa danh VN
-                        vietnam_locations = ['việt nam', 'vietnam', 'hà nội', 'hồ chí minh', 'đà nẵng', 
-                                           'nha trang', 'phú quốc', 'hạ long', 'sapa', 'đà lạt', 'huế', 
-                                           'hội an', 'vũng tàu', 'cần thơ', 'phan thiết', 'ninh bình']
-                        is_vietnam = ('việt nam' in country or 'vietnam' in country or 
-                                    any(loc in destination for loc in vietnam_locations) or
-                                    any(loc in tour_name for loc in vietnam_locations))
-                        if not is_vietnam:
+                        # Chỉ lấy tour trong nước
+                        if is_domestic is not True:
                             skip = True
                             break
                     elif value == 'international':
-                        # Tour ngoài nước - KHÔNG phải Việt Nam
-                        vietnam_locations = ['việt nam', 'vietnam', 'hà nội', 'hồ chí minh', 'đà nẵng', 
-                                           'nha trang', 'phú quốc', 'hạ long', 'sapa', 'đà lạt', 'huế', 
-                                           'hội an', 'vũng tàu', 'cần thơ', 'phan thiết', 'ninh bình']
-                        is_vietnam = ('việt nam' in country or 'vietnam' in country or 
-                                    any(loc in destination for loc in vietnam_locations) or
-                                    any(loc in tour_name for loc in vietnam_locations))
-                        if is_vietnam:
+                        # Chỉ lấy tour nước ngoài
+                        if is_domestic is not False:
                             skip = True
                             break
                 elif key == 'price_range':
                     # Special handling cho price range
                     min_price = metadata.get('min_price')
                     max_price = metadata.get('max_price')
-                    if min_price is not None and max_price is not None:
-                        if not (value[0] <= max_price and value[1] >= min_price):
+                    # value dạng [min, max] với khả năng một trong hai là None (mở biên)
+                    if min_price is not None and max_price is not None and isinstance(value, (list, tuple)) and len(value) == 2:
+                        requested_min = value[0]
+                        requested_max = value[1]
+
+                        lower_ok = True
+                        upper_ok = True
+
+                        if requested_min is not None:
+                            lower_ok = requested_min <= max_price
+
+                        if requested_max is not None:
+                            upper_ok = requested_max >= min_price
+
+                        if not (lower_ok and upper_ok):
                             skip = True
                             break
                 elif key == 'product_name':

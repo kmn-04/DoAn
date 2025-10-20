@@ -32,7 +32,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
         <div className="aspect-video overflow-hidden">
           {partner.images && partner.images.length > 0 ? (
             <img
-              src={partner.images.find(img => img.imageType === 'cover')?.imageUrl || partner.images[0]?.imageUrl}
+              src={partner.images.find(img => img.imageType === 'cover')?.imageUrl || partner.images[0]?.imageUrl || (partner as any).avatarUrl || ''}
               alt={partner.images.find(img => img.imageType === 'cover')?.altText || partner.name}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
@@ -46,9 +46,9 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
         {/* Logo Overlay */}
         <div className="absolute -bottom-6 left-4 group-hover:scale-110 transition-transform duration-300">
           <div className="w-14 h-14 rounded-none bg-white shadow-lg border-2 overflow-hidden" style={{ borderColor: '#D4AF37' }}>
-            {partner.images?.find(img => img.imageType === 'logo') ? (
+            {partner.images?.find(img => img.imageType === 'logo') || (partner as any).avatarUrl ? (
               <img
-                src={partner.images.find(img => img.imageType === 'logo')?.imageUrl}
+                src={partner.images.find(img => img.imageType === 'logo')?.imageUrl || (partner as any).avatarUrl}
                 alt={partner.images.find(img => img.imageType === 'logo')?.altText || `${partner.name} logo`}
                 className="w-full h-full object-cover"
               />

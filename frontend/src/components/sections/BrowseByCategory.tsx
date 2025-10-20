@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  BeakerIcon,
-  BuildingLibraryIcon,
-  FireIcon,
-  HeartIcon,
-  HomeIcon,
-  SparklesIcon,
-  CurrencyDollarIcon,
-  CalendarDaysIcon,
   ChevronLeftIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
@@ -20,32 +12,9 @@ interface Category {
   slug: string;
   description?: string;
   icon?: string;
-  tourCount?: number;
+  imageUrl?: string; // Image from database
+  tourCount: number; // Tour count from backend (matches CategoryWithTourCount)
 }
-
-// Icon mapping for categories
-const iconMap: Record<string, React.ComponentType<any>> = {
-  beach: BeakerIcon,
-  culture: BuildingLibraryIcon,
-  adventure: FireIcon,
-  family: HeartIcon,
-  domestic: HomeIcon,
-  luxury: SparklesIcon,
-  budget: CurrencyDollarIcon,
-  weekend: CalendarDaysIcon,
-};
-
-// Color mapping for categories
-const colorMap: Record<string, { text: string; bg: string }> = {
-  beach: { text: 'text-blue-600', bg: 'bg-blue-50 hover:bg-blue-100' },
-  culture: { text: 'text-purple-600', bg: 'bg-purple-50 hover:bg-purple-100' },
-  adventure: { text: 'text-red-600', bg: 'bg-red-50 hover:bg-red-100' },
-  family: { text: 'text-pink-600', bg: 'bg-pink-50 hover:bg-pink-100' },
-  domestic: { text: 'text-green-600', bg: 'bg-green-50 hover:bg-green-100' },
-  luxury: { text: 'text-yellow-600', bg: 'bg-yellow-50 hover:bg-yellow-100' },
-  budget: { text: 'text-orange-600', bg: 'bg-orange-50 hover:bg-orange-100' },
-  weekend: { text: 'text-indigo-600', bg: 'bg-indigo-50 hover:bg-indigo-100' },
-};
 
 // Default image mapping
 const imageMap: Record<string, string> = {
@@ -75,8 +44,26 @@ const BrowseByCategory: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await categoryService.getAllCategories();
-        setCategories(data);
+        const data = await categoryService.getCategoriesWithTourCount();
+        
+        // Transform data to match our interface
+        const transformedData = data.map(item => ({
+          id: item.category.id,
+          name: item.category.name,
+          slug: item.category.slug,
+          description: item.category.description,
+          imageUrl: item.category.imageUrl,
+          tourCount: item.tourCount
+        }));
+        
+        // Sort categories by tour count (descending)
+        const sortedCategories = [...transformedData].sort((a, b) => {
+          const countA = a.tourCount || 0;
+          const countB = b.tourCount || 0;
+          return countB - countA; // Descending order (most tours first)
+        });
+        
+        setCategories(sortedCategories);
       } catch (err) {
         console.error('Error fetching categories:', err);
         setError('Không thể tải danh mục. Vui lòng thử lại sau.');
@@ -220,97 +207,6 @@ const BrowseByCategory: React.FC = () => {
     );
   }
 
-  const mockCategories = [
-    {
-      id: 1,
-      name: 'Tour Biển Đảo',
-      slug: 'beach',
-      icon: BeakerIcon,
-      tourCount: 45,
-      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-      description: 'Nghỉ dưỡng bãi biển tuyệt đẹp',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50 hover:bg-blue-100'
-    },
-    {
-      id: 2,
-      name: 'Tour Văn Hóa',
-      slug: 'culture',
-      icon: BuildingLibraryIcon,
-      tourCount: 38,
-      image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400&h=300&fit=crop',
-      description: 'Khám phá di sản văn hóa',
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50 hover:bg-purple-100'
-    },
-    {
-      id: 3,
-      name: 'Tour Mạo Hiểm',
-      slug: 'adventure',
-      icon: FireIcon,
-      tourCount: 32,
-      image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop',
-      description: 'Trải nghiệm phiêu lưu thú vị',
-      color: 'text-red-600',
-      bgColor: 'bg-red-50 hover:bg-red-100'
-    },
-    {
-      id: 4,
-      name: 'Tour Gia Đình',
-      slug: 'family',
-      icon: HeartIcon,
-      tourCount: 28,
-      image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop',
-      description: 'Vui chơi cùng gia đình',
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-50 hover:bg-pink-100'
-    },
-    {
-      id: 5,
-      name: 'Tour Trong Nước',
-      slug: 'domestic',
-      icon: HomeIcon,
-      tourCount: 67,
-      image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-      description: 'Khám phá Việt Nam xinh đẹp',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50 hover:bg-green-100'
-    },
-    {
-      id: 6,
-      name: 'Tour Cao Cấp',
-      slug: 'luxury',
-      icon: SparklesIcon,
-      tourCount: 15,
-      image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400&h=300&fit=crop',
-      description: 'Trải nghiệm đẳng cấp 5 sao',
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50 hover:bg-yellow-100'
-    },
-    {
-      id: 7,
-      name: 'Tour Tiết Kiệm',
-      slug: 'budget',
-      icon: CurrencyDollarIcon,
-      tourCount: 52,
-      image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop',
-      description: 'Giá tốt nhất thị trường',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50 hover:bg-orange-100'
-    },
-    {
-      id: 8,
-      name: 'Tour Cuối Tuần',
-      slug: 'weekend',
-      icon: CalendarDaysIcon,
-      tourCount: 41,
-      image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop',
-      description: 'Nghỉ ngơi cuối tuần tuyệt vời',
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50 hover:bg-indigo-100'
-    }
-  ];
-
   return (
     <section className="py-24 bg-stone-50 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -361,16 +257,15 @@ const BrowseByCategory: React.FC = () => {
             onTouchEnd={handleTouchEnd}
           >
             {categories.map((category) => {
-              const IconComponent = iconMap[category.slug] || HomeIcon;
-              const colors = colorMap[category.slug] || { text: 'text-gray-600', bg: 'bg-gray-50 hover:bg-gray-100' };
-              const image = imageMap[category.slug] || imageMap.domestic;
+              // Use image from database, fallback to slug-based mapping
+              const image = category.imageUrl || imageMap[category.slug] || imageMap.domestic;
               
               return (
                 <div
                   key={category.id}
                   className="group flex-shrink-0 cursor-pointer"
                   style={{ width: '280px' }}
-                  onClick={(e) => {
+                  onClick={() => {
                     if (!hasMoved) {
                       navigate(`/tours?category=${category.slug}`);
                     }
@@ -382,9 +277,9 @@ const BrowseByCategory: React.FC = () => {
                     <img
                       src={image}
                       alt={category.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out grayscale group-hover:grayscale-0"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     />
-                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300"></div>
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all duration-300"></div>
                     
                     {/* Tour Count Badge */}
                     <div className="absolute top-4 right-4">
