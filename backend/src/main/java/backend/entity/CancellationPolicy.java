@@ -35,19 +35,29 @@ public class CancellationPolicy {
     @Column(nullable = false)
     private PolicyType policyType;
 
-    // Time-based refund rules
+    // Time-based refund rules (4 tiers)
+    // Trên 30 ngày: 100% refund
     @Column(name = "hours_before_departure_full_refund")
-    private Integer hoursBeforeDepartureFullRefund; // e.g., 48 hours = 100% refund
+    private Integer hoursBeforeDepartureFullRefund; // e.g., 720 hours (30 days) = 100% refund
 
+    // Trên 20 ngày: 70% refund
+    @Column(name = "hours_before_departure_high_refund")
+    private Integer hoursBeforeDepartureHighRefund; // e.g., 480 hours (20 days) = 70% refund
+
+    // Trên 10 ngày: 50% refund
     @Column(name = "hours_before_departure_partial_refund")
-    private Integer hoursBeforeDeparturePartialRefund; // e.g., 24 hours = 50% refund
+    private Integer hoursBeforeDeparturePartialRefund; // e.g., 240 hours (10 days) = 50% refund
 
+    // Dưới 10 ngày: 0% refund
     @Column(name = "hours_before_departure_no_refund")
-    private Integer hoursBeforeDepartureNoRefund; // e.g., 12 hours = 0% refund
+    private Integer hoursBeforeDepartureNoRefund; // e.g., 0 hours = 0% refund
 
-    // Refund percentages
+    // Refund percentages (4 tiers)
     @Column(name = "full_refund_percentage", precision = 5, scale = 2)
     private BigDecimal fullRefundPercentage = new BigDecimal("100.00"); // 100%
+
+    @Column(name = "high_refund_percentage", precision = 5, scale = 2)
+    private BigDecimal highRefundPercentage = new BigDecimal("70.00"); // 70%
 
     @Column(name = "partial_refund_percentage", precision = 5, scale = 2)
     private BigDecimal partialRefundPercentage = new BigDecimal("50.00"); // 50%
@@ -135,20 +145,32 @@ public class CancellationPolicy {
     }
 
     // Helper method to calculate refund percentage based on hours before departure
+    // 4-tier refund policy:
+    // - Trên 30 ngày (>=720h): 100%
+    // - Trên 20 ngày (>=480h): 70%
+    // - Trên 10 ngày (>=240h): 50%
+    // - Dưới 10 ngày (<240h): 0%
     public BigDecimal getRefundPercentage(int hoursBeforeDeparture) {
         // Defensive null checks
         if (hoursBeforeDepartureFullRefund == null || fullRefundPercentage == null) {
             return new BigDecimal("50"); // Default 50%
         }
         
+        // Tier 1: >= 30 days (720 hours) = 100% refund
         if (hoursBeforeDeparture >= hoursBeforeDepartureFullRefund) {
             return fullRefundPercentage != null ? fullRefundPercentage : new BigDecimal("100");
-        } else if (hoursBeforeDeparturePartialRefund != null && hoursBeforeDeparture >= hoursBeforeDeparturePartialRefund) {
+        } 
+        // Tier 2: >= 20 days (480 hours) = 70% refund
+        else if (hoursBeforeDepartureHighRefund != null && hoursBeforeDeparture >= hoursBeforeDepartureHighRefund) {
+            return highRefundPercentage != null ? highRefundPercentage : new BigDecimal("70");
+        } 
+        // Tier 3: >= 10 days (240 hours) = 50% refund
+        else if (hoursBeforeDeparturePartialRefund != null && hoursBeforeDeparture >= hoursBeforeDeparturePartialRefund) {
             return partialRefundPercentage != null ? partialRefundPercentage : new BigDecimal("50");
-        } else if (hoursBeforeDepartureNoRefund != null && hoursBeforeDeparture >= hoursBeforeDepartureNoRefund) {
+        } 
+        // Tier 4: < 10 days = 0% refund
+        else {
             return noRefundPercentage != null ? noRefundPercentage : BigDecimal.ZERO;
-        } else {
-            return BigDecimal.ZERO; // Past minimum notice
         }
     }
 

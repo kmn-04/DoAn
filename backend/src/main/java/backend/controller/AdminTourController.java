@@ -33,6 +33,7 @@ public class AdminTourController extends BaseController {
     private final TourService tourService;
     private final TourMapper tourMapper;
     private final NotificationService notificationService;
+    private final backend.service.EmailService emailService;
     
     @PostMapping
     @Operation(summary = "Create new tour", description = "Create a new tour (Admin only)")
@@ -60,6 +61,19 @@ public class AdminTourController extends BaseController {
             } catch (Exception notifError) {
                 log.error("Failed to send notification for new tour", notifError);
                 // Don't fail tour creation if notification fails
+            }
+            
+            // 📧 Send email to all newsletter subscribers
+            try {
+                emailService.sendNewTourNotification(
+                    tour.getId(),
+                    tour.getName(),
+                    tour.getSlug()
+                );
+                log.info("📧 Sent new tour email to newsletter subscribers: {}", tour.getName());
+            } catch (Exception emailError) {
+                log.error("Failed to send new tour email", emailError);
+                // Don't fail tour creation if email fails
             }
             
             return ResponseEntity.ok(success("Tour created successfully", tour));

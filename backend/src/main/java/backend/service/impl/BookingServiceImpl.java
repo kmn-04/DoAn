@@ -46,6 +46,7 @@ public class BookingServiceImpl implements BookingService {
     private final NotificationService notificationService;
     private final backend.service.LoyaltyService loyaltyService;
     private final backend.service.ReferralService referralService;
+    private final backend.service.EmailService emailService;
     
     @Override
     public Booking createBooking(Booking booking) {
@@ -197,46 +198,11 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public List<Booking> getBookingsByUser(Long userId) {
-        List<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        // ✅ OPTIMIZED: Use fetch join to load tour, schedule, and promotion in single query
+        List<Booking> bookings = bookingRepository.findByUserIdWithDetails(userId);
         
-        // Force initialization of lazy-loaded relationships to avoid LazyInitializationException
-        bookings.forEach(booking -> {
-            if (booking.getTour() != null) {
-                booking.getTour().getName(); // Force load tour
-                
-                // Force load itineraries and their partners
-                try {
-                    if (booking.getTour().getItineraries() != null) {
-                        booking.getTour().getItineraries().size(); // Force load itineraries
-                        booking.getTour().getItineraries().forEach(itinerary -> {
-                            // Force load partners for each itinerary
-                            try {
-                                if (itinerary.getAccommodationPartner() != null) {
-                                    itinerary.getAccommodationPartner().getName();
-                                }
-                            } catch (Exception e) {
-                                log.debug("Could not load accommodation partner: {}", e.getMessage());
-                            }
-                            try {
-                                if (itinerary.getMealsPartner() != null) {
-                                    itinerary.getMealsPartner().getName();
-                                }
-                            } catch (Exception e) {
-                                log.debug("Could not load meals partner: {}", e.getMessage());
-                            }
-                        });
-                    }
-                } catch (Exception e) {
-                    log.debug("Could not load itineraries: {}", e.getMessage());
-                }
-            }
-            if (booking.getUser() != null) {
-                booking.getUser().getName(); // Force load user
-            }
-            if (booking.getSchedule() != null) {
-                booking.getSchedule().getDepartureDate(); // Force load schedule
-            }
-        });
+        // All related entities are already loaded via fetch joins
+        // No need for force initialization
         
         return bookings;
     }
@@ -247,45 +213,11 @@ public class BookingServiceImpl implements BookingService {
         log.info("Getting bookings for user {} with pagination - page: {}, size: {}", 
                 userId, pageable.getPageNumber(), pageable.getPageSize());
         
-        Page<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        // ✅ OPTIMIZED: Use fetch join to load tour, schedule, and promotion in single query
+        Page<Booking> bookings = bookingRepository.findByUserIdWithDetails(userId, pageable);
         
-        // Force initialization of lazy-loaded relationships
-        bookings.forEach(booking -> {
-            if (booking.getTour() != null) {
-                booking.getTour().getName(); // Force load tour
-                
-                // Force load itineraries and their partners
-                try {
-                    if (booking.getTour().getItineraries() != null) {
-                        booking.getTour().getItineraries().size();
-                        booking.getTour().getItineraries().forEach(itinerary -> {
-                            try {
-                                if (itinerary.getAccommodationPartner() != null) {
-                                    itinerary.getAccommodationPartner().getName();
-                                }
-                            } catch (Exception e) {
-                                log.debug("Could not load accommodation partner: {}", e.getMessage());
-                            }
-                            try {
-                                if (itinerary.getMealsPartner() != null) {
-                                    itinerary.getMealsPartner().getName();
-                                }
-                            } catch (Exception e) {
-                                log.debug("Could not load meals partner: {}", e.getMessage());
-                            }
-                        });
-                    }
-                } catch (Exception e) {
-                    log.debug("Could not load itineraries: {}", e.getMessage());
-                }
-            }
-            if (booking.getUser() != null) {
-                booking.getUser().getName(); // Force load user
-            }
-            if (booking.getSchedule() != null) {
-                booking.getSchedule().getDepartureDate(); // Force load schedule
-            }
-        });
+        // All related entities are already loaded via fetch joins
+        // No need for force initialization
         
         log.info("Found {} bookings for user {} (page {} of {})", 
                 bookings.getNumberOfElements(), userId, 
@@ -806,6 +738,23 @@ public class BookingServiceImpl implements BookingService {
             log.info("Sent booking created notification for booking ID: {}", booking.getId());
         } catch (Exception e) {
             log.error("Failed to send booking created notification", e);
+        }
+        
+        // 📧 Send booking confirmation email
+        try {
+            String userEmail = booking.getUser().getEmail();
+            String tourName = booking.getTour().getName();
+            String bookingCode = booking.getBookingCode();
+            
+            emailService.sendBookingConfirmation(
+                userEmail,
+                bookingCode,
+                tourName
+            );
+            
+            log.info("📧 Booking confirmation email sent to: {}", userEmail);
+        } catch (Exception e) {
+            log.error("Failed to send booking confirmation email", e);
         }
     }
     

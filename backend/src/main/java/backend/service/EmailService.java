@@ -17,7 +17,14 @@ public interface EmailService {
     /**
      * Send promotion notification to all active subscribers
      */
-    void sendPromotionNotification(String promotionCode, String promotionName, Integer discountPercent);
+    void sendPromotionNotification(
+        String promotionCode, 
+        String promotionName, 
+        String promotionType,
+        java.math.BigDecimal discountValue,
+        java.math.BigDecimal minOrderAmount,
+        java.math.BigDecimal maxDiscount
+    );
     
     /**
      * Send booking confirmation email
@@ -53,4 +60,31 @@ public interface EmailService {
      * Send voucher redeemed email
      */
     void sendVoucherRedeemedEmail(User user, String voucherCode, Integer pointsUsed, double discountAmount);
+    
+    // ==================== PRIORITY 1: BOOKING & CANCELLATION EMAILS ====================
+    
+    /**
+     * Send payment success email
+     */
+    void sendPaymentSuccessEmail(String to, String bookingCode, String tourName, String amount, String paymentMethod);
+    
+    /**
+     * Send cancellation request confirmation email
+     */
+    void sendCancellationRequestEmail(String to, String bookingCode, String tourName, String reason);
+    
+    /**
+     * Send cancellation approved email
+     */
+    void sendCancellationApprovedEmail(String to, String bookingCode, String tourName, String refundAmount, String adminNotes);
+    
+    /**
+     * Send cancellation rejected email
+     */
+    void sendCancellationRejectedEmail(String to, String bookingCode, String tourName, String rejectionReason);
+    
+    /**
+     * Send refund completed email
+     */
+    void sendRefundCompletedEmail(String to, String bookingCode, String tourName, String refundAmount, String transactionId);
 }

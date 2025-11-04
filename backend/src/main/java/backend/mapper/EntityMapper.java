@@ -347,6 +347,8 @@ public class EntityMapper {
             tourInfo.setDuration(tour.getDuration());
             tourInfo.setDepartureLocation(tour.getDepartureLocation());
             tourInfo.setDestination(tour.getDestination());
+            // Set combined location (destination is the main location)
+            tourInfo.setLocation(tour.getDestination() != null ? tour.getDestination() : tour.getDepartureLocation());
             tourInfo.setTourType(tour.getTourType() != null ? tour.getTourType().name() : null);
             tourInfo.setPrice(tour.getPrice());
             
@@ -355,6 +357,18 @@ public class EntityMapper {
                 tourInfo.getDestination(), tourInfo.getPrice());
             
             response.setTour(tourInfo);
+        }
+        
+        // User info
+        if (booking.getUser() != null) {
+            backend.entity.User user = booking.getUser();
+            BookingResponse.UserInfo userInfo = new BookingResponse.UserInfo();
+            userInfo.setId(user.getId());
+            userInfo.setName(user.getName());
+            userInfo.setEmail(user.getEmail());
+            userInfo.setPhoneNumber(user.getPhone());
+            userInfo.setAvatarUrl(user.getAvatarUrl());
+            response.setUser(userInfo);
         }
         
         // Schedule info

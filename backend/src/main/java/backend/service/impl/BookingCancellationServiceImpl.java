@@ -7,6 +7,7 @@ import backend.exception.BadRequestException;
 import backend.exception.ResourceNotFoundException;
 import backend.repository.*;
 import backend.service.BookingCancellationService;
+import backend.service.EmailService;
 import backend.service.NotificationService;
 import backend.mapper.EntityMapper;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final EntityMapper entityMapper;
+    private final EmailService emailService;
 
     @Override
     public BookingCancellationResponse requestCancellation(BookingCancellationRequest request, Long userId) {
@@ -202,6 +204,25 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
             log.error("Failed to send admin notification: {}", e.getMessage());
         }
         
+        // 📧 Send cancellation request email to user
+        try {
+            String userEmail = user.getEmail();
+            String tourName = booking.getTour() != null ? booking.getTour().getName() : "Tour";
+            String bookingCode = booking.getBookingCode();
+            String reason = request.getReason() != null ? request.getReason() : "Không nêu rõ";
+            
+            emailService.sendCancellationRequestEmail(
+                userEmail,
+                bookingCode,
+                tourName,
+                reason
+            );
+            
+            log.info("📧 Cancellation request email sent to: {}", userEmail);
+        } catch (Exception e) {
+            log.error("Failed to send cancellation request email: {}", e.getMessage());
+        }
+        
         return mapToResponse(savedCancellation);
     }
 
@@ -359,6 +380,28 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
             log.error("Failed to send approval notification: {}", e.getMessage());
         }
         
+        // 📧 Send cancellation approved email
+        try {
+            String userEmail = cancellation.getCancelledBy().getEmail();
+            String tourName = booking.getTour() != null ? booking.getTour().getName() : "Tour";
+            String bookingCode = booking.getBookingCode();
+            String refundAmount = savedCancellation.getFinalRefundAmount() != null 
+                ? String.format("%,.0f", savedCancellation.getFinalRefundAmount()) 
+                : "0";
+            
+            emailService.sendCancellationApprovedEmail(
+                userEmail,
+                bookingCode,
+                tourName,
+                refundAmount,
+                adminNotes != null ? adminNotes : ""
+            );
+            
+            log.info("📧 Cancellation approved email sent to: {}", userEmail);
+        } catch (Exception e) {
+            log.error("Failed to send cancellation approved email: {}", e.getMessage());
+        }
+        
         return mapToResponse(savedCancellation);
     }
 
@@ -418,6 +461,27 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
             log.info("📧 Sent rejection notification to user {}", userId);
         } catch (Exception e) {
             log.error("Failed to send rejection notification: {}", e.getMessage());
+        }
+        
+        // 📧 Send cancellation rejected email
+        try {
+            String userEmail = cancellation.getCancelledBy().getEmail();
+            String tourName = booking.getTour() != null ? booking.getTour().getName() : "Tour";
+            String bookingCode = booking.getBookingCode();
+            String rejectionReason = adminNotes != null && !adminNotes.isEmpty() 
+                ? adminNotes 
+                : "Yêu cầu hủy của bạn không đáp ứng điều kiện hoàn tiền theo chính sách.";
+            
+            emailService.sendCancellationRejectedEmail(
+                userEmail,
+                bookingCode,
+                tourName,
+                rejectionReason
+            );
+            
+            log.info("📧 Cancellation rejected email sent to: {}", userEmail);
+        } catch (Exception e) {
+            log.error("Failed to send cancellation rejected email: {}", e.getMessage());
         }
         
         return mapToResponse(savedCancellation);
@@ -482,6 +546,29 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
                 log.info("📧 Sent refund completion notification to user {}", userId);
             } catch (Exception e) {
                 log.error("Failed to send refund completion notification: {}", e.getMessage());
+            }
+            
+            // 📧 Send refund completed email
+            try {
+                String userEmail = cancellation.getCancelledBy().getEmail();
+                String tourName = booking.getTour() != null ? booking.getTour().getName() : "Tour";
+                String bookingCode = booking.getBookingCode();
+                String refundAmount = cancellation.getFinalRefundAmount() != null 
+                    ? String.format("%,.0f", cancellation.getFinalRefundAmount()) 
+                    : "0";
+                String transactionId = "RF-" + cancellation.getId() + "-" + System.currentTimeMillis();
+                
+                emailService.sendRefundCompletedEmail(
+                    userEmail,
+                    bookingCode,
+                    tourName,
+                    refundAmount,
+                    transactionId
+                );
+                
+                log.info("📧 Refund completed email sent to: {}", userEmail);
+            } catch (Exception e) {
+                log.error("Failed to send refund completed email: {}", e.getMessage());
             }
         }
 
@@ -728,14 +815,21 @@ public class BookingCancellationServiceImpl implements BookingCancellationServic
         defaultPolicy.setName("Default Policy");
         defaultPolicy.setPolicyType(CancellationPolicy.PolicyType.STANDARD);
         defaultPolicy.setStatus(CancellationPolicy.PolicyStatus.ACTIVE);
-        defaultPolicy.setHoursBeforeDepartureFullRefund(72); // 3 days = full refund
-        defaultPolicy.setHoursBeforeDeparturePartialRefund(24); // 1 day = 50% refund
-        defaultPolicy.setHoursBeforeDepartureNoRefund(6);   // 6 hours = no refund
-        defaultPolicy.setFullRefundPercentage(new BigDecimal("100"));
-        defaultPolicy.setPartialRefundPercentage(new BigDecimal("80")); // More reasonable 80%
-        defaultPolicy.setNoRefundPercentage(BigDecimal.ZERO);
-        defaultPolicy.setCancellationFee(new BigDecimal("100000")); // 100k VND (reasonable fee)
-        defaultPolicy.setProcessingFee(new BigDecimal("50000")); // 50k VND processing
+        
+        // Chính sách hủy mới (4 mức):
+        defaultPolicy.setHoursBeforeDepartureFullRefund(720);      // Trên 30 ngày = 100% refund
+        defaultPolicy.setHoursBeforeDepartureHighRefund(480);      // Trên 20 ngày = 70% refund
+        defaultPolicy.setHoursBeforeDeparturePartialRefund(240);   // Trên 10 ngày = 50% refund
+        defaultPolicy.setHoursBeforeDepartureNoRefund(0);          // Dưới 10 ngày = 0% refund
+        
+        defaultPolicy.setFullRefundPercentage(new BigDecimal("100"));    // 100%
+        defaultPolicy.setHighRefundPercentage(new BigDecimal("70"));     // 70%
+        defaultPolicy.setPartialRefundPercentage(new BigDecimal("50"));  // 50%
+        defaultPolicy.setNoRefundPercentage(BigDecimal.ZERO);            // 0%
+        
+        // Phí thực hiện (luôn trừ)
+        defaultPolicy.setCancellationFee(new BigDecimal("100000"));  // 100k VND phí hủy
+        defaultPolicy.setProcessingFee(new BigDecimal("50000"));     // 50k VND phí xử lý
         defaultPolicy.setMinimumNoticeHours(1);
         
         // Set additional required fields

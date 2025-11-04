@@ -26,6 +26,7 @@ public class VnPayService {
     private final VnPayUtil vnPayUtil;
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
+    private final EmailService emailService;
     
     @Transactional
     public VnPayPaymentResponse createPaymentUrl(VnPayPaymentRequest request, String ipAddress) {
@@ -121,6 +122,25 @@ public class VnPayService {
             
             log.info("✅ Payment successful for booking: {}, payment: {}, transaction: {}", 
                     booking.getBookingCode(), payment.getId(), vnpTransactionNo);
+            
+            // 📧 Send payment success email
+            try {
+                String userEmail = booking.getUser().getEmail();
+                String tourName = booking.getTour().getName();
+                String amount = String.format("%,.0f", payment.getAmount());
+                
+                emailService.sendPaymentSuccessEmail(
+                    userEmail,
+                    booking.getBookingCode(),
+                    tourName,
+                    amount,
+                    "VNPay - " + vnpBankCode
+                );
+                
+                log.info("📧 Payment success email sent to: {}", userEmail);
+            } catch (Exception e) {
+                log.error("Failed to send payment success email: {}", e.getMessage());
+            }
         } else {
             // Thanh toán thất bại
             payment.setStatus(Payment.PaymentStatus.FAILED);

@@ -28,11 +28,12 @@ A: Không bao gồm: Chi phí cá nhân, Tiền boa HDV/tài xế, Ăn uống ng
 === VỀ HỦY VÀ THAY ĐỔI TOUR ===
 
 Q8: Nếu tôi muốn hủy tour thì sao?
-A: Tùy thời điểm hủy:
-- Trước 30 ngày: Hoàn 70%
-- 15-30 ngày: Hoàn 50%
-- 7-15 ngày: Hoàn 30%
-- Dưới 7 ngày: Không hoàn
+A: Chính sách hoàn tiền tùy thời điểm hủy:
+- Trên 30 ngày trước khởi hành: Hoàn 100%
+- Trên 20 ngày trước khởi hành: Hoàn 70%
+- Trên 10 ngày trước khởi hành: Hoàn 50%
+- Dưới 10 ngày trước khởi hành: Không hoàn (0%)
+* Lưu ý: Tất cả các trường hợp đều trừ phí xử lý (100.000đ phí hủy + 50.000đ phí thực hiện)
 
 Q9: Tôi có thể đổi ngày khởi hành không?
 A: Có, miễn phí nếu đổi trước 15 ngày. Có phí nếu đổi gấp hơn.

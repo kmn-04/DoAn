@@ -68,7 +68,11 @@ interface CancellationHistoryItem {
 interface CancellationHistoryProps {
   className?: string;
   refreshTrigger?: number; // Add refresh trigger prop
-  newCancellationData?: any; // Add new cancellation data prop
+  newCancellationData?: {
+    bookingId: number;
+    tourName?: string;
+    originalAmount?: number;
+  }; // Add new cancellation data prop
 }
 
 export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ className = '', refreshTrigger, newCancellationData }) => {
@@ -121,6 +125,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
     if (user) {
       loadCancellations();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, currentPage, statusFilter, searchTerm, refreshTrigger]);
 
   // Handle new cancellation data from parent
@@ -200,7 +205,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
       // Convert API response to CancellationHistoryItem format and filter out REJECTED ones
       console.log('📋 Total cancellations from API:', response.content.length);
       response.content.forEach(c => {
-        console.log(`  - Cancellation ${c.id}: status=${c.status}, bookingCode=${c.booking?.bookingCode}`);
+        console.log(`  - Cancellation ${c.id}: status=${c.status}, bookingCode=${c.bookingCode}`);
       });
       
       const apiCancellations = response.content
@@ -208,7 +213,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
           // Don't show rejected cancellations (booking was restored)
           const shouldShow = cancellation.status !== 'REJECTED';
           if (!shouldShow) {
-            console.log(`🚫 Filtering out REJECTED cancellation ${cancellation.id} for booking ${cancellation.booking?.bookingCode}`);
+            console.log(`🚫 Filtering out REJECTED cancellation ${cancellation.id} for booking ${cancellation.bookingCode}`);
           }
           return shouldShow;
         })
@@ -227,20 +232,22 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
           
           return {
             id: cancellation.id,
-            bookingId: cancellation.booking?.id || 0,
-            bookingCode: cancellation.booking?.bookingCode || 'N/A',
-            tourName: cancellation.booking?.tourName || 'Unknown Tour',
+            bookingId: cancellation.bookingId,
+            bookingCode: cancellation.bookingCode || 'N/A',
+            tourName: cancellation.tourName || 'Unknown Tour',
             reason: cancellation.reason,
             reasonCategory: cancellation.reasonCategory,
             status: cancellation.status as CancellationStatusType,
             refundStatus: cancellation.refundStatus as RefundStatusType,
             originalAmount: Number(cancellation.originalAmount) || 0,
             finalRefundAmount: parsedFinalRefund,
-            cancelledAt: cancellation.cancelledAt || cancellation.createdAt,
+            cancelledAt: cancellation.requestedAt,
             processedAt: cancellation.processedAt,
+            refundProcessedAt: cancellation.completedAt,
+            adminNotes: cancellation.adminNotes,
             hoursBeforeDeparture: cancellation.hoursBeforeDeparture || 0,
-            policyName: cancellation.cancellationPolicy?.name || 'Standard Policy',
-            isEmergencyCase: cancellation.isMedicalEmergency || cancellation.isWeatherRelated || cancellation.isForceMajeure || false
+            policyName: cancellation.policyName || 'Standard Policy',
+            isEmergencyCase: cancellation.isEmergencyCase
           };
         });
       
@@ -287,7 +294,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
     setShowRequestForm(true);
   };
 
-  const handleCancellationSuccess = (newCancellation: any) => {
+  const handleCancellationSuccess = () => {
     // Refresh the list
     loadCancellations();
     
@@ -345,7 +352,6 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
         <Button 
           onClick={handleNewCancellation}
           className="mt-4 sm:mt-0"
-          variant="primary"
         >
           + Yêu cầu hủy mới
         </Button>
@@ -420,7 +426,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
             <p className="text-gray-500 mb-4">
               Bạn chưa gửi yêu cầu hủy booking nào. Nhấn nút bên dưới để tạo yêu cầu mới.
             </p>
-            <Button onClick={handleNewCancellation} variant="primary">
+            <Button onClick={handleNewCancellation}>
               Tạo yêu cầu hủy đầu tiên
             </Button>
           </div>
@@ -477,12 +483,25 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wide">Hoàn tiền</p>
                         <p className={`text-sm font-medium ${
+                          // Ưu tiên kiểm tra refundStatus trước (cho trường hợp admin chấp nhận hoàn tiền đặc biệt)
+                          cancellation.refundStatus === 'COMPLETED' ? 'text-green-600' :
                           (cancellation.finalRefundAmount && cancellation.finalRefundAmount > 0) ? 'text-green-600' : 'text-red-600'
                         }`}>
                           {(() => {
                             const refundAmount = Number(cancellation.finalRefundAmount);
-                            console.log('💰 Displaying refund for booking:', cancellation.bookingCode, 'Amount:', refundAmount);
+                            console.log('💰 Displaying refund for booking:', cancellation.bookingCode, 'Amount:', refundAmount, 'Status:', cancellation.refundStatus);
                             
+                            // Nếu admin đã hoàn tiền (COMPLETED), hiển thị số tiền thực tế hoàn
+                            if (cancellation.refundStatus === 'COMPLETED') {
+                              if (refundAmount && refundAmount > 0) {
+                                return `${refundAmount.toLocaleString('vi-VN')} ₫`;
+                              } else {
+                                // Trường hợp đặc biệt: admin chấp nhận hoàn nhưng chưa có số tiền
+                                return 'Đã hoàn tiền';
+                              }
+                            }
+                            
+                            // Logic cũ cho các trường hợp khác
                             if (refundAmount && refundAmount > 0) {
                               return `${refundAmount.toLocaleString('vi-VN')} ₫`;
                             } else {

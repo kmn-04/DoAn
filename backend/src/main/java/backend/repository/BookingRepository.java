@@ -123,6 +123,53 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findByIdWithDetails(@Param("bookingId") Long bookingId);
     
     /**
+     * Find bookings with comprehensive details (tour, user, schedule, promotion)
+     * Optimized to avoid N+1 queries
+     */
+    @Query("SELECT DISTINCT b FROM Booking b " +
+           "LEFT JOIN FETCH b.tour t " +
+           "LEFT JOIN FETCH b.user u " +
+           "LEFT JOIN FETCH b.schedule s " +
+           "LEFT JOIN FETCH b.promotion p " +
+           "WHERE b.id = :bookingId")
+    Optional<Booking> findByIdWithAllDetails(@Param("bookingId") Long bookingId);
+    
+    /**
+     * Find bookings by user with all related entities (optimized for dashboard)
+     * Uses fetch joins to load tour, schedule, and promotion in single query
+     */
+    @Query("SELECT DISTINCT b FROM Booking b " +
+           "LEFT JOIN FETCH b.tour t " +
+           "LEFT JOIN FETCH b.schedule s " +
+           "LEFT JOIN FETCH b.promotion p " +
+           "WHERE b.user.id = :userId " +
+           "ORDER BY b.createdAt DESC")
+    List<Booking> findByUserIdWithDetails(@Param("userId") Long userId);
+    
+    /**
+     * Find bookings by user with pagination and fetch joins
+     */
+    @Query(value = "SELECT DISTINCT b FROM Booking b " +
+                   "LEFT JOIN FETCH b.tour t " +
+                   "LEFT JOIN FETCH b.schedule s " +
+                   "LEFT JOIN FETCH b.promotion p " +
+                   "WHERE b.user.id = :userId " +
+                   "ORDER BY b.createdAt DESC",
+           countQuery = "SELECT COUNT(DISTINCT b) FROM Booking b WHERE b.user.id = :userId")
+    Page<Booking> findByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
+    
+    /**
+     * Find booking by booking code with all details
+     */
+    @Query("SELECT DISTINCT b FROM Booking b " +
+           "LEFT JOIN FETCH b.tour t " +
+           "LEFT JOIN FETCH b.user u " +
+           "LEFT JOIN FETCH b.schedule s " +
+           "LEFT JOIN FETCH b.promotion p " +
+           "WHERE b.bookingCode = :bookingCode")
+    Optional<Booking> findByBookingCodeWithDetails(@Param("bookingCode") String bookingCode);
+    
+    /**
      * Find upcoming bookings
      */
     @Query("SELECT b FROM Booking b WHERE b.startDate >= :currentDate AND b.confirmationStatus IN :statuses")

@@ -56,6 +56,7 @@ public class BookingResponse {
     
     // Related data
     private TourInfo tour;
+    private UserInfo user;
     private TourScheduleInfo schedule;
     private PromotionInfo promotion;
     private List<ParticipantInfo> participants;
@@ -73,8 +74,20 @@ public class BookingResponse {
         private Integer duration;
         private String departureLocation;
         private String destination;
+        private String location; // Combined location for display
         private String tourType;
         private java.math.BigDecimal price;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserInfo {
+        private Long id;
+        private String name;
+        private String email;
+        private String phoneNumber;
+        private String avatarUrl;
     }
     
     @Data

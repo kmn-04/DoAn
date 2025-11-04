@@ -79,4 +79,17 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
      * Check if transaction ID exists
      */
     boolean existsByTransactionId(String transactionId);
+    
+    /**
+     * Find payment by ID with booking and all related details
+     * Optimized to avoid N+1 queries when accessing booking -> tour -> user
+     */
+    @Query("SELECT DISTINCT p FROM Payment p " +
+           "LEFT JOIN FETCH p.booking b " +
+           "LEFT JOIN FETCH b.tour t " +
+           "LEFT JOIN FETCH b.user u " +
+           "LEFT JOIN FETCH b.schedule s " +
+           "LEFT JOIN FETCH b.promotion pr " +
+           "WHERE p.id = :paymentId")
+    Optional<Payment> findByIdWithBookingDetails(@Param("paymentId") Long paymentId);
 }

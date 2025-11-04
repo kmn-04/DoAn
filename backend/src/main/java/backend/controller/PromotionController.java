@@ -36,6 +36,7 @@ public class PromotionController extends BaseController {
     
     private final PromotionService promotionService;
     private final NotificationService notificationService;
+    private final backend.service.EmailService emailService;
     
     // ================================
     // ADMIN ENDPOINTS
@@ -75,6 +76,22 @@ public class PromotionController extends BaseController {
             } catch (Exception notifError) {
                 log.error("Failed to send notification for new promotion", notifError);
                 // Don't fail promotion creation if notification fails
+            }
+            
+            // 📧 Send email to all newsletter subscribers
+            try {
+                emailService.sendPromotionNotification(
+                    response.getCode(),
+                    response.getName() != null ? response.getName() : "Khuyến mãi mới",
+                    response.getType(),
+                    response.getValue(),
+                    response.getMinOrderAmount(),
+                    response.getMaxDiscount()
+                );
+                log.info("📧 Sent new promotion email to newsletter subscribers: {}", response.getCode());
+            } catch (Exception emailError) {
+                log.error("Failed to send new promotion email", emailError);
+                // Don't fail promotion creation if email fails
             }
             
             return ResponseEntity.ok(success("Promotion created successfully", response));

@@ -76,4 +76,25 @@ public interface PartnerRepository extends JpaRepository<Partner, Long> {
         @Param("status") Partner.PartnerStatus status,
         Pageable pageable
     );
+    
+    /**
+     * Find partner by slug with all details (images and tour itineraries)
+     * Optimized to avoid N+1 queries
+     */
+    @Query("SELECT DISTINCT p FROM Partner p " +
+           "LEFT JOIN FETCH p.images " +
+           "WHERE p.slug = :slug")
+    Optional<Partner> findBySlugWithImages(@Param("slug") String slug);
+    
+    /**
+     * Find partner by ID with tour itineraries and related tours
+     * Step 2: Load itineraries separately (Hibernate limitation with multiple collections)
+     */
+    @Query("SELECT DISTINCT p FROM Partner p " +
+           "LEFT JOIN FETCH p.tourItineraries ti " +
+           "LEFT JOIN FETCH ti.tour t " +
+           "LEFT JOIN FETCH t.category " +
+           "LEFT JOIN FETCH t.images " +
+           "WHERE p.id = :partnerId")
+    Optional<Partner> findByIdWithTourItineraries(@Param("partnerId") Long partnerId);
 }

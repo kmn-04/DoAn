@@ -237,4 +237,44 @@ public interface TourRepository extends JpaRepository<Tour, Long> {
     List<Tour> findByCategoryIds(@Param("categoryIds") List<Long> categoryIds, 
                                  @Param("status") TourStatus status, 
                                  Pageable pageable);
+    
+    /**
+     * Find tour by slug with all details (images, itineraries, category)
+     * Optimized to avoid N+1 queries
+     */
+    @Query("SELECT DISTINCT t FROM Tour t " +
+           "LEFT JOIN FETCH t.category c " +
+           "LEFT JOIN FETCH t.images " +
+           "WHERE t.slug = :slug AND t.deletedAt IS NULL")
+    Optional<Tour> findBySlugWithDetails(@Param("slug") String slug);
+    
+    /**
+     * Find tour by slug with itineraries and partners
+     * Note: This uses multiple queries due to Hibernate limitation with multiple collections
+     * Step 1: Load tour with category and images
+     */
+    @Query("SELECT DISTINCT t FROM Tour t " +
+           "LEFT JOIN FETCH t.category c " +
+           "LEFT JOIN FETCH t.images " +
+           "WHERE t.slug = :slug AND t.deletedAt IS NULL")
+    Optional<Tour> findBySlugWithImagesAndCategory(@Param("slug") String slug);
+    
+    /**
+     * Find tour by ID with itineraries and partners
+     * Used after findBySlugWithImagesAndCategory to load itineraries separately
+     */
+    @Query("SELECT DISTINCT t FROM Tour t " +
+           "LEFT JOIN FETCH t.itineraries i " +
+           "LEFT JOIN FETCH i.accommodationPartner " +
+           "LEFT JOIN FETCH i.mealsPartner " +
+           "WHERE t.id = :tourId")
+    Optional<Tour> findByIdWithItinerariesAndPartners(@Param("tourId") Long tourId);
+    
+    /**
+     * Find tour by ID with category
+     */
+    @Query("SELECT t FROM Tour t " +
+           "LEFT JOIN FETCH t.category c " +
+           "WHERE t.id = :tourId AND t.deletedAt IS NULL")
+    Optional<Tour> findByIdWithCategory(@Param("tourId") Long tourId);
 }

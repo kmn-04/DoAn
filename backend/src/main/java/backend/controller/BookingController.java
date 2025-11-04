@@ -42,6 +42,7 @@ public class BookingController extends BaseController {
     private final UserService userService;
     private final PromotionService promotionService;
     private final EntityMapper mapper;
+    private final backend.repository.PaymentRepository paymentRepository;
     
     @GetMapping
     @Operation(summary = "Get all bookings")
@@ -74,6 +75,34 @@ public class BookingController extends BaseController {
         BookingResponse bookingResponse = mapper.toBookingResponse(booking);
         
         return ResponseEntity.ok(success("Booking retrieved successfully", bookingResponse));
+    }
+    
+    @GetMapping("/payment/{paymentId}")
+    @Operation(summary = "Get booking by payment ID")
+    public ResponseEntity<ApiResponse<BookingResponse>> getBookingByPaymentId(
+            @Parameter(description = "Payment ID") @PathVariable Long paymentId) {
+        
+        try {
+            // ✅ OPTIMIZED: Use fetch join to load all related entities in single query
+            backend.entity.Payment payment = paymentRepository.findByIdWithBookingDetails(paymentId)
+                    .orElseThrow(() -> new backend.exception.ResourceNotFoundException("Payment", "id", paymentId));
+            
+            Booking booking = payment.getBooking();
+            if (booking == null) {
+                throw new backend.exception.ResourceNotFoundException("Booking", "payment id", paymentId);
+            }
+            
+            // All related entities (Tour, User, Schedule, Promotion) are already loaded via fetch joins
+            // No need for force initialization
+            
+            BookingResponse bookingResponse = mapper.toBookingResponse(booking);
+            
+            return ResponseEntity.ok(success("Booking retrieved successfully by payment ID", bookingResponse));
+        } catch (Exception e) {
+            log.error("Error getting booking by payment ID: {}", paymentId, e);
+            return ResponseEntity.badRequest()
+                    .body(error("Failed to get booking: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/calculate-price")

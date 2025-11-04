@@ -18,16 +18,35 @@ I. CHÍNH SÁCH ĐẶT TOUR
 - Phải thanh toán đầy đủ trước ngày khởi hành 7 ngày
 - Giá tour đã bao gồm VAT
 
-II. CHÍNH SÁCH HỦY TOUR
+II. CHÍNH SÁCH HỦY TOUR (Cập nhật 2025)
 
-1. Hủy tour trước 30 ngày: Hoàn 70% tổng chi phí
-2. Hủy tour từ 15-30 ngày: Hoàn 50% tổng chi phí
-3. Hủy tour từ 7-15 ngày: Hoàn 30% tổng chi phí
-4. Hủy tour dưới 7 ngày: Không hoàn tiền
+CHÍNH SÁCH HOÀN TIỀN 4 MỨC:
 
-Lưu ý:
-- Trường hợp bất khả kháng (thiên tai, dịch bệnh): Xét hoàn tiền tùy từng trường hợp
-- Cần có giấy tờ chứng minh cho các trường hợp đặc biệt
+1. Hủy tour trên 30 ngày trước khởi hành: Hoàn 100% tổng chi phí
+2. Hủy tour trên 20 ngày trước khởi hành: Hoàn 70% tổng chi phí
+3. Hủy tour trên 10 ngày trước khởi hành: Hoàn 50% tổng chi phí
+4. Hủy tour dưới 10 ngày trước khởi hành: Không hoàn tiền (0%)
+
+PHÍ XỬ LÝ (Áp dụng cho tất cả các trường hợp hủy):
+- Phí hủy tour: 100.000 VNĐ
+- Phí thực hiện: 50.000 VNĐ
+- Tổng phí: 150.000 VNĐ (sẽ được trừ vào số tiền hoàn lại)
+
+VÍ DỤ TÍNH TOÁN:
+- Tour giá 10.000.000 VNĐ, hủy trước 35 ngày:
+  → Hoàn = 10.000.000 x 100% - 150.000 = 9.850.000 VNĐ
+- Tour giá 10.000.000 VNĐ, hủy trước 25 ngày:
+  → Hoàn = 10.000.000 x 70% - 150.000 = 6.850.000 VNĐ
+- Tour giá 10.000.000 VNĐ, hủy trước 15 ngày:
+  → Hoàn = 10.000.000 x 50% - 150.000 = 4.850.000 VNĐ
+- Tour giá 10.000.000 VNĐ, hủy trước 5 ngày:
+  → Hoàn = 0 VNĐ (không hoàn tiền)
+
+TRƯỜNG HỢP ĐẶC BIỆT:
+- Bất khả kháng (thiên tai, dịch bệnh): Xét hoàn tiền tùy từng trường hợp
+- Lý do y tế: Cần giấy tờ chứng minh, có thể được hoàn 100%
+- Lý do thời tiết: Xét theo từng trường hợp cụ thể
+- Cần có giấy tờ chứng minh hợp lệ cho các trường hợp đặc biệt
 
 III. CHÍNH SÁCH THAY ĐỔI TOUR
 

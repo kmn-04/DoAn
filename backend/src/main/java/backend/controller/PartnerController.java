@@ -83,33 +83,15 @@ public class PartnerController {
             @Parameter(description = "Partner slug") @PathVariable String slug) {
         try {
             log.info("Fetching partner with slug: {}", slug);
-            return partnerRepository.findBySlug(slug)
+            
+            // ✅ OPTIMIZED: Use fetch joins in 2 steps (Hibernate limitation with multiple collections)
+            // Step 1: Load partner with images
+            return partnerRepository.findBySlugWithImages(slug)
                     .map(partner -> {
-                        // Force initialization of lazy-loaded collections
-                        if (partner.getImages() != null) {
-                            partner.getImages().size();
-                        }
-                        if (partner.getTourItineraries() != null) {
-                            partner.getTourItineraries().size();
-                            // Also initialize nested collections for statistics and tour details
-                            partner.getTourItineraries().forEach(itinerary -> {
-                                if (itinerary.getTour() != null) {
-                                    if (itinerary.getTour().getBookings() != null) {
-                                        itinerary.getTour().getBookings().size();
-                                    }
-                                    if (itinerary.getTour().getReviews() != null) {
-                                        itinerary.getTour().getReviews().size();
-                                    }
-                                    if (itinerary.getTour().getImages() != null) {
-                                        itinerary.getTour().getImages().size();
-                                    }
-                                    if (itinerary.getTour().getCategory() != null) {
-                                        // Access category to initialize it
-                                        itinerary.getTour().getCategory().getName();
-                                    }
-                                }
-                            });
-                        }
+                        // Step 2: Load tour itineraries and related tours separately
+                        partnerRepository.findByIdWithTourItineraries(partner.getId()).ifPresent(partnerWithItineraries -> {
+                            partner.setTourItineraries(partnerWithItineraries.getTourItineraries());
+                        });
                         
                         PartnerResponse response = entityMapper.toPartnerResponse(partner);
                         log.info("Partner found: {}", partner.getName());

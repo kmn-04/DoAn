@@ -126,62 +126,16 @@ public class TourServiceImpl implements TourService {
     @Override
     @Transactional(readOnly = true)
     public Optional<Tour> getTourBySlugWithDetails(String slug) {
-        Optional<Tour> tourOpt = tourRepository.findBySlug(slug);
+        // ✅ OPTIMIZED: Use fetch joins in 2 steps (Hibernate limitation with multiple collections)
+        // Step 1: Load tour with category and images
+        Optional<Tour> tourOpt = tourRepository.findBySlugWithImagesAndCategory(slug);
         
-        // Force load itineraries and partners within transaction
+        // Step 2: Load itineraries and partners separately
         tourOpt.ifPresent(tour -> {
-            // Force load category to avoid LazyInitializationException
-            if (tour.getCategory() != null) {
-                tour.getCategory().getName(); // Trigger lazy load
-            }
-            
-            // Force load images
-            if (tour.getImages() != null && !tour.getImages().isEmpty()) {
-                log.debug("Force loading {} images for tour {}", tour.getImages().size(), tour.getId());
-                tour.getImages().forEach(image -> {
-                    image.getId();
-                    image.getImageUrl();
-                });
-            } else {
-                log.debug("Tour {} has no images", tour.getId());
-            }
-            
-            // Access itineraries to trigger lazy load
-            if (tour.getItineraries() != null && !tour.getItineraries().isEmpty()) {
-                // Iterate to force load each itinerary
-                tour.getItineraries().forEach(itinerary -> {
-                    // Load basic itinerary data
-                    itinerary.getTitle();
-                    
-                    // Force load partners
-                    try {
-                        if (itinerary.getPartner() != null) {
-                            itinerary.getPartner().getId();
-                            itinerary.getPartner().getName();
-                        }
-                    } catch (Exception e) {
-                        log.debug("Could not load partner for itinerary {}", itinerary.getId());
-                    }
-                    
-                    try {
-                        if (itinerary.getAccommodationPartner() != null) {
-                            itinerary.getAccommodationPartner().getId();
-                            itinerary.getAccommodationPartner().getName();
-                        }
-                    } catch (Exception e) {
-                        log.debug("Could not load accommodation partner for itinerary {}", itinerary.getId());
-                    }
-                    
-                    try {
-                        if (itinerary.getMealsPartner() != null) {
-                            itinerary.getMealsPartner().getId();
-                            itinerary.getMealsPartner().getName();
-                        }
-                    } catch (Exception e) {
-                        log.debug("Could not load meals partner for itinerary {}", itinerary.getId());
-                    }
-                });
-            }
+            tourRepository.findByIdWithItinerariesAndPartners(tour.getId()).ifPresent(tourWithItineraries -> {
+                // Copy itineraries to the tour object
+                tour.setItineraries(tourWithItineraries.getItineraries());
+            });
         });
         
         return tourOpt;
@@ -528,17 +482,14 @@ public class TourServiceImpl implements TourService {
         
         log.info("Tour created successfully with ID: {}", savedTour.getId());
         
-        // Refresh tour to load all collections (images, itineraries)
-        Tour refreshedTour = tourRepository.findById(savedTour.getId())
+        // ✅ OPTIMIZED: Use fetch join to load images and category
+        Tour refreshedTour = tourRepository.findBySlugWithImagesAndCategory(savedTour.getSlug())
                 .orElseThrow(() -> new RuntimeException("Tour not found after creation"));
         
-        // Force load lazy collections
-        if (refreshedTour.getImages() != null) {
-            refreshedTour.getImages().size();
-        }
-        if (refreshedTour.getItineraries() != null) {
-            refreshedTour.getItineraries().size();
-        }
+        // Load itineraries separately (Hibernate limitation)
+        tourRepository.findByIdWithItinerariesAndPartners(refreshedTour.getId()).ifPresent(tourWithItineraries -> {
+            refreshedTour.setItineraries(tourWithItineraries.getItineraries());
+        });
         
         // Convert to Response DTO with all data loaded
         return tourMapper.toResponse(refreshedTour);
