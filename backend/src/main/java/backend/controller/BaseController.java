@@ -45,16 +45,7 @@ public abstract class BaseController {
     }
 
     protected <T> ApiResponse<PageResponse<T>> successPage(Page<T> page) {
-        PageResponse<T> pageResponse = new PageResponse<>();
-        pageResponse.setContent(page.getContent());
-        pageResponse.setPageNumber(page.getNumber());
-        pageResponse.setPageSize(page.getSize());
-        pageResponse.setTotalElements(page.getTotalElements());
-        pageResponse.setTotalPages(page.getTotalPages());
-        pageResponse.setFirst(page.isFirst());
-        pageResponse.setLast(page.isLast());
-        pageResponse.setEmpty(page.isEmpty());
-        
+        PageResponse<T> pageResponse = PageResponse.of(page);
         return ApiResponse.success(pageResponse);
     }
 }

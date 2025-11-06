@@ -6,6 +6,8 @@ import backend.repository.CategoryRepository;
 import backend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     
     @Override
+    @CacheEvict(value = "categories", allEntries = true)
     public Category createCategory(Category category) {
         log.info("Creating new category: {}", category.getName());
         
@@ -50,6 +53,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
     
     @Override
+    @CacheEvict(value = "categories", allEntries = true)
     public Category updateCategory(Long categoryId, Category category) {
         log.info("Updating category with ID: {}", categoryId);
         
@@ -102,12 +106,14 @@ public class CategoryServiceImpl implements CategoryService {
     }
     
     @Override
+    @Cacheable(value = "categories", key = "'all'", cacheManager = "masterDataCacheManager")
     @Transactional(readOnly = true)
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
     
     @Override
+    @Cacheable(value = "categories", key = "'active'", cacheManager = "masterDataCacheManager")
     @Transactional(readOnly = true)
     public List<Category> getActiveCategories() {
         return categoryRepository.findByStatusOrderByNameAsc(CategoryStatus.ACTIVE);
@@ -134,6 +140,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
     
     @Override
+    @CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long categoryId) {
         log.info("Deleting category with ID: {}", categoryId);
         

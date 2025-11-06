@@ -36,7 +36,7 @@ public class EmailServiceImpl implements EmailService {
     private static final String FRONTEND_URL = "http://localhost:5173";
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendNewsletterWelcomeEmail(String to, String subscriberEmail) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -58,7 +58,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendNewTourNotification(Long tourId, String tourName, String tourSlug) {
         try {
             List<Newsletter> activeSubscribers = newsletterRepository.findAll().stream()
@@ -100,7 +100,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendPromotionNotification(
             String promotionCode, 
             String promotionName, 
@@ -164,7 +164,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendBookingConfirmation(String to, String bookingCode, String tourName) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -186,7 +186,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendPasswordResetEmail(backend.entity.User user, String resetToken) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -209,7 +209,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendVerificationEmail(backend.entity.User user, String verificationToken) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -232,7 +232,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendSimpleEmail(String to, String subject, String content) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -741,7 +741,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendPointsEarnedEmail(backend.entity.User user, Integer points, String tourName, String transactionType) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -763,7 +763,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendLevelUpEmail(backend.entity.User user, String oldLevel, String newLevel, Integer totalPoints) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -785,7 +785,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendVoucherRedeemedEmail(backend.entity.User user, String voucherCode, Integer pointsUsed, double discountAmount) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -943,7 +943,7 @@ public class EmailServiceImpl implements EmailService {
     // ==================== PRIORITY 1: BOOKING & CANCELLATION EMAILS ====================
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendPaymentSuccessEmail(String to, String bookingCode, String tourName, String amount, String paymentMethod) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -965,7 +965,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendCancellationRequestEmail(String to, String bookingCode, String tourName, String reason) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -987,7 +987,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendCancellationApprovedEmail(String to, String bookingCode, String tourName, String refundAmount, String adminNotes) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -1009,7 +1009,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendCancellationRejectedEmail(String to, String bookingCode, String tourName, String rejectionReason) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -1031,7 +1031,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    @Async
+    @Async("emailExecutor")
     public void sendRefundCompletedEmail(String to, String bookingCode, String tourName, String refundAmount, String transactionId) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

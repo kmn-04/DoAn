@@ -24,7 +24,7 @@ from intent_classification import (
     extract_filters_from_query,
     extract_tours_data_from_query_intent
 )
-from review_summary import get_reviews_for_product_from_db, ttl_cache_system
+from review_summary import get_reviews_for_product_from_db, review_cache, query_cache
 import time
 import json
 import base64
@@ -944,11 +944,8 @@ def sumary_review():
                 "cached": False
             }), 200
 
-        # Bước 2: Kiểm tra TTL cache nếu không force refresh
-        if not force_refresh:
-            cached_result = ttl_cache_system.get_cached_summary(product_id, reviews)
-            if cached_result:
-                return jsonify(cached_result)
+        # Bước 2: Cache handled by review_cache in get_reviews_for_product_from_db
+        # Reviews are already cached with 24h TTL
 
         # Bước 3: Tính toán thống kê
         total_reviews = len(reviews)
@@ -1017,8 +1014,8 @@ def sumary_review():
             "generated_at": datetime.now().isoformat()
         })
         
-        # Bước 6: Lưu vào TTL cache
-        ttl_cache_system.save_summary_to_cache(product_id, summary_data, reviews)
+        # Bước 6: Cache already handled
+        # review_cache automatically caches reviews for 24h
         
         return jsonify(summary_data)
 
@@ -1029,12 +1026,23 @@ def sumary_review():
         print("Đã xảy ra lỗi trong /SumaryReview: " + str(e))
         return jsonify({'error': 'Đã có lỗi xảy ra phía máy chủ.'}), 500
 
-# TTL Cache management endpoints
+# Cache management endpoints - Updated for new CacheManager
 @app.route('/CacheStats', methods=['GET'])
-def get_ttl_cache_stats():
-    """Get TTL cache statistics"""
+def get_cache_stats():
+    """Get cache statistics"""
     try:
-        stats = ttl_cache_system.get_cache_stats()
+        stats = {
+            'review_cache': {
+                'entries': len(review_cache.cache),
+                'max_entries': review_cache.max_entries,
+                'ttl_hours': review_cache.ttl.total_seconds() / 3600
+            },
+            'query_cache': {
+                'entries': len(query_cache.cache),
+                'max_entries': query_cache.max_entries,
+                'ttl_hours': query_cache.ttl.total_seconds() / 3600
+            }
+        }
         return jsonify({
             'success': True,
             'stats': stats
@@ -1044,52 +1052,61 @@ def get_ttl_cache_stats():
         return jsonify({'error': 'Không thể lấy thống kê cache.'}), 500
 
 @app.route('/ClearCache', methods=['POST'])
-def clear_ttl_cache():
-    """Clear cache for specific product"""
+def clear_cache():
+    """Clear cache for specific tour or all caches"""
     try:
         data = request.get_json()
-        product_id = data.get('productId')
+        tour_id = data.get('tourId') or data.get('productId')
+        clear_all = data.get('clearAll', False)
         
-        if not product_id:
-            return jsonify({'error': 'Vui lòng cung cấp productId.'}), 400
+        if clear_all:
+            review_cache.clear()
+            query_cache.clear()
+            return jsonify({
+                'success': True,
+                'message': 'Đã xóa toàn bộ cache'
+            })
         
-        success = ttl_cache_system.clear_product_cache(product_id)
+        if not tour_id:
+            return jsonify({'error': 'Vui lòng cung cấp tourId hoặc clearAll=true'}), 400
+        
+        # Clear specific tour cache
+        cache_key = f"reviews_tour_{tour_id}"
+        if cache_key in review_cache.cache:
+            del review_cache.cache[cache_key]
+            success = True
+        else:
+            success = False
         
         return jsonify({
             'success': success,
-            'message': f'Đã xóa cache cho sản phẩm {product_id}' if success else 'Không tìm thấy cache để xóa'
+            'message': f'Đã xóa cache cho tour {tour_id}' if success else 'Không tìm thấy cache để xóa'
         })
         
     except Exception as e:
         print(f"Lỗi xóa cache: {e}")
         return jsonify({'error': 'Không thể xóa cache.'}), 500
 
-@app.route('/CacheConfig', methods=['GET', 'POST'])
+@app.route('/CacheConfig', methods=['GET'])
 def cache_config():
-    """Get or update cache configuration"""
-    if request.method == 'GET':
+    """Get cache configuration"""
+    try:
         return jsonify({
-            'ttl_seconds': ttl_cache_system.cache_ttl,
-            'ttl_hours': round(ttl_cache_system.cache_ttl / 3600, 1),
-            'cache_type': 'Redis' if ttl_cache_system.cache.use_redis else 'In-Memory'
+            'review_cache': {
+                'ttl_seconds': review_cache.ttl.total_seconds(),
+                'ttl_hours': review_cache.ttl.total_seconds() / 3600,
+                'max_entries': review_cache.max_entries,
+                'current_entries': len(review_cache.cache)
+            },
+            'query_cache': {
+                'ttl_seconds': query_cache.ttl.total_seconds(),
+                'ttl_hours': query_cache.ttl.total_seconds() / 3600,
+                'max_entries': query_cache.max_entries,
+                'current_entries': len(query_cache.cache)
+            }
         })
-    
-    elif request.method == 'POST':
-        try:
-            data = request.get_json()
-            new_ttl = data.get('ttl_hours', 24) * 3600  # Convert hours to seconds
-            
-            # Update TTL for new cache entries
-            ttl_cache_system.cache_ttl = int(new_ttl)
-            
-            return jsonify({
-                'success': True,
-                'message': f'Cache TTL updated to {new_ttl/3600} hours',
-                'new_ttl_seconds': new_ttl
-            })
-            
-        except Exception as e:
-            return jsonify({'error': f'Cannot update cache config: {e}'}), 500
+    except Exception as e:
+        return jsonify({'error': f'Cannot get cache config: {e}'}), 500
 #/////////////////////////////////////////////
     
 if __name__ == '__main__':

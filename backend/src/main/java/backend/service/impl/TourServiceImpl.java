@@ -12,6 +12,8 @@ import backend.repository.ReviewRepository;
 import backend.service.TourService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +47,7 @@ public class TourServiceImpl implements TourService {
     private final jakarta.persistence.EntityManager entityManager;
     
     @Override
+    @CacheEvict(value = {"tours", "tourDetails", "toursByCategory", "toursByDestination"}, allEntries = true)
     public Tour createTour(Tour tour) {
         log.info("Creating new tour: {}", tour.getName());
         
@@ -74,6 +77,7 @@ public class TourServiceImpl implements TourService {
     }
     
     @Override
+    @CacheEvict(value = {"tours", "tourDetails", "toursByCategory", "toursByDestination"}, allEntries = true)
     public Tour updateTour(Long tourId, Tour tour) {
         log.info("Updating tour with ID: {}", tourId);
         
@@ -124,6 +128,7 @@ public class TourServiceImpl implements TourService {
     }
     
     @Override
+    @Cacheable(value = "tourDetails", key = "#slug")
     @Transactional(readOnly = true)
     public Optional<Tour> getTourBySlugWithDetails(String slug) {
         // ✅ OPTIMIZED: Use fetch joins in 2 steps (Hibernate limitation with multiple collections)
@@ -160,6 +165,7 @@ public class TourServiceImpl implements TourService {
     }
     
     @Override
+    @Cacheable(value = "toursByCategory", key = "#categoryId")
     @Transactional(readOnly = true)
     public List<Tour> getToursByCategory(Long categoryId) {
         return tourRepository.findByCategoryIdAndStatusAndDeletedAtIsNull(categoryId, TourStatus.ACTIVE);
@@ -172,6 +178,7 @@ public class TourServiceImpl implements TourService {
     }
     
     @Override
+    @Cacheable(value = "tours", key = "'featured'")
     @Transactional(readOnly = true)
     public List<Tour> getFeaturedTours() {
         return tourRepository.findFeaturedTours(TourStatus.ACTIVE);
@@ -206,6 +213,7 @@ public class TourServiceImpl implements TourService {
     }
     
     @Override
+    @CacheEvict(value = {"tours", "tourDetails"}, allEntries = true)
     public Tour setFeaturedTour(Long tourId, boolean featured) {
         log.info("Setting tour {} as featured: {}", tourId, featured);
         
@@ -220,6 +228,7 @@ public class TourServiceImpl implements TourService {
     }
     
     @Override
+    @CacheEvict(value = {"tours", "tourDetails"}, allEntries = true)
     public Tour changeTourStatus(Long tourId, TourStatus status) {
         log.info("Changing status of tour {} to: {}", tourId, status);
         
@@ -234,6 +243,7 @@ public class TourServiceImpl implements TourService {
     }
     
     @Override
+    @CacheEvict(value = {"tours", "tourDetails", "toursByCategory", "toursByDestination"}, allEntries = true)
     public void deleteTour(Long tourId) {
         log.info("Deleting tour with ID: {}", tourId);
         

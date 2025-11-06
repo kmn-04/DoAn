@@ -126,9 +126,21 @@ def create_product_chunks(product_data, endpoint, timestamp, text_splitter, prod
     # Thêm metadata specific cho product hoặc tour
     if 'tours' in endpoint.lower():
         # Xử lý Tour data
+        tour_type = product_data.get('tourType', 'DOMESTIC')
+        is_domestic = tour_type == 'DOMESTIC'
+        
+        # Log tour type for debugging
+        tour_name = product_data.get('name', 'Unknown')
+        try:
+            print(f"  [TOUR] {tour_name[:50]:<50} | Type: {tour_type:12} | is_domestic: {is_domestic}")
+        except UnicodeEncodeError:
+            # Fallback for Windows console encoding issues
+            safe_name = tour_name[:50].encode('ascii', 'replace').decode('ascii')
+            print(f"  [TOUR] {safe_name:<50} | Type: {tour_type:12} | is_domestic: {is_domestic}")
+        
         base_metadata.update({
             'tour_id': product_data.get('id'),
-            'tour_name': product_data.get('name'),
+            'tour_name': tour_name,
             'slug': product_data.get('slug'),
             'destination': product_data.get('destination'),
             'departure_location': product_data.get('departureLocation'),
@@ -142,7 +154,8 @@ def create_product_chunks(product_data, endpoint, timestamp, text_splitter, prod
             'description': product_data.get('description'),
             'short_description': product_data.get('shortDescription'),
             'category_name': product_data.get('categoryName'),
-            'is_domestic': product_data.get('tourType') == 'DOMESTIC',
+            'tour_type': tour_type,  # Store original tourType
+            'is_domestic': is_domestic,  # Boolean for easy filtering
         })
     elif 'product' in endpoint.lower() or 'id' in product_data:
 
@@ -439,11 +452,19 @@ def setup_vector_store_with_metadata(api_endpoints):
             print(f"\n========= API: {data_item['endpoint']} =========")
             print(f"Processed {product_count} product(s)")
             print(f"Generated {len(chunks_with_metadata)} chunks with metadata")
+            
+            # Count tour types if this is tours endpoint
+            if 'tours' in data_item['endpoint'].lower():
+                domestic_count = sum(1 for c in chunks_with_metadata if c['metadata'].get('is_domestic') == True)
+                international_count = sum(1 for c in chunks_with_metadata if c['metadata'].get('is_domestic') == False)
+                print(f"\n📊 TOUR TYPE SUMMARY:")
+                print(f"   🇻🇳 DOMESTIC tours:      {domestic_count // product_count if product_count > 0 else 0} tours")
+                print(f"   🌍 INTERNATIONAL tours:  {international_count // product_count if product_count > 0 else 0} tours")
 
             # In preview
             if chunks_with_metadata:
                 sample = chunks_with_metadata[0]
-                print(f"Sample metadata: {json.dumps(sample['metadata'], indent=2, default=str)}")
+                print(f"\nSample metadata: {json.dumps(sample['metadata'], indent=2, default=str)}")
                 print(f"Sample text: {sample['text'][:200]}...")
 
         except Exception as e:  # noqa: E722
@@ -476,11 +497,32 @@ def setup_vector_store_with_metadata(api_endpoints):
         pickle.dump(chunks_data, f)
     print("[OK] Chunks with metadata saved to chunks_with_metadata.pkl")
 
-    # Tạo và lưu FAISS index
+    # Tạo và lưu FAISS index - OPTIMIZED with IVF
     dimension = int(embeddings.shape[1])
-    index = faiss.IndexFlatL2(dimension)
-    embeddings_float32 = embeddings.astype('float32')
-    index.add(embeddings_float32)  # type: ignore
+    n_vectors = len(embeddings)
+    
+    # Use IVF index for better performance if dataset is large
+    if n_vectors > 10000:
+        print(f"[OPTIMIZATION] Using IVF index for {n_vectors} vectors...")
+        nlist = min(100, n_vectors // 100)  # Number of clusters
+        quantizer = faiss.IndexFlatL2(dimension)
+        index = faiss.IndexIVFFlat(quantizer, dimension, nlist)
+        
+        # Train the index
+        print("[TRAINING] Training IVF index...")
+        embeddings_float32 = embeddings.astype('float32')
+        index.train(embeddings_float32)
+        index.add(embeddings_float32)  # type: ignore
+        
+        # Set search params (trade-off between speed and accuracy)
+        index.nprobe = 10  # Search 10 nearest clusters
+        print(f"[OK] IVF index created with {nlist} clusters, nprobe=10")
+    else:
+        print(f"[INFO] Using Flat index for {n_vectors} vectors...")
+        index = faiss.IndexFlatL2(dimension)
+        embeddings_float32 = embeddings.astype('float32')
+        index.add(embeddings_float32)  # type: ignore
+    
     faiss.write_index(index, "faiss_index.index")
     print("[OK] FAISS index saved to faiss_index.index")
     print(f"\n[SUCCESS] Vector store with metadata created successfully!")
@@ -1052,7 +1094,7 @@ def add_multiple_text_files_to_faiss(file_paths, overwrite_existing=False, chunk
 if __name__ == "__main__":
     # API endpoints cho Tour Booking System (Spring Boot backend port 8080)
     api_endpoints = [
-        "http://localhost:8080/api/tours",  # API trả về List<TourResponse>
+        "http://localhost:8080/api/tours?size=100",  # Fetch 100 tours (bao gồm cả INTERNATIONAL)
         "http://localhost:8080/api/destinations",  # Điểm đến
         "http://localhost:8080/api/categories",  # Loại tour
     ]

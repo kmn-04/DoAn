@@ -56,12 +56,15 @@ const AdminStatistics = React.lazy(() => import('./pages/admin/AdminStatistics')
 const AdminSettings = React.lazy(() => import('./pages/admin/AdminSettings'));
 const AdminBanners = React.lazy(() => import('./pages/admin/AdminBanners'));
 
-// Create a client
+// Create a client with optimized settings
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
+      staleTime: 5 * 60 * 1000,      // 5 minutes - data considered fresh
+      gcTime: 10 * 60 * 1000,        // 10 minutes - garbage collection time (keep in cache)
+      refetchOnWindowFocus: false,   // Don't refetch on window focus
+      refetchOnReconnect: true,      // Refetch on reconnect
+      retry: 1,                      // Retry failed requests once
     },
   },
 });

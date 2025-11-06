@@ -5,6 +5,8 @@ import backend.repository.PartnerRepository;
 import backend.service.PartnerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -69,6 +71,7 @@ public class PartnerServiceImpl implements PartnerService {
     }
 
     @Override
+    @Cacheable(value = "partners", key = "#type.name()")
     @Transactional(readOnly = true)
     public List<Partner> getPartnersByType(Partner.PartnerType type) {
         log.info("Getting partners by type: {}", type);
@@ -76,6 +79,7 @@ public class PartnerServiceImpl implements PartnerService {
     }
 
     @Override
+    @CacheEvict(value = {"partners", "partnerDetails"}, allEntries = true)
     public Partner createPartner(Partner partner) {
         log.info("Creating new partner: {}", partner.getName());
         
@@ -105,6 +109,7 @@ public class PartnerServiceImpl implements PartnerService {
     }
 
     @Override
+    @CacheEvict(value = {"partners", "partnerDetails"}, allEntries = true)
     public Partner updatePartner(Long id, Partner partner) {
         log.info("Updating partner with ID: {}", id);
         
@@ -135,6 +140,7 @@ public class PartnerServiceImpl implements PartnerService {
     }
 
     @Override
+    @CacheEvict(value = {"partners", "partnerDetails"}, allEntries = true)
     public void deletePartner(Long id) {
         log.info("Deleting partner with ID: {}", id);
         

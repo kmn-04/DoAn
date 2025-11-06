@@ -94,11 +94,23 @@ def search_with_metadata_filtering(query, top_k=5, filters=None, app=None):
     query_embedding = embedder.encode([query], convert_to_numpy=True)
     
     # Tìm kiếm trong FAISS (lấy nhiều hơn để có đủ sau khi filter)
-    search_size = min(top_k * 5, len(chunks_data['chunks']))
+    # Nếu có filter tour_type, tăng search_size để đảm bảo có đủ kết quả
+    if filters and 'tour_type' in filters:
+        search_size = min(top_k * 20, len(chunks_data['chunks']))  # Tăng lên 20x thay vì 5x
+    else:
+        search_size = min(top_k * 5, len(chunks_data['chunks']))
     distances, indices = index.search(query_embedding, search_size)
     
     results = []
     seen_products = set()  # Để tránh duplicate products
+    
+    # Debug logging
+    if filters:
+        print(f"[FILTER DEBUG] Filters: {filters}")
+        print(f"[FILTER DEBUG] Searching in {len(indices[0])} chunks")
+    
+    filtered_count = 0
+    endpoint_filtered = 0
     
     for i, idx in enumerate(indices[0]):
         chunk_data = chunks_data['chunks'][idx]
@@ -108,6 +120,7 @@ def search_with_metadata_filtering(query, top_k=5, filters=None, app=None):
         if source_endpoint:
             expected_endpoint = f"{BACKEND_URL}/api/tours"
             if not expected_endpoint in source_endpoint.lower():
+                endpoint_filtered += 1
                 continue
         
         # Áp dụng filters nếu có
@@ -118,16 +131,28 @@ def search_with_metadata_filtering(query, top_k=5, filters=None, app=None):
                     # Filter cho tour trong nước vs ngoài nước - sử dụng field is_domestic
                     is_domestic = metadata.get('is_domestic', None)
                     
+                    # Debug first few chunks
+                    if filtered_count + len(results) < 5:
+                        tour_name = metadata.get('tour_name', 'N/A')[:30]
+                        print(f"  [CHUNK {i}] {tour_name} | is_domestic={is_domestic} | filter={value}")
+                    
                     if value == 'domestic':
                         # Chỉ lấy tour trong nước
                         if is_domestic is not True:
                             skip = True
+                            filtered_count += 1
                             break
                     elif value == 'international':
                         # Chỉ lấy tour nước ngoài
                         if is_domestic is not False:
                             skip = True
+                            filtered_count += 1
+                            if filtered_count + len(results) < 5:
+                                print(f"    ❌ FILTERED OUT (is_domestic={is_domestic})")
                             break
+                        else:
+                            if filtered_count + len(results) < 5:
+                                print(f"    ✅ PASSED")
                 elif key == 'price_range':
                     # Special handling cho price range
                     min_price = metadata.get('min_price')
@@ -230,6 +255,13 @@ def search_with_metadata_filtering(query, top_k=5, filters=None, app=None):
             if skip:
                 continue
         
+        # Avoid duplicate tours (same tour_id or product_id)
+        tour_id = metadata.get('tour_id') or metadata.get('product_id')
+        if tour_id:
+            if tour_id in seen_products:
+                continue  # Skip duplicate tours
+            seen_products.add(tour_id)
+        
         # Calculate enhanced relevance score
         base_score = 1 / (1 + distances[0][i])
         
@@ -260,6 +292,10 @@ def search_with_metadata_filtering(query, top_k=5, filters=None, app=None):
         
         if len(results) >= top_k:
             break
+    
+    # Debug summary
+    if filters:
+        print(f"[FILTER DEBUG] Results: {len(results)} found, {filtered_count} filtered, {endpoint_filtered} wrong endpoint")
     
     # Sort by final relevance score
     results.sort(key=lambda x: x['relevance_score'], reverse=True)
