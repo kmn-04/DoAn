@@ -136,9 +136,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     
     /**
      * Find bookings by user with all related entities (optimized for dashboard)
-     * Uses fetch joins to load tour, schedule, and promotion in single query
+     * Uses fetch joins to load tour, schedule, promotion, and user in single query
      */
     @Query("SELECT DISTINCT b FROM Booking b " +
+           "LEFT JOIN FETCH b.user u " +
            "LEFT JOIN FETCH b.tour t " +
            "LEFT JOIN FETCH b.schedule s " +
            "LEFT JOIN FETCH b.promotion p " +
@@ -150,6 +151,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * Find bookings by user with pagination and fetch joins
      */
     @Query(value = "SELECT DISTINCT b FROM Booking b " +
+                   "LEFT JOIN FETCH b.user u " +
                    "LEFT JOIN FETCH b.tour t " +
                    "LEFT JOIN FETCH b.schedule s " +
                    "LEFT JOIN FETCH b.promotion p " +

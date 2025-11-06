@@ -411,6 +411,12 @@ function App() {
                 <VerifyEmailPage />
               </Suspense>
             } />
+            {/* Alias route for email link compatibility */}
+            <Route path="/verify-email" element={
+              <Suspense fallback={<AuthPageLoader />}>
+                <VerifyEmailPage />
+              </Suspense>
+            } />
             <Route path="/auth/resend-verification" element={
               <Suspense fallback={<AuthPageLoader />}>
                 <ResendVerificationPage />

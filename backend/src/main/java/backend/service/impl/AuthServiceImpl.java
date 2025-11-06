@@ -16,6 +16,7 @@ import backend.service.AuthService;
 import backend.service.RefreshTokenService;
 import backend.service.TokenBlacklistService;
 import backend.mapper.EntityMapper;
+import backend.util.PasswordValidator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse register(RegisterRequest request) {
         log.info("Registering new user with email: {}", request.getEmail());
+        
+        // Validate password strength
+        if (!PasswordValidator.isValid(request.getPassword())) {
+            throw new BadRequestException(PasswordValidator.getRequirements());
+        }
         
         // Validate password matching
         if (!request.isPasswordMatching()) {

@@ -1,6 +1,7 @@
 package backend.config;
 
 import backend.security.JwtAuthenticationFilter;
+import backend.security.RateLimitFilter;
 import backend.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +28,7 @@ public class SecurityConfig {
     
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final CorsConfigurationSource corsConfigurationSource;
     
     @Bean
@@ -57,15 +59,27 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
+            .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)  // Rate limit before auth
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .headers(headers -> headers
-                .frameOptions(frameOptions -> frameOptions.disable()) // For H2 console if needed
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives("default-src 'self'; " +
+                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; " +
+                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                        "font-src 'self' https://fonts.gstatic.com; " +
+                        "img-src 'self' data: https: blob:; " +
+                        "connect-src 'self' https://api.openweathermap.org http://localhost:5173 http://localhost:5000;")
+                )
+                .xssProtection(xss -> xss
+                    .headerValue(org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
+                .frameOptions(frame -> frame.deny())
             );
 
         return http.build();
     }
     
     @Bean
+    @SuppressWarnings("deprecation")
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);

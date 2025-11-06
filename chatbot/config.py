@@ -15,7 +15,7 @@ IMAGE_SEARCH_THRESHOLD = 75
 try:
     client = OpenAI(
         base_url="https://openrouter.ai/api/v1",
-        api_key="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"
+        api_key="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"
     )
     print("[OK] OpenAI client initialized successfully")
 except Exception as e:
