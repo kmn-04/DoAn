@@ -40,6 +40,9 @@ public class ReviewServiceImpl implements ReviewService {
     private final NotificationService notificationService;
     private final backend.service.LoyaltyService loyaltyService;
     
+    @org.springframework.beans.factory.annotation.Value("${app.chatbot.url:http://localhost:5000}")
+    private String chatbotUrl;
+    
     @Override
     @Transactional(readOnly = true)
     public List<ReviewResponse> getAllApprovedReviews() {
@@ -304,6 +307,88 @@ public class ReviewServiceImpl implements ReviewService {
     public ReviewResponse getReviewByBookingId(Long bookingId) {
         Review review = reviewRepository.findByBookingId(bookingId);
         return review != null ? mapper.toReviewResponse(review) : null;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public backend.dto.response.ReviewAiSummaryResponse getAiSummary(Long tourId) {
+        log.info("Getting AI summary for tour: {}", tourId);
+        
+        // Verify tour exists
+        tourRepository.findById(tourId)
+                .orElseThrow(() -> new RuntimeException("Tour not found with id: " + tourId));
+        
+        // Call chatbot service
+        try {
+            String url = chatbotUrl + "/SumaryReview";
+            
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            
+            java.util.Map<String, Object> requestBody = new java.util.HashMap<>();
+            requestBody.put("product_id", tourId);
+            
+            org.springframework.http.HttpEntity<java.util.Map<String, Object>> entity = 
+                new org.springframework.http.HttpEntity<>(requestBody, headers);
+            
+            @SuppressWarnings("unchecked")
+            org.springframework.http.ResponseEntity<java.util.Map<String, Object>> response = 
+                (org.springframework.http.ResponseEntity<java.util.Map<String, Object>>) 
+                (org.springframework.http.ResponseEntity<?>) restTemplate.postForEntity(
+                    url, 
+                    entity, 
+                    java.util.Map.class
+                );
+            
+            java.util.Map<String, Object> responseBody = response.getBody();
+            
+            if (responseBody == null) {
+                throw new RuntimeException("Empty response from chatbot service");
+            }
+            
+            // Build response
+            return backend.dto.response.ReviewAiSummaryResponse.builder()
+                    .positive((String) responseBody.get("positive"))
+                    .negative((String) responseBody.get("negative"))
+                    .summary((String) responseBody.get("summary"))
+                    .totalReviews((Integer) responseBody.get("total_reviews"))
+                    .averageRating(responseBody.get("average_rating") != null ? 
+                        ((Number) responseBody.get("average_rating")).doubleValue() : null)
+                    .cached((Boolean) responseBody.getOrDefault("cached", false))
+                    .generatedAt((String) responseBody.get("generated_at"))
+                    .build();
+            
+        } catch (Exception e) {
+            log.error("Error calling chatbot service for AI summary: {}", e.getMessage(), e);
+            
+            // Fallback: Return basic summary
+            List<Review> reviews = reviewRepository.findByTourIdAndStatusOrderByCreatedAtDesc(tourId, ReviewStatus.APPROVED);
+            
+            if (reviews.isEmpty()) {
+                return backend.dto.response.ReviewAiSummaryResponse.builder()
+                        .summary("Hiện tại chưa có đánh giá nào cho tour này.")
+                        .totalReviews(0)
+                        .averageRating(0.0)
+                        .cached(false)
+                        .generatedAt(java.time.LocalDateTime.now().toString())
+                        .build();
+            }
+            
+            double avgRating = reviews.stream()
+                    .mapToInt(Review::getRating)
+                    .average()
+                    .orElse(0.0);
+            
+            return backend.dto.response.ReviewAiSummaryResponse.builder()
+                    .summary(String.format("Tour này có %d đánh giá với điểm trung bình %.1f/5", 
+                            reviews.size(), avgRating))
+                    .totalReviews(reviews.size())
+                    .averageRating(avgRating)
+                    .cached(false)
+                    .generatedAt(java.time.LocalDateTime.now().toString())
+                    .build();
+        }
     }
     
     @Override

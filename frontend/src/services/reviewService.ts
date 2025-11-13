@@ -51,6 +51,16 @@ export interface TourRatingStats {
   ratingDistribution: RatingDistribution;
 }
 
+export interface ReviewAiSummary {
+  positive: string;
+  negative: string;
+  summary: string;
+  totalReviews: number;
+  averageRating: number;
+  cached: boolean;
+  generatedAt: string;
+}
+
 const reviewService = {
   /**
    * Create a new review
@@ -183,6 +193,14 @@ const reviewService = {
    */
   getTourReviews: async (tourId: number): Promise<ReviewResponse[]> => {
     return reviewService.getReviewsByTourId(tourId);
+  },
+
+  /**
+   * Get AI-generated summary of reviews for a tour
+   */
+  getAiSummary: async (tourId: number): Promise<ReviewAiSummary> => {
+    const response = await api.get(`/reviews/tour/${tourId}/ai-summary`);
+    return response.data.data;
   },
 };
 

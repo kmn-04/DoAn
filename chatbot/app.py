@@ -1107,6 +1107,331 @@ def cache_config():
         })
     except Exception as e:
         return jsonify({'error': f'Cannot get cache config: {e}'}), 500
+
+@app.route('/SearchByImage', methods=['POST'])
+def search_by_image():
+    """
+    Endpoint để tìm kiếm tours dựa trên hình ảnh (cho backend API)
+    Nhận: { "image_data": "base64_string", "top_k": 5 }
+    Trả về: { "tour_ids": [1, 2, 3, ...] }
+    """
+    try:
+        data = request.get_json()
+        image_data = data.get('image_data')
+        top_k = data.get('top_k', 5)
+        
+        if not image_data:
+            return jsonify({'error': 'Vui lòng cung cấp image_data (base64).'}), 400
+        
+        # Decode base64 image
+        try:
+            # Remove data URL prefix if present (e.g., "data:image/jpeg;base64,...")
+            if ',' in image_data:
+                image_data = image_data.split(',')[1]
+            
+            image_bytes = base64.b64decode(image_data)
+            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        except Exception as e:
+            print(f"Lỗi decode image: {e}")
+            return jsonify({'error': 'Không thể decode hình ảnh. Vui lòng kiểm tra định dạng base64.'}), 400
+        
+        # Kiểm tra client có tồn tại không
+        if not client:
+            print("CRITICAL ERROR: OpenAI client not available for image search!")
+            return jsonify({'error': 'Image search service temporarily unavailable.'}), 500
+        
+        # Sử dụng LLM vision để phân tích image và trích xuất keywords
+        print("Đang phân tích hình ảnh với LLM vision...")
+        
+        # Convert image to base64 for API
+        img_buffer = io.BytesIO()
+        image.save(img_buffer, format='JPEG')
+        img_base64 = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
+        
+        # Prompt để trích xuất keywords từ image
+        vision_prompt = """Bạn là một chuyên gia phân tích hình ảnh du lịch. 
+Hãy phân tích hình ảnh này và trích xuất các thông tin sau:
+
+1. Loại địa điểm (biển, núi, chùa, di tích, thành phố, v.v.)
+2. Đặc điểm nổi bật (phong cảnh, kiến trúc, văn hóa, v.v.)
+3. Từ khóa tìm kiếm phù hợp (ví dụ: "Du lịch biển", "Tour núi", "Tham quan chùa", v.v.)
+
+Trả về JSON với format:
+{
+  "location_type": "biển/núi/chùa/di tích/thành phố/khác",
+  "keywords": ["từ khóa 1", "từ khóa 2", "từ khóa 3"],
+  "search_query": "câu tìm kiếm tổng hợp"
+}
+
+Chỉ trả về JSON, không có text khác."""
+        
+        # Gọi LLM vision API - Sử dụng model hỗ trợ vision
+        try:
+            # Try using vision-capable model (qwen2-vl supports vision)
+            # If not available, fallback to text-only search
+            try:
+                response = client.chat.completions.create(
+                    model="qwen/qwen2-vl-7b-instruct",  # Vision-capable model
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": vision_prompt},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{img_base64}"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    max_tokens=300,
+                    temperature=0.3
+                )
+            except Exception as vision_error:
+                print(f"Vision model not available, trying GPT-4o-mini: {vision_error}")
+                # Fallback to GPT-4o-mini (also supports vision)
+                try:
+                    response = client.chat.completions.create(
+                        model="openai/gpt-4o-mini",  # Vision-capable model
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": vision_prompt},
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {
+                                            "url": f"data:image/jpeg;base64,{img_base64}"
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        max_tokens=300,
+                        temperature=0.3
+                    )
+                except Exception as gpt_error:
+                    print(f"GPT-4o-mini not available, using text-only search: {gpt_error}")
+                    # Fallback to text-only search
+                    raise Exception("Vision models not available, using text-only search")
+            
+            result_content = response.choices[0].message.content.strip()
+            print(f"LLM vision result: {result_content}")
+            
+            # Parse JSON từ response
+            try:
+                # Tìm JSON trong response (có thể có text thêm)
+                import re
+                json_match = re.search(r'\{.*\}', result_content, re.DOTALL)
+                if json_match:
+                    vision_data = json.loads(json_match.group())
+                else:
+                    vision_data = json.loads(result_content)
+            except json.JSONDecodeError:
+                # Nếu không parse được JSON, dùng toàn bộ response làm search query
+                print("Không parse được JSON từ LLM vision, dùng toàn bộ response làm query")
+                vision_data = {
+                    "search_query": result_content[:200]  # Limit length
+                }
+            
+            # Lấy search query từ vision data
+            search_query = vision_data.get('search_query', '')
+            if not search_query:
+                # Fallback: tạo query từ keywords
+                keywords = vision_data.get('keywords', [])
+                location_type = vision_data.get('location_type', '')
+                if keywords:
+                    search_query = ' '.join(keywords[:3])
+                elif location_type:
+                    search_query = f"Du lịch {location_type}"
+                else:
+                    search_query = "Du lịch và tour tham quan"
+            
+            print(f"Search query từ image: {search_query}")
+            
+            # Cải thiện: Multiple query strategy + Query expansion
+            tour_ids = []
+            seen_ids = set()
+            result_scores = {}  # Để ranking theo relevance score
+            
+            # Strategy 1: Tìm với search_query đầy đủ
+            print(f"[Strategy 1] Tìm với search_query: {search_query}")
+            search_results = search_with_metadata_filtering(
+                search_query,
+                top_k=top_k * 3,  # Lấy nhiều hơn để có nhiều lựa chọn
+                filters=None,
+                app=app
+            )
+            
+            for result in search_results:
+                metadata = result.get('metadata', {})
+                tour_id = metadata.get('tour_id') or metadata.get('product_id')
+                relevance_score = result.get('relevance_score', 0.0)
+                
+                if tour_id and tour_id not in seen_ids:
+                    try:
+                        tour_id_int = int(tour_id)
+                        tour_ids.append(tour_id_int)
+                        seen_ids.add(tour_id)
+                        result_scores[tour_id_int] = relevance_score
+                    except (ValueError, TypeError):
+                        continue
+            
+            print(f"[Strategy 1] Tìm thấy {len(tour_ids)} tours")
+            
+            # Strategy 2: Nếu chưa đủ tours, thử với keywords riêng lẻ
+            if len(tour_ids) < top_k:
+                keywords = vision_data.get('keywords', [])
+                location_type = vision_data.get('location_type', '')
+                
+                if keywords:
+                    print(f"[Strategy 2] Thử với keywords: {keywords[:3]}")
+                    for keyword in keywords[:3]:  # Thử 3 keywords đầu tiên
+                        if len(tour_ids) >= top_k:
+                            break
+                        
+                        keyword_results = search_with_metadata_filtering(
+                            keyword,
+                            top_k=top_k,
+                            filters=None,
+                            app=app
+                        )
+                        
+                        for result in keyword_results:
+                            metadata = result.get('metadata', {})
+                            tour_id = metadata.get('tour_id') or metadata.get('product_id')
+                            relevance_score = result.get('relevance_score', 0.0)
+                            
+                            if tour_id and tour_id not in seen_ids:
+                                try:
+                                    tour_id_int = int(tour_id)
+                                    tour_ids.append(tour_id_int)
+                                    seen_ids.add(tour_id)
+                                    # Giảm score một chút vì match với keyword đơn lẻ
+                                    result_scores[tour_id_int] = relevance_score * 0.8
+                                except (ValueError, TypeError):
+                                    continue
+                
+                # Strategy 3: Nếu vẫn chưa đủ, thử với location_type
+                if len(tour_ids) < top_k and location_type and location_type != 'khác':
+                    location_query = f"Du lịch {location_type}"
+                    print(f"[Strategy 3] Thử với location_type: {location_query}")
+                    
+                    location_results = search_with_metadata_filtering(
+                        location_query,
+                        top_k=top_k,
+                        filters=None,
+                        app=app
+                    )
+                    
+                    for result in location_results:
+                        metadata = result.get('metadata', {})
+                        tour_id = metadata.get('tour_id') or metadata.get('product_id')
+                        relevance_score = result.get('relevance_score', 0.0)
+                        
+                        if tour_id and tour_id not in seen_ids:
+                            try:
+                                tour_id_int = int(tour_id)
+                                tour_ids.append(tour_id_int)
+                                seen_ids.add(tour_id)
+                                # Giảm score nhiều hơn vì chỉ match location_type
+                                result_scores[tour_id_int] = relevance_score * 0.6
+                            except (ValueError, TypeError):
+                                continue
+            
+            # Strategy 4: Nếu vẫn không có kết quả, fallback sang query chung
+            if len(tour_ids) == 0:
+                print("[Strategy 4] Fallback: Tìm kiếm chung chung...")
+                fallback_results = search_with_metadata_filtering(
+                    "Du lịch và tour tham quan",
+                    top_k=top_k,
+                    filters=None,
+                    app=app
+                )
+                
+                for result in fallback_results:
+                    metadata = result.get('metadata', {})
+                    tour_id = metadata.get('tour_id') or metadata.get('product_id')
+                    relevance_score = result.get('relevance_score', 0.0)
+                    
+                    if tour_id and tour_id not in seen_ids:
+                        try:
+                            tour_id_int = int(tour_id)
+                            tour_ids.append(tour_id_int)
+                            seen_ids.add(tour_id)
+                            result_scores[tour_id_int] = relevance_score * 0.5
+                        except (ValueError, TypeError):
+                            continue
+            
+            # Sort tours theo relevance score (cao nhất trước)
+            tour_ids_sorted = sorted(
+                tour_ids, 
+                key=lambda tid: result_scores.get(tid, 0.0), 
+                reverse=True
+            )[:top_k]  # Chỉ lấy top_k tours tốt nhất
+            
+            print(f"[FINAL] Tìm thấy {len(tour_ids_sorted)} tours (từ {len(tour_ids)} candidates): {tour_ids_sorted}")
+            print(f"[FINAL] Scores: {[f'{tid}:{result_scores.get(tid, 0.0):.3f}' for tid in tour_ids_sorted[:5]]}")
+            
+            return jsonify({
+                'tour_ids': tour_ids_sorted,
+                'search_query': search_query,
+                'total': len(tour_ids_sorted),
+                'strategies_used': 'multiple' if len(tour_ids) > len(tour_ids_sorted) else 'single'
+            })
+            
+        except Exception as e:
+            print(f"Lỗi khi gọi LLM vision: {e}")
+            print(f"Error details: {type(e).__name__}: {str(e)}")
+            # Fallback: tìm kiếm chung chung
+            print("[FALLBACK] Tìm kiếm tours chung chung...")
+            search_results = search_with_metadata_filtering(
+                "Du lịch và tour tham quan",
+                top_k=top_k,
+                filters=None,
+                app=app
+            )
+            
+            tour_ids = []
+            seen_ids = set()
+            result_scores = {}
+            
+            for result in search_results:
+                metadata = result.get('metadata', {})
+                tour_id = metadata.get('tour_id') or metadata.get('product_id')
+                relevance_score = result.get('relevance_score', 0.0)
+                
+                if tour_id and tour_id not in seen_ids:
+                    try:
+                        tour_id_int = int(tour_id)
+                        tour_ids.append(tour_id_int)
+                        seen_ids.add(tour_id)
+                        result_scores[tour_id_int] = relevance_score
+                    except (ValueError, TypeError):
+                        continue
+            
+            # Sort theo score
+            tour_ids_sorted = sorted(
+                tour_ids,
+                key=lambda tid: result_scores.get(tid, 0.0),
+                reverse=True
+            )
+            
+            return jsonify({
+                'tour_ids': tour_ids_sorted,
+                'search_query': 'Du lịch và tour tham quan',
+                'total': len(tour_ids_sorted),
+                'strategies_used': 'fallback'
+            })
+        
+    except Exception as e:
+        print(f"Lỗi trong /SearchByImage: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Đã có lỗi xảy ra: {str(e)}'}), 500
+
 #/////////////////////////////////////////////
     
 if __name__ == '__main__':

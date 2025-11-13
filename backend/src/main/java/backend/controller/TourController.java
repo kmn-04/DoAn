@@ -39,6 +39,9 @@ public class TourController extends BaseController {
     private final CategoryService categoryService;
     private final EntityMapper mapper;
     
+    @org.springframework.beans.factory.annotation.Value("${app.chatbot.url:http://localhost:5000}")
+    private String chatbotUrl;
+    
     @GetMapping
     @Operation(summary = "Get all tours with pagination")
     @Transactional(readOnly = true)  // Fix LazyInitializationException
@@ -321,5 +324,84 @@ public class TourController extends BaseController {
         List<String> locations = tourService.getUniqueLocations();
         
         return ResponseEntity.ok(success("Locations retrieved successfully", locations));
+    }
+    
+    /**
+     * Search tours by image (AI-powered)
+     */
+    @PostMapping("/search-by-image")
+    @Operation(summary = "Search tours by uploading an image", 
+               description = "Uses AI to find similar tours based on uploaded image")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<List<TourResponse>>> searchByImage(
+            @RequestBody @jakarta.validation.Valid backend.dto.request.ImageSearchRequest request) {
+        
+        log.info("Image search request received");
+        
+        try {
+            // Call chatbot service for image search
+            String url = chatbotUrl + "/SearchByImage";
+            
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            
+            java.util.Map<String, Object> requestBody = new java.util.HashMap<>();
+            requestBody.put("image_data", request.getImageData());
+            requestBody.put("top_k", request.getLimit() != null ? request.getLimit() : 5);
+            
+            org.springframework.http.HttpEntity<java.util.Map<String, Object>> entity = 
+                new org.springframework.http.HttpEntity<>(requestBody, headers);
+            
+            @SuppressWarnings("unchecked")
+            org.springframework.http.ResponseEntity<java.util.Map<String, Object>> response = 
+                (org.springframework.http.ResponseEntity<java.util.Map<String, Object>>) 
+                (org.springframework.http.ResponseEntity<?>) restTemplate.postForEntity(
+                    url, 
+                    entity, 
+                    java.util.Map.class
+                );
+            
+            java.util.Map<String, Object> responseBody = response.getBody();
+            
+            if (responseBody == null || !responseBody.containsKey("tour_ids")) {
+                return ResponseEntity.ok(success("No tours found matching the image", java.util.Collections.emptyList()));
+            }
+            
+            // Get tour IDs from chatbot response
+            @SuppressWarnings("unchecked")
+            java.util.List<Integer> tourIds = (java.util.List<Integer>) responseBody.get("tour_ids");
+            
+            if (tourIds == null || tourIds.isEmpty()) {
+                return ResponseEntity.ok(success("No tours found matching the image", java.util.Collections.emptyList()));
+            }
+            
+            // Fetch tours from database
+            List<Tour> matchingTours = tourIds.stream()
+                    .map(Long::valueOf)
+                    .map(tourService::getTourById)
+                    .filter(java.util.Optional::isPresent)
+                    .map(java.util.Optional::get)
+                    .filter(tour -> tour.getStatus() == Tour.TourStatus.ACTIVE)
+                    .collect(java.util.stream.Collectors.toList());
+            
+            List<TourResponse> responses = matchingTours.stream()
+                    .map(mapper::toTourResponse)
+                    .collect(java.util.stream.Collectors.toList());
+            
+            return ResponseEntity.ok(success(
+                String.format("Found %d tours matching your image", responses.size()), 
+                responses
+            ));
+            
+        } catch (Exception e) {
+            log.error("Error in image search: {}", e.getMessage(), e);
+            
+            // Fallback: Return empty list instead of error
+            return ResponseEntity.ok(success(
+                "Image search service temporarily unavailable. Please try text search instead.", 
+                java.util.Collections.emptyList()
+            ));
+        }
     }
 }

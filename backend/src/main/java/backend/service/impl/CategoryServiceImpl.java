@@ -113,6 +113,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
     
     @Override
+    @Transactional(readOnly = true)
+    public List<Category> getAllCategoriesWithTours() {
+        return categoryRepository.findAllWithTours();
+    }
+    
+    @Override
     @Cacheable(value = "categories", key = "'active'", cacheManager = "masterDataCacheManager")
     @Transactional(readOnly = true)
     public List<Category> getActiveCategories() {

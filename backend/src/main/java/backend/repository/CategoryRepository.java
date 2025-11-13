@@ -56,4 +56,10 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
      * Count categories by status
      */
     long countByStatus(CategoryStatus status);
+    
+    /**
+     * Find all categories with tours eagerly fetched to avoid LazyInitializationException
+     */
+    @Query("SELECT DISTINCT c FROM Category c LEFT JOIN FETCH c.tours")
+    List<Category> findAllWithTours();
 }

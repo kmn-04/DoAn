@@ -76,6 +76,11 @@ public interface ReviewService {
     boolean hasCompletedBookingForTour(Long userId, Long tourId);
     
     /**
+     * Get AI-generated summary of reviews for a tour
+     */
+    backend.dto.response.ReviewAiSummaryResponse getAiSummary(Long tourId);
+    
+    /**
      * Get review by booking ID
      */
     ReviewResponse getReviewByBookingId(Long bookingId);

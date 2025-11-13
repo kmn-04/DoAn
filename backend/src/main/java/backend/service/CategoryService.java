@@ -36,6 +36,11 @@ public interface CategoryService {
     List<Category> getAllCategories();
     
     /**
+     * Get all categories with tours eagerly fetched (to avoid LazyInitializationException)
+     */
+    List<Category> getAllCategoriesWithTours();
+    
+    /**
      * Get active categories
      */
     List<Category> getActiveCategories();

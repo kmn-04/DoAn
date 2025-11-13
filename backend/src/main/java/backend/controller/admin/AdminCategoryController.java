@@ -48,14 +48,8 @@ public class AdminCategoryController extends BaseController {
             @RequestParam(required = false) Boolean featured
     ) {
         try {
-            List<Category> categories = categoryService.getAllCategories();
-            
-            // Force load tours to avoid LazyInitializationException
-            categories.forEach(category -> {
-                if (category.getTours() != null) {
-                    category.getTours().size(); // Force initialization
-                }
-            });
+            // Use method with eager fetch to avoid LazyInitializationException
+            List<Category> categories = categoryService.getAllCategoriesWithTours();
             
             // Apply filters
             java.util.stream.Stream<Category> stream = categories.stream();

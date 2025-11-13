@@ -1,4 +1,4 @@
-import { apiClient } from './api';
+﻿import { apiClient } from './api';
 
 // Tour specific types - UPDATED to match new backend schema
 export interface TourResponse {
@@ -16,10 +16,10 @@ export interface TourResponse {
   minPeople?: number;  // NEW
   
   // Location fields (UPDATED)
-  departureLocation?: string;  // NEW: Nơi khởi hành
-  destination?: string;  // NEW: Điểm đến chính
+  departureLocation?: string;  // NEW: N╞íi khß╗ƒi h├ánh
+  destination?: string;  // NEW: ─Éiß╗âm ─æß║┐n ch├¡nh
   destinations?: string;  // NEW: JSON array of destinations
-  region?: string;  // NEW: Vùng miền
+  region?: string;  // NEW: V├╣ng miß╗ün
   countryCode?: string;  // NEW
   
   // Transportation & Accommodation (NEW)
@@ -319,7 +319,7 @@ const tourService = {
     } catch (error) {
       console.error('Error fetching locations:', error);
       // Fallback to hardcoded locations if API endpoint not available
-      return ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Quảng Ninh', 'Lào Cai', 'Kiên Giang', 'Quảng Nam', 'Lâm Đồng'];
+      return ['H├á Nß╗Öi', 'TP. Hß╗ô Ch├¡ Minh', '─É├á Nß║╡ng', 'Quß║úng Ninh', 'L├áo Cai', 'Ki├¬n Giang', 'Quß║úng Nam', 'L├óm ─Éß╗ông'];
     }
   },
 
@@ -344,6 +344,15 @@ const tourService = {
       console.error('Error fetching available schedules:', error);
       return [];
     }
+  },
+
+  // Search tours by image (AI-powered)
+  searchByImage: async (imageData: string, limit: number = 5): Promise<TourResponse[]> => {
+    const response = await apiClient.post<TourResponse[]>('/tours/search-by-image', {
+      imageData,
+      limit
+    });
+    return response.data.data!;
   },
 };
 

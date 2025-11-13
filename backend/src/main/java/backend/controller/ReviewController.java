@@ -126,6 +126,20 @@ public class ReviewController extends BaseController {
     }
     
     /**
+     * Get AI-generated summary of reviews for a tour
+     */
+    @GetMapping("/tour/{tourId}/ai-summary")
+    @Operation(summary = "Get AI-generated summary of reviews", 
+               description = "Returns AI analysis of positive/negative points and overall summary")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<backend.dto.response.ReviewAiSummaryResponse>> getAiSummary(
+            @Parameter(description = "Tour ID") @PathVariable Long tourId) {
+        
+        backend.dto.response.ReviewAiSummaryResponse summary = reviewService.getAiSummary(tourId);
+        return ResponseEntity.ok(success("AI summary generated successfully", summary));
+    }
+    
+    /**
      * Get reviews by tour ID with pagination
      */
     @GetMapping("/tour/{tourId}/paginated")

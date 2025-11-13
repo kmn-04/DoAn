@@ -21,6 +21,7 @@ import { IoBedOutline, IoRestaurantOutline } from 'react-icons/io5';
 import ImageGallery from '../components/tours/ImageGallery';
 import BookingForm from '../components/tours/BookingForm';
 import TourReviews from '../components/tours/TourReviews';
+import ReviewAiSummary from '../components/tours/ReviewAiSummary';
 import TourCard from '../components/tours/TourCard';
 import { Button } from '../components/ui';
 import { WeatherWidget } from '../components/weather';
@@ -807,12 +808,19 @@ const TourDetailPage: React.FC = () => {
               )}
 
               {activeTab === 'reviews' && tour && (
-                <TourReviews
-                  tourId={tour.id}
-                  overallRating={tour.rating}
-                  totalReviews={tour.reviewCount}
-                  ratingDistribution={ratingDistribution}
-                />
+                <>
+                  {/* AI Summary Section */}
+                  <div className="mb-8">
+                    <ReviewAiSummary tourId={tour.id} />
+                  </div>
+
+                  <TourReviews
+                    tourId={tour.id}
+                    overallRating={tour.rating}
+                    totalReviews={tour.reviewCount}
+                    ratingDistribution={ratingDistribution}
+                  />
+                </>
               )}
 
               {activeTab === 'weather' && tour && (

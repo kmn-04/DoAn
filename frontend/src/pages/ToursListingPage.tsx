@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { PhotoIcon } from '@heroicons/react/24/outline';
 import TourCard from '../components/tours/TourCard';
 import TourFilters from '../components/tours/TourFilters';
 import { Pagination, TourCardSkeleton } from '../components/ui';
+import { ImageSearchModal } from '../components/search';
 import { tourService, categoryService, wishlistService } from '../services';
 import type { TourResponse, TourSearchRequest, CategoryResponse } from '../services';
 import { useAuth } from '../hooks/useAuth';
@@ -91,6 +93,7 @@ const ToursListingPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalTours, setTotalTours] = useState(0);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  const [imageSearchOpen, setImageSearchOpen] = useState(false);
   
   const toursPerPage = 12;
   
@@ -374,6 +377,15 @@ const ToursListingPage: React.FC = () => {
             <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto font-normal leading-relaxed">
               Khám phá vẻ đẹp thế giới với hơn <span className="font-medium" style={{ color: '#D4AF37' }}>{totalTours}</span> tour đa dạng từ trong nước đến quốc tế
             </p>
+
+            {/* Image Search Button */}
+            <button
+              onClick={() => setImageSearchOpen(true)}
+              className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+            >
+              <PhotoIcon className="h-5 w-5" />
+              <span className="font-medium">Tìm kiếm bằng ảnh</span>
+            </button>
           </div>
         </div>
       </div>
@@ -445,6 +457,23 @@ const ToursListingPage: React.FC = () => {
             )}
         </div>
       </div>
+
+      {/* Image Search Modal */}
+      <ImageSearchModal
+        isOpen={imageSearchOpen}
+        onClose={() => setImageSearchOpen(false)}
+        onResults={(results) => {
+          const convertedTours = results.map(convertTourResponse);
+          setTours(convertedTours);
+          setTotalTours(results.length);
+          setTotalPages(1);
+          setCurrentPage(0);
+          toast.success(`Tìm thấy ${results.length} tour phù hợp với ảnh!`);
+          
+          // Scroll to results
+          toursGridRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
     </div>
   );
 };
