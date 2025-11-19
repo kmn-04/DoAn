@@ -29,6 +29,7 @@ const ResetPasswordPage = React.lazy(() => import('./pages/auth/ResetPasswordPag
 const VerifyEmailPage = React.lazy(() => import('./pages/auth/VerifyEmailPage'));
 const ResendVerificationPage = React.lazy(() => import('./pages/auth/ResendVerificationPage'));
 const EmailVerificationPendingPage = React.lazy(() => import('./pages/auth/EmailVerificationPendingPage'));
+const GoogleOAuthCallbackPage = React.lazy(() => import('./pages/auth/GoogleOAuthCallbackPage'));
 const AboutPage = React.lazy(() => import('./pages/AboutPage'));
 const ContactPage = React.lazy(() => import('./pages/ContactPage'));
 
@@ -415,6 +416,13 @@ function App() {
             <Route path="/verify-email" element={
               <Suspense fallback={<AuthPageLoader />}>
                 <VerifyEmailPage />
+              </Suspense>
+            } />
+            
+            {/* Google OAuth Callback */}
+            <Route path="/auth/google/callback" element={
+              <Suspense fallback={<AuthPageLoader />}>
+                <GoogleOAuthCallbackPage />
               </Suspense>
             } />
             <Route path="/auth/resend-verification" element={

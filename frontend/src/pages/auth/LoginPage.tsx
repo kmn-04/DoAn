@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
+import { ENV } from '../../config/environment';
 
 // Validation schema
 const loginSchema = z.object({
@@ -189,6 +190,11 @@ const LoginPage: React.FC = () => {
                     type="button"
                     variant="outline"
                     disabled={isLoading}
+                    onClick={() => {
+                      // Redirect to backend OAuth2 endpoint
+                      const apiBaseUrl = ENV.API_BASE_URL.replace('/api', '');
+                      window.location.href = `${apiBaseUrl}/oauth2/authorization/google`;
+                    }}
                     className="w-full border-2 border-stone-300 hover:border-slate-900 rounded-none transition-all duration-300"
                   >
                     <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">

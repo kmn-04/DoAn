@@ -1,6 +1,7 @@
 package backend.config;
 
 import backend.security.JwtAuthenticationFilter;
+import backend.security.OAuth2SuccessHandler;
 import backend.security.RateLimitFilter;
 import backend.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -30,13 +30,18 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RateLimitFilter rateLimitFilter;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final PasswordEncoder passwordEncoder;
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Allow session for OAuth2
+                .maximumSessions(1)
+            )
             .authorizeHttpRequests(authz -> authz
                 // Public endpoints
                 .requestMatchers(
@@ -49,7 +54,9 @@ public class SecurityConfig {
                     "/favicon.ico",
                     "/",
                     "/status",
-                    "/uploads/**"  // Allow public access to uploaded files
+                    "/uploads/**",  // Allow public access to uploaded files
+                    "/oauth2/**",   // OAuth2 endpoints
+                    "/login/oauth2/**"  // OAuth2 login endpoints
                 ).permitAll()
                 
                 // DEVELOPMENT MODE: Allow all API requests
@@ -57,6 +64,10 @@ public class SecurityConfig {
                 
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .successHandler(oAuth2SuccessHandler)
+                .failureUrl("/auth/google/failure")
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)  // Rate limit before auth
@@ -83,17 +94,12 @@ public class SecurityConfig {
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
     
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }
