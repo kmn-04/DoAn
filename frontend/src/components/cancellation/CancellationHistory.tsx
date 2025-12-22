@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { cancellationService } from '../../services';
 import { Card } from '../ui/Card';
@@ -12,12 +13,12 @@ import { CancellationDetails } from './CancellationDetails';
 type CancellationStatusType = 'PENDING' | 'APPROVED' | 'REJECTED';
 type RefundStatusType = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'NOT_APPLICABLE';
 
-// UTC+7 timezone formatter for Vietnam
-const formatDateVietnam = (dateString: string | undefined): string => {
+// Date formatter with i18n support
+const formatDate = (dateString: string | undefined, locale: string): string => {
   if (!dateString) return 'N/A';
   try {
     const date = new Date(dateString);
-    return date.toLocaleString('vi-VN', {
+    return date.toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-US', {
       timeZone: 'Asia/Ho_Chi_Minh',
       year: 'numeric',
       month: '2-digit',
@@ -76,6 +77,7 @@ interface CancellationHistoryProps {
 }
 
 export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ className = '', refreshTrigger, newCancellationData }) => {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [cancellations, setCancellations] = useState<CancellationHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -91,34 +93,33 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
 
   const pageSize = 10;
 
+  const statusLabels = useMemo(() => ({
+    [CancellationStatus.PENDING]: t('booking.cancellationHistory.status.pending'),
+    [CancellationStatus.APPROVED]: t('booking.cancellationHistory.status.approved'),
+    [CancellationStatus.REJECTED]: t('booking.cancellationHistory.status.rejected')
+  }), [t]);
 
-  const statusLabels = {
-    [CancellationStatus.PENDING]: 'Chờ xử lý',
-    [CancellationStatus.APPROVED]: 'Đã phê duyệt',
-    [CancellationStatus.REJECTED]: 'Bị từ chối'
-  };
+  const refundStatusLabels = useMemo(() => ({
+    [RefundStatus.PENDING]: t('booking.cancellationHistory.refundStatus.pending'),
+    [RefundStatus.PROCESSING]: t('booking.cancellationHistory.refundStatus.processing'),
+    [RefundStatus.COMPLETED]: t('booking.cancellationHistory.refundStatus.completed'),
+    [RefundStatus.FAILED]: t('booking.cancellationHistory.refundStatus.failed'),
+    [RefundStatus.NOT_APPLICABLE]: t('booking.cancellationHistory.refundStatus.notApplicable')
+  }), [t]);
 
-  const refundStatusLabels = {
-    [RefundStatus.PENDING]: 'Chờ xử lý',
-    [RefundStatus.PROCESSING]: 'Đang xử lý',
-    [RefundStatus.COMPLETED]: 'Đã hoàn tiền',
-    [RefundStatus.FAILED]: 'Thất bại',
-    [RefundStatus.NOT_APPLICABLE]: 'Không áp dụng'
-  };
-
-  const reasonLabels: Record<string, string> = {
-    'PERSONAL_EMERGENCY': 'Khẩn cấp cá nhân',
-    'MEDICAL_EMERGENCY': 'Khẩn cấp y tế',
-    'WEATHER_CONDITIONS': 'Điều kiện thời tiết',
-    'FORCE_MAJEURE': 'Bất khả kháng',
-    'TRAVEL_RESTRICTIONS': 'Hạn chế đi lại',
-    'SCHEDULE_CONFLICT': 'Xung đột lịch trình',
-    'FINANCIAL_DIFFICULTY': 'Khó khăn tài chính',
-    'DISSATISFACTION': 'Không hài lòng',
-    'DUPLICATE_BOOKING': 'Đặt trùng lặp',
-    'TECHNICAL_ERROR': 'Lỗi kỹ thuật',
-    'OTHER': 'Khác'
-  };
+  const reasonLabels: Record<string, string> = useMemo(() => ({
+    'PERSONAL_EMERGENCY': t('booking.cancellationForm.cancellationDetails.reason.types.PERSONAL_EMERGENCY'),
+    'MEDICAL_EMERGENCY': t('booking.cancellationForm.cancellationDetails.reason.types.MEDICAL_EMERGENCY'),
+    'WEATHER_CONDITIONS': t('booking.cancellationForm.cancellationDetails.reason.types.WEATHER_CONDITIONS'),
+    'FORCE_MAJEURE': t('booking.cancellationForm.cancellationDetails.reason.types.FORCE_MAJEURE'),
+    'TRAVEL_RESTRICTIONS': t('booking.cancellationForm.cancellationDetails.reason.types.TRAVEL_RESTRICTIONS'),
+    'SCHEDULE_CONFLICT': t('booking.cancellationForm.cancellationDetails.reason.types.SCHEDULE_CONFLICT'),
+    'FINANCIAL_DIFFICULTY': t('booking.cancellationForm.cancellationDetails.reason.types.FINANCIAL_DIFFICULTY'),
+    'DISSATISFACTION': t('booking.cancellationForm.cancellationDetails.reason.types.DISSATISFACTION'),
+    'DUPLICATE_BOOKING': t('booking.cancellationForm.cancellationDetails.reason.types.DUPLICATE_BOOKING'),
+    'TECHNICAL_ERROR': t('booking.cancellationForm.cancellationDetails.reason.types.TECHNICAL_ERROR'),
+    'OTHER': t('booking.cancellationForm.cancellationDetails.reason.types.OTHER')
+  }), [t]);
 
   // Load cancellation history
   useEffect(() => {
@@ -302,8 +303,8 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
     const event = new CustomEvent('show-toast', {
       detail: {
         type: 'success',
-        title: 'Thành công!',
-        message: 'Yêu cầu hủy booking mới đã được tạo',
+        title: t('booking.cancellationHistory.toast.success.title'),
+        message: t('booking.cancellationHistory.toast.success.message'),
         duration: 5000
       }
     });
@@ -346,14 +347,14 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Lịch sử hủy booking</h1>
-          <p className="text-gray-600 mt-1">Quản lý và theo dõi các yêu cầu hủy booking của bạn</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('booking.cancellationHistory.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('booking.cancellationHistory.subtitle')}</p>
         </div>
         <Button 
           onClick={handleNewCancellation}
           className="mt-4 sm:mt-0"
         >
-          + Yêu cầu hủy mới
+          {t('booking.cancellationHistory.newRequest')}
         </Button>
       </div>
 
@@ -362,21 +363,21 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
         <div className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
-              label="Tìm kiếm"
-              placeholder="Tìm theo mã booking, tên tour..."
+              label={t('booking.cancellationHistory.filters.search')}
+              placeholder={t('booking.cancellationHistory.filters.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Trạng thái
+                {t('booking.cancellationHistory.filters.status')}
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Tất cả trạng thái</option>
+                <option value="">{t('booking.cancellationHistory.filters.allStatuses')}</option>
                 {Object.entries(statusLabels).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
@@ -392,7 +393,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                 }}
                 className="w-full"
               >
-                Xóa bộ lọc
+                {t('booking.cancellationHistory.filters.clear')}
               </Button>
             </div>
           </div>
@@ -402,7 +403,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
       {/* Results Summary */}
       {!isLoading && (
         <div className="mb-4 text-sm text-gray-600">
-          Hiển thị {cancellations.length} trong tổng số {totalCount} yêu cầu hủy
+          {t('booking.cancellationHistory.results.summary', { display: cancellations.length, total: totalCount })}
         </div>
       )}
 
@@ -410,7 +411,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
       {isLoading ? (
         <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-gray-600">Đang tải...</span>
+          <span className="ml-2 text-gray-600">{t('common.loading')}</span>
         </div>
       ) : cancellations.length === 0 ? (
         <Card>
@@ -421,13 +422,13 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
               </svg>
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Chưa có yêu cầu hủy nào
+              {t('booking.cancellationHistory.empty.title')}
             </h3>
             <p className="text-gray-500 mb-4">
-              Bạn chưa gửi yêu cầu hủy booking nào. Nhấn nút bên dưới để tạo yêu cầu mới.
+              {t('booking.cancellationHistory.empty.description')}
             </p>
             <Button onClick={handleNewCancellation}>
-              Tạo yêu cầu hủy đầu tiên
+              {t('booking.cancellationHistory.empty.action')}
             </Button>
           </div>
         </Card>
@@ -444,7 +445,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                           {cancellation.tourName}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          Mã booking: <span className="font-medium">{cancellation.bookingCode}</span>
+                          {t('booking.cancellationHistory.bookingCode')}: <span className="font-medium">{cancellation.bookingCode}</span>
                         </p>
                       </div>
                       
@@ -453,35 +454,35 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                           <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
-                          Khẩn cấp
+                          {t('booking.cancellationHistory.emergency')}
                         </span>
                       )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                       <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Lý do</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide">{t('booking.cancellationHistory.details.reason')}</p>
                         <p className="text-sm font-medium text-gray-900">
                           {reasonLabels[cancellation.reasonCategory] || cancellation.reasonCategory}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Ngày hủy</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide">{t('booking.cancellationHistory.details.cancelledDate')}</p>
                         <p className="text-sm font-medium text-gray-900">
-                          {formatDateVietnam(cancellation.cancelledAt)}
+                          {formatDate(cancellation.cancelledAt, i18n.language)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Số tiền gốc</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide">{t('booking.cancellationHistory.details.originalAmount')}</p>
                         <p className="text-sm font-medium text-gray-900">
                           {cancellation.originalAmount != null 
-                            ? `${cancellation.originalAmount.toLocaleString('vi-VN')} ₫`
+                            ? `${cancellation.originalAmount.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')} ₫`
                             : 'N/A'
                           }
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Hoàn tiền</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide">{t('booking.cancellationHistory.details.refund')}</p>
                         <p className={`text-sm font-medium ${
                           // Ưu tiên kiểm tra refundStatus trước (cho trường hợp admin chấp nhận hoàn tiền đặc biệt)
                           cancellation.refundStatus === 'COMPLETED' ? 'text-green-600' :
@@ -494,18 +495,18 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                             // Nếu admin đã hoàn tiền (COMPLETED), hiển thị số tiền thực tế hoàn
                             if (cancellation.refundStatus === 'COMPLETED') {
                               if (refundAmount && refundAmount > 0) {
-                                return `${refundAmount.toLocaleString('vi-VN')} ₫`;
+                                return `${refundAmount.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')} ₫`;
                               } else {
                                 // Trường hợp đặc biệt: admin chấp nhận hoàn nhưng chưa có số tiền
-                                return 'Đã hoàn tiền';
+                                return t('booking.cancellationHistory.refundCompleted');
                               }
                             }
                             
                             // Logic cũ cho các trường hợp khác
                             if (refundAmount && refundAmount > 0) {
-                              return `${refundAmount.toLocaleString('vi-VN')} ₫`;
+                              return `${refundAmount.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')} ₫`;
                             } else {
-                              return 'Không hoàn tiền';
+                              return t('booking.cancellationHistory.noRefund');
                             }
                           })()}
                         </p>
@@ -532,7 +533,7 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                       onClick={() => handleViewDetails(cancellation)}
                       size="sm"
                     >
-                      Xem chi tiết
+                      {t('booking.cancellationHistory.viewDetails')}
                     </Button>
                   </div>
                 </div>
@@ -544,17 +545,17 @@ export const CancellationHistory: React.FC<CancellationHistoryProps> = ({ classN
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Xử lý: {formatDateVietnam(cancellation.processedAt)}
+                      {t('booking.cancellationHistory.timeline.processed')}: {formatDate(cancellation.processedAt, i18n.language)}
                       {cancellation.refundProcessedAt && (
                         <>
                           <span className="mx-2">•</span>
-                          Hoàn tiền: {formatDateVietnam(cancellation.refundProcessedAt)}
+                          {t('booking.cancellationHistory.timeline.refund')}: {formatDate(cancellation.refundProcessedAt, i18n.language)}
                         </>
                       )}
                     </div>
                     {cancellation.adminNotes && (
                       <p className="text-xs text-gray-600 mt-1">
-                        <span className="font-medium">Ghi chú admin:</span> {cancellation.adminNotes}
+                        <span className="font-medium">{t('booking.cancellationHistory.adminNotes')}:</span> {cancellation.adminNotes}
                       </p>
                     )}
                   </div>

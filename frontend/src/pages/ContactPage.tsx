@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   PhoneIcon,
   EnvelopeIcon,
@@ -40,6 +41,8 @@ interface FAQItem {
 }
 
 const ContactPage: React.FC = () => {
+  const { t, i18n } = useTranslation();
+  
   const [formData, setFormData] = useState<ContactForm>({
     name: '',
     email: '',
@@ -64,26 +67,26 @@ const ContactPage: React.FC = () => {
   const contactInfo: ContactInfo[] = [
     {
       icon: <PhoneIcon className="h-6 w-6" />,
-      title: 'Điện thoại',
-      details: ['Hotline: 1900 1234', 'Di động: 0123 456 789'],
+      title: t('contact.contactInfo.phone'),
+      details: [t('contact.contactInfo.phoneDetails.hotline'), t('contact.contactInfo.phoneDetails.mobile')],
       color: 'bg-blue-500'
     },
     {
       icon: <EnvelopeIcon className="h-6 w-6" />,
-      title: 'Email',
+      title: t('contact.contactInfo.email'),
       details: ['info@tourcompany.vn', 'support@tourcompany.vn'],
       color: 'bg-green-500'
     },
     {
       icon: <MapPinIcon className="h-6 w-6" />,
-      title: 'Địa chỉ',
-      details: ['Số 47A Phường Phú Diễn', 'TP. Hà Nội, Việt Nam'],
+      title: t('contact.contactInfo.address'),
+      details: [t('contact.contactInfo.addressDetails.line1'), t('contact.contactInfo.addressDetails.line2')],
       color: 'bg-red-500'
     },
     {
       icon: <ClockIcon className="h-6 w-6" />,
-      title: 'Giờ làm việc',
-      details: ['Thứ 2 - Thứ 6: 8:00 - 18:00', 'Thứ 7 - CN: 8:00 - 17:00'],
+      title: t('contact.contactInfo.workingHours'),
+      details: [t('contact.contactInfo.workingHoursDetails.weekdays'), t('contact.contactInfo.workingHoursDetails.weekend')],
       color: 'bg-purple-500'
     }
   ];
@@ -147,33 +150,33 @@ const ContactPage: React.FC = () => {
   const faqItems: FAQItem[] = [
     {
       id: 1,
-      question: 'Làm thế nào để đặt tour?',
-      answer: 'Bạn có thể đặt tour qua nhiều cách: (1) Đặt trực tuyến qua website của chúng tôi - chọn tour, điền thông tin và thanh toán online; (2) Gọi hotline 1900 1234 để được tư vấn trực tiếp từ nhân viên chuyên nghiệp; (3) Đến trực tiếp văn phòng tại 123 Đường ABC, Quận 1, TP.HCM để được tư vấn chi tiết và xem thêm các tour khác. Chúng tôi hỗ trợ đặt tour 24/7 qua website và hotline.'
+      question: t('contact.faq.items.1.question'),
+      answer: t('contact.faq.items.1.answer')
     },
     {
       id: 2,
-      question: 'Chính sách hủy tour như thế nào?',
-      answer: 'Chính sách hủy tour phụ thuộc vào thời gian hủy: (1) Hủy trước 30 ngày: hoàn 90% tổng tiền; (2) Hủy trước 15-29 ngày: hoàn 70% tổng tiền; (3) Hủy trước 7-14 ngày: hoàn 50% tổng tiền; (4) Hủy trong vòng 7 ngày: hoàn 20% tổng tiền. Đối với tour cao cấp và tour quốc tế, chính sách có thể khác do ràng buộc với đối tác. Vui lòng đọc kỹ điều khoản khi đặt tour.'
+      question: t('contact.faq.items.2.question'),
+      answer: t('contact.faq.items.2.answer')
     },
     {
       id: 3,
-      question: 'Có hỗ trợ làm visa không?',
-      answer: 'Có, chúng tôi cung cấp dịch vụ hỗ trợ làm visa cho tất cả các tour quốc tế. Dịch vụ bao gồm: (1) Tư vấn loại visa phù hợp; (2) Chuẩn bị hồ sơ theo yêu cầu lãnh sự quán; (3) Đặt lịch hẹn và hỗ trợ phỏng vấn; (4) Theo dõi tiến độ xử lý hồ sơ. Phí visa và phí dịch vụ được tính riêng, dao động từ 1-5 triệu VNĐ tùy quốc gia. Thời gian xử lý từ 5-15 ngày làm việc.'
+      question: t('contact.faq.items.3.question'),
+      answer: t('contact.faq.items.3.answer')
     },
     {
       id: 4,
-      question: 'Các hình thức thanh toán được chấp nhận?',
-      answer: 'Chúng tôi chấp nhận đa dạng hình thức thanh toán: (1) Tiền mặt tại văn phòng; (2) Chuyển khoản ngân hàng (Vietcombank, BIDV, Techcombank); (3) Thẻ tín dụng/ghi nợ (Visa, Mastercard, JCB); (4) Ví điện tử (ZaloPay, VNPay); (5) Trả góp qua thẻ tín dụng (0% lãi suất cho tour trên 10 triệu). Bạn có thể thanh toán 30% khi đặt tour và 70% trước ngày khởi hành 7 ngày.'
+      question: t('contact.faq.items.4.question'),
+      answer: t('contact.faq.items.4.answer')
     },
     {
       id: 5,
-      question: 'Bảo hiểm du lịch có được bao gồm?',
-      answer: 'Tất cả tour của chúng tôi đều bao gồm bảo hiểm du lịch cơ bản với mức bảo hiểm 100 triệu VNĐ/người, bao gồm: tai nạn, ốm đau, mất hành lý cơ bản. Ngoài ra, bạn có thể mua thêm bảo hiểm cao cấp với mức bảo hiểm lên đến 1 tỷ VNĐ, bao gồm: hủy chuyến, chậm chuyến bay, chi phí y tế cao, thể thao mạo hiểm. Phí bảo hiểm cao cấp từ 200.000-500.000 VNĐ/người tùy thời gian và điểm đến.'
+      question: t('contact.faq.items.5.question'),
+      answer: t('contact.faq.items.5.answer')
     },
     {
       id: 6,
-      question: 'Có tổ chức tour riêng theo yêu cầu không?',
-      answer: 'Có, chúng tôi chuyên tổ chức tour riêng (private tour) theo yêu cầu của khách hàng với các ưu điểm: (1) Lịch trình linh hoạt theo sở thích; (2) Hướng dẫn viên riêng chuyên nghiệp; (3) Phương tiện di chuyển riêng tư; (4) Lựa chọn khách sạn và nhà hàng theo budget. Minimum 4 người cho tour trong nước, 6 người cho tour quốc tế. Giá tour riêng cao hơn tour ghép đoàn 20-40% nhưng đảm bảo trải nghiệm cá nhân hóa tối đa.'
+      question: t('contact.faq.items.6.question'),
+      answer: t('contact.faq.items.6.answer')
     }
   ];
 
@@ -181,29 +184,29 @@ const ContactPage: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Vui lòng nhập họ tên';
+      newErrors.name = t('contact.form.errors.nameRequired');
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Vui lòng nhập email';
+      newErrors.email = t('contact.form.errors.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email không hợp lệ';
+      newErrors.email = t('contact.form.errors.emailInvalid');
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Vui lòng nhập số điện thoại';
+      newErrors.phone = t('contact.form.errors.phoneRequired');
     } else if (!/^[0-9]{10,11}$/.test(formData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Số điện thoại không hợp lệ';
+      newErrors.phone = t('contact.form.errors.phoneInvalid');
     }
 
     if (!formData.subject.trim()) {
-      newErrors.subject = 'Vui lòng nhập chủ đề';
+      newErrors.subject = t('contact.form.errors.subjectRequired');
     }
 
     if (!formData.message.trim()) {
-      newErrors.message = 'Vui lòng nhập nội dung tin nhắn';
+      newErrors.message = t('contact.form.errors.messageRequired');
     } else if (formData.message.trim().length < 10) {
-      newErrors.message = 'Tin nhắn phải có ít nhất 10 ký tự';
+      newErrors.message = t('contact.form.errors.messageMinLength');
     }
 
     setErrors(newErrors);
@@ -226,7 +229,7 @@ const ContactPage: React.FC = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      showToast.error('Vui lòng kiểm tra lại thông tin', 'Có lỗi trong form');
+      showToast.error(t('contact.form.errors.formError'), t('contact.form.errors.formErrorTitle'));
       return;
     }
 
@@ -246,8 +249,8 @@ const ContactPage: React.FC = () => {
       const response = await contactService.submitContact(contactData);
       
       showToast.success(
-        'Gửi tin nhắn thành công!', 
-        `Mã liên hệ: #${response.id}. Chúng tôi sẽ phản hồi trong vòng 24 giờ`
+        t('contact.form.success.title'), 
+        t('contact.form.success.message', { id: response.id })
       );
       
       // Reset form
@@ -261,8 +264,8 @@ const ContactPage: React.FC = () => {
       });
       
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại sau';
-      showToast.error('Gửi tin nhắn thất bại', message);
+      const message = error.response?.data?.message || t('contact.form.error.message');
+      showToast.error(t('contact.form.error.title'), message);
     } finally {
       setIsSubmitting(false);
     }
@@ -281,10 +284,10 @@ const ContactPage: React.FC = () => {
       <div className="container mx-auto px-4 max-w-6xl relative">
         <div className="text-center">
           <h1 className="text-4xl md:text-5xl font-normal mb-4 tracking-tight animate-fade-in-up opacity-0">
-            Liên Hệ Với Chúng Tôi
+            {t('contact.hero.title')}
           </h1>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto font-normal leading-relaxed animate-fade-in-up opacity-0 delay-200">
-            Chúng tôi luôn sẵn sàng hỗ trợ bạn tạo ra những chuyến đi tuyệt vời nhất
+            {t('contact.hero.subtitle')}
           </p>
         </div>
       </div>
@@ -298,10 +301,10 @@ const ContactPage: React.FC = () => {
             <div className="space-y-6 animate-slide-in-left opacity-0">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  Thông Tin Liên Hệ
+                  {t('contact.contactInfo.title')}
                 </h2>
                 <p className="text-gray-600 mb-8">
-                  Hãy liên hệ với chúng tôi qua các kênh dưới đây hoặc gửi tin nhắn trực tiếp.
+                  {t('contact.contactInfo.description')}
                 </p>
               </div>
 
@@ -333,10 +336,10 @@ const ContactPage: React.FC = () => {
                 <div className="text-center">
                   <ChatBubbleLeftRightIcon className="h-12 w-12 mx-auto mb-4" style={{ color: '#D4AF37' }} />
                   <h3 className="text-lg font-medium text-slate-900 mb-2 tracking-tight">
-                    Cần Hỗ Trợ Ngay?
+                    {t('contact.contactInfo.quickContact.title')}
                   </h3>
                   <p className="text-gray-600 text-sm mb-4 font-normal leading-relaxed">
-                    Gọi hotline để được tư vấn trực tiếp
+                    {t('contact.contactInfo.quickContact.description')}
                   </p>
                   <button 
                     className="w-full text-white px-6 py-3 rounded-none transition-all duration-300 hover:opacity-90 text-sm font-medium tracking-wide inline-flex items-center justify-center"
@@ -344,7 +347,7 @@ const ContactPage: React.FC = () => {
                     onClick={() => window.open('tel:19001234')}
                   >
                     <PhoneIcon className="h-4 w-4 mr-2" />
-                    Gọi Ngay: 1900 1234
+                    {t('contact.contactInfo.quickContact.callNow')}
                   </button>
                 </div>
               </div>
@@ -356,10 +359,10 @@ const ContactPage: React.FC = () => {
             <div className="bg-white border border-stone-200 rounded-none p-8 animate-slide-in-right opacity-0" id="contact-form">
               <div className="mb-8">
                 <h2 className="text-2xl font-normal text-slate-900 mb-2 tracking-tight">
-                  Gửi Tin Nhắn
+                  {t('contact.form.title')}
                 </h2>
                 <p className="text-gray-600 font-normal leading-relaxed">
-                  Điền thông tin dưới đây và chúng tôi sẽ phản hồi sớm nhất có thể.
+                  {t('contact.form.description')}
                 </p>
               </div>
 
@@ -368,26 +371,26 @@ const ContactPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Họ và tên *
+                      {t('contact.form.fields.name')} *
                     </label>
                     <Input
                       type="text"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="Nhập họ và tên"
+                      placeholder={t('contact.form.fields.namePlaceholder')}
                       error={errors.name}
                       className="w-full"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email *
+                      {t('contact.form.fields.email')} *
                     </label>
                     <Input
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="Nhập địa chỉ email"
+                      placeholder={t('contact.form.fields.emailPlaceholder')}
                       error={errors.email}
                       className="w-full"
                     />
@@ -398,20 +401,20 @@ const ContactPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Số điện thoại *
+                      {t('contact.form.fields.phone')} *
                     </label>
                     <Input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      placeholder="Nhập số điện thoại"
+                      placeholder={t('contact.form.fields.phonePlaceholder')}
                       error={errors.phone}
                       className="w-full"
                     />
                   </div>
                   <div ref={tourSearchRef} className="relative">
                     <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-                      Tour quan tâm (không bắt buộc)
+                      {t('contact.form.fields.tourInterest')}
                     </label>
                     <div className="relative">
                       <input
@@ -419,7 +422,7 @@ const ContactPage: React.FC = () => {
                         value={tourSearchQuery}
                         onChange={(e) => setTourSearchQuery(e.target.value)}
                         onFocus={() => tourSearchQuery.length >= 2 && setShowTourDropdown(true)}
-                        placeholder="Tìm kiếm tour (VD: Sapa, Đà Nẵng...)"
+                        placeholder={t('contact.form.fields.tourSearchPlaceholder')}
                         className="w-full pl-10 pr-10 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
                       />
                       <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -462,7 +465,7 @@ const ContactPage: React.FC = () => {
                                   {tour.name}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
-                                  {tour.duration} • {tour.priceAdult?.toLocaleString('vi-VN')}đ
+                                  {tour.duration} {t('common.days', { count: tour.duration })} • {tour.priceAdult?.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')}đ
                                 </p>
                               </div>
                             </div>
@@ -474,7 +477,7 @@ const ContactPage: React.FC = () => {
                     {showTourDropdown && tourSearchQuery.length >= 2 && tourSearchResults.length === 0 && !isSearchingTours && (
                       <div className="absolute z-50 w-full mt-1 bg-white border border-stone-300 rounded-none shadow-lg p-4">
                         <p className="text-sm text-gray-500 text-center">
-                          Không tìm thấy tour nào với từ khóa "{tourSearchQuery}"
+                          {t('contact.form.tourSearch.noResults', { query: tourSearchQuery })}
                         </p>
                       </div>
                     )}
@@ -484,13 +487,13 @@ const ContactPage: React.FC = () => {
                 {/* Subject */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Chủ đề *
+                    {t('contact.form.fields.subject')} *
                   </label>
                   <Input
                     type="text"
                     value={formData.subject}
                     onChange={(e) => handleInputChange('subject', e.target.value)}
-                    placeholder="Nhập chủ đề tin nhắn"
+                    placeholder={t('contact.form.fields.subjectPlaceholder')}
                     error={errors.subject}
                     className="w-full"
                   />
@@ -499,12 +502,12 @@ const ContactPage: React.FC = () => {
                 {/* Message */}
                 <div>
                   <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-                    Nội dung tin nhắn *
+                    {t('contact.form.fields.message')} *
                   </label>
                   <textarea
                     value={formData.message}
                     onChange={(e) => handleInputChange('message', e.target.value)}
-                    placeholder="Nhập nội dung tin nhắn của bạn..."
+                    placeholder={t('contact.form.fields.messagePlaceholder')}
                     rows={6}
                     className={`w-full px-3 py-2 border rounded-none focus:ring-0 focus:border-slate-700 transition-colors resize-none font-normal ${
                       errors.message ? 'border-red-500' : 'border-stone-300'
@@ -514,7 +517,7 @@ const ContactPage: React.FC = () => {
                     <p className="mt-1 text-sm text-red-600 font-normal">{errors.message}</p>
                   )}
                   <p className="mt-1 text-sm text-gray-500 font-normal">
-                    Tối thiểu 10 ký tự ({formData.message.length}/10)
+                    {t('contact.form.minChars', { count: formData.message.length })}
                   </p>
                 </div>
 
@@ -529,12 +532,12 @@ const ContactPage: React.FC = () => {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Đang gửi...
+                        {t('contact.form.submitting')}
                       </>
                     ) : (
                       <>
                         <PaperAirplaneIcon className="h-4 w-4 mr-2" />
-                        Gửi Tin Nhắn
+                        {t('contact.form.submit')}
                       </>
                     )}
                   </button>
@@ -549,10 +552,10 @@ const ContactPage: React.FC = () => {
           <div className="bg-white border border-stone-200 rounded-none overflow-hidden">
             <div className="p-6 bg-stone-50 border-b border-stone-200">
               <h2 className="text-2xl font-normal text-slate-900 mb-2 tracking-tight">
-                Vị Trí Văn Phòng
+                {t('contact.map.title')}
               </h2>
               <p className="text-gray-600 font-normal leading-relaxed">
-                Ghé thăm văn phòng của chúng tôi để được tư vấn trực tiếp
+                {t('contact.map.description')}
               </p>
             </div>
             
@@ -566,7 +569,7 @@ const ContactPage: React.FC = () => {
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Vị trí văn phòng"
+                title={t('contact.map.title')}
               />
               
               {/* Map Overlay Info */}
@@ -575,12 +578,9 @@ const ContactPage: React.FC = () => {
                   <MapPinIcon className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: '#D4AF37' }} />
                   <div>
                     <h3 className="font-medium text-slate-900 text-sm tracking-tight">
-                      Văn Phòng Chính
+                      {t('contact.map.officeName')}
                     </h3>
-                    <p className="text-gray-600 text-xs mt-1 font-normal leading-relaxed">
-                      Số 47A, Phường Phú Diễn<br />
-                      TP. Hà Nội
-                    </p>
+                    <p className="text-gray-600 text-xs mt-1 font-normal leading-relaxed" dangerouslySetInnerHTML={{ __html: t('contact.map.address') }} />
                   </div>
                 </div>
               </div>
@@ -592,7 +592,7 @@ const ContactPage: React.FC = () => {
         <div className="mt-12 max-w-4xl mx-auto">
           <div className="bg-white border border-stone-200 rounded-none p-8">
             <h2 className="text-2xl font-normal text-slate-900 mb-8 text-center tracking-tight">
-              Câu Hỏi Thường Gặp
+              {t('contact.faq.title')}
             </h2>
             
             <div className="space-y-3">
@@ -630,10 +630,10 @@ const ContactPage: React.FC = () => {
             {/* Contact CTA */}
             <div className="mt-8 text-center p-6 bg-stone-100 rounded-none border border-stone-200">
               <h3 className="text-lg font-medium text-slate-900 mb-2 tracking-tight">
-                Không tìm thấy câu trả lời?
+                {t('contact.faq.noAnswer.title')}
               </h3>
               <p className="text-gray-600 mb-4 font-normal leading-relaxed">
-                Liên hệ trực tiếp với chúng tôi để được hỗ trợ chi tiết hơn
+                {t('contact.faq.noAnswer.description')}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button 
@@ -642,14 +642,14 @@ const ContactPage: React.FC = () => {
                   style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                 >
                   <PhoneIcon className="h-4 w-4 mr-2" />
-                  Gọi Hotline
+                  {t('contact.faq.noAnswer.callHotline')}
                 </button>
                 <button 
                   onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
                   className="inline-flex items-center justify-center bg-white text-slate-900 px-6 py-2.5 rounded-none border-2 border-slate-900 hover:bg-slate-900 hover:text-white transition-all duration-300 text-sm font-medium tracking-wide"
                 >
                   <ChatBubbleLeftRightIcon className="h-4 w-4 mr-2" />
-                  Gửi Tin Nhắn
+                  {t('contact.faq.noAnswer.sendMessage')}
                 </button>
               </div>
             </div>

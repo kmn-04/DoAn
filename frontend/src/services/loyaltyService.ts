@@ -98,23 +98,35 @@ class LoyaltyService {
 
   // Get available redemption options
   async getRedemptionOptions(): Promise<RedemptionOption[]> {
-    const response = await apiClient.get('/loyalty/vouchers/redemption-options');
-    return response.data.data;
+    const response = await apiClient.get('/loyalty/redemption-options');
+    const data = response.data.data || [];
+    // Map backend response to frontend interface
+    return data.map((item: { points?: number; pointsCost?: number; value?: number; voucherValue?: number; name?: string }) => ({
+      pointsCost: item.pointsCost || item.points || 0,
+      voucherValue: item.voucherValue || item.value || 0,
+      name: item.name || `Voucher ${(item.voucherValue || item.value || 0).toLocaleString()} VND`
+    })).filter((opt: RedemptionOption) => opt.pointsCost > 0 && opt.voucherValue > 0);
   }
 
   // Redeem points for voucher
-  async redeemPoints(pointsCost: number, voucherValue: number): Promise<PointVoucher> {
-    const response = await apiClient.post('/loyalty/vouchers/redeem', {
-      pointsCost,
-      voucherValue
+  async redeemPoints(points: number, voucherValue?: number, validDays?: number): Promise<PointVoucher> {
+    const response = await apiClient.post('/loyalty/redeem', {
+      points,
+      voucherValue,
+      validDays
     });
     return response.data.data;
   }
 
   // Get user's vouchers
-  async getUserVouchers(page: number = 0, size: number = 10) {
-    const response = await apiClient.get(`/loyalty/vouchers?page=${page}&size=${size}`);
+  async getUserVouchers(): Promise<PointVoucher[]> {
+    const response = await apiClient.get('/loyalty/vouchers');
     return response.data.data;
+  }
+
+  // Cancel voucher
+  async cancelVoucher(voucherId: number): Promise<void> {
+    await apiClient.post(`/loyalty/vouchers/${voucherId}/cancel`);
   }
 
   // Get active vouchers only

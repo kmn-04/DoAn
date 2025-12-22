@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,33 +9,39 @@ import {
   EyeIcon,
   EyeSlashIcon 
 } from '@heroicons/react/24/outline';
-import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
+import { Button, Input, Card, CardContent } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
 import { ENV } from '../../config/environment';
+import { useTranslation } from 'react-i18next';
 
-// Validation schema
-const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email là bắt buộc')
-    .email('Email không hợp lệ'),
-  password: z
-    .string()
-    .min(1, 'Mật khẩu là bắt buộc')
-    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
-  rememberMe: z.boolean().optional(),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+};
 
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
+
+  const loginSchema = useMemo(() => z.object({
+    email: z
+      .string()
+      .min(1, t('authErrors.emailRequired'))
+      .email(t('authErrors.emailInvalid')),
+    password: z
+      .string()
+      .min(1, t('authErrors.passwordRequired'))
+      .min(6, t('authErrors.passwordMin')),
+    rememberMe: z.boolean().optional(),
+  }), [t]);
   
   // Get redirect path from location state
-  const from = (location.state as any)?.from?.pathname || '/dashboard';
+  const from =
+    (location.state as { from?: { pathname?: string } } | undefined)?.from?.pathname || '/dashboard';
 
   const {
     register,
@@ -80,16 +86,16 @@ const LoginPage: React.FC = () => {
         </div>
         
         <h2 className="mt-8 text-center text-4xl font-normal text-white tracking-tight animate-fade-in-up opacity-0 delay-100">
-          Đăng nhập vào TourBooking
+          {t('auth.loginTitle')}
         </h2>
         <p className="mt-3 text-center text-sm text-gray-300 font-normal animate-fade-in-up opacity-0 delay-200">
-          Hoặc{' '}
+          {t('auth.loginSubtitle')}{' '}
           <Link
             to="/register"
             className="font-medium hover:opacity-80 transition-opacity"
             style={{ color: '#D4AF37' }}
           >
-            tạo tài khoản mới
+            {t('auth.createAccountLink')}
           </Link>
         </p>
       </div>
@@ -101,9 +107,9 @@ const LoginPage: React.FC = () => {
               {/* Email Input */}
               <Input
                 {...register('email')}
-                label="Email"
+                label={t('auth.email')}
                 type="email"
-                placeholder="Nhập email của bạn"
+                placeholder={t('auth.emailPlaceholder')}
                 leftIcon={<EnvelopeIcon className="h-4 w-4" />}
                 error={errors.email?.message}
                 disabled={isLoading}
@@ -113,9 +119,9 @@ const LoginPage: React.FC = () => {
               <div className="relative">
                 <Input
                   {...register('password')}
-                  label="Mật khẩu"
+                  label={t('auth.password')}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Nhập mật khẩu"
+                  placeholder={t('auth.passwordPlaceholder')}
                   leftIcon={<LockClosedIcon className="h-4 w-4" />}
                   rightIcon={
                     <button
@@ -147,7 +153,7 @@ const LoginPage: React.FC = () => {
                     disabled={isLoading}
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-900 font-normal">
-                    Ghi nhớ đăng nhập
+                    {t('auth.rememberMe')}
                   </label>
                 </div>
 
@@ -157,7 +163,7 @@ const LoginPage: React.FC = () => {
                     className="font-medium hover:opacity-80 transition-opacity"
                     style={{ color: '#D4AF37' }}
                   >
-                    Quên mật khẩu?
+                    {t('auth.forgotPassword')}
                   </Link>
                 </div>
               </div>
@@ -170,7 +176,7 @@ const LoginPage: React.FC = () => {
                 loading={isLoading}
                 disabled={isLoading}
               >
-                {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+                {isLoading ? t('auth.loggingIn') : t('auth.login')}
               </Button>
 
               {/* Divider */}
@@ -180,7 +186,7 @@ const LoginPage: React.FC = () => {
                     <div className="w-full border-t border-stone-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-3 bg-white text-gray-500 font-normal">Hoặc đăng nhập với</span>
+                    <span className="px-3 bg-white text-gray-500 font-normal">{t('auth.loginWith')}</span>
                   </div>
                 </div>
 
@@ -215,7 +221,7 @@ const LoginPage: React.FC = () => {
                         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                       />
                     </svg>
-                    Google
+                    {t('auth.loginWithGoogle')}
                   </Button>
 
                   <Button
@@ -227,7 +233,7 @@ const LoginPage: React.FC = () => {
                     <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
-                    Facebook
+                    {t('auth.loginWithFacebook')}
                   </Button>
                 </div>
               </div>
@@ -238,15 +244,15 @@ const LoginPage: React.FC = () => {
         {/* Footer Links */}
         <div className="mt-8 text-center text-sm text-gray-300 font-normal animate-fade-in opacity-0 delay-400">
           <p>
-            Bằng cách đăng nhập, bạn đồng ý với{' '}
+            {t('auth.termsAgreement')}{' '}
             <Link to="/terms" className="hover:opacity-80 transition-opacity" style={{ color: '#D4AF37' }}>
-              Điều khoản dịch vụ
+              {t('auth.termsOfService')}
             </Link>{' '}
-            và{' '}
+            {t('common.and')}{' '}
             <Link to="/privacy" className="hover:opacity-80 transition-opacity" style={{ color: '#D4AF37' }}>
-              Chính sách bảo mật
-            </Link>{' '}
-            của chúng tôi.
+              {t('auth.privacyPolicy')}
+            </Link>
+            .
           </p>
         </div>
       </div>

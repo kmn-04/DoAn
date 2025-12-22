@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { TourCardSkeleton } from '../ui/Skeleton';
+import { useTranslation } from 'react-i18next';
 
 interface TourCardProps {
   tour: {
@@ -22,6 +23,7 @@ interface TourCardProps {
     price: number;
     originalPrice?: number;
     duration: string;
+    durationValue?: number;
     location: string;
     tourType?: 'domestic' | 'international';
     country?: {
@@ -37,6 +39,7 @@ interface TourCardProps {
     maxPeople: number;
     image: string;
     badge?: string;
+    badgeKey?: string;
     category?: string;
   };
   isWishlisted?: boolean;
@@ -50,6 +53,7 @@ const TourCard: React.FC<TourCardProps> = memo(({
   onToggleWishlist,
   isLoading = false
 }) => {
+  const { t } = useTranslation();
   // Show skeleton if loading
   if (isLoading) {
     return <TourCardSkeleton />;
@@ -74,6 +78,13 @@ const TourCard: React.FC<TourCardProps> = memo(({
       onToggleWishlist(tour.id);
     }
   }, [onToggleWishlist, tour.id]);
+
+  const badgeLabel = tour.badge || (tour.badgeKey ? t(`tours.card.badges.${tour.badgeKey}`) : undefined);
+  const durationLabel = tour.durationValue ? t('tours.card.durationDays', { count: tour.durationValue }) : tour.duration;
+  const locationLabel = tour.tourType === 'international' && tour.country 
+    ? tour.country.name 
+    : tour.location || t('tours.card.locationFallback');
+  const reviewLabel = t('tours.card.reviews', { count: tour.reviewCount });
 
   return (
     <div className="bg-white rounded-none shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group h-full flex flex-col border border-stone-200 hover:border-slate-700">
@@ -103,9 +114,9 @@ const TourCard: React.FC<TourCardProps> = memo(({
         )}
 
         {/* Badge */}
-        {tour.badge && (
+        {badgeLabel && (
           <div className="absolute top-4 left-4 text-white px-3 py-1.5 rounded-none text-xs font-medium tracking-wider uppercase shadow-lg" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
-            {tour.badge}
+            {badgeLabel}
           </div>
         )}
 
@@ -142,19 +153,15 @@ const TourCard: React.FC<TourCardProps> = memo(({
         <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-4 min-h-[3rem]">
           <div className="flex items-center space-x-1.5 font-normal">
             <MapPinIcon className="h-4 w-4 flex-shrink-0" style={{ color: '#D4AF37' }} />
-            <span className="truncate">
-              {tour.tourType === 'international' && tour.country 
-                ? tour.country.name 
-                : tour.location || 'quốc tế'}
-            </span>
+            <span className="truncate">{locationLabel}</span>
           </div>
           <div className="flex items-center space-x-1.5 font-normal">
             <ClockIcon className="h-4 w-4" style={{ color: '#D4AF37' }} />
-            <span>{tour.duration}</span>
+            <span>{durationLabel}</span>
           </div>
           <div className="flex items-center space-x-1.5 font-normal">
             <UsersIcon className="h-4 w-4" style={{ color: '#D4AF37' }} />
-            <span>Max {tour.maxPeople}</span>
+            <span>{t('tours.card.maxPeople', { count: tour.maxPeople })}</span>
           </div>
         </div>
 
@@ -168,18 +175,18 @@ const TourCard: React.FC<TourCardProps> = memo(({
             {tour.flightIncluded && (
               <div className="flex items-center space-x-1.5 text-white px-3 py-1.5 rounded-none text-xs font-normal shadow-md" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
                 <PaperAirplaneIcon className="h-3.5 w-3.5" />
-                <span>Có vé bay</span>
+                <span>{t('tours.card.flightIncluded')}</span>
               </div>
             )}
             {tour.country.visaRequired ? (
               <div className="flex items-center space-x-1.5 bg-slate-900 text-white px-3 py-1.5 rounded-none text-xs font-normal">
                 <DocumentTextIcon className="h-3.5 w-3.5" />
-                <span>Cần visa</span>
+                <span>{t('tours.card.visaRequired')}</span>
               </div>
             ) : (
               <div className="flex items-center space-x-1.5 bg-stone-100 text-slate-700 px-3 py-1.5 rounded-none text-xs font-normal">
                 <DocumentTextIcon className="h-3.5 w-3.5" />
-                <span>Miễn visa</span>
+                <span>{t('tours.card.visaNotRequired')}</span>
               </div>
             )}
           </div>
@@ -191,7 +198,9 @@ const TourCard: React.FC<TourCardProps> = memo(({
             <StarIcon className="h-4 w-4 fill-current" style={{ color: '#D4AF37' }} />
             <span className="font-medium text-sm text-slate-900">{tour.rating}</span>
           </div>
-          <span className="text-xs text-gray-500 font-normal">({tour.reviewCount} đánh giá)</span>
+          <span className="text-xs text-gray-500 font-normal">
+            ({reviewLabel})
+          </span>
         </div>
 
         {/* Spacer to push price & action to bottom */}

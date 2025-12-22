@@ -11,6 +11,7 @@ import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 import { Button } from '../ui';
 import { useAuth } from '../../hooks/useAuth';
 import { reviewService } from '../../services';
+import { useTranslation } from 'react-i18next';
 
 interface Review {
   id: number;
@@ -52,6 +53,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
   ratingDistribution
 }) => {
   const { user, isAuthenticated } = useAuth();
+  const { t, i18n } = useTranslation();
   const [reviews, setReviews] = useState<any[]>([]);
   const [canReview, setCanReview] = useState(false);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
@@ -111,7 +113,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
   // Handle like review
   const handleLikeReview = async (reviewId: number) => {
     if (!isAuthenticated) {
-      alert('Vui lòng đăng nhập để thích đánh giá');
+      window.alert(t('tours.reviews.loginToLike'));
       return;
     }
     
@@ -146,7 +148,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
       
     } catch (error) {
       console.error('Error liking review:', error);
-      alert('Có lỗi xảy ra khi đánh giá. Vui lòng thử lại.');
+      window.alert(t('tours.reviews.helpfulError'));
     }
   };
   
@@ -157,11 +159,11 @@ const TourReviews: React.FC<TourReviewsProps> = ({
     // Validate comment length
     const commentLength = reviewComment.trim().length;
     if (commentLength < 10) {
-      setReviewError('Nhận xét phải có ít nhất 10 ký tự');
+      setReviewError(t('tours.reviews.commentTooShort'));
       return;
     }
     if (commentLength > 1000) {
-      setReviewError('Nhận xét không được vượt quá 1000 ký tự');
+      setReviewError(t('tours.reviews.commentTooLong'));
       return;
     }
     
@@ -182,7 +184,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
       );
       
       if (!tourBooking) {
-        setReviewError('Không tìm thấy booking hợp lệ cho tour này');
+        setReviewError(t('tours.reviews.noBooking'));
         return;
       }
       
@@ -194,7 +196,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
         comment: reviewComment
       });
       
-      alert('Đánh giá của bạn đã được gửi thành công!');
+      window.alert(t('tours.reviews.submitSuccess'));
       
       // Reset form
       setShowReviewModal(false);
@@ -209,8 +211,8 @@ const TourReviews: React.FC<TourReviewsProps> = ({
       
     } catch (error: any) {
       console.error('Error submitting review:', error);
-      const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Có lỗi xảy ra khi gửi đánh giá';
-      setReviewError(errorMsg);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message;
+      setReviewError(errorMsg || t('tours.reviews.submitError'));
     } finally {
       setIsSubmittingReview(false);
     }
@@ -259,7 +261,8 @@ const TourReviews: React.FC<TourReviewsProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    const locale = i18n.language === 'vi' ? 'vi-VN' : 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -271,7 +274,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
       {/* Reviews Header */}
       <div className="mb-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-4">
-          Đánh giá từ khách hàng
+          {t('tours.reviews.title')}
         </h3>
 
         {/* Overall Rating */}
@@ -283,7 +286,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
                 {renderStars(Math.round(overallRating), 'lg')}
               </div>
               <div className="text-sm text-gray-600 mt-1">
-                {totalReviews} đánh giá
+                {t('tours.reviews.count', { count: totalReviews })}
               </div>
             </div>
           </div>
@@ -292,7 +295,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
           <div className="flex-1 max-w-md space-y-2">
             {[5, 4, 3, 2, 1].map((rating) => (
               <div key={rating} className="flex items-center space-x-3">
-                <span className="text-sm font-medium w-8">{rating} sao</span>
+                <span className="text-sm font-medium w-8">{t('tours.reviews.ratingLabel', { rating })}</span>
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-yellow-400 h-2 rounded-full"
@@ -318,11 +321,11 @@ const TourReviews: React.FC<TourReviewsProps> = ({
             onChange={(e) => setSortBy(e.target.value as any)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="newest">Mới nhất</option>
-            <option value="oldest">Cũ nhất</option>
-            <option value="highest">Đánh giá cao nhất</option>
-            <option value="lowest">Đánh giá thấp nhất</option>
-            <option value="helpful">Hữu ích nhất</option>
+            <option value="newest">{t('tours.reviews.sort.newest')}</option>
+            <option value="oldest">{t('tours.reviews.sort.oldest')}</option>
+            <option value="highest">{t('tours.reviews.sort.highest')}</option>
+            <option value="lowest">{t('tours.reviews.sort.lowest')}</option>
+            <option value="helpful">{t('tours.reviews.sort.helpful')}</option>
           </select>
 
           <select
@@ -330,17 +333,17 @@ const TourReviews: React.FC<TourReviewsProps> = ({
             onChange={(e) => setFilterRating(e.target.value ? parseInt(e.target.value) : null)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="">Tất cả đánh giá</option>
-            <option value="5">5 sao</option>
-            <option value="4">4 sao</option>
-            <option value="3">3 sao</option>
-            <option value="2">2 sao</option>
-            <option value="1">1 sao</option>
+            <option value="">{t('tours.reviews.filter.all')}</option>
+            {[5, 4, 3, 2, 1].map((rating) => (
+              <option key={rating} value={rating}>
+                {t('tours.reviews.filter.value', { rating })}
+              </option>
+            ))}
           </select>
         </div>
 
         <div className="text-sm text-gray-600">
-          Hiển thị {displayedReviews.length} / {filteredReviews.length} đánh giá
+          {t('tours.reviews.showing', { display: displayedReviews.length, total: filteredReviews.length })}
         </div>
       </div>
 
@@ -364,7 +367,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <h4 className="font-semibold text-gray-900">{review.user?.name || 'Người dùng ẩn danh'}</h4>
+                  <h4 className="font-semibold text-gray-900">{review.user?.name || t('tours.reviews.anonymous')}</h4>
                 </div>
 
                 <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
@@ -407,7 +410,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
                   }`}
                 >
                   <HandThumbUpIcon className={`h-4 w-4 ${likedReviews.has(review.id) ? 'fill-blue-600' : ''}`} />
-                  <span>Hữu ích ({review.helpfulCount || 0})</span>
+                  <span>{t('tours.reviews.helpful', { count: review.helpfulCount || 0 })}</span>
                 </button>
               </div>
 
@@ -422,7 +425,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-semibold text-blue-900">Phản hồi từ Quản trị viên</span>
+                        <span className="font-semibold text-blue-900">{t('tours.reviews.adminReply')}</span>
                         {review.repliedAt && (
                           <span className="text-xs text-blue-600">
                             • {formatDate(review.repliedAt)}
@@ -448,8 +451,8 @@ const TourReviews: React.FC<TourReviewsProps> = ({
             className="px-8 py-2"
           >
             {showAllReviews 
-              ? 'Thu gọn đánh giá' 
-              : `Xem thêm ${filteredReviews.length - 3} đánh giá`
+              ? t('tours.reviews.collapse') 
+              : t('tours.reviews.loadMore', { count: filteredReviews.length - 3 })
             }
           </Button>
         </div>
@@ -462,17 +465,17 @@ const TourReviews: React.FC<TourReviewsProps> = ({
             // Not logged in
             <>
               <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                Đăng nhập để viết đánh giá
+                {t('tours.reviews.loginTitle')}
               </h4>
               <p className="text-gray-600 mb-4">
-                Bạn cần đăng nhập và hoàn thành tour để có thể đánh giá
+                {t('tours.reviews.loginDescription')}
               </p>
               <Button 
                 onClick={() => window.location.href = '/login'}
                 className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2"
               >
                 <LockClosedIcon className="h-5 w-5 inline mr-2" />
-                Đăng nhập
+                {t('tours.reviews.loginButton')}
               </Button>
             </>
           ) : canReview ? (
@@ -481,29 +484,29 @@ const TourReviews: React.FC<TourReviewsProps> = ({
               {!showReviewModal ? (
                 <>
                   <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                    Bạn đã từng tham gia tour này?
+                    {t('tours.reviews.ctaTitle')}
                   </h4>
                   <p className="text-gray-600 mb-4">
-                    Chia sẻ trải nghiệm của bạn để giúp những khách hàng khác
+                    {t('tours.reviews.ctaDescription')}
                   </p>
                   <Button 
                     onClick={() => setShowReviewModal(true)}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
                   >
-                    Viết đánh giá
+                    {t('tours.reviews.ctaButton')}
                   </Button>
                 </>
               ) : (
                 // Inline review form
                 <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
                   <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                    Viết đánh giá của bạn
+                    {t('tours.reviews.formTitle')}
                   </h4>
                   
                   {/* Rating */}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Đánh giá *
+                      {t('tours.reviews.ratingField')}
                     </label>
                     <div className="flex items-center space-x-1">
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -529,7 +532,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
                   {/* Comment */}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nhận xét *
+                      {t('tours.reviews.commentField')}
                     </label>
                     <textarea
                       value={reviewComment}
@@ -541,11 +544,11 @@ const TourReviews: React.FC<TourReviewsProps> = ({
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm ${
                         reviewError ? 'border-red-500' : 'border-gray-300'
                       }`}
-                      placeholder="Chia sẻ trải nghiệm của bạn về tour này (10-1000 ký tự)..."
+                      placeholder={t('tours.reviews.commentPlaceholder')}
                     />
                     <div className="flex justify-between items-center mt-1">
                       <p className={`text-xs ${reviewComment.length < 10 || reviewComment.length > 1000 ? 'text-red-500' : 'text-gray-500'}`}>
-                        {reviewComment.length}/1000 ký tự (tối thiểu 10)
+                        {t('tours.reviews.commentCounter', { count: reviewComment.length })}
                       </p>
                     </div>
                     {reviewError && (
@@ -565,19 +568,19 @@ const TourReviews: React.FC<TourReviewsProps> = ({
                       }}
                       className="text-sm text-gray-600 hover:text-gray-800"
                     >
-                      Hủy
+                      {t('tours.reviews.cancel')}
                     </button>
                     <Button
                       onClick={handleSubmitReview}
                       disabled={isSubmittingReview || reviewComment.trim().length < 10 || reviewComment.trim().length > 1000}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isSubmittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
+                      {isSubmittingReview ? t('tours.reviews.submitting') : t('tours.reviews.submit')}
                     </Button>
                   </div>
                   
                   <p className="mt-3 text-xs text-gray-500">
-                    Đánh giá sẽ được hiển thị ngay sau khi gửi
+                    {t('tours.reviews.note')}
                   </p>
                 </div>
               )}
@@ -586,17 +589,17 @@ const TourReviews: React.FC<TourReviewsProps> = ({
             // Cannot write review (no completed booking)
             <>
               <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                Bạn chưa thể đánh giá tour này
+                {t('tours.reviews.cannotTitle')}
               </h4>
               <p className="text-gray-600 mb-4">
-                Chỉ khách hàng đã hoàn thành tour mới có thể viết đánh giá
+                {t('tours.reviews.cannotDescription')}
               </p>
               <Button 
                 disabled
                 className="bg-gray-300 text-gray-600 px-6 py-2 cursor-not-allowed"
               >
                 <LockClosedIcon className="h-5 w-5 inline mr-2" />
-                Chưa thể đánh giá
+                {t('tours.reviews.cannotButton')}
               </Button>
             </>
           )}

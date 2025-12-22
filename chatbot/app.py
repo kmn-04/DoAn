@@ -1115,8 +1115,8 @@ def search_by_image():
     Nhận: { "image_data": "base64_string", "top_k": 5 }
     Trả về: { "tour_ids": [1, 2, 3, ...] }
     """
-    try:
-        data = request.get_json()
+        try:
+            data = request.get_json()
         image_data = data.get('image_data')
         top_k = data.get('top_k', 5)
         

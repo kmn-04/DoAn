@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   SparklesIcon,
   FireIcon,
@@ -32,6 +33,7 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
   limit = 8,
   showHeader = true
 }) => {
+  const { t, i18n } = useTranslation();
   const { user, isAuthenticated } = useAuth();
   const [recommendations, setRecommendations] = useState<{
     forYou: TourRecommendation[];
@@ -115,8 +117,8 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
         const event = new CustomEvent('show-toast', {
           detail: {
             type: 'success',
-            title: 'Đã xóa khỏi yêu thích',
-            message: 'Tour đã được xóa khỏi danh sách yêu thích.'
+            title: t('landing.recommendations.wishlistRemoved'),
+            message: t('landing.recommendations.wishlistRemovedMessage')
           }
         });
         window.dispatchEvent(event);
@@ -129,8 +131,8 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
         const event = new CustomEvent('show-toast', {
           detail: {
             type: 'success',
-            title: 'Đã thêm vào yêu thích',
-            message: 'Tour đã được thêm vào danh sách yêu thích.'
+            title: t('landing.recommendations.wishlistAdded'),
+            message: t('landing.recommendations.wishlistAddedMessage')
           }
         });
         window.dispatchEvent(event);
@@ -142,8 +144,8 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
       const event = new CustomEvent('show-toast', {
         detail: {
           type: 'error',
-          title: 'Có lỗi xảy ra',
-          message: 'Không thể cập nhật danh sách yêu thích.'
+          title: t('landing.recommendations.wishlistError'),
+          message: t('landing.recommendations.wishlistErrorMessage')
         }
       });
       window.dispatchEvent(event);
@@ -151,7 +153,7 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
@@ -162,14 +164,14 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
     const end = new Date(deadline).getTime();
     const diff = end - now;
     
-    if (diff <= 0) return 'Đã hết hạn';
+    if (diff <= 0) return t('landing.recommendations.expired');
     
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
     
-    if (days > 0) return `Còn ${days} ngày`;
-    if (hours > 0) return `Còn ${hours} giờ`;
-    return 'Sắp hết hạn';
+    if (days > 0) return t('landing.recommendations.daysLeft', { count: days });
+    if (hours > 0) return t('landing.recommendations.hoursLeft', { count: hours });
+    return t('landing.recommendations.expiringSoon');
   };
 
   // Mouse drag handlers
@@ -214,14 +216,14 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
   const tabs = [
     {
       id: 'forYou' as const,
-      name: 'Dành cho bạn',
+      name: t('landing.recommendations.forYouTab'),
       icon: SparklesIcon,
       count: recommendations.forYou?.length || 0,
       visible: isAuthenticated
     },
     {
       id: 'trending' as const,
-      name: 'Đang hot',
+      name: t('landing.recommendations.trendingTab'),
       icon: FireIcon,
       count: recommendations.trending?.length || 0,
       visible: true
@@ -262,13 +264,13 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
           <div className="text-center mb-20 animate-fade-in-up opacity-0">
             <div className="inline-block px-8 py-3 border border-slate-800 rounded-none mb-6">
               <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">
-                {isAuthenticated ? 'Gợi Ý Dành Cho Bạn' : 'Tour Đang Hot'}
+                {isAuthenticated ? t('landing.recommendations.forYouTitle') : t('landing.recommendations.trendingTitle')}
               </span>
             </div>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed">
               {isAuthenticated 
-                ? 'Dựa trên sở thích và lịch sử tìm kiếm của bạn'
-                : 'Những tour du lịch được yêu thích nhất hiện tại'
+                ? t('landing.recommendations.forYouSubtitle')
+                : t('landing.recommendations.trendingSubtitle')
               }
             </p>
           </div>
@@ -341,7 +343,7 @@ const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = 
           <div className="text-center mt-16">
             <Link to="/tours">
               <Button className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-none text-xs font-medium tracking-[0.2em] uppercase transition-all duration-300 border border-slate-900 hover:border-amber-600">
-                Xem Tất Cả Tour
+                {t('landing.recommendations.viewAllTours')}
                 <ChevronRightIcon className="h-4 w-4 ml-3" />
               </Button>
             </Link>
@@ -366,10 +368,11 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
   onWishlistToggle,
   showWishlist
 }) => {
+  const { t, i18n } = useTranslation();
   const { tour, score, reasons = [], tags = [], personalizedPrice, urgency } = recommendation;
   
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
@@ -380,14 +383,14 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
     const end = new Date(deadline).getTime();
     const diff = end - now;
     
-    if (diff <= 0) return 'Đã hết hạn';
+    if (diff <= 0) return t('landing.recommendations.expired');
     
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
     
-    if (days > 0) return `Còn ${days} ngày`;
-    if (hours > 0) return `Còn ${hours} giờ`;
-    return 'Sắp hết hạn';
+    if (days > 0) return t('landing.recommendations.daysLeft', { count: days });
+    if (hours > 0) return t('landing.recommendations.hoursLeft', { count: hours });
+    return t('landing.recommendations.expiringSoon');
   };
 
   return (
@@ -423,7 +426,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
           <div className="absolute top-4 left-4">
             <span className="inline-flex items-center px-3 py-1.5 rounded-none text-xs font-medium tracking-wider uppercase bg-amber-600 text-white shadow-lg">
               <SparklesIcon className="h-3 w-3 mr-1" />
-              {Math.round(score * 100)}% Phù Hợp
+              {t('landing.recommendations.matchScore', { score: Math.round(score * 100) })}
             </span>
           </div>
         )}
@@ -474,7 +477,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
           </div>
           <div className="flex items-center flex-shrink-0">
             <ClockIcon className="h-4 w-4 mr-1" />
-            <span>{tour.duration} ngày</span>
+            <span>{tour.duration} {t('landing.recommendations.days')}</span>
           </div>
         </div>
 
@@ -487,7 +490,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
             </span>
           </div>
           <span className="text-sm text-gray-500 ml-1">
-            ({tour.totalReviews || 0} đánh giá)
+            ({tour.totalReviews || 0} {t('landing.recommendations.reviews')})
           </span>
         </div>
 
@@ -505,7 +508,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
           </div>
           {personalizedPrice && personalizedPrice < tour.price && (
             <div className="text-sm font-medium text-green-600">
-              Tiết kiệm {Math.round((1 - personalizedPrice / tour.price) * 100)}%
+              {t('landing.recommendations.save', { percent: Math.round((1 - personalizedPrice / tour.price) * 100) })}
             </div>
           )}
         </div>
@@ -515,7 +518,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
         {/* CTA Button */}
         <Link to={`/tours/${tour.slug}`} className="block">
           <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 text-xs tracking-[0.2em] uppercase rounded-none transition-all duration-300 border border-slate-900 hover:border-amber-600">
-            Xem Chi Tiết
+            {t('landing.recommendations.viewDetails')}
           </Button>
         </Link>
       </div>

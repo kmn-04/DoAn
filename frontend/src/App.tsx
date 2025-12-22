@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Import layout components (keep these as regular imports)
@@ -11,6 +11,7 @@ import { ErrorBoundary, PageErrorBoundary } from './components/error';
 import AppInitializer from './components/AppInitializer';
 import ScrollToTop from './components/ScrollToTop';
 import { ChatBotButton } from './components/chatbot';
+import { TawkToWidget } from './components/livechat';
 
 // Lazy import pages for better performance
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
@@ -56,6 +57,7 @@ const AdminContacts = React.lazy(() => import('./pages/admin/AdminContacts'));
 const AdminStatistics = React.lazy(() => import('./pages/admin/AdminStatistics'));
 const AdminSettings = React.lazy(() => import('./pages/admin/AdminSettings'));
 const AdminBanners = React.lazy(() => import('./pages/admin/AdminBanners'));
+const AdminLoyalty = React.lazy(() => import('./pages/admin/AdminLoyalty'));
 
 // Create a client with optimized settings
 const queryClient = new QueryClient({
@@ -70,6 +72,49 @@ const queryClient = new QueryClient({
   },
 });
 
+const ChatWidgets: React.FC = () => {
+  const location = useLocation();
+  const path = location.pathname.toLowerCase();
+
+  const isAdmin = path.startsWith('/admin');
+  const isAuthPage = [
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+    '/auth',
+    '/verify-email'
+  ].some((p) => path === p || path.startsWith(`${p}/`));
+
+  const shouldShow = !(isAdmin || isAuthPage);
+
+  // Hide widgets on admin/auth pages, show on others
+  React.useEffect(() => {
+    try {
+      if (shouldShow) {
+        if (window.Tawk_API?.showWidget) {
+          window.Tawk_API.showWidget();
+        }
+      } else {
+        if (window.Tawk_API?.hideWidget) {
+          window.Tawk_API.hideWidget();
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to toggle Tawk.to widget visibility', err);
+    }
+  }, [shouldShow, path]);
+
+  if (!shouldShow) return null;
+
+  return (
+    <>
+      <ChatBotButton />
+      <TawkToWidget />
+    </>
+  );
+};
+
 function App() {
   return (
     <ErrorBoundary>
@@ -77,7 +122,7 @@ function App() {
         <AppInitializer>
             <Router>
               <ScrollToTop />
-            <Routes>
+              <Routes>
             {/* Redirect root to dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             
@@ -376,6 +421,15 @@ function App() {
                 </AdminLayout>
               </ProtectedRoute>
             } />
+            <Route path="/admin/loyalty" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Suspense fallback={<DashboardPageLoader />}>
+                    <AdminLoyalty />
+                  </Suspense>
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/admin/banners" element={
               <ProtectedRoute requiredRole="admin">
                 <AdminLayout>
@@ -452,8 +506,8 @@ function App() {
           {/* Toast notifications */}
           <ToastContainer />
           
-          {/* AI ChatBot */}
-          <ChatBotButton />
+          {/* AI ChatBot & Tawk.to (hidden on admin/auth pages) */}
+          <ChatWidgets />
         </Router>
         </AppInitializer>
       </QueryClientProvider>

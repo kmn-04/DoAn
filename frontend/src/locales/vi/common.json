@@ -1,0 +1,2362 @@
+{
+  "navigation": {
+    "home": "Trang chủ",
+    "tours": "Tour du lịch",
+    "about": "Về chúng tôi",
+    "categories": "Danh mục",
+    "partners": "Đối tác",
+    "contact": "Liên hệ",
+    "dashboard": "Bảng điều khiển",
+    "admin": "Quản trị"
+  },
+  "header": {
+    "tagline": "Khám phá vẻ đẹp thế giới",
+    "hotline": "Hotline",
+    "viewAllTours": "Xem tất cả tour",
+    "tourCategories": {
+      "domestic": "Tour Trong Nước",
+      "international": "Tour Quốc Tế",
+      "asia": "Tour Châu Á",
+      "europe": "Tour Châu Âu",
+      "america": "Tour Châu Mỹ",
+      "africa": "Tour Châu Phi",
+      "oceania": "Tour Châu Đại Dương"
+    },
+    "adminPortal": "Quay lại Admin"
+  },
+  "userMenu": {
+    "profile": "Hồ sơ cá nhân",
+    "bookings": "Booking của tôi",
+    "loyalty": "Điểm thưởng",
+    "wishlist": "Tour yêu thích",
+    "logout": "Đăng xuất"
+  },
+  "common": {
+    "language": "Ngôn ngữ",
+    "vietnamese": "Tiếng Việt",
+    "english": "Tiếng Anh",
+    "searchPlaceholder": "Tìm kiếm địa điểm, tour hoặc trải nghiệm",
+    "search": "Tìm kiếm",
+    "openMenu": "Mở menu",
+    "closeMenu": "Đóng menu",
+    "viewMore": "Xem thêm",
+    "bookNow": "Đặt ngay",
+    "loading": "Đang tải...",
+    "noData": "Không có dữ liệu",
+    "apply": "Áp dụng",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "and": "và",
+    "continue": "Tiếp tục",
+    "reload": "Tải lại",
+    "saving": "Đang lưu..."
+  },
+  "footer": {
+    "company": {
+      "tagline": "Khám phá thế giới",
+      "description": "Chúng tôi chuyên cung cấp các tour du lịch chất lượng cao, mang đến cho bạn những trải nghiệm đáng nhớ và an toàn trên khắp Việt Nam và thế giới."
+    },
+    "quickLinks": {
+      "title": "Liên kết nhanh",
+      "home": "Trang chủ",
+      "tours": "Tour du lịch",
+      "about": "Về chúng tôi",
+      "contact": "Liên hệ",
+      "faq": "Câu hỏi thường gặp",
+      "privacy": "Chính sách bảo mật"
+    },
+    "destinations": {
+      "title": "Điểm đến phổ biến",
+      "hanoi": "Tour Hà Nội",
+      "hcm": "Tour Hồ Chí Minh",
+      "danang": "Tour Đà Nẵng",
+      "nhatrang": "Tour Nha Trang",
+      "dalat": "Tour Đà Lạt",
+      "phuquoc": "Tour Phú Quốc"
+    },
+    "services": {
+      "title": "Dịch vụ",
+      "domestic": "Tour trong nước",
+      "international": "Tour nước ngoài",
+      "corporate": "Tour doanh nghiệp",
+      "selfGuided": "Tour tự túc",
+      "flights": "Vé máy bay",
+      "hotels": "Đặt khách sạn"
+    },
+    "newsletter": {
+      "title": "Đăng ký nhận tin tức",
+      "description": "Nhận thông tin về các tour mới và ưu đãi đặc biệt",
+      "placeholder": "Nhập email của bạn",
+      "subscribe": "Đăng ký",
+      "processing": "Đang xử lý...",
+      "success": "🎉 Đăng ký nhận tin thành công! Cảm ơn bạn đã quan tâm.",
+      "errors": {
+        "emailRequired": "Vui lòng nhập email",
+        "emailInvalid": "Email không hợp lệ",
+        "subscribeFailed": "Đăng ký không thành công. Vui lòng thử lại."
+      }
+    },
+    "copyright": {
+      "text": "© {{year}} TourBooking. Tất cả quyền được bảo lưu.",
+      "developed": "Được phát triển với",
+      "location": "tại Việt Nam"
+    }
+  },
+  "auth": {
+    "loginTitle": "Đăng nhập vào TourBooking",
+    "loginSubtitle": "Hoặc",
+    "registerTitle": "Tạo tài khoản mới",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "rememberMe": "Ghi nhớ đăng nhập",
+    "login": "Đăng nhập",
+    "loggingIn": "Đang đăng nhập...",
+    "createAccountLink": "tạo tài khoản mới",
+    "register": "Đăng ký",
+    "or": "hoặc",
+    "loginWithGoogle": "Đăng nhập với Google",
+    "loginWithFacebook": "Đăng nhập với Facebook",
+    "loginWith": "Hoặc đăng nhập với",
+    "noAccount": "Chưa có tài khoản?",
+    "haveAccount": "Đã có tài khoản?",
+    "emailPlaceholder": "Nhập email của bạn",
+    "passwordPlaceholder": "Nhập mật khẩu",
+    "termsAgreement": "Bằng cách đăng nhập, bạn đồng ý với",
+    "termsOfService": "Điều khoản dịch vụ",
+    "privacyPolicy": "Chính sách bảo mật",
+    "registerTitle": "Tạo tài khoản TourBooking",
+    "registerSubtitle": "Hoặc",
+    "loginWithExistingAccount": "đăng nhập với tài khoản có sẵn",
+    "name": "Họ và tên",
+    "namePlaceholder": "Nhập họ và tên của bạn",
+    "phone": "Số điện thoại",
+    "phonePlaceholder": "Nhập số điện thoại (VD: 0912345678)",
+    "dateOfBirth": "Ngày sinh",
+    "gender": "Giới tính",
+    "genderMale": "Nam",
+    "genderFemale": "Nữ",
+    "genderOther": "Khác",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
+    "passwordStrength": "Độ mạnh mật khẩu:",
+    "acceptTerms": "Tôi đồng ý với",
+    "termsOfServiceLink": "Điều khoản dịch vụ",
+    "and": "và",
+    "privacyPolicyLink": "Chính sách bảo mật",
+    "createAccount": "Tạo tài khoản",
+    "creatingAccount": "Đang tạo tài khoản...",
+    "orRegisterWith": "Hoặc đăng ký với",
+    "googleOAuth": {
+      "processing": "Đang xử lý đăng nhập Google...",
+      "error": "Đăng nhập Google thất bại",
+      "errorMessage": "Đã xảy ra lỗi khi đăng nhập bằng Google. Vui lòng thử lại.",
+      "backToLogin": "Quay lại đăng nhập"
+    },
+    "verifyEmail": {
+      "loading": "Đang xác thực email...",
+      "loadingMessage": "Vui lòng đợi trong giây lát",
+      "success": "Xác thực thành công!",
+      "redirectMessage": "Bạn sẽ được chuyển đến trang đăng nhập trong",
+      "seconds": "giây...",
+      "loginNow": "Đăng nhập ngay",
+      "error": "Xác thực thất bại",
+      "invalidToken": "Token xác thực không hợp lệ.",
+      "expiredLink": "Link xác thực có thể đã hết hạn hoặc không hợp lệ.",
+      "resendVerification": "Gửi lại email xác thực",
+      "registerAgain": "Đăng ký lại",
+      "backToHome": "← Về trang chủ"
+    },
+    "emailVerificationPending": {
+      "title": "Kiểm tra email của bạn!",
+      "subtitle": "Vui lòng xác thực email để hoàn tất đăng ký",
+      "emailSent": "Email xác thực đã được gửi đến:",
+      "step1": {
+        "title": "Mở email của bạn",
+        "description": "Kiểm tra hộp thư đến (Inbox) hoặc thư rác (Spam/Junk) nếu không thấy email"
+      },
+      "step2": {
+        "title": "Click vào link xác thực",
+        "description": "Nhấn vào nút \"Xác thực Email\" trong email để kích hoạt tài khoản"
+      },
+      "step3": {
+        "title": "Đăng nhập vào hệ thống",
+        "description": "Sau khi xác thực thành công, bạn có thể đăng nhập và sử dụng dịch vụ"
+      },
+      "warning": "Lưu ý: Link xác thực có hiệu lực trong 24 giờ. Bạn không thể đăng nhập cho đến khi xác thực email.",
+      "resendSuccess": "Thành công!",
+      "resendError": "Lỗi!",
+      "resendButton": "Gửi lại email xác thực",
+      "resendSending": "Đang gửi...",
+      "alreadyVerified": "Đã xác thực? Đăng nhập ngay",
+      "noEmailReceived": "Không nhận được email?",
+      "checkSpam": "• Kiểm tra thư mục Spam/Junk",
+      "checkEmail": "• Đảm bảo địa chỉ email chính xác",
+      "waitMinutes": "• Chờ vài phút rồi kiểm tra lại",
+      "tryResend": "• Thử gửi lại email xác thực",
+      "backToHome": "← Về trang chủ"
+    },
+    "resendVerification": {
+      "title": "Gửi lại email xác thực",
+      "subtitle": "Nhập email của bạn để nhận lại link xác thực",
+      "emailLabel": "Email",
+      "emailPlaceholder": "your.email@example.com",
+      "submit": "Gửi email xác thực",
+      "submitting": "Đang gửi...",
+      "success": "Thành công!",
+      "checkInbox": "Vui lòng kiểm tra hộp thư (kể cả thư rác) của bạn.",
+      "error": "Lỗi!",
+      "emailRequired": "Vui lòng nhập địa chỉ email.",
+      "note": "💡 Lưu ý: Link xác thực có hiệu lực trong 24 giờ. Nếu không nhận được email, vui lòng kiểm tra thư mục spam.",
+      "haveAccount": "Đã có tài khoản? Đăng nhập",
+      "noAccount": "Chưa có tài khoản? Đăng ký",
+      "backToHome": "← Về trang chủ"
+    },
+    "resetPassword": {
+      "title": "Đặt lại mật khẩu",
+      "subtitle": "Nhập mật khẩu mới của bạn",
+      "newPassword": "Mật khẩu mới",
+      "newPasswordPlaceholder": "Nhập mật khẩu mới",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "confirmPasswordPlaceholder": "Nhập lại mật khẩu mới",
+      "submit": "Đặt lại mật khẩu",
+      "processing": "Đang xử lý...",
+      "backToLogin": "Quay lại đăng nhập",
+      "checkingToken": "Đang kiểm tra token...",
+      "invalidToken": "Token không hợp lệ",
+      "invalidTokenMessage": "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu link mới.",
+      "requestNewLink": "Yêu cầu link mới",
+      "success": "Đặt lại mật khẩu thành công!",
+      "successMessage": "Mật khẩu của bạn đã được đặt lại thành công. Bạn sẽ được chuyển đến trang đăng nhập trong vài giây.",
+      "loginNow": "Đăng nhập ngay",
+      "error": "Không thể đặt lại mật khẩu"
+    },
+    "forgotPasswordPage": {
+      "title": "Quên mật khẩu?",
+      "subtitle": "Nhập email của bạn và chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Nhập email của bạn",
+      "submit": "Gửi hướng dẫn đặt lại mật khẩu",
+      "sending": "Đang gửi...",
+      "emailSent": "Email đã được gửi",
+      "emailSentMessage": "Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu đến email",
+      "checkInbox": "Vui lòng kiểm tra hộp thư đến và làm theo hướng dẫn để đặt lại mật khẩu của bạn.",
+      "noEmailReceived": "Không nhận được email? Kiểm tra thư mục spam hoặc thử gửi lại sau 5 phút.",
+      "resendEmail": "Gửi lại email",
+      "backToLogin": "Quay lại đăng nhập",
+      "rememberPassword": "Bạn nhớ mật khẩu rồi?",
+      "loginNow": "Đăng nhập ngay",
+      "error": "Không thể gửi email đặt lại mật khẩu"
+    }
+  },
+  "authErrors": {
+    "emailRequired": "Email là bắt buộc",
+    "emailInvalid": "Email không hợp lệ",
+    "passwordRequired": "Mật khẩu là bắt buộc",
+    "passwordMin": "Mật khẩu phải có ít nhất 6 ký tự",
+    "passwordMax": "Mật khẩu không được quá {{max}} ký tự",
+    "nameRequired": "Họ tên là bắt buộc",
+    "nameMin": "Họ tên phải có ít nhất 2 ký tự",
+    "nameMax": "Họ tên không được quá 50 ký tự",
+    "phoneRequired": "Số điện thoại là bắt buộc",
+    "phoneMin": "Số điện thoại phải có ít nhất 10 chữ số",
+    "phoneMax": "Số điện thoại không được quá 15 chữ số",
+    "phoneInvalid": "Số điện thoại chỉ được chứa số và ký tự +, -, (, )",
+    "phoneDigits": "Số điện thoại phải có ít nhất 10 chữ số",
+    "dateOfBirthRequired": "Ngày sinh là bắt buộc",
+    "ageRequirement": "Bạn phải từ 16 tuổi trở lên",
+    "genderRequired": "Vui lòng chọn giới tính",
+    "confirmPasswordRequired": "Xác nhận mật khẩu là bắt buộc",
+    "passwordMismatch": "Mật khẩu xác nhận không khớp",
+    "passwordComplexity": "Mật khẩu phải chứa ít nhất 1 chữ thường, 1 chữ hoa và 1 số",
+    "acceptTermsRequired": "Bạn phải đồng ý với điều khoản dịch vụ"
+  },
+  "tours": {
+    "defaultCategory": "Du lịch",
+    "defaultLocation": "Quốc tế",
+    "hero": {
+      "label": "Khám phá thế giới",
+      "title": "Bộ sưu tập tour",
+      "subtitle": "Khám phá vẻ đẹp thế giới với hơn {{count}} tour đa dạng từ trong nước đến quốc tế",
+      "imageSearchButton": "Tìm kiếm bằng ảnh",
+      "imageAlt": "Du lịch quốc tế"
+    },
+    "filters": {
+      "searchPlaceholder": "Tìm kiếm tour...",
+      "tourTypes": {
+        "all": "Tất cả loại tour",
+        "domestic": "Trong nước",
+        "international": "Quốc tế"
+      },
+      "categories": {
+        "all": "Tất cả danh mục"
+      },
+      "locations": {
+        "all": "Tất cả địa điểm"
+      },
+      "priceRanges": {
+        "all": "Tất cả mức giá",
+        "under2m": "Dưới 2 triệu",
+        "twoToFive": "2 - 5 triệu",
+        "fiveToTen": "5 - 10 triệu",
+        "tenToTwenty": "10 - 20 triệu",
+        "overTwenty": "Trên 20 triệu"
+      },
+      "durations": {
+        "all": "Tất cả thời gian",
+        "one": "1 ngày",
+        "twoToThree": "2-3 ngày",
+        "fourToSeven": "4-7 ngày",
+        "eightToFourteen": "8-14 ngày",
+        "fifteenPlus": "15+ ngày"
+      },
+      "ratings": {
+        "all": "Tất cả đánh giá",
+        "atLeast": "Từ {{rating}}⭐ trở lên"
+      },
+      "sort": {
+        "popular": "Phổ biến nhất",
+        "newest": "Mới nhất",
+        "priceLow": "Giá thấp nhất",
+        "priceHigh": "Giá cao nhất"
+      },
+      "flightIncluded": "Bao gồm vé bay",
+      "results": "{{count}} kết quả",
+      "clear": "Xóa bộ lọc"
+    },
+    "empty": {
+      "title": "Không tìm thấy tour nào",
+      "description": "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm",
+      "reset": "Xóa tất cả bộ lọc"
+    },
+    "card": {
+      "durationDays_one": "{{count}} ngày",
+      "durationDays_other": "{{count}} ngày",
+      "maxPeople": "Tối đa {{count}} khách",
+      "locationFallback": "Quốc tế",
+      "flightIncluded": "Có vé bay",
+      "visaRequired": "Cần visa",
+      "visaNotRequired": "Miễn visa",
+      "reviews_one": "{{count}} đánh giá",
+      "reviews_other": "{{count}} đánh giá",
+      "badges": {
+        "featured": "Hot"
+      }
+    },
+    "toast": {
+      "wishlistLogin": "Vui lòng đăng nhập để lưu tour yêu thích",
+      "wishlistAdded": "Đã thêm vào danh sách yêu thích",
+      "wishlistRemoved": "Đã xóa khỏi danh sách yêu thích",
+      "wishlistError": "Có lỗi xảy ra. Vui lòng thử lại."
+    },
+    "detail": {
+      "notFoundTitle": "Không tìm thấy tour",
+      "notFoundBack": "← Quay lại danh sách tour",
+      "back": "Quay lại",
+      "categoryFallback": "Tour du lịch",
+      "stats": {
+        "reviews": "({{count}} đánh giá)",
+        "maxGuests": "Tối đa {{count}} khách"
+      },
+      "tabs": {
+        "overview": "Tổng quan",
+        "itinerary": "Lịch trình",
+        "reviews": "Đánh giá",
+        "weather": "Thời tiết",
+        "info": "Thông tin"
+      },
+      "overview": {
+        "descriptionTitle": "Mô tả tour",
+        "highlightsTitle": "Điểm nổi bật",
+        "includedTitle": "Bao gồm",
+        "excludedTitle": "Không bao gồm"
+      },
+      "itinerary": {
+        "title": "Lịch trình chi tiết",
+        "expandAll": "Mở rộng tất cả",
+        "collapseAll": "Thu gọn tất cả"
+      },
+      "weatherTitle": "Thời tiết tại điểm đến",
+      "info": {
+        "importantTitle": "Thông tin quan trọng",
+        "cancellationTitle": "Chính sách hủy tour"
+      },
+      "related": {
+        "title": "Tour liên quan",
+        "subtitle": "Khám phá những tour tương tự có thể bạn quan tâm",
+        "emptyTitle": "Chưa có tour liên quan",
+        "emptyDescription": "Hiện tại chưa có tour tương tự để gợi ý. Hãy khám phá thêm các tour khác.",
+        "browseButton": "Xem tất cả tour"
+      },
+      "alerts": {
+        "bookingSuccess": "Đặt tour thành công! Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.",
+        "shareCopied": "Link đã được copy!"
+      }
+    },
+    "imageSearch": {
+      "title": "Tìm kiếm bằng hình ảnh",
+      "subtitle": "Upload ảnh để tìm các tour du lịch tương tự",
+      "clickToSelect": "Click để chọn ảnh",
+      "clickToChange": "Click để chọn ảnh khác",
+      "supportedFormats": "Hỗ trợ: JPG, PNG, WebP (tối đa 5MB)",
+      "searchButton": "Tìm kiếm",
+      "searching": "Đang tìm kiếm...",
+      "success": "Đã tìm thấy {{count}} tour phù hợp với ảnh!",
+      "tip": {
+        "title": "Gợi ý",
+        "message": "Chọn ảnh của địa điểm du lịch (biển, núi, chùa, di tích...) để tìm các tour tương tự"
+      },
+      "errors": {
+        "invalidFileType": "Vui lòng chọn file ảnh",
+        "fileTooLarge": "File ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 5MB",
+        "noImageSelected": "Vui lòng chọn ảnh để tìm kiếm",
+        "noResults": "Không tìm thấy tour phù hợp với ảnh này. Vui lòng thử ảnh khác.",
+        "searchFailed": "Có lỗi xảy ra khi tìm kiếm. Vui lòng thử lại."
+      },
+      "results": "Tìm thấy {{count}} tour phù hợp với ảnh của bạn"
+    },
+    "advancedSearch": {
+      "title": "Tìm kiếm nâng cao",
+      "searchPlaceholder": "Tìm kiếm tour, điểm đến, hoạt động...",
+      "aiSuggestions": "Gợi ý thông minh",
+      "tabs": {
+        "basic": "Cơ bản",
+        "advanced": "Nâng cao",
+        "ai": "AI Thông minh"
+      },
+      "buttons": {
+        "clearAll": "Xóa tất cả",
+        "cancel": "Hủy",
+        "search": "Tìm kiếm"
+      },
+      "basic": {
+        "destination": {
+          "label": "Điểm đến",
+          "options": {
+            "all": "Tất cả điểm đến",
+            "domestic": "Trong nước",
+            "international": "Quốc tế"
+          }
+        },
+        "tourType": {
+          "label": "Loại tour",
+          "options": {
+            "all": "Tất cả",
+            "domestic": "Tour trong nước",
+            "international": "Tour quốc tế"
+          }
+        },
+        "priceRange": {
+          "label": "Khoảng giá",
+          "minPlaceholder": "Từ",
+          "maxPlaceholder": "Đến"
+        },
+        "duration": {
+          "label": "Thời gian",
+          "options": {
+            "all": "Tất cả",
+            "oneTwo": "1-2 ngày",
+            "threeFive": "3-5 ngày",
+            "sixTen": "6-10 ngày",
+            "tenPlus": "Trên 10 ngày"
+          }
+        },
+        "rating": {
+          "label": "Đánh giá",
+          "options": {
+            "all": "Tất cả",
+            "fourHalf": "4.5+ sao",
+            "four": "4.0+ sao",
+            "threeHalf": "3.5+ sao"
+          }
+        },
+        "participants": {
+          "label": "Số người"
+        }
+      },
+      "advanced": {
+        "amenitiesLabel": "Tiện ích bao gồm",
+        "amenities": {
+          "freeWifi": "WiFi miễn phí",
+          "mealsIncluded": "Bữa ăn bao gồm",
+          "tourGuide": "Hướng dẫn viên",
+          "transfers": "Xe đưa đón",
+          "travelInsurance": "Bảo hiểm du lịch",
+          "beverages": "Nước uống",
+          "safetyGear": "Thiết bị an toàn",
+          "souvenirs": "Quà lưu niệm"
+        },
+        "quickFilters": {
+          "accessibility": "Phù hợp người khuyết tật",
+          "instantBooking": "Đặt ngay lập tức",
+          "freeCancellation": "Hủy miễn phí"
+        }
+      },
+      "ai": {
+        "moodLabel": "Tâm trạng du lịch",
+        "interestsLabel": "Sở thích",
+        "travelStyleLabel": "Phong cách du lịch",
+        "moods": {
+          "relaxing": "Thư giãn",
+          "adventurous": "Phiêu lưu",
+          "romantic": "Lãng mạn",
+          "cultural": "Văn hóa",
+          "family": "Gia đình",
+          "solo": "Du lịch một mình"
+        },
+        "interests": {
+          "photography": "Nhiếp ảnh",
+          "history": "Lịch sử",
+          "cuisine": "Ẩm thực",
+          "art": "Nghệ thuật",
+          "nature": "Thiên nhiên",
+          "sports": "Thể thao",
+          "shopping": "Shopping",
+          "spaWellness": "Spa & Wellness",
+          "architecture": "Kiến trúc",
+          "music": "Âm nhạc"
+        },
+        "travelStyles": {
+          "luxury": {
+            "name": "Sang trọng",
+            "description": "Khách sạn 5 sao, dịch vụ cao cấp"
+          },
+          "comfort": {
+            "name": "Thoải mái",
+            "description": "Cân bằng giữa chất lượng và giá cả"
+          },
+          "budget": {
+            "name": "Tiết kiệm",
+            "description": "Tối ưu chi phí, trải nghiệm cơ bản"
+          },
+          "backpacker": {
+            "name": "Phượt",
+            "description": "Tự do, linh hoạt, gần gũi địa phương"
+          }
+        }
+      },
+      "suggestions": {
+        "familyHalong": "Tour Hạ Long 2 ngày phù hợp cho gia đình",
+        "sapaPhoto": "Khám phá Sapa mùa lúa chín với nhiếp ảnh",
+        "hoiAnFoodCulture": "Tour ẩm thực Hội An cho người yêu văn hóa",
+        "phuQuocRelax": "Phú Quốc thư giãn 3 ngày 2 đêm",
+        "tokyoCulture": "Tokyo - Osaka văn hóa truyền thống"
+      }
+    },
+    "detailModal": {
+      "fallback": {
+        "description": "Khám phá tour tuyệt vời này",
+        "location": "Việt Nam",
+        "included": {
+          "transport": "Xe du lịch đời mới, máy lạnh",
+          "hotel": "Khách sạn tiêu chuẩn theo chương trình",
+          "meals": "Ăn uống theo chương trình",
+          "tickets": "Vé tham quan các điểm trong chương trình",
+          "guide": "Hướng dẫn viên nhiệt tình, kinh nghiệm",
+          "insurance": "Bảo hiểm du lịch theo quy định"
+        },
+        "excluded": {
+          "flight": "Vé máy bay đi/về điểm tập trung (nếu có)",
+          "personal": "Chi phí cá nhân ngoài chương trình",
+          "singleRoom": "Phụ thu phòng đơn",
+          "tip": "Tip cho hướng dẫn viên (tùy tâm)",
+          "extra": "Các chi phí phát sinh ngoài chương trình"
+        }
+      }
+    },
+    "scheduleSelector": {
+      "title": "Chọn lịch khởi hành",
+      "departureLabel": "Khởi hành",
+      "empty": {
+        "title": "Hiện chưa có lịch khởi hành",
+        "description": "Vui lòng liên hệ với chúng tôi để biết thêm thông tin về lịch khởi hành sắp tới."
+      },
+      "availability": {
+        "plenty": "Còn nhiều chỗ",
+        "limited": "Sắp hết chỗ",
+        "almostFull": "Chỉ còn ít chỗ",
+        "seats": "{{available}}/{{total}} chỗ"
+      },
+      "priceDiffNote": "(so với giá cơ bản)",
+      "priceLabel": "Giá:",
+      "perPerson": "/người",
+      "showMore": "↓ Xem thêm {{count}} lịch khác",
+      "showLess": "↑ Thu gọn",
+      "note": "💡 Lưu ý: Vui lòng đặt tour trước ít nhất 3 ngày so với ngày khởi hành. Giá có thể thay đổi tùy theo thời điểm khởi hành."
+    },
+    "reviews": {
+      "title": "Đánh giá từ khách hàng",
+      "count": "{{count}} đánh giá",
+      "ratingLabel": "{{rating}} sao",
+      "sort": {
+        "newest": "Mới nhất",
+        "oldest": "Cũ nhất",
+        "highest": "Đánh giá cao nhất",
+        "lowest": "Đánh giá thấp nhất",
+        "helpful": "Hữu ích nhất"
+      },
+      "filter": {
+        "all": "Tất cả đánh giá",
+        "value": "{{rating}} sao"
+      },
+      "showing": "Hiển thị {{display}} / {{total}} đánh giá",
+      "anonymous": "Người dùng ẩn danh",
+      "helpful": "Hữu ích ({{count}})",
+      "adminReply": "Phản hồi từ Quản trị viên",
+      "loadMore": "Xem thêm {{count}} đánh giá",
+      "collapse": "Thu gọn đánh giá",
+      "loginTitle": "Đăng nhập để viết đánh giá",
+      "loginDescription": "Bạn cần đăng nhập và hoàn thành tour để có thể đánh giá",
+      "loginButton": "Đăng nhập",
+      "ctaTitle": "Bạn đã từng tham gia tour này?",
+      "ctaDescription": "Chia sẻ trải nghiệm của bạn để giúp những khách hàng khác",
+      "ctaButton": "Viết đánh giá",
+      "formTitle": "Viết đánh giá của bạn",
+      "ratingField": "Đánh giá *",
+      "commentField": "Nhận xét *",
+      "commentPlaceholder": "Chia sẻ trải nghiệm của bạn về tour này (10-1000 ký tự)...",
+      "commentCounter": "{{count}}/1000 ký tự (tối thiểu 10)",
+      "cancel": "Hủy",
+      "submit": "Gửi đánh giá",
+      "submitting": "Đang gửi...",
+      "note": "Đánh giá sẽ được hiển thị ngay sau khi gửi",
+      "cannotTitle": "Bạn chưa thể đánh giá tour này",
+      "cannotDescription": "Chỉ khách hàng đã hoàn thành tour mới có thể viết đánh giá",
+      "cannotButton": "Chưa thể đánh giá",
+      "loginToLike": "Vui lòng đăng nhập để thích đánh giá",
+      "commentTooShort": "Nhận xét phải có ít nhất 10 ký tự",
+      "commentTooLong": "Nhận xét không được vượt quá 1000 ký tự",
+      "noBooking": "Không tìm thấy booking hợp lệ cho tour này",
+      "submitSuccess": "Đánh giá của bạn đã được gửi thành công!",
+      "submitError": "Có lỗi xảy ra khi gửi đánh giá",
+      "helpfulError": "Có lỗi xảy ra khi đánh giá. Vui lòng thử lại."
+    },
+    "aiSummary": {
+      "title": "Tóm tắt đánh giá từ AI",
+      "cached": "Cached",
+      "reviewCount": "{{count}} đánh giá",
+      "positive": {
+        "title": "Điểm tích cực"
+      },
+      "negative": {
+        "title": "Điểm cần cải thiện"
+      },
+      "footer": {
+        "createdBy": "Tóm tắt được tạo bởi AI",
+        "updatedAt": "Cập nhật"
+      },
+      "errors": {
+        "loadFailed": "Không thể tải tóm tắt AI"
+      }
+    }
+  },
+  "booking": {
+    "checkout": {
+      "title": "Đặt Tour",
+      "loading": "Đang tải thông tin tour...",
+      "backToPrevious": "Quay lại bước trước",
+      "backToTour": "Quay lại trang tour",
+      "steps": {
+        "schedule": "Chọn lịch & Số người",
+        "travelerInfo": "Thông tin hành khách",
+        "payment": "Thanh toán"
+      },
+      "schedule": {
+        "title": "Số lượng hành khách",
+        "adults": "Người lớn (> 12 tuổi)",
+        "children": "Trẻ em (< 12 tuổi)",
+        "adultsCount": "{{count}} người",
+        "childrenCount": "{{count}} trẻ",
+        "selectSchedule": "Vui lòng chọn lịch khởi hành",
+        "atLeastOne": "Phải có ít nhất 1 người tham gia",
+        "atLeastOneAdult": "Phải có ít nhất 1 người lớn",
+        "onlySeats": "Chỉ còn {{count}} chỗ trống",
+        "pastDate": "Ngày khởi hành này đã qua. Vui lòng chọn ngày khác."
+      },
+      "travelerInfo": {
+        "note": "💡 Lưu ý: Thông tin của Người lớn 1 sẽ được dùng làm thông tin liên hệ (nhận email xác nhận & gọi điện)",
+        "specialRequests": "Yêu cầu đặc biệt",
+        "specialRequestsPlaceholder": "Ví dụ: Ăn chay, dị ứng hải sản, cần xe lăn, phòng gần thang máy...",
+        "specialRequestsNote": "Chúng tôi sẽ cố gắng đáp ứng yêu cầu của bạn (không đảm bảo 100%)",
+        "fillAll": "Vui lòng điền đầy đủ thông tin hành khách",
+        "adult1Email": "Vui lòng nhập email cho Người lớn 1 (để nhận thông tin booking)",
+        "adult1Phone": "Vui lòng nhập số điện thoại cho Người lớn 1 (để liên hệ)",
+        "adult1PhoneFormat": "Số điện thoại Người lớn 1 phải có 10-11 chữ số",
+        "title": "Thông tin hành khách",
+        "participantTypes": {
+          "adult": "Người lớn",
+          "child": "Trẻ em",
+          "infant": "Em bé"
+        },
+        "completed": "✓ Hoàn thành",
+        "fields": {
+          "fullName": "Họ và tên",
+          "dateOfBirth": "Ngày sinh",
+          "gender": "Giới tính",
+          "phone": "Số điện thoại",
+          "email": "Email",
+          "passportNumber": "Số hộ chiếu",
+          "idNumber": "CMND/CCCD",
+          "nationality": "Quốc tịch"
+        },
+        "genderOptions": {
+          "male": "Nam",
+          "female": "Nữ",
+          "other": "Khác"
+        },
+        "placeholders": {
+          "fullName": "Nguyễn Văn A",
+          "phone": "0901234567",
+          "email": "email@example.com",
+          "passportNumber": "A1234567",
+          "idNumber": "001234567890",
+          "nationality": "Việt Nam"
+        },
+        "summary": {
+          "title": "📋 Tổng số hành khách:",
+          "adults": "{{count}} người lớn",
+          "children": "{{count}} trẻ em",
+          "infants": "{{count}} em bé",
+          "people": "người"
+        },
+        "defaultNationality": "Việt Nam"
+      },
+      "payment": {
+        "title": "Phương thức thanh toán",
+        "total": "Tổng thanh toán",
+        "selectMethod": "Chọn phương thức thanh toán:",
+        "vnpay": {
+          "title": "Thanh toán qua VNPay",
+          "description": "Thanh toán ngay bằng thẻ ATM/Visa/MasterCard"
+        },
+        "later": {
+          "title": "Thanh toán sau",
+          "description": "Hoàn tất thanh toán trong vòng 24h"
+        },
+        "selectPayment": "Vui lòng chọn phương thức thanh toán",
+        "confirm": "Xác nhận đặt tour",
+        "processing": "Đang xử lý...",
+        "redirectNote": "Bạn sẽ được chuyển đến trang thanh toán VNPay",
+        "secure": "Thanh toán an toàn & bảo mật",
+        "secureNote": "Thông tin thanh toán của bạn được mã hóa và bảo mật tuyệt đối."
+      },
+      "summary": {
+        "title": "Tóm tắt đơn hàng",
+        "departure": "Khởi hành",
+        "promotionCode": "🎁 Mã giảm giá",
+        "promotionPlaceholder": "Nhập mã giảm giá",
+        "apply": "Áp dụng",
+        "applied": "Mã \"{{code}}\" đã được áp dụng",
+        "remove": "Xóa",
+        "invalid": "Mã giảm giá không hợp lệ hoặc không áp dụng được",
+        "adults": "Người lớn ({{count}})",
+        "children": "Trẻ em ({{count}})",
+        "discount": "💰 Giảm giá ({{code}})",
+        "total": "Tổng cộng"
+      },
+      "errors": {
+        "loadTour": "Không thể tải thông tin tour. Vui lòng thử lại.",
+        "noSchedule": "Vui lòng chọn lịch khởi hành",
+        "noContact": "❌ Vui lòng quay lại Bước 2 và điền thông tin hành khách",
+        "noContactFields": "❌ Người lớn 1 cần có đầy đủ Số điện thoại và Email",
+        "invalidPhone": "❌ Số điện thoại Người lớn 1 phải có 10-11 chữ số",
+        "pastDate": "Ngày khởi hành đã chọn đã qua. Vui lòng chọn ngày khác.",
+        "general": "Có lỗi xảy ra. Vui lòng thử lại."
+      }
+    },
+    "form": {
+      "perAdult": "/ người lớn",
+      "schedule": {
+        "title": "📅 Chọn lịch khởi hành",
+        "loading": "Đang tải lịch trình...",
+        "noSchedules": "Hiện chưa có lịch khởi hành.",
+        "selected": "✓ Đã chọn",
+        "available": "✓ Còn {{count}} chỗ",
+        "lowAvailability": "⚠ Còn {{count}} chỗ",
+        "veryLowAvailability": "🔥 Chỉ còn {{count}} chỗ",
+        "collapse": "↑ Thu gọn",
+        "viewMore": "↓ Xem thêm {{count}} lịch khác",
+        "selectPlaceholder": "Chọn ngày khởi hành"
+      },
+      "participants": {
+        "adults": "Người lớn",
+        "children": "Trẻ em (< 12 tuổi)",
+        "adultsCount": "{{count}} người",
+        "childrenCount": "{{count}} trẻ"
+      },
+      "specialRequests": {
+        "title": "Yêu cầu đặc biệt (tùy chọn)",
+        "placeholder": "Ví dụ: Ăn chay, khuyết tật, dị ứng thực phẩm..."
+      },
+      "priceBreakdown": {
+        "title": "Chi tiết giá",
+        "adults": "Người lớn ({{count}})",
+        "children": "Trẻ em ({{count}})",
+        "total": "Tổng cộng"
+      },
+      "security": {
+        "title": "Đặt tour an toàn",
+        "note": "Thông tin của bạn được bảo mật và có thể hủy miễn phí trong 24h"
+      },
+      "bookNow": "Đặt Tour Ngay",
+      "contactSupport": "Cần hỗ trợ? Gọi {{phone}}",
+      "errors": {
+        "selectSchedule": "Vui lòng chọn lịch khởi hành",
+        "atLeastOneAdult": "Phải có ít nhất 1 người lớn",
+        "maxPeople": "Tối đa {{count}} người cho tour này",
+        "availableSeats": "Lịch này chỉ còn {{count}} chỗ trống",
+        "atLeastOnePerson": "Phải có ít nhất 1 người tham gia"
+      },
+      "discount": "Giảm giá"
+    },
+    "confirmation": {
+      "title": "Đặt tour thành công!",
+      "subtitle": "Cảm ơn bạn đã tin tưởng và đặt tour với chúng tôi",
+      "details": "Chi tiết đặt tour",
+      "bookingCode": "Mã booking:",
+      "confirmed": "Đã xác nhận",
+      "tourInfo": "Thông tin tour",
+      "departureDate": "Ngày khởi hành",
+      "participants": "Số người tham gia",
+      "adults": "{{count}} người lớn",
+      "children": "{{count}} trẻ em",
+      "contactInfo": "Thông tin liên hệ",
+      "totalPayment": "Tổng thanh toán:",
+      "nextSteps": "Các bước tiếp theo",
+      "emailConfirmation": "Chúng tôi sẽ gửi email xác nhận chi tiết trong vòng 15 phút",
+      "staffContact": "Nhân viên sẽ liên hệ với bạn trong vòng 24h để xác nhận thông tin",
+      "prepareDocuments": "Vui lòng chuẩn bị giấy tờ tùy thân trước ngày khởi hành 3 ngày",
+      "hotline": "Hotline hỗ trợ 24/7:",
+      "viewMyBooking": "Xem booking của tôi",
+      "exploreMore": "Khám phá tour khác"
+    },
+    "history": {
+      "title": "Quản lý booking",
+      "subtitle": "Theo dõi tất cả booking và yêu cầu hủy của bạn",
+      "tabs": {
+        "bookings": "Booking của tôi ({{count}})",
+        "cancellations": "Lịch sử hủy booking"
+      },
+      "filters": {
+        "title": "Bộ lọc",
+        "showing": "Hiển thị {{display}} / {{total}} booking",
+        "searchPlaceholder": "Tìm theo tên tour, mã booking...",
+        "status": {
+          "all": "Tất cả trạng thái",
+          "upcoming": "Sắp diễn ra",
+          "confirmed": "Đã xác nhận",
+          "pending": "Chờ xác nhận",
+          "completed": "Hoàn thành",
+          "cancelled": "Đã hủy"
+        },
+        "dateRange": {
+          "all": "Tất cả thời gian",
+          "lastMonth": "Tháng trước",
+          "last3Months": "3 tháng trước",
+          "lastYear": "Năm trước"
+        },
+        "clear": "Xóa bộ lọc"
+      },
+      "empty": {
+        "title": "Chưa có booking nào",
+        "description": "Hãy đặt tour đầu tiên của bạn để bắt đầu hành trình!",
+        "explore": "Khám phá tours",
+        "noResults": "Không tìm thấy booking nào",
+        "noResultsDescription": "Thử thay đổi bộ lọc hoặc tìm kiếm khác",
+        "noBookingsDescription": "Bạn chưa có booking nào. Hãy bắt đầu khám phá và đặt tour đầu tiên!"
+      },
+      "bookingCode": "Mã booking:",
+      "status": {
+        "confirmed": "Đã xác nhận",
+        "pending": "Chờ xác nhận",
+        "completed": "Hoàn thành",
+        "cancelled": "Đã hủy"
+      },
+      "payment": {
+        "paid": "Đã thanh toán",
+        "pending": "Chờ thanh toán",
+        "unpaid": "Chờ thanh toán",
+        "partial": "Thanh toán một phần",
+        "refunding": "Đang hoàn tiền",
+        "refunded": "Đã hoàn tiền",
+        "failed": "Thất bại"
+      },
+      "details": {
+        "adults": "{{count}} người lớn",
+        "children": "{{count}} trẻ em",
+        "bookedOn": "Đặt ngày {{date}}"
+      },
+      "actions": {
+        "view": "Xem",
+        "cancel": "Yêu cầu hủy",
+        "pay": "Thanh toán"
+      },
+      "specialRequests": "Yêu cầu đặc biệt:",
+      "upcomingAlert": {
+        "title": "Tour sắp diễn ra",
+        "message": "Hãy chuẩn bị giấy tờ tùy thân và hành lý cần thiết. Chúng tôi sẽ liên hệ trước {{days}} ngày khởi hành."
+      },
+      "errors": {
+        "loadError": "Lỗi tải dữ liệu",
+        "loadMessage": "Không thể tải lịch sử booking. Vui lòng thử lại sau.",
+        "found": "Đã tìm thấy booking!",
+        "foundMessage": "Booking \"{{name}}\" đã được highlight.",
+        "paymentError": "Lỗi thanh toán:",
+        "paymentFailed": "Có lỗi xảy ra khi tạo thanh toán VNPay",
+        "cancellationSuccess": "Thành công!",
+        "cancellationMessage": "Yêu cầu hủy booking đã được gửi thành công"
+      }
+    },
+    "cancellationForm": {
+      "title": "Yêu cầu hủy booking",
+      "steps": {
+        "select": "Chọn booking",
+        "details": "Chi tiết hủy",
+        "confirm": "Xác nhận"
+      },
+      "bookingSelection": {
+        "title": "Chọn booking cần hủy",
+        "noBookings": "Không có booking nào có thể hủy",
+        "bookingCode": "Mã booking:",
+        "departure": "Khởi hành:",
+        "status": "Trạng thái"
+      },
+      "cancellationDetails": {
+        "title": "Chi tiết yêu cầu hủy",
+        "bookingInfo": {
+          "title": "Thông tin booking",
+          "bookingCode": "Mã booking:",
+          "departure": "Khởi hành:"
+        },
+        "reason": {
+          "label": "Lý do hủy *",
+          "placeholder": "Chọn lý do hủy",
+          "types": {
+            "PERSONAL_EMERGENCY": "Khẩn cấp cá nhân",
+            "MEDICAL_EMERGENCY": "Khẩn cấp y tế",
+            "WEATHER_CONDITIONS": "Điều kiện thời tiết",
+            "FORCE_MAJEURE": "Bất khả kháng",
+            "TRAVEL_RESTRICTIONS": "Hạn chế đi lại",
+            "SCHEDULE_CONFLICT": "Xung đột lịch trình",
+            "FINANCIAL_DIFFICULTY": "Khó khăn tài chính",
+            "DISSATISFACTION": "Không hài lòng",
+            "DUPLICATE_BOOKING": "Đặt trùng lặp",
+            "TECHNICAL_ERROR": "Lỗi kỹ thuật",
+            "OTHER": "Khác"
+          }
+        },
+        "detailedReason": {
+          "label": "Mô tả chi tiết *",
+          "placeholder": "Vui lòng mô tả chi tiết lý do hủy booking...",
+          "minLength": "Tối thiểu 10 ký tự ({{count}}/10)"
+        },
+        "specialCircumstances": {
+          "title": "Trường hợp đặc biệt",
+          "medicalEmergency": "Khẩn cấp y tế",
+          "weatherRelated": "Liên quan đến thời tiết",
+          "forceMajeure": "Bất khả kháng"
+        },
+        "supportingDocuments": {
+          "label": "Giấy tờ chứng minh"
+        },
+        "emergencyContact": {
+          "name": "Tên người liên hệ khẩn cấp",
+          "phone": "Số điện thoại",
+          "relationship": "Mối quan hệ",
+          "namePlaceholder": "Họ và tên",
+          "phonePlaceholder": "0123456789",
+          "relationshipPlaceholder": "Ví dụ: Vợ/chồng, con"
+        },
+        "additionalNotes": {
+          "label": "Ghi chú thêm",
+          "placeholder": "Thông tin bổ sung khác..."
+        },
+        "removeFile": "Xóa"
+      },
+      "review": {
+        "title": "Xem lại và xác nhận",
+        "bookingInfo": {
+          "title": "Thông tin booking",
+          "tour": "Tour:",
+          "bookingCode": "Mã booking:",
+          "departure": "Khởi hành:",
+          "amount": "Số tiền:"
+        },
+        "cancellationReason": {
+          "title": "Lý do hủy",
+          "type": "Loại:",
+          "details": "Chi tiết:",
+          "notes": "Ghi chú:"
+        },
+        "specialCases": {
+          "title": "Trường hợp đặc biệt"
+        },
+        "refundEstimate": {
+          "title": "Hoàn tiền ước tính",
+          "refundAmount": "Số tiền hoàn:",
+          "note": "(Sau khi trừ phí hủy và phí xử lý)"
+        },
+        "refundMethod": {
+          "label": "Phương thức hoàn tiền",
+          "original": "Hoàn về phương thức thanh toán gốc",
+          "bankTransfer": "Chuyển khoản ngân hàng",
+          "voucher": "Voucher sử dụng sau"
+        },
+        "adminNotes": {
+          "label": "Ghi chú cho admin",
+          "placeholder": "Thông tin thêm cho bộ phận xử lý..."
+        },
+        "acknowledgments": {
+          "policy": "Tôi đã đọc và hiểu <a href=\"#\">chính sách hủy booking</a> của công ty",
+          "refundTerms": "Tôi đồng ý với <a href=\"#\">điều khoản hoàn tiền</a> và thời gian xử lý",
+          "expedite": "Yêu cầu xử lý nhanh (áp dụng cho trường hợp khẩn cấp)"
+        }
+      },
+      "evaluation": {
+        "title": "Đánh giá hoàn tiền",
+        "originalAmount": "Số tiền gốc:",
+        "estimatedRefund": "Số tiền hoàn ước tính:",
+        "cancellationFee": "Phí hủy:",
+        "processingFee": "Phí xử lý:",
+        "finalRefundAmount": "Số tiền hoàn cuối cùng:",
+        "policyNote": "Chính sách: {{policy}} • {{hours}}h trước khởi hành",
+        "warnings": "Lưu ý:",
+        "notEligible": {
+          "title": "Không thể hủy booking",
+          "reason": "{{reason}}"
+        }
+      },
+      "buttons": {
+        "back": "Quay lại",
+        "cancel": "Hủy bỏ",
+        "continue": "Tiếp tục",
+        "processing": "Đang xử lý...",
+        "submit": "Gửi yêu cầu hủy",
+        "submitting": "Đang gửi..."
+      },
+      "toast": {
+        "success": {
+          "title": "Gửi yêu cầu thành công!",
+          "message": "Yêu cầu hủy booking của bạn đã được gửi. Chúng tôi sẽ xem xét và phản hồi trong vòng 24h."
+        },
+        "error": {
+          "title": "Lỗi gửi yêu cầu",
+          "message": "Có lỗi xảy ra khi gửi yêu cầu hủy. Vui lòng thử lại."
+        }
+      }
+    },
+    "cancellationHistory": {
+      "title": "Lịch sử hủy booking",
+      "subtitle": "Quản lý và theo dõi các yêu cầu hủy booking của bạn",
+      "newRequest": "+ Yêu cầu hủy mới",
+      "bookingCode": "Mã booking:",
+      "emergency": "Khẩn cấp",
+      "refundCompleted": "Đã hoàn tiền",
+      "noRefund": "Không hoàn tiền",
+      "adminNotes": "Ghi chú admin:",
+      "viewDetails": "Xem chi tiết",
+      "filters": {
+        "search": "Tìm kiếm",
+        "searchPlaceholder": "Tìm theo mã booking, tên tour...",
+        "status": "Trạng thái",
+        "allStatuses": "Tất cả trạng thái",
+        "clear": "Xóa bộ lọc"
+      },
+      "status": {
+        "pending": "Chờ xử lý",
+        "approved": "Đã phê duyệt",
+        "rejected": "Bị từ chối"
+      },
+      "refundStatus": {
+        "pending": "Chờ xử lý",
+        "processing": "Đang xử lý",
+        "completed": "Đã hoàn tiền",
+        "failed": "Thất bại",
+        "notApplicable": "Không áp dụng"
+      },
+      "results": {
+        "summary": "Hiển thị {{display}} trong tổng số {{total}} yêu cầu hủy"
+      },
+      "details": {
+        "reason": "Lý do",
+        "cancelledDate": "Ngày hủy",
+        "originalAmount": "Số tiền gốc",
+        "refund": "Hoàn tiền"
+      },
+      "timeline": {
+        "processed": "Xử lý",
+        "refund": "Hoàn tiền"
+      },
+      "empty": {
+        "title": "Chưa có yêu cầu hủy nào",
+        "description": "Bạn chưa gửi yêu cầu hủy booking nào. Nhấn nút bên dưới để tạo yêu cầu mới.",
+        "action": "Tạo yêu cầu hủy đầu tiên"
+      },
+      "toast": {
+        "success": {
+          "title": "Thành công!",
+          "message": "Yêu cầu hủy booking mới đã được tạo"
+        }
+      }
+    },
+    "cancellationDetails": {
+      "title": "Chi tiết yêu cầu hủy booking",
+      "emergency": "Khẩn cấp",
+      "bookingInfo": {
+        "title": "Thông tin booking",
+        "tourName": "Tên tour",
+        "bookingCode": "Mã booking",
+        "originalAmount": "Số tiền gốc",
+        "policyName": "Chính sách áp dụng"
+      },
+      "cancellationDetails": {
+        "title": "Chi tiết yêu cầu hủy",
+        "reasonType": "Loại lý do",
+        "detailedReason": "Mô tả chi tiết",
+        "cancelledAt": "Thời gian hủy",
+        "hoursBeforeDeparture": "Thời gian trước khởi hành",
+        "hours": "{{count}} giờ"
+      },
+      "adminResponse": {
+        "title": "Phản hồi từ admin",
+        "processingStatus": "Trạng thái xử lý",
+        "processedAt": "Thời gian xử lý",
+        "adminNotes": "Ghi chú từ admin"
+      },
+      "refundInfo": {
+        "title": "Thông tin hoàn tiền",
+        "originalAmount": "Số tiền gốc",
+        "refundAmount": "Số tiền hoàn",
+        "refundStatus": "Trạng thái hoàn tiền",
+        "refundProcessedAt": "Thời gian hoàn tiền",
+        "noRefund": "Không được hoàn tiền"
+      },
+      "timeline": {
+        "title": "Tiến trình xử lý",
+        "requestSent": "Yêu cầu hủy đã được gửi",
+        "requestApproved": "Yêu cầu được phê duyệt",
+        "requestRejected": "Yêu cầu bị từ chối",
+        "refundCompleted": "Hoàn tiền thành công"
+      },
+      "actions": {
+        "title": "Hành động",
+        "editRequest": "Chỉnh sửa yêu cầu",
+        "downloadPDF": "Tải xuống PDF",
+        "emailAdmin": "Gửi email cho admin",
+        "viewReceipt": "Xem biên lai hoàn tiền"
+      }
+    }
+  },
+  "profile": {
+    "title": "Thông tin cá nhân",
+    "subtitle": "Quản lý thông tin tài khoản và cài đặt cá nhân của bạn",
+    "edit": "Chỉnh sửa thông tin",
+    "saving": "Đang lưu...",
+    "saveChanges": "Lưu thay đổi",
+    "cancel": "Hủy",
+    "stats": {
+      "title": "Thống kê",
+      "totalBookings": "Tours đã đặt",
+      "completedTours": "Tours hoàn thành",
+      "reviewsWritten": "Đánh giá đã viết",
+      "memberSince": "Thành viên từ"
+    },
+    "details": {
+      "title": "Chi tiết thông tin",
+      "personalInfo": "Thông tin cá nhân",
+      "fullName": "Họ và tên *",
+      "email": "Email *",
+      "phone": "Số điện thoại *",
+      "dateOfBirth": "Ngày sinh",
+      "address": "Địa chỉ",
+      "gender": "Giới tính",
+      "genderOptions": {
+        "male": "Nam",
+        "female": "Nữ",
+        "other": "Khác"
+      },
+      "bio": "Giới thiệu bản thân",
+      "bioPlaceholder": "Chia sẻ về sở thích du lịch của bạn...",
+      "notUpdated": "Chưa cập nhật"
+    },
+    "security": {
+      "title": "Bảo mật tài khoản",
+      "password": {
+        "title": "Mật khẩu",
+        "lastUpdated": "Cập nhật lần cuối: 30 ngày trước",
+        "change": "Đổi mật khẩu"
+      },
+      "twoFactor": {
+        "title": "Xác thực 2 bước",
+        "description": "Tăng cường bảo mật cho tài khoản",
+        "activate": "Kích hoạt"
+      }
+    },
+    "password": {
+      "title": "Đổi mật khẩu",
+      "current": "Mật khẩu hiện tại *",
+      "currentPlaceholder": "Nhập mật khẩu hiện tại",
+      "new": "Mật khẩu mới *",
+      "newPlaceholder": "Nhập mật khẩu mới",
+      "confirm": "Xác nhận mật khẩu mới *",
+      "confirmPlaceholder": "Xác nhận mật khẩu mới",
+      "change": "Đổi mật khẩu",
+      "changing": "Đang đổi..."
+    },
+    "avatar": {
+      "uploading": "Đang tải ảnh đại diện...",
+      "success": "Ảnh đại diện đã được cập nhật thành công",
+      "error": "Không thể lưu ảnh đại diện. Vui lòng thử lại",
+      "uploadError": "Không thể upload ảnh. Vui lòng thử lại",
+      "tooLarge": "File quá lớn. Vui lòng chọn ảnh có kích thước nhỏ hơn 5MB",
+      "invalidType": "File không hợp lệ. Vui lòng chọn file ảnh (JPG, PNG, GIF)"
+    },
+    "errors": {
+      "nameRequired": "Vui lòng nhập họ tên",
+      "phoneRequired": "Vui lòng nhập số điện thoại",
+      "phoneInvalid": "Số điện thoại không hợp lệ",
+      "updateSuccess": "Thông tin cá nhân đã được cập nhật thành công",
+      "updateError": "Không thể cập nhật thông tin. Vui lòng thử lại",
+      "passwordRequired": "Vui lòng nhập mật khẩu hiện tại",
+      "newPasswordRequired": "Vui lòng nhập mật khẩu mới",
+      "newPasswordMin": "Mật khẩu mới phải có ít nhất 6 ký tự",
+      "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
+      "confirmMismatch": "Mật khẩu xác nhận không khớp",
+      "samePassword": "Mật khẩu mới phải khác mật khẩu hiện tại",
+      "changeSuccess": "Mật khẩu đã được thay đổi thành công",
+      "changeError": "Không thể thay đổi mật khẩu. Vui lòng thử lại",
+      "currentIncorrect": "Mật khẩu hiện tại không đúng"
+    }
+  },
+  "dashboard": {
+    "reviews": {
+      "title": "Đánh giá của tôi",
+      "subtitle": "Quản lý các đánh giá của bạn về các tour đã tham gia",
+      "loading": "Đang tải đánh giá...",
+      "empty": {
+        "title": "Chưa có đánh giá nào",
+        "description": "Bạn chưa viết đánh giá cho tour nào. Hãy hoàn thành một chuyến đi và chia sẻ trải nghiệm của bạn!",
+        "viewBookings": "Xem tour đã đặt"
+      },
+      "status": {
+        "pending": "Chờ duyệt",
+        "approved": "Đã duyệt",
+        "rejected": "Bị từ chối"
+      },
+      "adminReply": "Phản hồi từ quản trị viên:",
+      "helpful": "{{count}} người thấy hữu ích",
+      "actions": {
+        "viewTour": "Xem tour",
+        "edit": "Sửa",
+        "delete": "Xóa"
+      },
+      "editModal": {
+        "title": "Chỉnh sửa đánh giá",
+        "rating": "Đánh giá",
+        "ratingRequired": "Đánh giá",
+        "comment": "Nội dung đánh giá",
+        "commentRequired": "Nội dung đánh giá",
+        "commentPlaceholder": "Chia sẻ trải nghiệm của bạn về chuyến đi này...",
+        "characters": "{{count}} ký tự",
+        "cancel": "Hủy",
+        "save": "Lưu thay đổi"
+      },
+      "toast": {
+        "loadError": "Không thể tải danh sách đánh giá",
+        "deleteConfirm": "Bạn có chắc chắn muốn xóa đánh giá này?",
+        "deleteSuccess": "Đã xóa đánh giá thành công",
+        "deleteError": "Không thể xóa đánh giá",
+        "commentRequired": "Vui lòng nhập nội dung đánh giá",
+        "updateSuccess": "Đã cập nhật đánh giá thành công",
+        "updateError": "Không thể cập nhật đánh giá"
+      }
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "subtitle": "Quản lý và theo dõi các thông báo của bạn",
+      "markAllRead": "Đánh dấu tất cả đã đọc",
+      "filters": {
+        "label": "Lọc:",
+        "type": {
+          "all": "Tất cả loại",
+          "booking": "Đặt tour",
+          "payment": "Thanh toán",
+          "tour_update": "Cập nhật tour",
+          "promotion": "Khuyến mãi",
+          "system": "Hệ thống"
+        },
+        "status": {
+          "all": "Tất cả trạng thái",
+          "unread": "Chưa đọc",
+          "read": "Đã đọc"
+        },
+        "priority": {
+          "all": "Tất cả mức độ",
+          "high": "Cao",
+          "medium": "Trung bình",
+          "low": "Thấp"
+        },
+        "selected": "Đã chọn {{count}}",
+        "delete": "Xóa",
+        "cancel": "Hủy chọn",
+        "cancelShort": "Hủy"
+      },
+      "bulkActions": {
+        "selectAll": "Chọn tất cả ({{count}})",
+        "showing": "Hiển thị {{display}} / {{total}} thông báo"
+      },
+      "empty": {
+        "title": "Không có thông báo",
+        "noNotifications": "Bạn chưa có thông báo nào.",
+        "noResults": "Không có thông báo nào phù hợp với bộ lọc hiện tại."
+      },
+      "actions": {
+        "view": "Xem",
+        "viewDetails": "Xem chi tiết",
+        "markRead": "Đánh dấu đã đọc",
+        "markReadShort": "Đọc",
+        "delete": "Xóa"
+      },
+      "priority": {
+        "high": "Cao",
+        "medium": "Trung bình",
+        "low": "Thấp",
+        "label": "Mức độ:"
+      },
+      "loadMore": "Tải thêm thông báo",
+      "loadMoreToast": "Tính năng tải thêm sẽ được cập nhật",
+      "toast": {
+        "loadError": "Không thể tải thông báo. Vui lòng thử lại sau.",
+        "markReadSuccess": "Đã đánh dấu đã đọc",
+        "markReadError": "Không thể đánh dấu đã đọc",
+        "markAllReadSuccess": "Đã đánh dấu tất cả đã đọc",
+        "markAllReadError": "Không thể đánh dấu tất cả đã đọc",
+        "deleteSuccess": "Đã xóa thông báo",
+        "deleteError": "Không thể xóa thông báo",
+        "deleteSelectedSuccess": "Đã xóa {{count}} thông báo"
+      },
+      "time": {
+        "justNow": "Vừa xong",
+        "minutesAgo": "{{count}} phút trước",
+        "hoursAgo": "{{count}} giờ trước",
+        "daysAgo": "{{count}} ngày trước"
+      }
+    },
+    "emptyState": {
+      "wishlist": {
+        "title": "Chưa có tour yêu thích",
+        "description": "Hãy khám phá và lưu những tour du lịch yêu thích của bạn!",
+        "action": "Khám phá tours"
+      },
+      "bookings": {
+        "title": "Chưa có booking nào",
+        "description": "Bạn chưa đặt tour nào. Hãy bắt đầu cuộc hành trình của bạn!",
+        "action": "Đặt tour ngay"
+      },
+      "notifications": {
+        "title": "Không có thông báo mới",
+        "description": "Tất cả thông báo đã được xem. Chúng tôi sẽ thông báo khi có cập nhật mới.",
+        "action": "Xem tất cả"
+      },
+      "search": {
+        "title": "Không tìm thấy kết quả",
+        "description": "Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc để tìm thấy những gì bạn cần.",
+        "action": "Xóa bộ lọc",
+        "suggestions": "Gợi ý tìm kiếm:",
+        "destinations": {
+          "halong": "Hạ Long",
+          "sapa": "Sapa",
+          "phuQuoc": "Phú Quốc",
+          "daNang": "Đà Nẵng",
+          "hoiAn": "Hội An"
+        }
+      },
+      "general": {
+        "title": "Không có dữ liệu",
+        "description": "Hiện tại không có thông tin để hiển thị.",
+        "action": "Làm mới"
+      }
+    }
+  },
+  "landing": {
+    "hero": {
+      "loading": "Đang tải...",
+      "defaultTitle": "Khám Phá Thế Giới Cùng Chúng Tôi",
+      "defaultSubtitle": "Những chuyến đi đáng nhớ đang chờ đón bạn",
+      "defaultButton": "Xem Tours",
+      "description": "Trải nghiệm những điều kỳ diệu trên khắp thế giới với dịch vụ chuyên nghiệp",
+      "aboutUs": "Về chúng tôi",
+      "scroll": "Scroll"
+    },
+    "featuredTours": {
+      "title": "Tour Du Lịch Nổi Bật",
+      "badge": "Tour Nổi Bật",
+      "subtitle": "Khám phá những điểm đến tuyệt vời nhất thế giới với các tour du lịch được yêu thích nhất",
+      "loadingTitle": "Tour Du Lịch Nổi Bật",
+      "errorTitle": "Tour Du Lịch Nổi Bật",
+      "errorMessage": "Không thể tải tour nổi bật. Vui lòng thử lại sau.",
+      "reload": "Tải lại",
+      "emptyMessage": "Chưa có tour nổi bật nào.",
+      "days": "ngày",
+      "view": "Xem",
+      "exploreAll": "Khám Phá Tất Cả",
+      "international": "quốc tế",
+      "new": "Mới"
+    },
+    "hotDeals": {
+      "title": "Ưu Đãi Sốc",
+      "badge": "Ưu Đãi Đặc Biệt",
+      "subtitle": "Những chương trình khuyến mãi giới hạn với mức giá đặc biệt",
+      "loadingTitle": "Ưu Đãi Sốc",
+      "errorTitle": "Ưu Đãi Sốc",
+      "errorMessage": "Không thể tải ưu đãi. Vui lòng thử lại sau.",
+      "emptyMessage": "Hiện chưa có ưu đãi nào.",
+      "limited": "Có Hạn",
+      "sold": "Đã bán",
+      "perPerson": "Mỗi người",
+      "endsIn": "Kết Thúc Sau",
+      "calculating": "Đang tính...",
+      "expired": "Hết hạn",
+      "bookNow": "Đặt Ngay",
+      "viewAllDeals": "Xem Tất Cả Ưu Đãi"
+    },
+    "browseByCategory": {
+      "title": "Khám Phá Theo Chủ Đề",
+      "subtitle": "Tìm kiếm tour phù hợp với sở thích và phong cách du lịch của bạn",
+      "loadingTitle": "Khám Phá Theo Chủ Đề",
+      "errorTitle": "Khám Phá Theo Chủ Đề",
+      "errorMessage": "Không thể tải danh mục. Vui lòng thử lại sau.",
+      "reload": "Tải lại",
+      "emptyMessage": "Chưa có danh mục nào.",
+      "tours": "tours",
+      "explore": "Khám Phá",
+      "viewAllTours": "Xem Tất Cả Tour",
+      "exploreCategory": "Khám phá các tour {{category}}"
+    },
+    "popularDestinations": {
+      "title": "Điểm Đến Phổ Biến",
+      "subtitle": "Khám phá những điểm đến được yêu thích nhất với trải nghiệm tuyệt vời",
+      "loadingTitle": "Điểm Đến Phổ Biến",
+      "errorTitle": "Điểm Đến Phổ Biến",
+      "errorMessage": "Không thể tải điểm đến. Vui lòng thử lại sau.",
+      "emptyMessage": "Chưa có điểm đến nào.",
+      "badge": "Phổ Biến",
+      "tours": "tours",
+      "from": "Từ",
+      "perPerson": "/ người",
+      "explore": "Khám phá {{name}}",
+      "viewAllDestinations": "Xem Tất Cả Điểm Đến"
+    },
+    "recommendations": {
+      "forYouTitle": "Gợi Ý Dành Cho Bạn",
+      "trendingTitle": "Tour Đang Hot",
+      "forYouSubtitle": "Dựa trên sở thích và lịch sử tìm kiếm của bạn",
+      "trendingSubtitle": "Những tour du lịch được yêu thích nhất hiện tại",
+      "forYouTab": "Dành cho bạn",
+      "trendingTab": "Đang hot",
+      "viewAllTours": "Xem Tất Cả Tour",
+      "expired": "Đã hết hạn",
+      "daysLeft": "Còn {{count}} ngày",
+      "hoursLeft": "Còn {{count}} giờ",
+      "expiringSoon": "Sắp hết hạn",
+      "matchScore": "{{score}}% Phù Hợp",
+      "days": "ngày",
+      "reviews": "đánh giá",
+      "save": "Tiết kiệm {{percent}}%",
+      "viewDetails": "Xem Chi Tiết",
+      "wishlistRemoved": "Đã xóa khỏi yêu thích",
+      "wishlistRemovedMessage": "Tour đã được xóa khỏi danh sách yêu thích.",
+      "wishlistAdded": "Đã thêm vào yêu thích",
+      "wishlistAddedMessage": "Tour đã được thêm vào danh sách yêu thích.",
+      "wishlistError": "Có lỗi xảy ra",
+      "wishlistErrorMessage": "Không thể cập nhật danh sách yêu thích."
+    }
+  },
+  "about": {
+    "hero": {
+      "title": "Đam Mê Khám Phá, Tận Tâm Phục Vụ",
+      "subtitle": "Kết nối bạn với thế giới - Từ trong nước đến năm châu"
+    },
+    "achievements": {
+      "successfulTours": "Tours thành công",
+      "successfulToursDesc": "Nội địa & quốc tế",
+      "countries": "Quốc gia",
+      "countriesDesc": "Điểm đến trên thế giới",
+      "customerRating": "Đánh giá khách hàng",
+      "customerRatingDesc": "Từ 1000+ reviews",
+      "globalSupport": "Hỗ trợ toàn cầu",
+      "globalSupportDesc": "Mọi lúc, mọi nơi"
+    },
+    "timeline": {
+      "title": "Câu Chuyện Của Chúng Tôi",
+      "subtitle": "Từ những chuyến du lịch nội địa đầu tiên đến việc mở rộng ra thị trường quốc tế, chúng tôi đã trở thành cầu nối đáng tin cậy giữa du khách Việt và thế giới.",
+      "items": {
+        "2015": {
+          "title": "Khởi Đầu Đam Mê",
+          "description": "Được thành lập bởi nhóm bạn trẻ yêu thích khám phá, bắt đầu với các tour nội địa và quốc tế khám phá vẻ đẹp thế giới."
+        },
+        "2018": {
+          "title": "Mở Rộng Toàn Quốc",
+          "description": "Phát triển mạng lưới đối tác trong nước và ra mắt các tour quốc tế đầu tiên đến Thái Lan, Singapore."
+        },
+        "2020": {
+          "title": "Chuyển Đổi Số & Quốc Tế Hóa",
+          "description": "Ra mắt nền tảng đặt tour online và mở rộng tour quốc tế đến Nhật Bản, Hàn Quốc, châu Âu."
+        },
+        "2023": {
+          "title": "Đối Tác Toàn Cầu",
+          "description": "Trở thành đối tác tin cậy với 500+ khách hàng, phục vụ tour đến hơn 20 quốc gia trên thế giới."
+        }
+      }
+    },
+    "mission": {
+      "title": "Sứ Mệnh, Tầm Nhìn & Giá Trị",
+      "subtitle": "Những giá trị cốt lõi định hướng mọi hoạt động của chúng tôi",
+      "missionTitle": "Sứ Mệnh",
+      "missionDescription": "Mang đến những trải nghiệm du lịch đích thực, an toàn và đáng nhớ cho du khách trong nước và quốc tế, kết nối họ với thế giới và quảng bá văn hóa Việt ra toàn cầu.",
+      "visionTitle": "Tầm Nhìn",
+      "visionDescription": "Trở thành công ty lữ hành hàng đầu Việt Nam, được công nhận quốc tế về chất lượng dịch vụ và du lịch bền vững.",
+      "valuesTitle": "Giá Trị Cốt Lõi",
+      "values": {
+        "dedication": {
+          "title": "Tận Tâm",
+          "description": "Luôn đặt lợi ích và trải nghiệm của khách hàng lên hàng đầu trong mọi dịch vụ."
+        },
+        "quality": {
+          "title": "Chất Lượng",
+          "description": "Cam kết mang đến dịch vụ vượt trội với tiêu chuẩn quốc tế."
+        },
+        "innovation": {
+          "title": "Đổi Mới",
+          "description": "Không ngừng sáng tạo và phát triển những sản phẩm du lịch độc đáo."
+        },
+        "responsibility": {
+          "title": "Trách Nhiệm",
+          "description": "Kinh doanh có trách nhiệm với cộng đồng và bảo vệ môi trường."
+        }
+      }
+    },
+    "team": {
+      "title": "Đội Ngũ Của Chúng Tôi",
+      "subtitle": "Những con người tài năng và đam mê tạo nên sự khác biệt",
+      "members": {
+        "ceo": {
+          "name": "Nguyễn Minh Anh",
+          "position": "CEO & Founder",
+          "experience": "8 năm kinh nghiệm trong ngành du lịch",
+          "quote": "\"Du lịch không chỉ là di chuyển, mà là cách chúng ta kết nối với thế giới.\""
+        },
+        "director": {
+          "name": "Trần Thị Hương",
+          "position": "Giám Đốc Điều Hành Tour Quốc Tế",
+          "experience": "6 năm kinh nghiệm tổ chức tour nội địa và quốc tế",
+          "quote": "\"Từ trong nước đến quốc tế, mỗi hành trình đều là trải nghiệm đáng nhớ.\""
+        },
+        "manager": {
+          "name": "Lê Văn Đức",
+          "position": "Trưởng Phòng Chăm Sóc Khách Hàng",
+          "experience": "5 năm kinh nghiệm chăm sóc khách hàng",
+          "quote": "\"Sự hài lòng của khách hàng là động lực lớn nhất của chúng tôi.\""
+        }
+      }
+    },
+    "whyChoose": {
+      "title": "Tại Sao Lựa Chọn Chúng Tôi?",
+      "subtitle": "Những lý do thuyết phục để bạn tin tưởng và đồng hành cùng chúng tôi",
+      "reasons": {
+        "professionalGuides": {
+          "title": "Hướng Dẫn Viên Chuyên Nghiệp",
+          "description": "Đội ngũ HDV chuyên nghiệp cho cả tour nội địa và quốc tế, có chứng chỉ quốc tế."
+        },
+        "diverseTours": {
+          "title": "Tour Đa Dạng",
+          "description": "Từ khám phá trong nước đến chinh phục thế giới với hơn 20 quốc gia điểm đến."
+        },
+        "globalSupport": {
+          "title": "Hỗ Trợ Toàn Cầu 24/7",
+          "description": "Đội ngũ hỗ trợ đa ngôn ngữ, sẵn sàng giúp đỡ bạn ở bất kỳ đâu trên thế giới."
+        },
+        "internationalPartners": {
+          "title": "Đối Tác Quốc Tế",
+          "description": "Mạng lưới đối tác uy tín từ trong nước đến các quốc gia trên thế giới."
+        }
+      }
+    },
+    "cta": {
+      "title": "Sẵn Sàng Khám Phá Thế Giới Cùng Chúng Tôi?",
+      "subtitle": "Từ Việt Nam đến năm châu - Hãy để chúng tôi biến ước mơ du lịch của bạn thành hiện thực",
+      "exploreTours": "Khám Phá Các Tour Du Lịch",
+      "contactConsultation": "Liên Hệ Để Được Tư Vấn",
+      "hotline": "Hotline: 1900 1234 (24/7)",
+      "email": "Email: info@tourcompany.vn"
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "Liên Hệ Với Chúng Tôi",
+      "subtitle": "Chúng tôi luôn sẵn sàng hỗ trợ bạn tạo ra những chuyến đi tuyệt vời nhất"
+    },
+    "contactInfo": {
+      "title": "Thông Tin Liên Hệ",
+      "description": "Hãy liên hệ với chúng tôi qua các kênh dưới đây hoặc gửi tin nhắn trực tiếp.",
+      "phone": "Điện thoại",
+      "phoneDetails": {
+        "hotline": "Hotline: 1900 1234",
+        "mobile": "Di động: 0123 456 789"
+      },
+      "email": "Email",
+      "address": "Địa chỉ",
+      "addressDetails": {
+        "line1": "Số 47A Phường Phú Diễn",
+        "line2": "TP. Hà Nội, Việt Nam"
+      },
+      "workingHours": "Giờ làm việc",
+      "workingHoursDetails": {
+        "weekdays": "Thứ 2 - Thứ 6: 8:00 - 18:00",
+        "weekend": "Thứ 7 - CN: 8:00 - 17:00"
+      },
+      "quickContact": {
+        "title": "Cần Hỗ Trợ Ngay?",
+        "description": "Gọi hotline để được tư vấn trực tiếp",
+        "callNow": "Gọi Ngay: 1900 1234"
+      }
+    },
+    "form": {
+      "title": "Gửi Tin Nhắn",
+      "description": "Điền thông tin dưới đây và chúng tôi sẽ phản hồi sớm nhất có thể.",
+      "fields": {
+        "name": "Họ và tên",
+        "namePlaceholder": "Nhập họ và tên",
+        "email": "Email",
+        "emailPlaceholder": "Nhập địa chỉ email",
+        "phone": "Số điện thoại",
+        "phonePlaceholder": "Nhập số điện thoại",
+        "tourInterest": "Tour quan tâm (không bắt buộc)",
+        "tourSearchPlaceholder": "Tìm kiếm tour (VD: Sapa, Đà Nẵng...)",
+        "subject": "Chủ đề",
+        "subjectPlaceholder": "Nhập chủ đề tin nhắn",
+        "message": "Nội dung tin nhắn",
+        "messagePlaceholder": "Nhập nội dung tin nhắn của bạn..."
+      },
+      "submit": "Gửi Tin Nhắn",
+      "submitting": "Đang gửi...",
+      "minChars": "Tối thiểu 10 ký tự ({{count}}/10)",
+      "errors": {
+        "nameRequired": "Vui lòng nhập họ tên",
+        "emailRequired": "Vui lòng nhập email",
+        "emailInvalid": "Email không hợp lệ",
+        "phoneRequired": "Vui lòng nhập số điện thoại",
+        "phoneInvalid": "Số điện thoại không hợp lệ",
+        "subjectRequired": "Vui lòng nhập chủ đề",
+        "messageRequired": "Vui lòng nhập nội dung tin nhắn",
+        "messageMinLength": "Tin nhắn phải có ít nhất 10 ký tự",
+        "formError": "Vui lòng kiểm tra lại thông tin",
+        "formErrorTitle": "Có lỗi trong form"
+      },
+      "success": {
+        "title": "Gửi tin nhắn thành công!",
+        "message": "Mã liên hệ: #{{id}}. Chúng tôi sẽ phản hồi trong vòng 24 giờ"
+      },
+      "error": {
+        "title": "Gửi tin nhắn thất bại",
+        "message": "Có lỗi xảy ra, vui lòng thử lại sau"
+      },
+      "tourSearch": {
+        "noResults": "Không tìm thấy tour nào với từ khóa \"{{query}}\""
+      }
+    },
+    "map": {
+      "title": "Vị Trí Văn Phòng",
+      "description": "Ghé thăm văn phòng của chúng tôi để được tư vấn trực tiếp",
+      "officeName": "Văn Phòng Chính",
+      "address": "Số 47A, Phường Phú Diễn<br />TP. Hà Nội"
+    },
+    "faq": {
+      "title": "Câu Hỏi Thường Gặp",
+      "noAnswer": {
+        "title": "Không tìm thấy câu trả lời?",
+        "description": "Liên hệ trực tiếp với chúng tôi để được hỗ trợ chi tiết hơn",
+        "callHotline": "Gọi Hotline",
+        "sendMessage": "Gửi Tin Nhắn"
+      },
+      "items": {
+        "1": {
+          "question": "Làm thế nào để đặt tour?",
+          "answer": "Bạn có thể đặt tour qua nhiều cách: (1) Đặt trực tuyến qua website của chúng tôi - chọn tour, điền thông tin và thanh toán online; (2) Gọi hotline 1900 1234 để được tư vấn trực tiếp từ nhân viên chuyên nghiệp; (3) Đến trực tiếp văn phòng tại 123 Đường ABC, Quận 1, TP.HCM để được tư vấn chi tiết và xem thêm các tour khác. Chúng tôi hỗ trợ đặt tour 24/7 qua website và hotline."
+        },
+        "2": {
+          "question": "Chính sách hủy tour như thế nào?",
+          "answer": "Chính sách hủy tour phụ thuộc vào thời gian hủy: (1) Hủy trước 30 ngày: hoàn 90% tổng tiền; (2) Hủy trước 15-29 ngày: hoàn 70% tổng tiền; (3) Hủy trước 7-14 ngày: hoàn 50% tổng tiền; (4) Hủy trong vòng 7 ngày: hoàn 20% tổng tiền. Đối với tour cao cấp và tour quốc tế, chính sách có thể khác do ràng buộc với đối tác. Vui lòng đọc kỹ điều khoản khi đặt tour."
+        },
+        "3": {
+          "question": "Có hỗ trợ làm visa không?",
+          "answer": "Có, chúng tôi cung cấp dịch vụ hỗ trợ làm visa cho tất cả các tour quốc tế. Dịch vụ bao gồm: (1) Tư vấn loại visa phù hợp; (2) Chuẩn bị hồ sơ theo yêu cầu lãnh sự quán; (3) Đặt lịch hẹn và hỗ trợ phỏng vấn; (4) Theo dõi tiến độ xử lý hồ sơ. Phí visa và phí dịch vụ được tính riêng, dao động từ 1-5 triệu VNĐ tùy quốc gia. Thời gian xử lý từ 5-15 ngày làm việc."
+        },
+        "4": {
+          "question": "Các hình thức thanh toán được chấp nhận?",
+          "answer": "Chúng tôi chấp nhận đa dạng hình thức thanh toán: (1) Tiền mặt tại văn phòng; (2) Chuyển khoản ngân hàng (Vietcombank, BIDV, Techcombank); (3) Thẻ tín dụng/ghi nợ (Visa, Mastercard, JCB); (4) Ví điện tử (ZaloPay, VNPay); (5) Trả góp qua thẻ tín dụng (0% lãi suất cho tour trên 10 triệu). Bạn có thể thanh toán 30% khi đặt tour và 70% trước ngày khởi hành 7 ngày."
+        },
+        "5": {
+          "question": "Bảo hiểm du lịch có được bao gồm?",
+          "answer": "Tất cả tour của chúng tôi đều bao gồm bảo hiểm du lịch cơ bản với mức bảo hiểm 100 triệu VNĐ/người, bao gồm: tai nạn, ốm đau, mất hành lý cơ bản. Ngoài ra, bạn có thể mua thêm bảo hiểm cao cấp với mức bảo hiểm lên đến 1 tỷ VNĐ, bao gồm: hủy chuyến, chậm chuyến bay, chi phí y tế cao, thể thao mạo hiểm. Phí bảo hiểm cao cấp từ 200.000-500.000 VNĐ/người tùy thời gian và điểm đến."
+        },
+        "6": {
+          "question": "Có tổ chức tour riêng theo yêu cầu không?",
+          "answer": "Có, chúng tôi chuyên tổ chức tour riêng (private tour) theo yêu cầu của khách hàng với các ưu điểm: (1) Lịch trình linh hoạt theo sở thích; (2) Hướng dẫn viên riêng chuyên nghiệp; (3) Phương tiện di chuyển riêng tư; (4) Lựa chọn khách sạn và nhà hàng theo budget. Minimum 4 người cho tour trong nước, 6 người cho tour quốc tế. Giá tour riêng cao hơn tour ghép đoàn 20-40% nhưng đảm bảo trải nghiệm cá nhân hóa tối đa."
+        }
+      }
+    }
+  },
+  "wishlist": {
+    "title": "Tour yêu thích",
+    "subtitle": "Danh sách các tour du lịch bạn đã lưu để xem sau ({{count}} tour)",
+    "filters": {
+      "title": "Bộ lọc và sắp xếp",
+      "showing": "Hiển thị {{display}} / {{total}} tour",
+      "searchPlaceholder": "Tìm tour yêu thích...",
+      "category": {
+        "all": "Tất cả danh mục",
+        "beach": "Tour Biển",
+        "mountain": "Tour Núi",
+        "city": "Tour Thành Phố",
+        "culture": "Tour Văn Hóa"
+      },
+      "sort": {
+        "newest": "Mới thêm nhất",
+        "oldest": "Cũ nhất",
+        "priceLow": "Giá thấp đến cao",
+        "priceHigh": "Giá cao đến thấp",
+        "rating": "Đánh giá cao nhất"
+      },
+      "clearFilters": "Xóa bộ lọc"
+    },
+    "tour": {
+      "maxPeople": "Max {{count}}",
+      "reviews": "({{count}} đánh giá)",
+      "viewDetails": "Xem Chi Tiết",
+      "addedDate": "Đã thêm: {{date}}",
+      "removeTitle": "Xóa khỏi danh sách yêu thích"
+    },
+    "empty": {
+      "noResults": "Không tìm thấy tour nào",
+      "noResultsDescription": "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm",
+      "noWishlist": "Chưa có tour yêu thích",
+      "noWishlistDescription": "Hãy khám phá và lưu những tour du lịch yêu thích của bạn!",
+      "exploreTours": "Khám phá tours"
+    },
+    "toast": {
+      "loadError": "Không thể tải danh sách yêu thích. Vui lòng thử lại sau.",
+      "removeConfirm": "Bạn có chắc muốn xóa \"{{tourName}}\" khỏi danh sách yêu thích?",
+      "removeSuccess": "Đã xóa \"{{tourName}}\" khỏi danh sách yêu thích",
+      "removeError": "Không thể xóa tour khỏi danh sách yêu thích"
+    }
+  },
+  "loyalty": {
+    "title": "Chương Trình Điểm Thưởng",
+    "subtitle": "Tích điểm từ mỗi chuyến đi và nhận ưu đãi đặc biệt",
+    "level": {
+      "memberTier": "HẠNG THÀNH VIÊN",
+      "totalPoints": "TỔNG ĐIỂM",
+      "progressTo": "Tiến độ lên {{level}}",
+      "pointsMore": "{{points}} điểm nữa",
+      "maxLevelReached": "🎉 Bạn đã đạt hạng cao nhất!",
+      "names": {
+        "DIAMOND": "Kim Cương",
+        "PLATINUM": "Bạch Kim",
+        "GOLD": "Vàng",
+        "SILVER": "Bạc",
+        "BRONZE": "Đồng"
+      }
+    },
+    "stats": {
+      "currentPoints": "ĐIỂM HIỆN CÓ",
+      "totalEarned": "TỔNG TÍCH ĐƯỢC",
+      "totalRedeemed": "ĐÃ SỬ DỤNG",
+      "discount": "GIẢM GIÁ"
+    },
+    "benefits": {
+      "title": "Quyền lợi của bạn",
+      "discount": {
+        "title": "Giảm giá",
+        "description": "{{percent}}% mọi booking"
+      },
+      "priority": {
+        "title": "Ưu tiên",
+        "description": "Xử lý booking nhanh"
+      },
+      "freeUpgrade": {
+        "title": "Nâng cấp miễn phí",
+        "description": "Phòng & dịch vụ"
+      },
+      "personalManager": {
+        "title": "Hỗ trợ cá nhân",
+        "description": "Tư vấn 24/7"
+      },
+      "vipEvents": {
+        "title": "Sự kiện VIP",
+        "description": "Trải nghiệm độc quyền"
+      }
+    },
+    "transactions": {
+      "title": "Lịch sử giao dịch",
+      "empty": {
+        "title": "Chưa có giao dịch nào",
+        "description": "Tích điểm từ booking và review để nhận ưu đãi!"
+      },
+      "types": {
+        "EARNED": "TÍCH ĐIỂM",
+        "REDEEMED": "ĐÃ DÙNG",
+        "EXPIRED": "HẾT HẠN"
+      }
+    },
+    "voucher": {
+      "title": "Đổi điểm lấy voucher",
+      "description": "Tính năng đang được phát triển. Sử dụng <strong>{{points}} điểm</strong> của bạn để nhận ưu đãi!",
+      "comingSoon": "SẮP RA MẮT"
+    },
+    "errors": {
+      "loadError": "Không thể tải dữ liệu điểm thưởng",
+      "retry": "Thử lại"
+    }
+  },
+  "vnpay": {
+    "processing": "Đang xử lý kết quả thanh toán...",
+    "success": {
+      "title": "Đặt tour thành công!",
+      "subtitle": "Cảm ơn bạn đã tin tưởng và đặt tour với chúng tôi",
+      "bookingDetails": "Chi tiết đặt tour",
+      "bookingCode": "Mã booking:",
+      "confirmed": "Đã xác nhận",
+      "tourInfo": "Thông tin tour",
+      "departureDate": "Ngày khởi hành",
+      "participants": "Số người tham gia",
+      "adults": "{{count}} người lớn",
+      "children": "{{count}} trẻ em",
+      "contactInfo": "Thông tin liên hệ",
+      "totalPayment": "Tổng thanh toán:",
+      "transactionCode": "Mã giao dịch VNPay",
+      "nextSteps": {
+        "title": "Các bước tiếp theo",
+        "email": "Chúng tôi sẽ gửi email xác nhận chi tiết trong vòng 15 phút",
+        "contact": "Nhân viên sẽ liên hệ với bạn trong vòng 24h để xác nhận thông tin",
+        "documents": "Vui lòng chuẩn bị giấy tờ tùy thân trước ngày khởi hành 3 ngày",
+        "hotline": "Hotline hỗ trợ 24/7: <strong>{{hotline}}</strong>"
+      },
+      "viewBookings": "Xem booking của tôi",
+      "exploreTours": "Khám phá tour khác"
+    },
+    "error": {
+      "noPaymentInfo": "Không tìm thấy thông tin thanh toán",
+      "paymentSuccess": "Thanh toán thành công",
+      "paymentFailed": "Thanh toán thất bại",
+      "processingError": "Có lỗi xảy ra khi xử lý kết quả thanh toán",
+      "orderId": "Mã đơn hàng",
+      "goBack": "Quay lại",
+      "retry": "Thử lại"
+    }
+  },
+  "chatbot": {
+    "initialGreeting": "Xin chào! Tôi là trợ lý AI của Tour Booking System. Tôi có thể giúp bạn tìm kiếm tour du lịch, gợi ý điểm đến hoặc hỗ trợ đặt tour. Bạn cần tôi hỗ trợ điều gì?",
+    "button": {
+      "tooltip": "Chat với AI trợ lý"
+    },
+    "header": {
+      "title": "AI Travel Assistant",
+      "subtitle": "Trợ lý tư vấn du lịch"
+    },
+    "thinking": "Đang suy nghĩ...",
+    "placeholder": "Nhập câu hỏi của bạn...",
+    "disclaimer": "AI có thể mắc lỗi. Vui lòng kiểm tra các thông tin quan trọng.",
+    "errors": {
+      "connection": "⚠️ Không thể kết nối với chatbot server. Vui lòng kiểm tra:<br/>1. Chatbot server đang chạy (port 5000)<br/>2. Backend Spring Boot đang chạy (port 8080)",
+      "sessionUnavailable": "Phiên làm việc chưa sẵn sàng. Vui lòng tải lại trang.",
+      "generic": "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau."
+    }
+  },
+  "weather": {
+    "widget": {
+      "errors": {
+        "noData": "Thông tin thời tiết chưa có sẵn cho điểm đến này.",
+        "fetchFailed": "Không thể tải thông tin thời tiết."
+      },
+      "hourly": {
+        "title": "📅 Dự báo theo giờ (24h tới)"
+      },
+      "current": {
+        "title": "Thời tiết tại {{location}}",
+        "updatedAt": "Cập nhật: {{time}}",
+        "feelsLike": "Cảm giác như {{value}}°C"
+      },
+      "labels": {
+        "humidity": "Độ ẩm",
+        "wind": "Gió",
+        "pressure": "Áp suất",
+        "visibility": "Tầm nhìn"
+      },
+      "forecast": {
+        "title": "Dự báo 5 ngày tới"
+      },
+      "alerts": {
+        "title": "Lưu ý thời tiết"
+      },
+      "clothing": {
+        "title": "Chuẩn bị"
+      },
+      "activities": {
+        "title": "Hoạt động phù hợp"
+      }
+    }
+  },
+  "partners": {
+    "cta": {
+      "header": {
+        "title": "Trở thành Đối tác Chiến lược",
+        "subtitle": "Cùng phát triển hệ sinh thái du lịch Việt Nam với mạng lưới đối tác uy tín trên toàn quốc",
+        "badges": {
+          "free": "Miễn phí tham gia",
+          "commission": "Hoa hồng cạnh tranh",
+          "support": "Hỗ trợ marketing"
+        }
+      },
+      "benefits": {
+        "title": "Lợi ích khi hợp tác với chúng tôi",
+        "reach": {
+          "title": "Tiếp cận 50K+ khách hàng/tháng",
+          "description": "Kết nối với cơ sở khách hàng rộng lớn và đa dạng trên toàn quốc"
+        },
+        "revenue": {
+          "title": "Tăng doanh thu 30-50%",
+          "description": "Nguồn booking ổn định với mức commission hấp dẫn"
+        },
+        "brand": {
+          "title": "Quảng bá thương hiệu miễn phí",
+          "description": "Featured placement, marketing đa kênh và tối ưu SEO"
+        },
+        "support": {
+          "title": "Hỗ trợ chuyên nghiệp 24/7",
+          "description": "Đội ngũ CSKH đối tác tận tâm và quy trình minh bạch"
+        }
+      },
+      "partnerTypes": {
+        "title": "Chúng tôi đang tìm kiếm đối tác",
+        "hotel": {
+          "title": "Khách sạn & Resort",
+          "description": "Từ homestay đến resort 5 sao",
+          "count": "500+ đối tác"
+        },
+        "restaurant": {
+          "title": "Nhà hàng & F&B",
+          "description": "Ẩm thực địa phương và quốc tế",
+          "count": "300+ đối tác"
+        },
+        "transport": {
+          "title": "Vận chuyển",
+          "description": "Xe bus, taxi, thuê xe máy",
+          "count": "200+ đối tác"
+        },
+        "operator": {
+          "title": "Tour Operator",
+          "description": "Nhà điều hành tour chuyên nghiệp",
+          "count": "150+ đối tác"
+        },
+        "services": {
+          "title": "Dịch vụ khác",
+          "description": "SPA, giải trí, hoạt động thể thao",
+          "count": "100+ đối tác"
+        }
+      },
+      "process": {
+        "title": "Quy trình hợp tác",
+        "steps": {
+          "step1": {
+            "title": "Gửi thông tin",
+            "description": "Điền form đăng ký với thông tin cơ bản",
+            "time": "5 phút"
+          },
+          "step2": {
+            "title": "Đánh giá hồ sơ",
+            "description": "Chúng tôi xem xét và đánh giá ứng viên",
+            "time": "1-2 ngày"
+          },
+          "step3": {
+            "title": "Thảo luận điều khoản",
+            "description": "Họp online để thống nhất mức hoa hồng",
+            "time": "3-5 ngày"
+          },
+          "step4": {
+            "title": "Bắt đầu hợp tác",
+            "description": "Ký kết và onboarding vào hệ thống",
+            "time": "1 tuần"
+          }
+        }
+      },
+      "requirements": {
+        "title": "Yêu cầu đối tác",
+        "items": {
+          "license": "Giấy phép kinh doanh hợp lệ",
+          "experience": "Tối thiểu 1 năm hoạt động trong ngành",
+          "quality": "Chất lượng dịch vụ đạt chuẩn tốt",
+          "commitment": "Cam kết hợp tác tối thiểu 1 năm",
+          "onlineCapability": "Có khả năng phục vụ khách hàng online",
+          "safety": "Tuân thủ quy định an toàn du lịch"
+        },
+        "noteTitle": "Lưu ý quan trọng",
+        "noteDescription": "Chúng tôi ưu tiên đối tác có định hướng phát triển bền vững và cam kết mang lại trải nghiệm tốt nhất cho khách hàng."
+      },
+      "bottomCta": {
+        "title": "Sẵn sàng bắt đầu hành trình hợp tác?",
+        "subtitle": "Hãy để chúng tôi đồng hành xây dựng hệ sinh thái du lịch phát triển và bền vững. Đội ngũ của chúng tôi sẽ hỗ trợ bạn trong mọi bước.",
+        "badges": {
+          "response": "Phản hồi trong 24h",
+          "consulting": "Tư vấn miễn phí",
+          "setup": "Hỗ trợ setup"
+        }
+      }
+    },
+    "partnership": {
+      "backToList": "Quay lại danh sách đối tác",
+      "hero": {
+        "title": "Trở thành Đối tác",
+        "subtitle": "Cùng xây dựng hệ sinh thái du lịch toàn cầu với hơn",
+        "stats": {
+          "customers": "Khách hàng/tháng",
+          "commission": "Hoa hồng",
+          "support": "Hỗ trợ",
+          "currentPartners": "Đối tác hiện tại"
+        }
+      },
+      "benefits": {
+        "title": "Tại sao chọn chúng tôi?",
+        "subtitle": "Những lợi ích vượt trội khi trở thành đối tác chiến lược",
+        "items": {
+          "access": {
+            "title": "Tiếp cận 50K+ khách hàng/tháng",
+            "description": "Kết nối với cơ sở khách hàng rộng lớn và đa dạng trên toàn quốc"
+          },
+          "revenue": {
+            "title": "Tăng doanh thu 30-50%",
+            "description": "Nguồn booking ổn định từ platform với commission hấp dẫn"
+          },
+          "marketing": {
+            "title": "Quảng bá thương hiệu miễn phí",
+            "description": "Featured placement, social media marketing và SEO optimization"
+          },
+          "support": {
+            "title": "Hỗ trợ chuyên nghiệp 24/7",
+            "description": "Đội ngũ chăm sóc đối tác tận tình và quy trình hợp tác minh bạch"
+          },
+          "protection": {
+            "title": "Bảo vệ uy tín thương hiệu",
+            "description": "Verification system và quality control nghiêm ngặt"
+          },
+          "commission": {
+            "title": "Hoa hồng cạnh tranh",
+            "description": "Mức commission hấp dẫn với thanh toán đúng hạn"
+          }
+        }
+      },
+      "partnerTypes": {
+        "title": "Chúng tôi đang tìm kiếm",
+        "subtitle": "Các đối tác trong những lĩnh vực sau",
+        "hotel": {
+          "title": "Khách sạn & Resort",
+          "description": "Từ homestay đến resort 5 sao",
+          "commission": "Hoa hồng:",
+          "partners": "đối tác",
+          "requirements": "Yêu cầu cơ bản:"
+        },
+        "restaurant": {
+          "title": "Nhà hàng & F&B",
+          "description": "Ẩm thực địa phương và quốc tế"
+        },
+        "transport": {
+          "title": "Vận chuyển",
+          "description": "Xe bus, taxi, thuê xe máy"
+        },
+        "tourOperator": {
+          "title": "Tour Operator",
+          "description": "Nhà điều hành tour chuyên nghiệp"
+        },
+        "service": {
+          "title": "Dịch vụ khác",
+          "description": "SPA, giải trí, hoạt động thể thao"
+        }
+      },
+      "process": {
+        "title": "Quy trình hợp tác",
+        "subtitle": "4 bước đơn giản để trở thành đối tác",
+        "steps": {
+          "1": {
+            "title": "Gửi thông tin đăng ký",
+            "description": "Điền form với thông tin cơ bản về doanh nghiệp",
+            "time": "5 phút",
+            "includes": "Bao gồm:"
+          },
+          "2": {
+            "title": "Đánh giá & Xét duyệt",
+            "description": "Team chúng tôi xem xét hồ sơ và đánh giá",
+            "time": "1-2 ngày"
+          },
+          "3": {
+            "title": "Thảo luận điều khoản",
+            "description": "Họp online thống nhất mức hoa hồng và điều khoản",
+            "time": "3-5 ngày"
+          },
+          "4": {
+            "title": "Onboarding & Launch",
+            "description": "Ký kết hợp đồng và setup trên hệ thống",
+            "time": "1 tuần"
+          }
+        }
+      },
+      "successStories": {
+        "title": "Câu chuyện thành công",
+        "subtitle": "Những đối tác đã thành công cùng chúng tôi",
+        "growth": "tăng trưởng"
+      },
+      "requirements": {
+        "title": "Yêu cầu đối tác",
+        "commitment": {
+          "title": "💡 Cam kết của chúng tôi",
+          "description": "Chúng tôi cam kết hỗ trợ đối tác phát triển bền vững thông qua công nghệ hiện đại, marketing hiệu quả và dịch vụ khách hàng xuất sắc. Thành công của bạn chính là thành công của chúng tôi!"
+        }
+      }
+    },
+    "listing": {
+      "hero": {
+        "title": "Đối Tác Du Lịch",
+        "subtitle": "Mạng lưới {{trustedPartners}} đối tác uy tín với {{qualityTours}} tour chất lượng cao",
+        "stats": {
+          "trustedPartners": "Đối tác uy tín",
+          "diverseTours": "Tours đa dạng",
+          "bookings": "Lượt đặt tour",
+          "averageRating": "Đánh giá trung bình"
+        }
+      },
+      "empty": {
+        "title": "Không tìm thấy đối tác nào",
+        "description": "Thử điều chỉnh bộ lọc để tìm kiếm đối tác phù hợp"
+      }
+    },
+    "ctaBanner": {
+      "title": "Trở thành Đối tác của chúng tôi",
+      "subtitle": "Cùng phát triển hệ sinh thái du lịch Việt Nam với hơn",
+      "subtitlePartners": "đối tác tin cậy",
+      "learnMore": "Tìm hiểu thêm",
+      "orContact": "Hoặc liên hệ trực tiếp:",
+      "benefits": {
+        "customers": {
+          "title": "50K+ Khách hàng",
+          "description": "Tiếp cận cơ sở khách hàng rộng lớn"
+        },
+        "revenue": {
+          "title": "Tăng doanh thu",
+          "description": "Hoa hồi cạnh tranh 10-20%"
+        },
+        "support": {
+          "title": "Hỗ trợ 24/7",
+          "description": "Đội ngũ chăm sóc đối tác chuyên nghiệp"
+        }
+      },
+      "trustIndicators": {
+        "free": "Miễn phí tham gia",
+        "response24h": "Phản hồi trong 24h",
+        "freeSetup": "Setup hỗ trợ miễn phí"
+      }
+    },
+    "filters": {
+      "searchPlaceholder": "Tìm kiếm đối tác...",
+      "type": {
+        "all": "Tất cả loại",
+        "hotel": "Khách sạn & Resort",
+        "restaurant": "Nhà hàng & F&B"
+      },
+      "location": {
+        "all": "Tất cả khu vực",
+        "hanoi": "Hà Nội",
+        "hochiminh": "TP.HCM",
+        "danang": "Đà Nẵng",
+        "phuquoc": "Phú Quốc"
+      },
+      "rating": {
+        "all": "Tất cả đánh giá",
+        "4_5": "4.5⭐ trở lên",
+        "4_0": "4⭐ trở lên",
+        "3_5": "3.5⭐ trở lên",
+        "3_0": "3⭐ trở lên"
+      },
+      "sort": {
+        "name-asc": "Tên A-Z",
+        "name-desc": "Tên Z-A",
+        "rating-desc": "Đánh giá cao nhất",
+        "totalTours-desc": "Nhiều tour nhất",
+        "establishedYear-asc": "Lâu đời nhất"
+      },
+      "results": "kết quả",
+      "clear": "Xóa bộ lọc"
+    },
+    "detail": {
+      "backToList": "Quay lại danh sách đối tác",
+      "notFound": {
+        "title": "Không tìm thấy đối tác",
+        "description": "Đối tác bạn tìm kiếm không tồn tại hoặc đã bị xóa."
+      },
+      "tabs": {
+        "overview": "Tổng quan",
+        "tours": "Tours",
+        "reviews": "Đánh giá"
+      },
+      "sections": {
+        "images": "Hình ảnh đối tác",
+        "introduction": "Giới thiệu",
+        "specialties": "Chuyên môn",
+        "stats": {
+          "tours": "Tours",
+          "bookings": "Lượt đặt",
+          "rating": "Đánh giá",
+          "yearsExperience": "Năm kinh nghiệm"
+        }
+      },
+      "tours": {
+        "empty": {
+          "title": "Chưa có tour nào",
+          "description": "Đối tác này chưa có tour du lịch nào được đăng tải."
+        }
+      },
+      "reviews": {
+        "comingSoon": {
+          "title": "Đánh giá sẽ sớm có mặt",
+          "description": "Tính năng đánh giá đối tác đang được phát triển."
+        }
+      },
+      "sidebar": {
+        "contactInfo": "Thông tin liên hệ",
+        "quickStats": "Thống kê nhanh",
+        "averageRating": "Đánh giá trung bình",
+        "totalTours": "Tổng số tours",
+        "totalBookings": "Lượt đặt tour",
+        "established": "Thành lập",
+        "cta": {
+          "title": "Quan tâm đến đối tác này?",
+          "description": "Khám phá các tour du lịch tuyệt vời từ",
+          "button": "Xem tất cả tours"
+        },
+        "website": "Website chính thức",
+        "from": "Từ",
+        "reviews": "đánh giá"
+      }
+    },
+    "card": {
+      "missingImage": "Không có ảnh",
+      "logo": "Logo",
+      "toursLabel": "tours",
+      "fromLabel": "Từ",
+      "website": "Website",
+      "reviews": "đánh giá",
+      "action": "Xem {{count}} tours"
+    },
+    "contactForm": {
+      "title": "Đăng ký Hợp tác",
+      "subtitle": "Điền thông tin để chúng tôi liên hệ và tư vấn chi tiết",
+      "fields": {
+        "companyName": "Tên công ty/doanh nghiệp *",
+        "companyNamePlaceholder": "VD: ABC Travel Company",
+        "contactPerson": "Người liên hệ *",
+        "contactPersonPlaceholder": "Họ và tên",
+        "email": "Email *",
+        "emailPlaceholder": "contact@company.com",
+        "phone": "Số điện thoại *",
+        "phonePlaceholder": "0123 456 789",
+        "businessType": "Lĩnh vực hoạt động *",
+        "location": "Địa điểm hoạt động *",
+        "locationPlaceholder": "VD: Hà Nội, TP.HCM, Đà Nẵng",
+        "website": "Website (tùy chọn)",
+        "websitePlaceholder": "https://www.company.com",
+        "message": "Lời nhắn",
+        "messagePlaceholder": "Chia sẻ thêm về doanh nghiệp của bạn và mong muốn hợp tác..."
+      },
+      "businessTypes": {
+        "select": "Chọn lĩnh vực kinh doanh",
+        "hotel": "Khách sạn & Resort",
+        "restaurant": "Nhà hàng & F&B",
+        "transport": "Vận chuyển",
+        "tourOperator": "Tour Operator",
+        "service": "Dịch vụ khác"
+      },
+      "submit": "Gửi thông tin hợp tác",
+      "submitting": "Đang gửi...",
+      "privacyNote": "Thông tin của bạn sẽ được bảo mật và chỉ sử dụng để liên hệ hợp tác.",
+      "success": {
+        "title": "Cảm ơn bạn đã quan tâm!",
+        "description": "Chúng tôi đã nhận được thông tin của bạn và sẽ liên hệ trong vòng 24 giờ.",
+        "submitMore": "Gửi thêm thông tin khác"
+      },
+      "error": "Có lỗi xảy ra khi gửi đơn đăng ký. Vui lòng thử lại sau."
+    }
+  },
+  "search": {
+    "smart": {
+      "placeholder": "Tìm kiếm tour, điểm đến...",
+      "advancedTooltip": "Tìm kiếm nâng cao",
+      "loading": "Đang tìm kiếm...",
+      "recent": {
+        "title": "Tìm kiếm gần đây",
+        "clear": "Xóa"
+      },
+      "popular": {
+        "title": "Tìm kiếm phổ biến",
+        "halong": {
+          "title": "Vịnh Hạ Long",
+          "subtitle": "245 tours"
+        },
+        "sapa": {
+          "title": "Sapa",
+          "subtitle": "189 tours"
+        },
+        "hoian": {
+          "title": "Hội An",
+          "subtitle": "156 tours"
+        },
+        "phuQuoc": {
+          "title": "Tour Phú Quốc 3 ngày 2 đêm",
+          "subtitle": "Từ 2.500.000đ"
+        },
+        "cuisine": {
+          "title": "Tour ẩm thực",
+          "subtitle": "89 tours"
+        },
+        "tokyo": {
+          "title": "Tokyo",
+          "subtitle": "67 tours"
+        },
+        "weekend": {
+          "title": "Tour cuối tuần",
+          "subtitle": "Gần Hà Nội"
+        },
+        "family": {
+          "title": "Du lịch gia đình",
+          "subtitle": "Phù hợp trẻ em"
+        }
+      },
+      "aiSuggestions": {
+        "family": {
+          "title": "{{query}} cho gia đình",
+          "subtitle": "Gợi ý AI · Phù hợp trẻ em"
+        },
+        "budget": {
+          "title": "{{query}} giá tốt",
+          "subtitle": "Gợi ý AI · Tiết kiệm"
+        },
+        "weekend": {
+          "title": "{{query}} cuối tuần",
+          "subtitle": "Gợi ý AI · 2-3 ngày"
+        }
+      },
+      "badges": {
+        "trending": "Hot"
+      },
+      "empty": "Không tìm thấy kết quả phù hợp"
+    }
+  }
+}
+

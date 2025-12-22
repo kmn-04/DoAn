@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ClockIcon, FireIcon, TagIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Card, Button } from '../ui';
 import { tourService } from '../../services';
@@ -23,6 +24,7 @@ interface HotDeal {
 }
 
 const HotDeals: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [hotDeals, setHotDeals] = useState<HotDeal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,7 +83,7 @@ const HotDeals: React.FC = () => {
         setHotDeals(deals);
       } catch (err) {
         console.error('Error fetching hot deals:', err);
-        setError('Không thể tải ưu đãi. Vui lòng thử lại sau.');
+        setError(t('landing.hotDeals.errorMessage'));
       } finally {
         setIsLoading(false);
       }
@@ -108,7 +110,7 @@ const HotDeals: React.FC = () => {
 
           newTimeLeft[deal.id] = `${days}d ${hours}h ${minutes}m ${seconds}s`;
         } else {
-          newTimeLeft[deal.id] = 'Hết hạn';
+          newTimeLeft[deal.id] = t('landing.hotDeals.expired');
         }
       });
 
@@ -119,7 +121,7 @@ const HotDeals: React.FC = () => {
   }, [hotDeals]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
@@ -131,7 +133,7 @@ const HotDeals: React.FC = () => {
       <section className="py-12 bg-gradient-to-br from-red-50 to-orange-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ưu Đãi Sốc</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t('landing.hotDeals.loadingTitle')}</h2>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {[1, 2].map((i) => (
@@ -149,7 +151,7 @@ const HotDeals: React.FC = () => {
       <section className="py-12 bg-gradient-to-br from-red-50 to-orange-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ưu Đãi Sốc</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t('landing.hotDeals.errorTitle')}</h2>
             <p className="text-red-600">{error}</p>
           </div>
         </div>
@@ -163,8 +165,8 @@ const HotDeals: React.FC = () => {
       <section className="py-12 bg-gradient-to-br from-red-50 to-orange-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ưu Đãi Sốc</h2>
-            <p className="text-gray-600">Hiện chưa có ưu đãi nào.</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t('landing.hotDeals.title')}</h2>
+            <p className="text-gray-600">{t('landing.hotDeals.emptyMessage')}</p>
           </div>
         </div>
       </section>
@@ -186,10 +188,10 @@ const HotDeals: React.FC = () => {
         {/* Section Header */}
         <div className="text-center mb-20 animate-fade-in-up opacity-0">
           <div className="inline-block px-8 py-3 border border-white rounded-none mb-6">
-            <span className="text-white font-medium text-base tracking-[0.3em] uppercase">Ưu Đãi Đặc Biệt</span>
+            <span className="text-white font-medium text-base tracking-[0.3em] uppercase">{t('landing.hotDeals.badge')}</span>
           </div>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-normal leading-relaxed">
-            Những chương trình khuyến mãi giới hạn với mức giá đặc biệt
+            {t('landing.hotDeals.subtitle')}
           </p>
         </div>
 
@@ -218,7 +220,7 @@ const HotDeals: React.FC = () => {
                   {deal.isLimited && (
                     <div className="absolute top-6 right-6">
                       <div className="bg-amber-600 text-white px-3 py-1.5 rounded-none text-xs font-medium tracking-wider uppercase shadow-lg">
-                        Có Hạn
+                        {t('landing.hotDeals.limited')}
                       </div>
                     </div>
                   )}
@@ -226,7 +228,7 @@ const HotDeals: React.FC = () => {
                   {/* Progress Bar */}
                   <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-sm p-4">
                     <div className="flex justify-between text-white text-xs mb-2 font-normal">
-                      <span>Đã bán: {deal.soldCount}/{deal.totalCount}</span>
+                      <span>{t('landing.hotDeals.sold')}: {deal.soldCount}/{deal.totalCount}</span>
                       <span>{Math.round((deal.soldCount / deal.totalCount) * 100)}%</span>
                     </div>
                     <div className="w-full bg-white/20 h-px">
@@ -258,24 +260,24 @@ const HotDeals: React.FC = () => {
                         {formatPrice(deal.originalPrice)}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-400 tracking-wide uppercase font-normal">Mỗi người</span>
+                    <span className="text-xs text-gray-400 tracking-wide uppercase font-normal">{t('landing.hotDeals.perPerson')}</span>
                   </div>
 
                   {/* Countdown Timer */}
                   <div className="border border-gray-200 p-4 mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-gray-900 tracking-wider uppercase">Kết Thúc Sau</span>
+                      <span className="text-xs font-medium text-gray-900 tracking-wider uppercase">{t('landing.hotDeals.endsIn')}</span>
                       <ClockIcon className="h-4 w-4 text-gray-900" />
                     </div>
                     <div className="text-xl font-normal text-gray-900 font-mono tracking-tight">
-                      {timeLeft[deal.id] || 'Đang tính...'}
+                      {timeLeft[deal.id] || t('landing.hotDeals.calculating')}
                     </div>
                   </div>
 
                   {/* CTA Button */}
                   <Link to={`/tours/${deal.slug}`}>
                     <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-3 text-xs tracking-[0.2em] uppercase rounded-none transition-all duration-300 border border-slate-900 hover:border-amber-600">
-                      Đặt Ngay
+                      {t('landing.hotDeals.bookNow')}
                     </Button>
                   </Link>
                 </div>
@@ -288,7 +290,7 @@ const HotDeals: React.FC = () => {
         <div className="text-center mt-20">
           <Link to="/tours?filter=deals">
             <Button className="bg-white text-black hover:bg-gray-100 px-8 py-3 text-xs font-medium tracking-[0.2em] uppercase rounded-none transition-all duration-300 border border-white">
-              Xem Tất Cả Ưu Đãi
+              {t('landing.hotDeals.viewAllDeals')}
             </Button>
           </Link>
         </div>

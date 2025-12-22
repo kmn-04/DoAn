@@ -563,11 +563,11 @@ public class EmailServiceImpl implements EmailService {
             </head>
             <body>
                 <div class="email-wrapper">
-                    <div class="container">
-                        <div class="header">
+                <div class="container">
+                    <div class="header">
                             <h1>🎁 <span class="gold-accent">MÃ GIẢM GIÁ %s</span> DÀNH CHO BẠN</h1>
-                        </div>
-                        <div class="content">
+                    </div>
+                    <div class="content">
                             <div class="promo-name">%s</div>
                             <div class="discount-badge">%s</div>
                             
@@ -578,7 +578,7 @@ public class EmailServiceImpl implements EmailService {
                             <div class="promo-code-section">
                                 <div class="promo-code-label">Mã khuyến mãi của bạn</div>
                                 <div class="promo-code">%s</div>
-                            </div>
+                        </div>
                             
                             <p style="text-align: center; color: #475569; font-size: 15px; margin: 25px 0;">
                                 Sử dụng mã này để nhận %s khi đặt tour!
@@ -595,8 +595,8 @@ public class EmailServiceImpl implements EmailService {
                                 <p>⏰ Nhanh tay đặt tour để không bỏ lỡ ưu đãi này!</p>
                                 <a href="%s/tours" class="button">Khám Phá Tour Ngay</a>
                             </div>
-                        </div>
-                        <div class="footer">
+                    </div>
+                    <div class="footer">
                             <p style="margin-bottom: 10px; font-size: 14px; color: white;">&copy; 2025 TourBooking.com</p>
                             <p style="margin-bottom: 15px;">Cảm ơn bạn đã tin tưởng và đồng hành cùng chúng tôi!</p>
                             <p>

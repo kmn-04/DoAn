@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   CheckCircleIcon,
   CalendarDaysIcon,
@@ -25,6 +26,7 @@ interface BookingResult {
 }
 
 const BookingConfirmationPage: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { bookingCode } = useParams<{ bookingCode: string }>();
   const location = useLocation();
   const { bookingData, customerInfo, paymentMethod, bookingResult } = location.state || {};
@@ -37,7 +39,8 @@ const BookingConfirmationPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    const locale = i18n.language === 'vi' ? 'vi-VN' : 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -57,10 +60,10 @@ const BookingConfirmationPage: React.FC = () => {
             <CheckCircleIcon className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-4xl md:text-5xl font-normal text-slate-900 mb-4 tracking-tight animate-fade-in-up opacity-0 delay-200">
-            Đặt tour thành công!
+            {t('booking.confirmation.title')}
           </h1>
           <p className="text-lg text-gray-600 font-normal animate-fade-in-up opacity-0 delay-300">
-            Cảm ơn bạn đã tin tưởng và đặt tour với chúng tôi
+            {t('booking.confirmation.subtitle')}
           </p>
         </div>
 
@@ -68,15 +71,15 @@ const BookingConfirmationPage: React.FC = () => {
         <div className="bg-white border border-stone-200 rounded-none p-8 mb-6 animate-fade-in-up opacity-0 delay-400">
           <div className="border-b border-stone-200 pb-6 mb-8">
             <h2 className="text-2xl font-normal text-slate-900 mb-4 tracking-tight">
-              Chi tiết đặt tour
+              {t('booking.confirmation.details')}
             </h2>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm text-gray-600 font-normal">Mã booking:</span>
+              <span className="text-sm text-gray-600 font-normal">{t('booking.confirmation.bookingCode')}</span>
               <span className="font-mono font-medium text-lg tracking-wider" style={{ color: '#D4AF37' }}>
                 {bookingCode || bookingResult?.bookingCode}
               </span>
               <span className="inline-flex items-center px-3 py-1 rounded-none text-xs font-medium bg-amber-100 border border-amber-300 text-amber-800">
-                Đã xác nhận
+                {t('booking.confirmation.confirmed')}
               </span>
             </div>
           </div>
@@ -84,7 +87,7 @@ const BookingConfirmationPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Tour Info */}
             <div>
-              <h3 className="font-medium text-slate-900 mb-4 tracking-tight">Thông tin tour</h3>
+              <h3 className="font-medium text-slate-900 mb-4 tracking-tight">{t('booking.confirmation.tourInfo')}</h3>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
                   <MapPinIcon className="h-5 w-5 mt-1" style={{ color: '#D4AF37' }} />
@@ -101,7 +104,7 @@ const BookingConfirmationPage: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <CalendarDaysIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
                   <div>
-                    <p className="font-medium text-slate-900">Ngày khởi hành</p>
+                    <p className="font-medium text-slate-900">{t('booking.confirmation.departureDate')}</p>
                     <p className="text-sm text-gray-600 font-normal mt-1">
                       {formatDate(bookingData?.startDate || bookingResult?.startDate)}
                     </p>
@@ -111,11 +114,11 @@ const BookingConfirmationPage: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <UsersIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
                   <div>
-                    <p className="font-medium text-slate-900">Số người tham gia</p>
+                    <p className="font-medium text-slate-900">{t('booking.confirmation.participants')}</p>
                     <p className="text-sm text-gray-600 font-normal mt-1">
-                      {(bookingData?.adults || bookingResult?.numAdults)} người lớn
+                      {t('booking.confirmation.adults', { count: bookingData?.adults || bookingResult?.numAdults || 0 })}
                       {(bookingData?.children || bookingResult?.numChildren) > 0 && 
-                        `, ${bookingData?.children || bookingResult?.numChildren} trẻ em`
+                        `, ${t('booking.confirmation.children', { count: bookingData?.children || bookingResult?.numChildren })}`
                       }
                     </p>
                   </div>
@@ -125,7 +128,7 @@ const BookingConfirmationPage: React.FC = () => {
 
             {/* Customer Info */}
             <div>
-              <h3 className="font-medium text-slate-900 mb-4 tracking-tight">Thông tin liên hệ</h3>
+              <h3 className="font-medium text-slate-900 mb-4 tracking-tight">{t('booking.confirmation.contactInfo')}</h3>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <div 
@@ -157,9 +160,17 @@ const BookingConfirmationPage: React.FC = () => {
           {/* Price Summary */}
           <div className="border-t border-stone-200 pt-6 mt-8">
             <div className="flex justify-between items-center">
-              <span className="text-lg font-medium text-slate-900 tracking-tight">Tổng thanh toán:</span>
+              <span className="text-lg font-medium text-slate-900 tracking-tight">
+                {t('booking.confirmation.totalPayment')}
+              </span>
               <span className="text-3xl font-normal tracking-tight" style={{ color: '#D4AF37' }}>
-                {formatPrice(bookingData?.totalPrice || bookingResult?.totalPrice || 0)}
+                {formatPrice(
+                  // Ưu tiên số tiền đã trừ voucher (finalAmount), fallback về totalPrice
+                  (bookingData?.finalAmount as number | undefined) ??
+                  bookingData?.totalPrice ??
+                  bookingResult?.totalPrice ??
+                  0
+                )}
               </span>
             </div>
           </div>
@@ -167,12 +178,12 @@ const BookingConfirmationPage: React.FC = () => {
 
         {/* Next Steps */}
         <div className="bg-amber-50 border border-amber-200 rounded-none p-6 mb-8 animate-fade-in-up opacity-0 delay-500">
-          <h3 className="font-medium text-slate-900 mb-4 tracking-tight">Các bước tiếp theo</h3>
+          <h3 className="font-medium text-slate-900 mb-4 tracking-tight">{t('booking.confirmation.nextSteps')}</h3>
           <div className="space-y-3 text-sm text-slate-900 font-normal">
-            <p>• Chúng tôi sẽ gửi email xác nhận chi tiết trong vòng 15 phút</p>
-            <p>• Nhân viên sẽ liên hệ với bạn trong vòng 24h để xác nhận thông tin</p>
-            <p>• Vui lòng chuẩn bị giấy tờ tùy thân trước ngày khởi hành 3 ngày</p>
-            <p>• Hotline hỗ trợ 24/7: <span className="font-medium" style={{ color: '#D4AF37' }}>1900 1234</span></p>
+            <p>• {t('booking.confirmation.emailConfirmation')}</p>
+            <p>• {t('booking.confirmation.staffContact')}</p>
+            <p>• {t('booking.confirmation.prepareDocuments')}</p>
+            <p>• {t('booking.confirmation.hotline')} <span className="font-medium" style={{ color: '#D4AF37' }}>1900 1234</span></p>
           </div>
         </div>
 
@@ -183,7 +194,7 @@ const BookingConfirmationPage: React.FC = () => {
               className="w-full sm:w-auto text-white px-8 py-3 rounded-none hover:opacity-90 transition-all duration-300 font-medium tracking-wide"
               style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
             >
-              Xem booking của tôi
+              {t('booking.confirmation.viewMyBooking')}
             </Button>
           </Link>
           <Link to="/tours">
@@ -191,7 +202,7 @@ const BookingConfirmationPage: React.FC = () => {
               variant="outline" 
               className="w-full sm:w-auto px-8 py-3 border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none transition-all duration-300 font-medium tracking-wide"
             >
-              Khám phá tour khác
+              {t('booking.confirmation.exploreMore')}
             </Button>
           </Link>
         </div>

@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { PencilIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { DashboardLayout, DashboardLoadingState, DashboardEmptyState } from '../../components/dashboard';
 import { Button } from '../../components/ui';
 import reviewService, { type ReviewResponse } from '../../services/reviewService';
 import toast from 'react-hot-toast';
+import i18n from '../../i18n';
 
 const MyReviewsPage: React.FC = () => {
+  const { t } = useTranslation();
   const [reviews, setReviews] = useState<ReviewResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingReview, setEditingReview] = useState<ReviewResponse | null>(null);
@@ -24,24 +27,24 @@ const MyReviewsPage: React.FC = () => {
       setReviews(data);
     } catch (error) {
       console.error('Error loading reviews:', error);
-      toast.error('Không thể tải danh sách đánh giá');
+      toast.error(t('dashboard.reviews.toast.loadError'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (reviewId: number) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+    if (!confirm(t('dashboard.reviews.toast.deleteConfirm'))) {
       return;
     }
 
     try {
       await reviewService.deleteReview(reviewId);
-      toast.success('Đã xóa đánh giá thành công');
+      toast.success(t('dashboard.reviews.toast.deleteSuccess'));
       loadReviews();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting review:', error);
-      const message = error?.response?.data?.error || 'Không thể xóa đánh giá';
+      const message = (error as { response?: { data?: { error?: string } } })?.response?.data?.error || t('dashboard.reviews.toast.deleteError');
       toast.error(message);
     }
   };
@@ -58,7 +61,7 @@ const MyReviewsPage: React.FC = () => {
     if (!editingReview) return;
 
     if (!editForm.comment.trim()) {
-      toast.error('Vui lòng nhập nội dung đánh giá');
+      toast.error(t('dashboard.reviews.toast.commentRequired'));
       return;
     }
 
@@ -67,12 +70,12 @@ const MyReviewsPage: React.FC = () => {
         rating: editForm.rating,
         comment: editForm.comment
       });
-      toast.success('Đã cập nhật đánh giá thành công');
+      toast.success(t('dashboard.reviews.toast.updateSuccess'));
       setEditingReview(null);
       loadReviews();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating review:', error);
-      const message = error?.response?.data?.error || 'Không thể cập nhật đánh giá';
+      const message = (error as { response?: { data?: { error?: string } } })?.response?.data?.error || t('dashboard.reviews.toast.updateError');
       toast.error(message);
     }
   };
@@ -93,9 +96,9 @@ const MyReviewsPage: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      Pending: { bg: 'bg-amber-100', text: 'text-amber-800', label: 'Chờ duyệt' },
-      Approved: { bg: 'bg-green-100', text: 'text-green-800', label: 'Đã duyệt' },
-      Rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Bị từ chối' },
+      Pending: { bg: 'bg-amber-100', text: 'text-amber-800', label: t('dashboard.reviews.status.pending') },
+      Approved: { bg: 'bg-green-100', text: 'text-green-800', label: t('dashboard.reviews.status.approved') },
+      Rejected: { bg: 'bg-red-100', text: 'text-red-800', label: t('dashboard.reviews.status.rejected') },
     };
 
     const badge = badges[status as keyof typeof badges] || badges.Pending;
@@ -108,7 +111,7 @@ const MyReviewsPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    return new Date(dateString).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -118,7 +121,7 @@ const MyReviewsPage: React.FC = () => {
   if (loading) {
     return (
       <DashboardLayout>
-        <DashboardLoadingState message="Đang tải đánh giá..." />
+        <DashboardLoadingState message={t('dashboard.reviews.loading')} />
       </DashboardLayout>
     );
   }
@@ -127,10 +130,10 @@ const MyReviewsPage: React.FC = () => {
     return (
       <DashboardLayout>
         <DashboardEmptyState
-          title="Chưa có đánh giá nào"
-          description="Bạn chưa viết đánh giá cho tour nào. Hãy hoàn thành một chuyến đi và chia sẻ trải nghiệm của bạn!"
+          title={t('dashboard.reviews.empty.title')}
+          description={t('dashboard.reviews.empty.description')}
           action={{
-            label: 'Xem tour đã đặt',
+            label: t('dashboard.reviews.empty.viewBookings'),
             to: '/bookings'
           }}
         />
@@ -143,9 +146,9 @@ const MyReviewsPage: React.FC = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="animate-fade-in">
-          <h1 className="text-3xl font-normal text-slate-900 tracking-tight">Đánh giá của tôi</h1>
+          <h1 className="text-3xl font-normal text-slate-900 tracking-tight">{t('dashboard.reviews.title')}</h1>
           <p className="mt-2 text-gray-600 font-normal">
-            Quản lý các đánh giá của bạn về các tour đã tham gia
+            {t('dashboard.reviews.subtitle')}
           </p>
         </div>
 
@@ -194,7 +197,7 @@ const MyReviewsPage: React.FC = () => {
                   {review.adminReply && (
                     <div className="bg-amber-50 border-l-4 p-5 mt-4 rounded-none" style={{ borderColor: '#D4AF37' }}>
                       <p className="text-sm font-semibold text-slate-900 mb-2 tracking-tight">
-                        Phản hồi từ quản trị viên:
+                        {t('dashboard.reviews.adminReply')}
                       </p>
                       <p className="text-sm text-gray-700 font-normal leading-relaxed">{review.adminReply}</p>
                       {review.repliedAt && (
@@ -209,7 +212,7 @@ const MyReviewsPage: React.FC = () => {
                   <div className="flex items-center space-x-4 mt-4 text-sm text-gray-600 font-normal">
                     <span className="flex items-center">
                       <span className="font-semibold" style={{ color: '#D4AF37' }}>{review.helpfulCount}</span>
-                      <span className="ml-1">người thấy hữu ích</span>
+                      <span className="ml-1">{t('dashboard.reviews.helpful', { count: review.helpfulCount })}</span>
                     </span>
                   </div>
                 </div>
@@ -223,7 +226,7 @@ const MyReviewsPage: React.FC = () => {
                       className="w-full border-2 border-stone-300 hover:border-slate-900 rounded-none"
                     >
                       <EyeIcon className="h-4 w-4 mr-1" />
-                      Xem tour
+                      {t('dashboard.reviews.actions.viewTour')}
                     </Button>
                   </Link>
 
@@ -236,7 +239,7 @@ const MyReviewsPage: React.FC = () => {
                         onClick={() => handleEditClick(review)}
                       >
                         <PencilIcon className="h-4 w-4 mr-1" />
-                        Sửa
+                        {t('dashboard.reviews.actions.edit')}
                       </Button>
 
                       <Button
@@ -246,7 +249,7 @@ const MyReviewsPage: React.FC = () => {
                         onClick={() => handleDelete(review.id)}
                       >
                         <TrashIcon className="h-4 w-4 mr-1" />
-                        Xóa
+                        {t('dashboard.reviews.actions.delete')}
                       </Button>
                     </>
                   )}
@@ -263,7 +266,7 @@ const MyReviewsPage: React.FC = () => {
               {/* Modal Header */}
               <div className="p-6 border-b border-stone-200">
                 <h2 className="text-2xl font-normal text-slate-900 tracking-tight">
-                  Chỉnh sửa đánh giá
+                  {t('dashboard.reviews.editModal.title')}
                 </h2>
                 <p className="text-sm text-gray-600 mt-1 font-normal">
                   {editingReview.tour.name}
@@ -275,7 +278,7 @@ const MyReviewsPage: React.FC = () => {
                 {/* Rating */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Đánh giá <span className="text-red-500">*</span>
+                    {t('dashboard.reviews.editModal.ratingRequired')} <span className="text-red-500">*</span>
                   </label>
                   <div className="flex items-center space-x-2">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -300,17 +303,17 @@ const MyReviewsPage: React.FC = () => {
                 {/* Comment */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nội dung đánh giá <span className="text-red-500">*</span>
+                    {t('dashboard.reviews.editModal.commentRequired')} <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     value={editForm.comment}
                     onChange={(e) => setEditForm({ ...editForm, comment: e.target.value })}
                     rows={6}
                     className="w-full px-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal transition-all"
-                    placeholder="Chia sẻ trải nghiệm của bạn về chuyến đi này..."
+                    placeholder={t('dashboard.reviews.editModal.commentPlaceholder')}
                   />
                   <p className="mt-2 text-sm text-gray-500 font-normal">
-                    {editForm.comment.length} ký tự
+                    {t('dashboard.reviews.editModal.characters', { count: editForm.comment.length })}
                   </p>
                 </div>
               </div>
@@ -322,14 +325,14 @@ const MyReviewsPage: React.FC = () => {
                   onClick={() => setEditingReview(null)}
                   className="border-2 border-stone-300 hover:border-slate-900 rounded-none"
                 >
-                  Hủy
+                  {t('dashboard.reviews.editModal.cancel')}
                 </Button>
                 <Button
                   onClick={handleEditSubmit}
                   className="text-white rounded-none hover:opacity-90 transition-all"
                   style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                 >
-                  Lưu thay đổi
+                  {t('dashboard.reviews.editModal.save')}
                 </Button>
               </div>
             </div>

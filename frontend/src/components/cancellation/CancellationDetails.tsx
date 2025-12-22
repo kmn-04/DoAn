@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../ui/Modal';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -52,33 +53,35 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
   onClose,
   cancellation
 }) => {
-  const statusLabels = {
-    [CancellationStatus.PENDING]: 'Chờ xử lý',
-    [CancellationStatus.APPROVED]: 'Đã phê duyệt',
-    [CancellationStatus.REJECTED]: 'Bị từ chối'
-  };
+  const { t, i18n } = useTranslation();
 
-  const refundStatusLabels = {
-    [RefundStatus.PENDING]: 'Chờ xử lý',
-    [RefundStatus.PROCESSING]: 'Đang xử lý',
-    [RefundStatus.COMPLETED]: 'Đã hoàn tiền',
-    [RefundStatus.FAILED]: 'Thất bại',
-    [RefundStatus.NOT_APPLICABLE]: 'Không áp dụng'
-  };
+  const statusLabels = useMemo(() => ({
+    [CancellationStatus.PENDING]: t('booking.cancellationHistory.status.pending'),
+    [CancellationStatus.APPROVED]: t('booking.cancellationHistory.status.approved'),
+    [CancellationStatus.REJECTED]: t('booking.cancellationHistory.status.rejected')
+  }), [t]);
 
-  const reasonLabels: Record<string, string> = {
-    'PERSONAL_EMERGENCY': 'Khẩn cấp cá nhân',
-    'MEDICAL_EMERGENCY': 'Khẩn cấp y tế',
-    'WEATHER_CONDITIONS': 'Điều kiện thời tiết',
-    'FORCE_MAJEURE': 'Bất khả kháng',
-    'TRAVEL_RESTRICTIONS': 'Hạn chế đi lại',
-    'SCHEDULE_CONFLICT': 'Xung đột lịch trình',
-    'FINANCIAL_DIFFICULTY': 'Khó khăn tài chính',
-    'DISSATISFACTION': 'Không hài lòng',
-    'DUPLICATE_BOOKING': 'Đặt trùng lặp',
-    'TECHNICAL_ERROR': 'Lỗi kỹ thuật',
-    'OTHER': 'Khác'
-  };
+  const refundStatusLabels = useMemo(() => ({
+    [RefundStatus.PENDING]: t('booking.cancellationHistory.refundStatus.pending'),
+    [RefundStatus.PROCESSING]: t('booking.cancellationHistory.refundStatus.processing'),
+    [RefundStatus.COMPLETED]: t('booking.cancellationHistory.refundStatus.completed'),
+    [RefundStatus.FAILED]: t('booking.cancellationHistory.refundStatus.failed'),
+    [RefundStatus.NOT_APPLICABLE]: t('booking.cancellationHistory.refundStatus.notApplicable')
+  }), [t]);
+
+  const reasonLabels: Record<string, string> = useMemo(() => ({
+    'PERSONAL_EMERGENCY': t('booking.cancellationForm.cancellationDetails.reason.types.PERSONAL_EMERGENCY'),
+    'MEDICAL_EMERGENCY': t('booking.cancellationForm.cancellationDetails.reason.types.MEDICAL_EMERGENCY'),
+    'WEATHER_CONDITIONS': t('booking.cancellationForm.cancellationDetails.reason.types.WEATHER_CONDITIONS'),
+    'FORCE_MAJEURE': t('booking.cancellationForm.cancellationDetails.reason.types.FORCE_MAJEURE'),
+    'TRAVEL_RESTRICTIONS': t('booking.cancellationForm.cancellationDetails.reason.types.TRAVEL_RESTRICTIONS'),
+    'SCHEDULE_CONFLICT': t('booking.cancellationForm.cancellationDetails.reason.types.SCHEDULE_CONFLICT'),
+    'FINANCIAL_DIFFICULTY': t('booking.cancellationForm.cancellationDetails.reason.types.FINANCIAL_DIFFICULTY'),
+    'DISSATISFACTION': t('booking.cancellationForm.cancellationDetails.reason.types.DISSATISFACTION'),
+    'DUPLICATE_BOOKING': t('booking.cancellationForm.cancellationDetails.reason.types.DUPLICATE_BOOKING'),
+    'TECHNICAL_ERROR': t('booking.cancellationForm.cancellationDetails.reason.types.TECHNICAL_ERROR'),
+    'OTHER': t('booking.cancellationForm.cancellationDetails.reason.types.OTHER')
+  }), [t]);
 
   const getStatusColor = (status: CancellationStatusType) => {
     switch (status) {
@@ -111,7 +114,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    return new Date(dateString).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -122,7 +125,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
 
   const formatCurrency = (amount: number | null | undefined) => {
     if (amount == null) return '0 ₫';
-    return amount.toLocaleString('vi-VN') + ' ₫';
+    return amount.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US') + ' ₫';
   };
 
   const getStatusIcon = (status: CancellationStatusType) => {
@@ -165,7 +168,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
   const renderTimeline = () => {
     const events = [
       {
-        title: 'Yêu cầu hủy đã được gửi',
+        title: t('booking.cancellationDetails.timeline.requestSent'),
         date: cancellation.cancelledAt,
         status: 'completed',
         icon: (
@@ -178,7 +181,9 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
 
     if (cancellation.processedAt) {
       events.push({
-        title: cancellation.status === CancellationStatus.APPROVED ? 'Yêu cầu được phê duyệt' : 'Yêu cầu bị từ chối',
+        title: cancellation.status === CancellationStatus.APPROVED 
+          ? t('booking.cancellationDetails.timeline.requestApproved')
+          : t('booking.cancellationDetails.timeline.requestRejected'),
         date: cancellation.processedAt,
         status: 'completed',
         icon: getStatusIcon(cancellation.status)
@@ -187,7 +192,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
 
     if (cancellation.refundProcessedAt) {
       events.push({
-        title: 'Hoàn tiền thành công',
+        title: t('booking.cancellationDetails.timeline.refundCompleted'),
         date: cancellation.refundProcessedAt,
         status: 'completed',
         icon: (
@@ -233,7 +238,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="large" title="Chi tiết yêu cầu hủy booking">
+    <Modal isOpen={isOpen} onClose={onClose} size="large" title={t('booking.cancellationDetails.title')}>
       <div className="px-6 py-4">
         {/* Status and Emergency Info */}
         <div className="mb-6">
@@ -247,7 +252,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
                 <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
-                Khẩn cấp
+                {t('booking.cancellationDetails.emergency')}
               </span>
             )}
           </div>
@@ -259,22 +264,22 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
             {/* Booking Information */}
             <Card>
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin booking</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('booking.cancellationDetails.bookingInfo.title')}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Tên tour</p>
+                    <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.bookingInfo.tourName')}</p>
                     <p className="text-sm text-gray-900 mt-1">{cancellation.tourName}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Mã booking</p>
+                    <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.bookingInfo.bookingCode')}</p>
                     <p className="text-sm text-gray-900 mt-1 font-mono">{cancellation.bookingCode}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Số tiền gốc</p>
+                    <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.bookingInfo.originalAmount')}</p>
                     <p className="text-sm font-semibold text-gray-900 mt-1">{formatCurrency(cancellation.originalAmount)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Chính sách áp dụng</p>
+                    <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.bookingInfo.policyName')}</p>
                     <p className="text-sm text-gray-900 mt-1">{cancellation.policyName}</p>
                   </div>
                 </div>
@@ -284,29 +289,29 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
             {/* Cancellation Details */}
             <Card>
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Chi tiết yêu cầu hủy</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('booking.cancellationDetails.cancellationDetails.title')}</h3>
                 
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Loại lý do</p>
+                    <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.cancellationDetails.reasonType')}</p>
                     <p className="text-sm text-gray-900 mt-1">
                       {reasonLabels[cancellation.reasonCategory] || cancellation.reasonCategory}
                     </p>
                   </div>
                   
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Mô tả chi tiết</p>
+                    <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.cancellationDetails.detailedReason')}</p>
                     <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">{cancellation.reason}</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Thời gian hủy</p>
+                      <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.cancellationDetails.cancelledAt')}</p>
                       <p className="text-sm text-gray-900 mt-1">{formatDate(cancellation.cancelledAt)}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Thời gian trước khởi hành</p>
-                      <p className="text-sm text-gray-900 mt-1">{cancellation.hoursBeforeDeparture} giờ</p>
+                      <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.cancellationDetails.hoursBeforeDeparture')}</p>
+                      <p className="text-sm text-gray-900 mt-1">{t('booking.cancellationDetails.cancellationDetails.hours', { count: cancellation.hoursBeforeDeparture })}</p>
                     </div>
                   </div>
                 </div>
@@ -317,26 +322,26 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
             {cancellation.processedAt && (
               <Card>
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Phản hồi từ admin</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('booking.cancellationDetails.adminResponse.title')}</h3>
                   
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-500">Trạng thái xử lý</p>
+                        <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.adminResponse.processingStatus')}</p>
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border mt-1 ${getStatusColor(cancellation.status)}`}>
                           <span className="mr-2">{getStatusIcon(cancellation.status)}</span>
                           {statusLabels[cancellation.status]}
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-500">Thời gian xử lý</p>
+                        <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.adminResponse.processedAt')}</p>
                         <p className="text-sm text-gray-900 mt-1">{formatDate(cancellation.processedAt)}</p>
                       </div>
                     </div>
 
                     {cancellation.adminNotes && (
                       <div>
-                        <p className="text-sm font-medium text-gray-500">Ghi chú từ admin</p>
+                        <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.adminResponse.adminNotes')}</p>
                         <div className="mt-1 p-3 bg-gray-50 rounded-lg border">
                           <p className="text-sm text-gray-900 whitespace-pre-wrap">{cancellation.adminNotes}</p>
                         </div>
@@ -353,23 +358,23 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
             {/* Refund Information */}
             <Card>
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin hoàn tiền</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('booking.cancellationDetails.refundInfo.title')}</h3>
                 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Số tiền gốc:</span>
+                    <span className="text-sm text-gray-600">{t('booking.cancellationDetails.refundInfo.originalAmount')}:</span>
                     <span className="text-sm font-medium text-gray-900">{formatCurrency(cancellation.originalAmount)}</span>
                   </div>
                   
                   {cancellation.finalRefundAmount > 0 ? (
                     <>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Số tiền hoàn:</span>
+                        <span className="text-sm text-gray-600">{t('booking.cancellationDetails.refundInfo.refundAmount')}:</span>
                         <span className="text-sm font-medium text-green-600">{formatCurrency(cancellation.finalRefundAmount)}</span>
                       </div>
                       
                       <div className="pt-3 border-t border-gray-200">
-                        <p className="text-sm font-medium text-gray-500 mb-2">Trạng thái hoàn tiền</p>
+                        <p className="text-sm font-medium text-gray-500 mb-2">{t('booking.cancellationDetails.refundInfo.refundStatus')}</p>
                         <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium border ${getRefundStatusColor(cancellation.refundStatus)}`}>
                           {refundStatusLabels[cancellation.refundStatus]}
                         </span>
@@ -377,7 +382,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
 
                       {cancellation.refundProcessedAt && (
                         <div className="pt-3 border-t border-gray-200">
-                          <p className="text-sm font-medium text-gray-500">Thời gian hoàn tiền</p>
+                          <p className="text-sm font-medium text-gray-500">{t('booking.cancellationDetails.refundInfo.refundProcessedAt')}</p>
                           <p className="text-sm text-gray-900 mt-1">{formatDate(cancellation.refundProcessedAt)}</p>
                         </div>
                       )}
@@ -388,7 +393,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
                         <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-sm font-medium">Không được hoàn tiền</span>
+                        <span className="text-sm font-medium">{t('booking.cancellationDetails.refundInfo.noRefund')}</span>
                       </div>
                     </div>
                   )}
@@ -399,7 +404,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
             {/* Timeline */}
             <Card>
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Tiến trình xử lý</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('booking.cancellationDetails.timeline.title')}</h3>
                 {renderTimeline()}
               </div>
             </Card>
@@ -407,25 +412,25 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
             {/* Actions */}
             <Card>
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Hành động</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('booking.cancellationDetails.actions.title')}</h3>
                 <div className="space-y-3">
-                  {cancellation.status === CancellationStatus.REQUESTED && (
+                  {cancellation.status === CancellationStatus.PENDING && (
                     <Button variant="outline" size="sm" className="w-full">
-                      Chỉnh sửa yêu cầu
+                      {t('booking.cancellationDetails.actions.editRequest')}
                     </Button>
                   )}
                   
                   <Button variant="outline" size="sm" className="w-full">
-                    Tải xuống PDF
+                    {t('booking.cancellationDetails.actions.downloadPDF')}
                   </Button>
                   
                   <Button variant="outline" size="sm" className="w-full">
-                    Gửi email cho admin
+                    {t('booking.cancellationDetails.actions.emailAdmin')}
                   </Button>
                   
                   {cancellation.refundStatus === RefundStatus.COMPLETED && (
                     <Button variant="outline" size="sm" className="w-full">
-                      Xem biên lai hoàn tiền
+                      {t('booking.cancellationDetails.actions.viewReceipt')}
                     </Button>
                   )}
                 </div>
@@ -437,7 +442,7 @@ export const CancellationDetails: React.FC<CancellationDetailsProps> = ({
         {/* Footer */}
         <div className="flex justify-end pt-6 border-t border-gray-200 mt-6">
           <Button variant="outline" onClick={onClose}>
-            Đóng
+            {t('common.cancel')}
           </Button>
         </div>
       </div>

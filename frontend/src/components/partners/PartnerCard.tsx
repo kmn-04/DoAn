@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   MapPinIcon, 
   GlobeAltIcon,
@@ -17,6 +18,7 @@ interface PartnerCardProps {
 
 const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
   const [isFavorite, setIsFavorite] = useState(false);
+  const { t } = useTranslation();
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -38,7 +40,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
             />
           ) : (
             <div className="w-full h-full bg-stone-100 flex items-center justify-center border-b border-stone-200">
-              <span className="text-gray-400 text-sm font-normal">Không có ảnh</span>
+              <span className="text-gray-400 text-sm font-normal">{t('partners.card.missingImage')}</span>
             </div>
           )}
         </div>
@@ -54,7 +56,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
               />
             ) : (
               <div className="w-full h-full bg-stone-100 flex items-center justify-center">
-                <span className="text-gray-400 text-xs font-normal">Logo</span>
+                <span className="text-gray-400 text-xs font-normal">{t('partners.card.logo')}</span>
               </div>
             )}
           </div>
@@ -90,11 +92,11 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
         <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4 min-h-[3rem]">
           <div className="flex items-center space-x-2">
             <TicketIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
-            <span className="font-normal">{partner.totalTours || 0} tours</span>
+            <span className="font-normal">{partner.totalTours || 0} {t('partners.card.toursLabel')}</span>
           </div>
           <div className="flex items-center space-x-2">
             <CalendarIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
-            <span className="font-normal">Từ {partner.establishedYear || 'N/A'}</span>
+            <span className="font-normal">{t('partners.card.fromLabel')} {partner.establishedYear || 'N/A'}</span>
           </div>
         </div>
 
@@ -136,7 +138,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
               onClick={(e) => e.stopPropagation()}
             >
               <GlobeAltIcon className="h-5 w-5 mr-2" style={{ color: '#D4AF37' }} />
-              <span>Website</span>
+              <span>{t('partners.card.website')}</span>
             </a>
           </div>
         )}
@@ -147,7 +149,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
             <StarIconSolid className="h-5 w-5 fill-current" style={{ color: '#D4AF37' }} />
             <span className="font-semibold text-base text-slate-900">{partner.rating?.toFixed(1) || '0.0'}</span>
           </div>
-          <span className="text-sm text-gray-600 font-normal">({(partner.totalBookings || 0).toLocaleString()} đánh giá)</span>
+          <span className="text-sm text-gray-600 font-normal">({(partner.totalBookings || 0).toLocaleString()} {t('partners.card.reviews')})</span>
         </div>
 
         {/* Spacer to push price & action to bottom */}
@@ -166,7 +168,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
               e.currentTarget.style.borderColor = '#1e293b';
             }}
           >
-            Xem {partner.totalTours || 0} tours
+            {t('partners.card.action', { count: partner.totalTours || 0 })}
           </Link>
         </div>
       </div>

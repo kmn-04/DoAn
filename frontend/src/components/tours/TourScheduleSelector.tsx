@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CalendarIcon, UserGroupIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { format, parseISO, isBefore, addDays } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { vi, enUS } from 'date-fns/locale';
 
 export interface TourSchedule {
   id: number;
@@ -32,6 +33,8 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
   basePrice,
   className = ''
 }) => {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'vi' ? vi : enUS;
   const [showAll, setShowAll] = useState(false);
 
   // Filter and sort schedules
@@ -51,21 +54,13 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
     const start = parseISO(startDate);
     const end = parseISO(endDate);
     
-    if (format(start, 'MM/yyyy') === format(end, 'MM/yyyy')) {
+    if (format(start, 'MM/yyyy', { locale }) === format(end, 'MM/yyyy', { locale })) {
       // Same month
-      return `${format(start, 'dd', { locale: vi })} - ${format(end, 'dd/MM/yyyy', { locale: vi })}`;
+      return `${format(start, 'dd', { locale })} - ${format(end, 'dd/MM/yyyy', { locale })}`;
     } else {
       // Different months
-      return `${format(start, 'dd/MM', { locale: vi })} - ${format(end, 'dd/MM/yyyy', { locale: vi })}`;
+      return `${format(start, 'dd/MM', { locale })} - ${format(end, 'dd/MM/yyyy', { locale })}`;
     }
-  };
-
-  const calculateDuration = (startDate: string, endDate: string) => {
-    const start = parseISO(startDate);
-    const end = parseISO(endDate);
-    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    const nights = days - 1;
-    return { days, nights };
   };
 
   const getAvailabilityColor = (availableSeats: number, maxSeats: number) => {
@@ -77,9 +72,9 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
 
   const getAvailabilityText = (availableSeats: number, maxSeats: number) => {
     const ratio = availableSeats / maxSeats;
-    if (ratio > 0.5) return 'Còn nhiều chỗ';
-    if (ratio > 0.2) return 'Sắp hết chỗ';
-    return 'Chỉ còn ít chỗ';
+    if (ratio > 0.5) return t('tours.scheduleSelector.availability.plenty');
+    if (ratio > 0.2) return t('tours.scheduleSelector.availability.limited');
+    return t('tours.scheduleSelector.availability.almostFull');
   };
 
   if (availableSchedules.length === 0) {
@@ -87,10 +82,10 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
       <div className={`bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center ${className}`}>
         <CalendarIcon className="h-12 w-12 text-yellow-600 mx-auto mb-3" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Hiện chưa có lịch khởi hành
+          {t('tours.scheduleSelector.empty.title')}
         </h3>
         <p className="text-gray-600">
-          Vui lòng liên hệ với chúng tôi để biết thêm thông tin về lịch khởi hành sắp tới.
+          {t('tours.scheduleSelector.empty.description')}
         </p>
       </div>
     );
@@ -100,7 +95,7 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
     <div className={className}>
       <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
         <CalendarIcon className="h-6 w-6 mr-2 text-blue-600" />
-        Chọn lịch khởi hành
+        {t('tours.scheduleSelector.title')}
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -133,7 +128,7 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
               <div className="mb-3">
                 <div className="flex items-center text-gray-600 text-sm mb-1">
                   <CalendarIcon className="h-4 w-4 mr-1" />
-                  Khởi hành
+                  {t('tours.scheduleSelector.departureLabel')}
                 </div>
                 <div className="text-lg font-bold text-gray-900">
                   {formatScheduleDate(schedule.departureDate, schedule.returnDate)}
@@ -149,7 +144,7 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
                   </span>
                 </div>
                 <span className="text-xs text-gray-500">
-                  {schedule.availableSeats}/{maxSeats} chỗ
+                  {t('tours.scheduleSelector.availability.seats', { available: schedule.availableSeats, total: maxSeats })}
                 </span>
               </div>
 
@@ -159,25 +154,25 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
                   <div className="text-sm">
                     {priceDiff > 0 ? (
                       <span className="text-orange-600">
-                        +{priceDiff.toLocaleString('vi-VN')}đ
+                        {`+${priceDiff.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')}₫`}
                       </span>
                     ) : (
                       <span className="text-green-600">
-                        {priceDiff.toLocaleString('vi-VN')}đ
+                        {`${priceDiff.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')}₫`}
                       </span>
                     )}
-                    <span className="text-gray-500 ml-1">(so với giá cơ bản)</span>
+                    <span className="text-gray-500 ml-1">{t('tours.scheduleSelector.priceDiffNote')}</span>
                   </div>
                 </div>
               )}
 
               {/* Total price */}
               <div className="mt-2">
-                <span className="text-xs text-gray-500">Giá: </span>
+                <span className="text-xs text-gray-500">{t('tours.scheduleSelector.priceLabel')} </span>
                 <span className="text-lg font-bold text-blue-600">
-                  {schedule.adultPrice.toLocaleString('vi-VN')}đ
+                  {`${schedule.adultPrice.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')}₫`}
                 </span>
-                <span className="text-sm text-gray-500">/người</span>
+                <span className="text-sm text-gray-500">{t('tours.scheduleSelector.perPerson')}</span>
               </div>
             </button>
           );
@@ -191,7 +186,9 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
             onClick={() => setShowAll(!showAll)}
             className="text-blue-600 hover:text-blue-700 font-semibold text-sm"
           >
-            {showAll ? '↑ Thu gọn' : `↓ Xem thêm ${availableSchedules.length - 6} lịch khác`}
+            {showAll
+              ? t('tours.scheduleSelector.showLess')
+              : t('tours.scheduleSelector.showMore', { count: availableSchedules.length - 6 })}
           </button>
         </div>
       )}
@@ -199,8 +196,7 @@ const TourScheduleSelector: React.FC<TourScheduleSelectorProps> = ({
       {/* Info note */}
       <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
         <p className="text-sm text-blue-800">
-          💡 <strong>Lưu ý:</strong> Vui lòng đặt tour trước ít nhất 3 ngày so với ngày khởi hành.
-          Giá có thể thay đổi tùy theo thời điểm khởi hành.
+          {t('tours.scheduleSelector.note')}
         </p>
       </div>
     </div>

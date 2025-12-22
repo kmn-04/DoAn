@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   UsersIcon,
   ChartBarIcon,
@@ -14,122 +15,123 @@ import {
 } from '@heroicons/react/24/outline';
 import PartnerContactForm from './PartnerContactForm';
 
-const benefits = [
-  {
-    icon: UsersIcon,
-    title: 'Tiếp cận 50K+ khách hàng/tháng',
-    description: 'Kết nối với cơ sở khách hàng rộng lớn và đa dạng trên toàn quốc'
-  },
-  {
-    icon: ChartBarIcon,
-    title: 'Tăng doanh thu 30-50%',
-    description: 'Nguồn booking ổn định từ platform với commission hấp dẫn'
-  },
-  {
-    icon: SpeakerWaveIcon,
-    title: 'Quảng bá thương hiệu miễn phí',
-    description: 'Featured placement, social media marketing và SEO optimization'
-  },
-  {
-    icon: UserGroupIcon,
-    title: 'Hỗ trợ chuyên nghiệp 24/7',
-    description: 'Đội ngũ chăm sóc đối tác tận tình và quy trình hợp tác minh bạch'
-  }
-];
-
-const partnerTypes = [
-  {
-    icon: BuildingOffice2Icon,
-    title: 'Khách sạn & Resort',
-    description: 'Từ homestay đến resort 5 sao',
-    count: '500+'
-  },
-  {
-    icon: HomeIcon,
-    title: 'Nhà hàng & F&B',
-    description: 'Ẩm thực địa phương và quốc tế',
-    count: '300+'
-  },
-  {
-    icon: TruckIcon,
-    title: 'Vận chuyển',
-    description: 'Xe bus, taxi, thuê xe máy',
-    count: '200+'
-  },
-  {
-    icon: MapIcon,
-    title: 'Tour Operator',
-    description: 'Nhà điều hành tour chuyên nghiệp',
-    count: '150+'
-  },
-  {
-    icon: CogIcon,
-    title: 'Dịch vụ khác',
-    description: 'SPA, giải trí, hoạt động thể thao',
-    count: '100+'
-  }
-];
-
-const processSteps = [
-  {
-    step: 1,
-    title: 'Gửi thông tin',
-    description: 'Điền form đăng ký với thông tin cơ bản',
-    time: '5 phút'
-  },
-  {
-    step: 2,
-    title: 'Đánh giá hồ sơ',
-    description: 'Chúng tôi xem xét và đánh giá ứng viên',
-    time: '1-2 ngày'
-  },
-  {
-    step: 3,
-    title: 'Thảo luận điều khoản',
-    description: 'Họp online để thống nhất mức hoa hồng',
-    time: '3-5 ngày'
-  },
-  {
-    step: 4,
-    title: 'Bắt đầu hợp tác',
-    description: 'Ký kết và onboarding vào hệ thống',
-    time: '1 tuần'
-  }
-];
-
-const requirements = [
-  'Giấy phép kinh doanh hợp lệ',
-  'Tối thiểu 1 năm hoạt động trong ngành',
-  'Chất lượng dịch vụ đạt chuẩn tốt',
-  'Cam kết hợp tác dài hạn ít nhất 1 năm',
-  'Có khả năng phục vụ khách hàng online',
-  'Tuân thủ các quy định về an toàn du lịch'
-];
-
 const PartnerCTASection: React.FC = () => {
+  const { t } = useTranslation();
+
+  const benefits = useMemo(() => [
+    {
+      icon: UsersIcon,
+      title: t('partners.cta.benefits.reach.title'),
+      description: t('partners.cta.benefits.reach.description')
+    },
+    {
+      icon: ChartBarIcon,
+      title: t('partners.cta.benefits.revenue.title'),
+      description: t('partners.cta.benefits.revenue.description')
+    },
+    {
+      icon: SpeakerWaveIcon,
+      title: t('partners.cta.benefits.brand.title'),
+      description: t('partners.cta.benefits.brand.description')
+    },
+    {
+      icon: UserGroupIcon,
+      title: t('partners.cta.benefits.support.title'),
+      description: t('partners.cta.benefits.support.description')
+    }
+  ], [t]);
+
+  const partnerTypes = useMemo(() => [
+    {
+      icon: BuildingOffice2Icon,
+      title: t('partners.cta.partnerTypes.hotel.title'),
+      description: t('partners.cta.partnerTypes.hotel.description'),
+      count: t('partners.cta.partnerTypes.hotel.count')
+    },
+    {
+      icon: HomeIcon,
+      title: t('partners.cta.partnerTypes.restaurant.title'),
+      description: t('partners.cta.partnerTypes.restaurant.description'),
+      count: t('partners.cta.partnerTypes.restaurant.count')
+    },
+    {
+      icon: TruckIcon,
+      title: t('partners.cta.partnerTypes.transport.title'),
+      description: t('partners.cta.partnerTypes.transport.description'),
+      count: t('partners.cta.partnerTypes.transport.count')
+    },
+    {
+      icon: MapIcon,
+      title: t('partners.cta.partnerTypes.operator.title'),
+      description: t('partners.cta.partnerTypes.operator.description'),
+      count: t('partners.cta.partnerTypes.operator.count')
+    },
+    {
+      icon: CogIcon,
+      title: t('partners.cta.partnerTypes.services.title'),
+      description: t('partners.cta.partnerTypes.services.description'),
+      count: t('partners.cta.partnerTypes.services.count')
+    }
+  ], [t]);
+
+  const processSteps = useMemo(() => [
+    {
+      step: 1,
+      title: t('partners.cta.process.steps.step1.title'),
+      description: t('partners.cta.process.steps.step1.description'),
+      time: t('partners.cta.process.steps.step1.time')
+    },
+    {
+      step: 2,
+      title: t('partners.cta.process.steps.step2.title'),
+      description: t('partners.cta.process.steps.step2.description'),
+      time: t('partners.cta.process.steps.step2.time')
+    },
+    {
+      step: 3,
+      title: t('partners.cta.process.steps.step3.title'),
+      description: t('partners.cta.process.steps.step3.description'),
+      time: t('partners.cta.process.steps.step3.time')
+    },
+    {
+      step: 4,
+      title: t('partners.cta.process.steps.step4.title'),
+      description: t('partners.cta.process.steps.step4.description'),
+      time: t('partners.cta.process.steps.step4.time')
+    }
+  ], [t]);
+
+  const requirements = useMemo(() => [
+    t('partners.cta.requirements.items.license'),
+    t('partners.cta.requirements.items.experience'),
+    t('partners.cta.requirements.items.quality'),
+    t('partners.cta.requirements.items.commitment'),
+    t('partners.cta.requirements.items.onlineCapability'),
+    t('partners.cta.requirements.items.safety')
+  ], [t]);
   return (
     <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Trở thành Đối tác Chiến lược
+            {t('partners.cta.header.title')}
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Cùng phát triển hệ sinh thái du lịch Việt Nam với mạng lưới đối tác uy tín và chuyên nghiệp
+            {t('partners.cta.header.subtitle')}
           </p>
           <div className="flex items-center justify-center space-x-8 text-sm text-gray-500">
             <div className="flex items-center">
               <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
-              <span>Miễn phí tham gia</span>
+              <span>{t('partners.cta.header.badges.free')}</span>
             </div>
             <div className="flex items-center">
               <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
-              <span>Hoa hồng cạnh tranh</span>
+              <span>{t('partners.cta.header.badges.commission')}</span>
             </div>
             <div className="flex items-center">
               <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
-              <span>Hỗ trợ marketing</span>
+              <span>{t('partners.cta.header.badges.support')}</span>
             </div>
           </div>
         </div>
@@ -137,7 +139,7 @@ const PartnerCTASection: React.FC = () => {
         {/* Benefits Grid */}
         <div className="mb-16">
           <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">
-            Lợi ích khi hợp tác với chúng tôi
+            {t('partners.cta.benefits.title')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {benefits.map((benefit, index) => (
@@ -159,7 +161,7 @@ const PartnerCTASection: React.FC = () => {
         {/* Partner Types */}
         <div className="mb-16">
           <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">
-            Chúng tôi đang tìm kiếm đối tác
+            {t('partners.cta.partnerTypes.title')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {partnerTypes.map((type, index) => (
@@ -175,7 +177,7 @@ const PartnerCTASection: React.FC = () => {
                     {type.description}
                   </p>
                   <div className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-full">
-                    {type.count} đối tác
+                    {type.count}
                   </div>
                 </div>
               </div>
@@ -186,7 +188,7 @@ const PartnerCTASection: React.FC = () => {
         {/* Process Timeline */}
         <div className="mb-16">
           <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">
-            Quy trình hợp tác
+            {t('partners.cta.process.title')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {processSteps.map((step, index) => (
@@ -221,7 +223,7 @@ const PartnerCTASection: React.FC = () => {
           {/* Requirements */}
           <div>
             <h3 className="text-2xl font-bold text-gray-900 mb-6">
-              Yêu cầu đối tác
+              {t('partners.cta.requirements.title')}
             </h3>
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <ul className="space-y-4">
@@ -235,11 +237,10 @@ const PartnerCTASection: React.FC = () => {
               
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <h4 className="font-semibold text-blue-900 mb-2">
-                  💡 Lưu ý quan trọng
+                  💡 {t('partners.cta.requirements.noteTitle')}
                 </h4>
                 <p className="text-sm text-blue-800">
-                  Chúng tôi ưu tiên các đối tác có định hướng phát triển bền vững và 
-                  cam kết mang lại trải nghiệm tốt nhất cho khách hàng.
+                  {t('partners.cta.requirements.noteDescription')}
                 </p>
               </div>
             </div>
@@ -255,24 +256,23 @@ const PartnerCTASection: React.FC = () => {
         <div className="text-center mt-16">
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white">
             <h3 className="text-2xl font-bold mb-4">
-              Sẵn sàng bắt đầu hành trình hợp tác?
+              {t('partners.cta.bottomCta.title')}
             </h3>
             <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-              Hãy để chúng tôi cùng nhau xây dựng một hệ sinh thái du lịch phát triển và bền vững. 
-              Đội ngũ của chúng tôi sẽ hỗ trợ bạn trong mọi bước của quá trình hợp tác.
+              {t('partners.cta.bottomCta.subtitle')}
             </p>
             <div className="flex items-center justify-center space-x-8 text-sm">
               <div className="flex items-center">
                 <span className="w-2 h-2 bg-blue-300 rounded-full mr-2"></span>
-                Phản hồi trong 24h
+                {t('partners.cta.bottomCta.badges.response')}
               </div>
               <div className="flex items-center">
                 <span className="w-2 h-2 bg-blue-300 rounded-full mr-2"></span>
-                Tư vấn miễn phí
+                {t('partners.cta.bottomCta.badges.consulting')}
               </div>
               <div className="flex items-center">
                 <span className="w-2 h-2 bg-blue-300 rounded-full mr-2"></span>
-                Hỗ trợ setup
+                {t('partners.cta.bottomCta.badges.setup')}
               </div>
             </div>
           </div>

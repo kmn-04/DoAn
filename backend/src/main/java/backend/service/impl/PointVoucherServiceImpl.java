@@ -41,10 +41,20 @@ public class PointVoucherServiceImpl implements PointVoucherService {
     @Override
     public PointVoucher redeemPointsForVoucher(Long userId, Integer points,
                                                 BigDecimal voucherValue, Integer validDays) {
+        if (points == null || points <= 0) {
+            throw new RuntimeException("Số điểm không hợp lệ");
+        }
+
         // Check minimum points
         int minPoints = Integer.parseInt(getConfigValue("min_redeem_points", "1000"));
         if (points < minPoints) {
             throw new RuntimeException("Số điểm tối thiểu để đổi là " + minPoints);
+        }
+
+        // Derive voucher value if not provided: default rate = 50đ/điểm (1000 pts = 50k)
+        if (voucherValue == null) {
+            BigDecimal valuePerPoint = new BigDecimal(getConfigValue("voucher_value_per_point", "50"));
+            voucherValue = valuePerPoint.multiply(BigDecimal.valueOf(points));
         }
         
         // Deduct points
@@ -62,7 +72,8 @@ public class PointVoucherServiceImpl implements PointVoucherService {
         voucher.setVoucherType(VoucherType.AMOUNT);
         voucher.setVoucherValue(voucherValue);
         voucher.setPointsCost(points);
-        voucher.setMinOrderValue(BigDecimal.ZERO);
+        BigDecimal minOrder = new BigDecimal(getConfigValue("voucher_min_order_value", "0"));
+        voucher.setMinOrderValue(minOrder);
         voucher.setStatus(VoucherStatus.ACTIVE);
         
         // Set expiry date
@@ -93,7 +104,8 @@ public class PointVoucherServiceImpl implements PointVoucherService {
     
     @Override
     public PointVoucher getVoucherByCode(String voucherCode) {
-        return voucherRepository.findByVoucherCode(voucherCode)
+        // Use fetch join to avoid lazy loading issues
+        return voucherRepository.findByVoucherCodeWithUser(voucherCode)
             .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
     }
     
@@ -114,13 +126,9 @@ public class PointVoucherServiceImpl implements PointVoucherService {
     
     @Override
     public PointVoucher useVoucher(String voucherCode, Long userId, Long bookingId) {
-        PointVoucher voucher = voucherRepository.findByVoucherCode(voucherCode)
-            .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
-        
-        // Validate voucher
-        if (!voucher.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Voucher không thuộc về bạn");
-        }
+        // Use query with user ID to avoid lazy loading and ownership issues
+        PointVoucher voucher = voucherRepository.findByVoucherCodeAndUserId(voucherCode, userId)
+            .orElseThrow(() -> new RuntimeException("Voucher không tồn tại hoặc không thuộc về bạn"));
         
         if (voucher.getStatus() != VoucherStatus.ACTIVE) {
             throw new RuntimeException("Voucher không còn hiệu lực");
@@ -147,7 +155,8 @@ public class PointVoucherServiceImpl implements PointVoucherService {
     
     @Override
     public boolean validateVoucher(String voucherCode, Long userId, BigDecimal bookingAmount) {
-        Optional<PointVoucher> voucherOpt = voucherRepository.findByVoucherCode(voucherCode);
+        // Use fetch join to avoid lazy loading issues
+        Optional<PointVoucher> voucherOpt = voucherRepository.findByVoucherCodeWithUser(voucherCode);
         
         if (voucherOpt.isEmpty()) {
             return false;

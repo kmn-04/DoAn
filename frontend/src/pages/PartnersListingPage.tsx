@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 // import { Helmet } from 'react-helmet-async';
 import { 
   BuildingOffice2Icon
@@ -11,6 +12,7 @@ import { Loading, Pagination } from '../components/ui';
 import partnerService from '../services/partnerService';
 
 const PartnersListingPage: React.FC = () => {
+  const { t } = useTranslation();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<PartnerFilters>({
@@ -113,29 +115,32 @@ const PartnersListingPage: React.FC = () => {
             <div className="text-white text-center">
               <div className="flex items-center justify-center mb-6">
                 <BuildingOffice2Icon className="h-16 w-16 mr-4 opacity-90" />
-                <h1 className="text-4xl md:text-6xl font-bold">Đối Tác Du Lịch</h1>
+                <h1 className="text-4xl md:text-6xl font-bold">{t('partners.listing.hero.title')}</h1>
               </div>
               <p className="text-xl md:text-2xl mb-12 text-blue-100 max-w-3xl mx-auto">
-                Mạng lưới {totalPartners} đối tác uy tín với {totalToursCount.toLocaleString()}+ tour chất lượng cao
+                {t('partners.listing.hero.subtitle', {
+                  trustedPartners: totalPartners,
+                  qualityTours: totalToursCount.toLocaleString()
+                })}
               </p>
               
               {/* Quick Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
                 <div className="text-center">
                   <div className="text-3xl md:text-4xl font-bold mb-2">{totalPartners}+</div>
-                  <div className="text-base text-blue-100">Đối tác uy tín</div>
+                  <div className="text-base text-blue-100">{t('partners.listing.hero.stats.trustedPartners')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl md:text-4xl font-bold mb-2">{totalToursCount.toLocaleString()}+</div>
-                  <div className="text-base text-blue-100">Tours đa dạng</div>
+                  <div className="text-base text-blue-100">{t('partners.listing.hero.stats.diverseTours')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl md:text-4xl font-bold mb-2">{totalBookingsCount.toLocaleString()}+</div>
-                  <div className="text-base text-blue-100">Lượt đặt tour</div>
+                  <div className="text-base text-blue-100">{t('partners.listing.hero.stats.bookings')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl md:text-4xl font-bold mb-2">{averageRating.toFixed(1)}⭐</div>
-                  <div className="text-base text-blue-100">Đánh giá trung bình</div>
+                  <div className="text-base text-blue-100">{t('partners.listing.hero.stats.averageRating')}</div>
                 </div>
               </div>
             </div>
@@ -179,10 +184,10 @@ const PartnersListingPage: React.FC = () => {
               <div className="text-center py-12 animate-fade-in">
                 <BuildingOffice2Icon className="h-16 w-16 text-gray-400 mx-auto mb-4 animate-pulse" />
                 <h3 className="text-xl font-medium text-gray-900 mb-2">
-                  Không tìm thấy đối tác nào
+                  {t('partners.listing.empty.title')}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Thử điều chỉnh bộ lọc để tìm kiếm đối tác phù hợp
+                  {t('partners.listing.empty.description')}
                 </p>
               </div>
             )}

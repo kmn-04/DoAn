@@ -69,6 +69,7 @@ public class VnPayService {
         );
         
         log.info("Generated VNPay payment URL for payment: {}", payment.getId());
+        log.info("Payment URL length: {} characters", paymentUrl.length());
         
         return VnPayPaymentResponse.builder()
                 .paymentUrl(paymentUrl)

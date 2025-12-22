@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   BuildingOfficeIcon,
   UserIcon,
@@ -21,16 +22,18 @@ interface PartnerContactFormData {
   message: string;
 }
 
-const partnerTypes = [
-  { value: '', label: 'Chọn lĩnh vực kinh doanh' },
-  { value: 'Hotel', label: 'Khách sạn & Resort' },
-  { value: 'Restaurant', label: 'Nhà hàng & F&B' },
-  { value: 'Transport', label: 'Vận chuyển' },
-  { value: 'TourOperator', label: 'Tour Operator' },
-  { value: 'Service', label: 'Dịch vụ khác' }
+const getPartnerTypes = (t: any) => [
+  { value: '', label: t('partners.contactForm.businessTypes.select') },
+  { value: 'Hotel', label: t('partners.contactForm.businessTypes.hotel') },
+  { value: 'Restaurant', label: t('partners.contactForm.businessTypes.restaurant') },
+  { value: 'Transport', label: t('partners.contactForm.businessTypes.transport') },
+  { value: 'TourOperator', label: t('partners.contactForm.businessTypes.tourOperator') },
+  { value: 'Service', label: t('partners.contactForm.businessTypes.service') }
 ];
 
 const PartnerContactForm: React.FC = () => {
+  const { t } = useTranslation();
+  const partnerTypes = getPartnerTypes(t);
   const [formData, setFormData] = useState<PartnerContactFormData>({
     companyName: '',
     contactPerson: '',
@@ -84,7 +87,7 @@ const PartnerContactForm: React.FC = () => {
       });
     } catch (error) {
       console.error('Error submitting partner application:', error);
-      alert('Có lỗi xảy ra khi gửi đơn đăng ký. Vui lòng thử lại sau.');
+      alert(t('partners.contactForm.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -99,16 +102,16 @@ const PartnerContactForm: React.FC = () => {
           </svg>
         </div>
         <h3 className="text-xl font-medium text-slate-900 mb-2 tracking-tight">
-          Cảm ơn bạn đã quan tâm!
+          {t('partners.contactForm.success.title')}
         </h3>
         <p className="text-gray-600 mb-6 font-normal leading-relaxed">
-          Chúng tôi đã nhận được thông tin của bạn và sẽ liên hệ trong vòng 24 giờ.
+          {t('partners.contactForm.success.description')}
         </p>
         <button
           onClick={() => setIsSubmitted(false)}
           className="inline-flex items-center bg-white text-slate-900 px-6 py-3 rounded-none border-2 border-slate-900 hover:bg-slate-900 hover:text-white transition-all duration-300 text-sm font-medium tracking-wide"
         >
-          Gửi thêm thông tin khác
+          {t('partners.contactForm.success.submitMore')}
         </button>
       </div>
     );
@@ -118,10 +121,10 @@ const PartnerContactForm: React.FC = () => {
     <div className="bg-white rounded-none border border-stone-200 shadow-lg p-8">
       <div className="text-center mb-8">
         <h3 className="text-2xl font-normal text-slate-900 mb-3 tracking-tight">
-          Đăng ký Hợp tác
+          {t('partners.contactForm.title')}
         </h3>
         <p className="text-gray-600 font-normal leading-relaxed">
-          Điền thông tin để chúng tôi liên hệ và tư vấn chi tiết
+          {t('partners.contactForm.subtitle')}
         </p>
       </div>
 
@@ -130,7 +133,7 @@ const PartnerContactForm: React.FC = () => {
           {/* Company Name */}
           <div>
             <label htmlFor="companyName" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-              Tên công ty/doanh nghiệp *
+              {t('partners.contactForm.fields.companyName')}
             </label>
             <div className="relative">
               <BuildingOfficeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
@@ -142,7 +145,7 @@ const PartnerContactForm: React.FC = () => {
                 onChange={handleInputChange}
                 required
                 className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
-                placeholder="VD: ABC Travel Company"
+                placeholder={t('partners.contactForm.fields.companyNamePlaceholder')}
               />
             </div>
           </div>
@@ -150,7 +153,7 @@ const PartnerContactForm: React.FC = () => {
           {/* Contact Person */}
           <div>
             <label htmlFor="contactPerson" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-              Người liên hệ *
+              {t('partners.contactForm.fields.contactPerson')}
             </label>
             <div className="relative">
               <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
@@ -162,7 +165,7 @@ const PartnerContactForm: React.FC = () => {
                 onChange={handleInputChange}
                 required
                 className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
-                placeholder="Họ và tên"
+                placeholder={t('partners.contactForm.fields.contactPersonPlaceholder')}
               />
             </div>
           </div>
@@ -170,7 +173,7 @@ const PartnerContactForm: React.FC = () => {
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-              Email *
+              {t('partners.contactForm.fields.email')}
             </label>
             <div className="relative">
               <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
@@ -182,7 +185,7 @@ const PartnerContactForm: React.FC = () => {
                 onChange={handleInputChange}
                 required
                 className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
-                placeholder="contact@company.com"
+                placeholder={t('partners.contactForm.fields.emailPlaceholder')}
               />
             </div>
           </div>
@@ -190,7 +193,7 @@ const PartnerContactForm: React.FC = () => {
           {/* Phone */}
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-              Số điện thoại *
+              {t('partners.contactForm.fields.phone')}
             </label>
             <div className="relative">
               <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
@@ -202,7 +205,7 @@ const PartnerContactForm: React.FC = () => {
                 onChange={handleInputChange}
                 required
                 className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
-                placeholder="0123 456 789"
+                placeholder={t('partners.contactForm.fields.phonePlaceholder')}
               />
             </div>
           </div>
@@ -210,7 +213,7 @@ const PartnerContactForm: React.FC = () => {
           {/* Business Type */}
           <div>
             <label htmlFor="businessType" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-              Lĩnh vực hoạt động *
+              {t('partners.contactForm.fields.businessType')}
             </label>
             <select
               id="businessType"
@@ -231,7 +234,7 @@ const PartnerContactForm: React.FC = () => {
           {/* Location */}
           <div>
             <label htmlFor="location" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-              Địa điểm hoạt động *
+              {t('partners.contactForm.fields.location')}
             </label>
             <div className="relative">
               <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
@@ -243,7 +246,7 @@ const PartnerContactForm: React.FC = () => {
                 onChange={handleInputChange}
                 required
                 className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
-                placeholder="VD: Hà Nội, TP.HCM, Đà Nẵng"
+                placeholder={t('partners.contactForm.fields.locationPlaceholder')}
               />
             </div>
           </div>
@@ -252,7 +255,7 @@ const PartnerContactForm: React.FC = () => {
         {/* Website */}
         <div>
           <label htmlFor="website" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-            Website (tùy chọn)
+            {t('partners.contactForm.fields.website')}
           </label>
           <div className="relative">
             <GlobeAltIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{ color: '#D4AF37' }} />
@@ -263,7 +266,7 @@ const PartnerContactForm: React.FC = () => {
               value={formData.website}
               onChange={handleInputChange}
               className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors font-normal"
-              placeholder="https://www.company.com"
+              placeholder={t('partners.contactForm.fields.websitePlaceholder')}
             />
           </div>
         </div>
@@ -271,7 +274,7 @@ const PartnerContactForm: React.FC = () => {
         {/* Message */}
         <div>
           <label htmlFor="message" className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-            Lời nhắn
+            {t('partners.contactForm.fields.message')}
           </label>
           <div className="relative">
             <ChatBubbleLeftRightIcon className="absolute left-3 top-3 h-5 w-5" style={{ color: '#D4AF37' }} />
@@ -282,7 +285,7 @@ const PartnerContactForm: React.FC = () => {
               onChange={handleInputChange}
               rows={4}
               className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 transition-colors resize-none font-normal"
-              placeholder="Chia sẻ thêm về doanh nghiệp của bạn và mong muốn hợp tác..."
+              placeholder={t('partners.contactForm.fields.messagePlaceholder')}
             />
           </div>
         </div>
@@ -301,17 +304,17 @@ const PartnerContactForm: React.FC = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Đang gửi...
+                {t('partners.contactForm.submitting')}
               </div>
             ) : (
-              'Gửi thông tin hợp tác'
+              t('partners.contactForm.submit')
             )}
           </button>
         </div>
 
         {/* Privacy Note */}
         <p className="text-xs text-gray-500 text-center font-normal">
-          Thông tin của bạn sẽ được bảo mật và chỉ sử dụng để liên hệ hợp tác.
+          {t('partners.contactForm.privacyNote')}
         </p>
       </form>
     </div>

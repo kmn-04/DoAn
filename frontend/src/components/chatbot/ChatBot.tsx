@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon, PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 interface Message {
@@ -12,10 +13,11 @@ interface ChatBotProps {
 }
 
 const ChatBot = ({ onClose }: ChatBotProps) => {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: 'Xin chào! Tôi là trợ lý AI của Tour Booking System. Tôi có thể giúp bạn tìm kiếm tour du lịch, tư vấn về điểm đến, hoặc hỗ trợ đặt tour. Bạn cần tôi giúp gì?',
+      content: t('chatbot.initialGreeting'),
       timestamp: new Date().toISOString()
     }
   ]);
@@ -55,7 +57,7 @@ const ChatBot = ({ onClose }: ChatBotProps) => {
       console.error('❌ Error creating session:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: '⚠️ Không thể kết nối với chatbot server. Vui lòng kiểm tra:<br/>1. Chatbot server đang chạy (port 5000)<br/>2. Backend Spring Boot đang chạy (port 8080)',
+        content: t('chatbot.errors.connection'),
         timestamp: new Date().toISOString()
       }]);
     }
@@ -68,7 +70,7 @@ const ChatBot = ({ onClose }: ChatBotProps) => {
       console.error('❌ No session ID available');
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Phiên làm việc chưa sẵn sàng. Vui lòng tải lại trang.',
+        content: t('chatbot.errors.sessionUnavailable'),
         timestamp: new Date().toISOString()
       }]);
       return;
@@ -165,7 +167,7 @@ const ChatBot = ({ onClose }: ChatBotProps) => {
         console.error('Error sending message:', error);
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.',
+          content: t('chatbot.errors.generic'),
           timestamp: new Date().toISOString()
         }]);
       }
@@ -182,14 +184,14 @@ const ChatBot = ({ onClose }: ChatBotProps) => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 w-[420px] h-[600px] bg-white border border-stone-300 shadow-2xl flex flex-col z-50 rounded-none">
+    <div className="fixed bottom-6 left-6 w-[calc(100vw-3rem)] max-w-[420px] h-[600px] max-h-[calc(100vh-3rem)] bg-white border border-stone-300 shadow-2xl flex flex-col z-50 rounded-none">
       {/* Header */}
       <div className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <SparklesIcon className="w-5 h-5 text-[#D4AF37]" />
           <div>
-            <h3 className="font-semibold text-sm">AI Travel Assistant</h3>
-            <p className="text-xs text-stone-300">Trợ lý tư vấn du lịch</p>
+            <h3 className="font-semibold text-sm">{t('chatbot.header.title')}</h3>
+            <p className="text-xs text-stone-300">{t('chatbot.header.subtitle')}</p>
           </div>
         </div>
         <button
@@ -230,7 +232,7 @@ const ChatBot = ({ onClose }: ChatBotProps) => {
                   <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
                   <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                 </div>
-                <span className="text-xs text-stone-500">Đang suy nghĩ...</span>
+                <span className="text-xs text-stone-500">{t('chatbot.thinking')}</span>
               </div>
             </div>
           </div>
@@ -246,7 +248,7 @@ const ChatBot = ({ onClose }: ChatBotProps) => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Nhập câu hỏi của bạn..."
+            placeholder={t('chatbot.placeholder')}
             disabled={isLoading}
             className="flex-1 px-3 py-2 border border-stone-300 text-sm text-slate-900 placeholder-stone-400 focus:outline-none focus:border-slate-700 focus:ring-0 rounded-none disabled:bg-stone-100 disabled:cursor-not-allowed"
           />
@@ -259,7 +261,7 @@ const ChatBot = ({ onClose }: ChatBotProps) => {
           </button>
         </div>
         <p className="text-xs text-stone-500 mt-2 text-center">
-          AI có thể mắc lỗi. Vui lòng kiểm tra thông tin quan trọng.
+          {t('chatbot.disclaimer')}
         </p>
       </div>
     </div>

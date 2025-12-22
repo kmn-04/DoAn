@@ -1,5 +1,6 @@
 package backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,7 +33,13 @@ public class PointVoucher {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_id")
+    @JsonIgnore
+    private Booking booking;
     
     @Column(name = "voucher_code", unique = true, nullable = false, length = 50)
     private String voucherCode;
@@ -57,9 +64,6 @@ public class PointVoucher {
     @Column(nullable = false, length = 20)
     private VoucherStatus status = VoucherStatus.ACTIVE;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id")
-    private Booking booking;
     
     @Column(name = "used_at")
     private LocalDateTime usedAt;

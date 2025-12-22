@@ -64,6 +64,21 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate
     );
+
+    /**
+     * Sum earned points from a start date (rolling period)
+     */
+    @Query("""
+        SELECT COALESCE(SUM(pt.points), 0)
+        FROM PointTransaction pt
+        WHERE pt.user.id = :userId
+          AND pt.transactionType = 'EARNED'
+          AND pt.createdAt >= :fromDate
+    """)
+    Integer sumEarnedSince(
+        @Param("userId") Long userId,
+        @Param("fromDate") LocalDateTime fromDate
+    );
     
     /**
      * Find recent transactions
@@ -75,5 +90,28 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
      * Count transactions by user and type
      */
     Long countByUserIdAndTransactionType(Long userId, TransactionType transactionType);
+
+    /**
+     * Count transactions by type (all users)
+     */
+    Long countByTransactionType(TransactionType transactionType);
+
+    /**
+     * Find transactions by user ID and transaction type with pagination
+     */
+    Page<PointTransaction> findByUserIdAndTransactionTypeOrderByCreatedAtDesc(
+        Long userId, TransactionType transactionType, Pageable pageable);
+
+    /**
+     * Get sum of all earned points (for stats)
+     */
+    @Query("SELECT SUM(pt.points) FROM PointTransaction pt WHERE pt.transactionType = 'EARNED'")
+    Integer getTotalEarnedSum();
+
+    /**
+     * Get sum of all redeemed points (for stats) - using ABS for negative values
+     */
+    @Query("SELECT SUM(ABS(pt.points)) FROM PointTransaction pt WHERE pt.transactionType = 'REDEEMED'")
+    Integer getTotalRedeemedSum();
 }
 

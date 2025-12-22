@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   MapPinIcon, 
   StarIcon, 
@@ -11,6 +12,7 @@ import type { PopularDestinationResponse } from '../../services';
 import { DestinationCardSkeleton } from '../ui/Skeleton';
 
 const PopularDestinations: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [destinations, setDestinations] = useState<PopularDestinationResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +25,7 @@ const PopularDestinations: React.FC = () => {
         setDestinations(data);
       } catch (err) {
         console.error('Error fetching destinations:', err);
-        setError('Không thể tải điểm đến. Vui lòng thử lại sau.');
+        setError(t('landing.popularDestinations.errorMessage'));
       } finally {
         setIsLoading(false);
       }
@@ -34,7 +36,7 @@ const PopularDestinations: React.FC = () => {
   
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
@@ -47,7 +49,7 @@ const PopularDestinations: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Điểm Đến Phổ Biến
+              {t('landing.popularDestinations.loadingTitle')}
             </h2>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -67,7 +69,7 @@ const PopularDestinations: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Điểm Đến Phổ Biến
+              {t('landing.popularDestinations.errorTitle')}
             </h2>
             <p className="text-red-600">{error}</p>
           </div>
@@ -83,9 +85,9 @@ const PopularDestinations: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Điểm Đến Phổ Biến
+              {t('landing.popularDestinations.title')}
             </h2>
-            <p className="text-gray-600">Chưa có điểm đến nào.</p>
+            <p className="text-gray-600">{t('landing.popularDestinations.emptyMessage')}</p>
           </div>
         </div>
       </section>
@@ -98,10 +100,10 @@ const PopularDestinations: React.FC = () => {
         {/* Section Header */}
         <div className="text-center mb-20 animate-fade-in-up opacity-0 delay-100">
           <div className="inline-block px-8 py-3 border border-slate-800 rounded-none mb-6">
-            <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">Điểm Đến Phổ Biến</span>
+            <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">{t('landing.popularDestinations.title')}</span>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            Khám phá những điểm đến được yêu thích nhất với trải nghiệm tuyệt vời
+            {t('landing.popularDestinations.subtitle')}
           </p>
         </div>
 
@@ -127,7 +129,7 @@ const PopularDestinations: React.FC = () => {
                   <div className="absolute top-6 left-6">
                     <div className="bg-amber-700 text-white px-3 py-1.5 rounded-none text-xs font-medium flex items-center space-x-2 tracking-wider uppercase shadow-lg">
                       <StarIcon className="h-3 w-3 fill-current" />
-                      <span>Phổ Biến</span>
+                      <span>{t('landing.popularDestinations.badge')}</span>
                     </div>
                   </div>
 
@@ -135,7 +137,7 @@ const PopularDestinations: React.FC = () => {
                   <div className="absolute top-6 right-6">
                     <div className="bg-white text-gray-900 px-3 py-1.5 rounded-none text-xs font-medium flex items-center space-x-2 shadow-lg">
                       <PhotoIcon className="h-3 w-3" />
-                      <span>{destination.tourCount} tours</span>
+                      <span>{destination.tourCount} {t('landing.popularDestinations.tours')}</span>
                     </div>
                   </div>
 
@@ -152,11 +154,11 @@ const PopularDestinations: React.FC = () => {
                       <div className="flex items-center space-x-1">
                         <StarIcon className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                         <span className="font-semibold">{destination.averageRating}</span>
-                        <span className="text-gray-300">({destination.tourCount} tours)</span>
+                        <span className="text-gray-300">({destination.tourCount} {t('landing.popularDestinations.tours')})</span>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold">Từ {formatPrice(destination.averagePrice)}</div>
-                        <div className="text-sm text-gray-300">/ người</div>
+                        <div className="text-lg font-bold">{t('landing.popularDestinations.from')} {formatPrice(destination.averagePrice)}</div>
+                        <div className="text-sm text-gray-300">{t('landing.popularDestinations.perPerson')}</div>
                       </div>
                     </div>
                   </div>
@@ -183,7 +185,7 @@ const PopularDestinations: React.FC = () => {
                   {/* CTA */}
                   <div className="flex items-center justify-between">
                     <span className="text-blue-600 font-semibold group-hover:text-blue-700 transition-colors">
-                      Khám phá {destination.name}
+                      {t('landing.popularDestinations.explore', { name: destination.name })}
                     </span>
                     <ArrowRightIcon className="h-5 w-5 text-blue-600 group-hover:translate-x-1 transition-transform" />
                   </div>
@@ -200,7 +202,7 @@ const PopularDestinations: React.FC = () => {
             to="/destinations"
             className="inline-flex items-center bg-slate-900 text-white hover:bg-slate-800 px-8 py-3 rounded-none text-xs font-medium tracking-[0.2em] uppercase transition-all duration-300 border border-slate-900 hover:border-amber-600 group"
           >
-            <span>Xem Tất Cả Điểm Đến</span>
+            <span>{t('landing.popularDestinations.viewAllDestinations')}</span>
             <ArrowRightIcon className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
         </div>

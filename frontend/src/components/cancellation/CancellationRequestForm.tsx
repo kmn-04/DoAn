@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -78,6 +79,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
   onSuccess,
   preselectedBookingId
 }) => {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -136,19 +138,19 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
     }
   ];
 
-  const reasonLabels = {
-    [CancellationReason.PERSONAL_EMERGENCY]: 'Khẩn cấp cá nhân',
-    [CancellationReason.MEDICAL_EMERGENCY]: 'Khẩn cấp y tế',
-    [CancellationReason.WEATHER_CONDITIONS]: 'Điều kiện thời tiết',
-    [CancellationReason.FORCE_MAJEURE]: 'Bất khả kháng',
-    [CancellationReason.TRAVEL_RESTRICTIONS]: 'Hạn chế đi lại',
-    [CancellationReason.SCHEDULE_CONFLICT]: 'Xung đột lịch trình',
-    [CancellationReason.FINANCIAL_DIFFICULTY]: 'Khó khăn tài chính',
-    [CancellationReason.DISSATISFACTION]: 'Không hài lòng',
-    [CancellationReason.DUPLICATE_BOOKING]: 'Đặt trùng lặp',
-    [CancellationReason.TECHNICAL_ERROR]: 'Lỗi kỹ thuật',
-    [CancellationReason.OTHER]: 'Khác'
-  };
+  const reasonLabels = useMemo(() => ({
+    [CancellationReason.PERSONAL_EMERGENCY]: t('booking.cancellationForm.cancellationDetails.reason.types.PERSONAL_EMERGENCY'),
+    [CancellationReason.MEDICAL_EMERGENCY]: t('booking.cancellationForm.cancellationDetails.reason.types.MEDICAL_EMERGENCY'),
+    [CancellationReason.WEATHER_CONDITIONS]: t('booking.cancellationForm.cancellationDetails.reason.types.WEATHER_CONDITIONS'),
+    [CancellationReason.FORCE_MAJEURE]: t('booking.cancellationForm.cancellationDetails.reason.types.FORCE_MAJEURE'),
+    [CancellationReason.TRAVEL_RESTRICTIONS]: t('booking.cancellationForm.cancellationDetails.reason.types.TRAVEL_RESTRICTIONS'),
+    [CancellationReason.SCHEDULE_CONFLICT]: t('booking.cancellationForm.cancellationDetails.reason.types.SCHEDULE_CONFLICT'),
+    [CancellationReason.FINANCIAL_DIFFICULTY]: t('booking.cancellationForm.cancellationDetails.reason.types.FINANCIAL_DIFFICULTY'),
+    [CancellationReason.DISSATISFACTION]: t('booking.cancellationForm.cancellationDetails.reason.types.DISSATISFACTION'),
+    [CancellationReason.DUPLICATE_BOOKING]: t('booking.cancellationForm.cancellationDetails.reason.types.DUPLICATE_BOOKING'),
+    [CancellationReason.TECHNICAL_ERROR]: t('booking.cancellationForm.cancellationDetails.reason.types.TECHNICAL_ERROR'),
+    [CancellationReason.OTHER]: t('booking.cancellationForm.cancellationDetails.reason.types.OTHER')
+  }), [t]);
 
   // Initialize data
   useEffect(() => {
@@ -314,7 +316,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
         id: result.id,
         bookingId: result.bookingId,
         status: result.status,
-        message: 'Yêu cầu hủy booking đã được gửi thành công'
+        message: t('booking.cancellationForm.toast.success.message')
       };
 
       // Dispatch event for CancellationHistory to listen
@@ -337,8 +339,8 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
       const event = new CustomEvent('show-toast', {
         detail: {
           type: 'success',
-          title: 'Gửi yêu cầu thành công!',
-          message: 'Yêu cầu hủy booking của bạn đã được gửi. Chúng tôi sẽ xem xét và phản hồi trong vòng 24h.',
+          title: t('booking.cancellationForm.toast.success.title'),
+          message: t('booking.cancellationForm.toast.success.message'),
           duration: 5000
         }
       });
@@ -354,8 +356,8 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
       const event = new CustomEvent('show-toast', {
         detail: {
           type: 'error',
-          title: 'Lỗi gửi yêu cầu',
-          message: 'Có lỗi xảy ra khi gửi yêu cầu hủy. Vui lòng thử lại.',
+          title: t('booking.cancellationForm.toast.error.title'),
+          message: t('booking.cancellationForm.toast.error.message'),
           duration: 5000
         }
       });
@@ -421,7 +423,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
   const renderBookingSelection = () => (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Chọn booking cần hủy
+        {t('booking.cancellationForm.bookingSelection.title')}
       </h3>
       
       {isLoading ? (
@@ -430,7 +432,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
         </div>
       ) : userBookings.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          <p>Không có booking nào có thể hủy</p>
+          <p>{t('booking.cancellationForm.bookingSelection.noBookings')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -446,14 +448,14 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
                 <div className="flex justify-between items-start">
                   <div>
                     <h4 className="font-semibold text-gray-900">{booking.tourName}</h4>
-                    <p className="text-sm text-gray-600">Mã booking: {booking.bookingCode}</p>
+                    <p className="text-sm text-gray-600">{t('booking.cancellationForm.bookingSelection.bookingCode')} {booking.bookingCode}</p>
                     <p className="text-sm text-gray-600">
-                      Khởi hành: {new Date(booking.startDate).toLocaleDateString('vi-VN')}
+                      {t('booking.cancellationForm.bookingSelection.departure')} {new Date(booking.startDate).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">
-                      {booking.totalPrice != null ? booking.totalPrice.toLocaleString('vi-VN') : '0'} ₫
+                      {booking.totalPrice != null ? booking.totalPrice.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US') : '0'} ₫
                     </p>
                     <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
                       booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
@@ -827,7 +829,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg" title="Yêu cầu hủy booking">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg" title={t('booking.cancellationForm.title')}>
       <div className="px-6 py-4">
 
         {/* Progress Indicator */}
@@ -848,7 +850,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
               }`}
               style={step <= currentStep ? { color: '#D4AF37' } : {}}
               >
-                {step === 1 ? 'Chọn booking' : step === 2 ? 'Chi tiết hủy' : 'Xác nhận'}
+                {step === 1 ? t('booking.cancellationForm.steps.select') : step === 2 ? t('booking.cancellationForm.steps.details') : t('booking.cancellationForm.steps.confirm')}
               </span>
               {step < 3 && (
                 <div className={`w-20 h-0.5 mx-4 ${
@@ -875,7 +877,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
                 disabled={isLoading}
                 className="px-6 py-2.5 border-2 border-slate-900 rounded-none text-sm font-semibold text-slate-900 bg-white hover:bg-slate-900 hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Quay lại
+                {t('booking.cancellationForm.buttons.back')}
               </button>
             )}
           </div>
@@ -886,7 +888,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
               disabled={isLoading}
               className="px-6 py-2.5 border-2 border-stone-300 rounded-none text-sm font-semibold text-gray-700 bg-white hover:bg-stone-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Hủy bỏ
+              {t('booking.cancellationForm.buttons.cancel')}
             </button>
             
             {currentStep < 3 ? (
@@ -896,7 +898,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
                 className="px-6 py-2.5 text-white rounded-none text-sm font-semibold transition-all duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
               >
-                {isLoading ? 'Đang xử lý...' : 'Tiếp tục'}
+                {isLoading ? t('booking.cancellationForm.buttons.processing') : t('booking.cancellationForm.buttons.continue')}
               </button>
             ) : (
               <button
@@ -905,7 +907,7 @@ export const CancellationRequestForm: React.FC<CancellationRequestFormProps> = (
                 className="px-6 py-2.5 text-white rounded-none text-sm font-semibold transition-all duration-300 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
               >
-                {isLoading ? 'Đang gửi...' : 'Gửi yêu cầu hủy'}
+                {isLoading ? t('booking.cancellationForm.buttons.submitting') : t('booking.cancellationForm.buttons.submit')}
               </button>
             )}
           </div>

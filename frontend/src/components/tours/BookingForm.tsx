@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   UsersIcon,
   CreditCardIcon,
@@ -9,7 +10,6 @@ import {
 import { Button } from '../ui';
 import { useAuth } from '../../hooks/useAuth';
 import { tourService } from '../../services';
-import TourScheduleSelector from './TourScheduleSelector';
 import { type TourSchedule } from '../tours';
 import { BookingFormSkeleton } from '../ui/Skeleton';
 
@@ -37,10 +37,10 @@ interface BookingData {
 }
 
 const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = false }) => {
-  // Show skeleton if loading
-  if (isLoading) {
-    return <BookingFormSkeleton />;
-  }
+  // onBooking prop is kept for API compatibility but not used in this component
+  void onBooking;
+  
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   
@@ -58,6 +58,8 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
   
   // Load real schedules from API
   useEffect(() => {
+    if (isLoading) return; // Don't load if component is in loading state
+    
     const loadSchedules = async () => {
       setLoadingSchedules(true);
       try {
@@ -91,7 +93,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
     };
     
     loadSchedules();
-  }, [tour.id]);
+  }, [tour.id, isLoading]);
+
+  // Show skeleton if loading
+  if (isLoading) {
+    return <BookingFormSkeleton />;
+  }
 
   // Calculate prices based on selected schedule or tour default
   const adultPrice = selectedSchedule?.adultPrice || tour.price;
@@ -116,23 +123,23 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
     const newErrors: Record<string, string> = {};
 
     if (!selectedSchedule) {
-      newErrors.schedule = 'Vui lòng chọn lịch khởi hành';
+      newErrors.schedule = t('booking.form.errors.selectSchedule');
     }
 
     if (formData.adults < 1) {
-      newErrors.adults = 'Phải có ít nhất 1 người lớn';
+      newErrors.adults = t('booking.form.errors.atLeastOneAdult');
     }
 
     if (totalPeople > tour.maxPeople) {
-      newErrors.totalPeople = `Tối đa ${tour.maxPeople} người cho tour này`;
+      newErrors.totalPeople = t('booking.form.errors.maxPeople', { count: tour.maxPeople });
     }
 
     if (selectedSchedule && totalPeople > selectedSchedule.availableSeats) {
-      newErrors.totalPeople = `Lịch này chỉ còn ${selectedSchedule.availableSeats} chỗ trống`;
+      newErrors.totalPeople = t('booking.form.errors.availableSeats', { count: selectedSchedule.availableSeats });
     }
 
     if (totalPeople < 1) {
-      newErrors.totalPeople = 'Phải có ít nhất 1 người tham gia';
+      newErrors.totalPeople = t('booking.form.errors.atLeastOnePerson');
     }
 
     setErrors(newErrors);
@@ -177,7 +184,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
@@ -203,24 +210,24 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
             </>
           )}
         </div>
-        <p className="text-base text-gray-700">/ người lớn</p>
+        <p className="text-base text-gray-700">{t('booking.form.perAdult')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Schedule Selection - Responsive */}
         <div>
           <label className="block text-sm font-medium text-slate-900 mb-3 tracking-wide">
-            📅 Chọn lịch khởi hành
+            {t('booking.form.schedule.title')}
           </label>
           
           {loadingSchedules ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderColor: '#D4AF37' }}></div>
-              <p className="text-sm text-gray-500 mt-2 font-normal">Đang tải lịch trình...</p>
+              <p className="text-sm text-gray-500 mt-2 font-normal">{t('booking.form.schedule.loading')}</p>
             </div>
           ) : availableSchedules.length === 0 ? (
             <div className="text-center py-6 bg-amber-50 border-l-4 rounded-none" style={{ borderLeftColor: '#D4AF37' }}>
-              <p className="text-sm text-gray-600 font-normal">Hiện chưa có lịch khởi hành.</p>
+              <p className="text-sm text-gray-600 font-normal">{t('booking.form.schedule.noSchedules')}</p>
             </div>
           ) : (
             <>
@@ -246,17 +253,17 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="font-semibold text-gray-900">
-                            {new Date(schedule.departureDate).toLocaleDateString('vi-VN', {
+                            {new Date(schedule.departureDate).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
                               day: '2-digit',
                               month: '2-digit'
-                            })} - {new Date(schedule.returnDate).toLocaleDateString('vi-VN', {
+                            })} - {new Date(schedule.returnDate).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
                               day: '2-digit',
                               month: '2-digit',
                               year: 'numeric'
                             })}
                           </div>
                           {isSelected && (
-                            <span className="text-blue-600 text-xs">✓ Đã chọn</span>
+                            <span className="text-blue-600 text-xs">{t('booking.form.schedule.selected')}</span>
                           )}
                         </div>
                         
@@ -265,14 +272,14 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
                             ratio > 0.5 ? 'text-green-600' : ratio > 0.2 ? 'text-orange-600' : 'text-red-600'
                           }`}>
                             {ratio > 0.5 
-                              ? `✓ Còn ${schedule.availableSeats} chỗ` 
+                              ? t('booking.form.schedule.available', { count: schedule.availableSeats })
                               : ratio > 0.2 
-                                ? `⚠ Còn ${schedule.availableSeats} chỗ`
-                                : `🔥 Chỉ còn ${schedule.availableSeats} chỗ`
+                                ? t('booking.form.schedule.lowAvailability', { count: schedule.availableSeats })
+                                : t('booking.form.schedule.veryLowAvailability', { count: schedule.availableSeats })
                             }
                           </span>
                           <span className="font-bold text-blue-600">
-                            {schedule.adultPrice.toLocaleString('vi-VN')}đ
+                            {schedule.adultPrice.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')}đ
                           </span>
                         </div>
                         
@@ -294,8 +301,8 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
                     className="w-full mt-3 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
                   >
                     {showAllSchedules 
-                      ? `↑ Thu gọn` 
-                      : `↓ Xem thêm ${availableSchedules.length - 2} lịch khác`
+                      ? t('booking.form.schedule.collapse')
+                      : t('booking.form.schedule.viewMore', { count: availableSchedules.length - 2 })
                     }
                   </button>
                 )}
@@ -310,19 +317,19 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
                   if (schedule) setSelectedSchedule(schedule);
                 }}
               >
-                <option value="">Chọn ngày khởi hành</option>
+                <option value="">{t('booking.form.schedule.selectPlaceholder')}</option>
                 {availableSchedules.map((schedule) => {
                   const maxSeats = schedule.availableSeats + schedule.bookedSeats;
                   const ratio = schedule.availableSeats / maxSeats;
                   const statusText = ratio > 0.5 
-                    ? `Còn ${schedule.availableSeats} chỗ` 
+                    ? t('booking.form.schedule.available', { count: schedule.availableSeats })
                     : ratio > 0.2 
-                      ? `Còn ${schedule.availableSeats} chỗ`
-                      : `Chỉ còn ${schedule.availableSeats} chỗ`;
+                      ? t('booking.form.schedule.lowAvailability', { count: schedule.availableSeats })
+                      : t('booking.form.schedule.veryLowAvailability', { count: schedule.availableSeats });
                   
                   return (
                     <option key={schedule.id} value={schedule.id}>
-                      {new Date(schedule.departureDate).toLocaleDateString('vi-VN')} | {statusText} | {schedule.adultPrice.toLocaleString('vi-VN')}đ
+                      {new Date(schedule.departureDate).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')} | {statusText} | {schedule.adultPrice.toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')}đ
                     </option>
                   );
                 })}
@@ -340,7 +347,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
           <div>
             <label className="block text-sm font-medium text-slate-900 mb-3 tracking-wide">
               <UsersIcon className="h-4 w-4 inline mr-1" style={{ color: '#D4AF37' }} />
-              Người lớn
+              {t('booking.form.participants.adults')}
             </label>
             <select
               value={formData.adults}
@@ -351,7 +358,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
               style={{ accentColor: '#D4AF37' }}
             >
               {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                <option key={num} value={num}>{num} người</option>
+                <option key={num} value={num}>{t('booking.form.participants.adultsCount', { count: num })}</option>
               ))}
             </select>
             {errors.adults && (
@@ -361,7 +368,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
 
           <div>
             <label className="block text-sm font-medium text-slate-900 mb-3 tracking-wide">
-              Trẻ em (&lt; 12 tuổi)
+              {t('booking.form.participants.children')}
             </label>
             <select
               value={formData.children}
@@ -370,7 +377,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
               style={{ accentColor: '#D4AF37' }}
             >
               {[0, 1, 2, 3, 4].map(num => (
-                <option key={num} value={num}>{num} trẻ</option>
+                <option key={num} value={num}>{t('booking.form.participants.childrenCount', { count: num })}</option>
               ))}
             </select>
           </div>
@@ -386,12 +393,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
         {/* Special Requests */}
         <div>
           <label className="block text-sm font-medium text-slate-900 mb-3 tracking-wide">
-            Yêu cầu đặc biệt (tùy chọn)
+            {t('booking.form.specialRequests.title')}
           </label>
           <textarea
             value={formData.specialRequests}
             onChange={(e) => handleInputChange('specialRequests', e.target.value)}
-            placeholder="Ví dụ: Ăn chay, khuyết tật, dị ứng thực phẩm..."
+            placeholder={t('booking.form.specialRequests.placeholder')}
             rows={3}
             className="w-full border border-stone-300 rounded-none px-4 py-3 focus:ring-1 focus:border-slate-700 resize-none font-normal transition-all"
           />
@@ -400,16 +407,16 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
         {/* Price Breakdown */}
         {totalPeople > 0 && selectedSchedule && (
           <div className="bg-stone-50 rounded-none p-6 space-y-3 border border-stone-200">
-            <h4 className="font-medium text-slate-900 tracking-tight">Chi tiết giá</h4>
+            <h4 className="font-medium text-slate-900 tracking-tight">{t('booking.form.priceBreakdown.title')}</h4>
             
             <div className="flex justify-between text-sm font-normal">
-              <span className="text-gray-700">Người lớn ({formData.adults})</span>
+              <span className="text-gray-700">{t('booking.form.priceBreakdown.adults', { count: formData.adults })}</span>
               <span className="text-slate-900">{formatPrice(formData.adults * adultPrice)}</span>
             </div>
             
             {formData.children > 0 && (
               <div className="flex justify-between text-sm font-normal">
-                <span className="text-gray-700">Trẻ em ({formData.children})</span>
+                <span className="text-gray-700">{t('booking.form.priceBreakdown.children', { count: formData.children })}</span>
                 <span className="text-slate-900">{formatPrice(formData.children * childPrice)}</span>
               </div>
             )}
@@ -417,7 +424,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
             <hr className="border-stone-300" />
             
             <div className="flex justify-between font-medium text-xl tracking-tight">
-              <span className="text-slate-900">Tổng cộng</span>
+              <span className="text-slate-900">{t('booking.form.priceBreakdown.total')}</span>
               <span style={{ color: '#D4AF37' }}>{formatPrice(totalPrice)}</span>
             </div>
           </div>
@@ -427,8 +434,8 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
         <div className="flex items-start space-x-3 text-sm text-gray-700 bg-stone-50 p-4 rounded-none border-l-2" style={{ borderLeftColor: '#D4AF37' }}>
           <ShieldCheckIcon className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: '#D4AF37' }} />
           <div>
-            <p className="font-medium text-slate-900 mb-1">Đặt tour an toàn</p>
-            <p className="font-normal">Thông tin của bạn được bảo mật và có thể hủy miễn phí trong 24h</p>
+            <p className="font-medium text-slate-900 mb-1">{t('booking.form.security.title')}</p>
+            <p className="font-normal">{t('booking.form.security.note')}</p>
           </div>
         </div>
 
@@ -447,12 +454,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ tour, onBooking, isLoading = 
           }}
         >
           <CreditCardIcon className="h-5 w-5" />
-          <span>Đặt Tour Ngay</span>
+          <span>{t('booking.form.bookNow')}</span>
         </Button>
 
         {/* Contact Info */}
         <div className="text-center text-sm text-gray-600 font-normal">
-          <p>Cần hỗ trợ? Gọi <span className="font-medium" style={{ color: '#D4AF37' }}>1900 1234</span></p>
+          <p>{t('booking.form.contactSupport', { phone: '1900 1234' })}</p>
         </div>
       </form>
     </div>

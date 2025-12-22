@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   ArrowLeftIcon,
   ShieldCheckIcon,
@@ -27,6 +28,7 @@ interface TourInfo {
 }
 
 const BookingCheckoutPageNew: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -65,52 +67,14 @@ const BookingCheckoutPageNew: React.FC = () => {
   const [appliedPromotion, setAppliedPromotion] = useState<{code: string; discount: number} | null>(null);
   const [isValidatingPromotion, setIsValidatingPromotion] = useState(false);
   const [promotionError, setPromotionError] = useState('');
+  
+  // Voucher code
+  const [voucherCode, setVoucherCode] = useState('');
+  const [appliedVoucher, setAppliedVoucher] = useState<{code: string; discount: number} | null>(null);
+  const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
+  const [voucherError, setVoucherError] = useState('');
 
-  // Load tour data and prefilled data from navigation state
-  useEffect(() => {
-    const tourId = searchParams.get('tourId');
-    const tourSlug = searchParams.get('tourSlug');
-    
-    if (!tourId && !tourSlug) {
-      navigate('/tours');
-      return;
-    }
-
-    loadTourData(tourId, tourSlug);
-    
-    // Load prefilled data from location state (if coming from tour detail page)
-    const locationState = location.state as { prefilledData?: { adults?: number; children?: number; specialRequests?: string; startDate?: string } } | null;
-    let prefilledData = locationState?.prefilledData;
-    
-    // Or from sessionStorage (if user was redirected to login)
-    if (!prefilledData) {
-      const intendedBooking = sessionStorage.getItem('intendedBooking');
-      if (intendedBooking) {
-        try {
-          prefilledData = JSON.parse(intendedBooking);
-          sessionStorage.removeItem('intendedBooking'); // Clean up
-        } catch (e) {
-          console.error('Error parsing intended booking:', e);
-        }
-      }
-    }
-    
-    if (prefilledData) {
-      if (prefilledData.adults) setNumAdults(prefilledData.adults);
-      if (prefilledData.children) setNumChildren(prefilledData.children);
-      if (prefilledData.specialRequests) {
-        setSpecialRequests(prefilledData.specialRequests || '');
-      }
-      
-      // If there's a start date, we need to find and select matching schedule
-      if (prefilledData.startDate) {
-        // Will be handled after schedules are loaded
-        sessionStorage.setItem('prefilledStartDate', prefilledData.startDate);
-      }
-    }
-  }, [searchParams, location.state]);
-
-  const loadTourData = async (tourId: string | null, tourSlug: string | null) => {
+  const loadTourData = useCallback(async (tourId: string | null, tourSlug: string | null) => {
     try {
       let tourData;
       if (tourId) {
@@ -158,10 +122,54 @@ const BookingCheckoutPageNew: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading tour:', error);
-      alert('Không thể tải thông tin tour. Vui lòng thử lại.');
+      alert(t('booking.checkout.errors.loadTour'));
       navigate('/tours');
     }
-  };
+  }, [t, navigate]);
+
+  // Load tour data and prefilled data from navigation state
+  useEffect(() => {
+    const tourId = searchParams.get('tourId');
+    const tourSlug = searchParams.get('tourSlug');
+    
+    if (!tourId && !tourSlug) {
+      navigate('/tours');
+      return;
+    }
+
+    loadTourData(tourId, tourSlug);
+    
+    // Load prefilled data from location state (if coming from tour detail page)
+    const locationState = location.state as { prefilledData?: { adults?: number; children?: number; specialRequests?: string; startDate?: string } } | null;
+    let prefilledData = locationState?.prefilledData;
+    
+    // Or from sessionStorage (if user was redirected to login)
+    if (!prefilledData) {
+      const intendedBooking = sessionStorage.getItem('intendedBooking');
+      if (intendedBooking) {
+        try {
+          prefilledData = JSON.parse(intendedBooking);
+          sessionStorage.removeItem('intendedBooking'); // Clean up
+        } catch (e) {
+          console.error('Error parsing intended booking:', e);
+        }
+      }
+    }
+    
+    if (prefilledData) {
+      if (prefilledData.adults) setNumAdults(prefilledData.adults);
+      if (prefilledData.children) setNumChildren(prefilledData.children);
+      if (prefilledData.specialRequests) {
+        setSpecialRequests(prefilledData.specialRequests || '');
+      }
+      
+      // If there's a start date, we need to find and select matching schedule
+      if (prefilledData.startDate) {
+        // Will be handled after schedules are loaded
+        sessionStorage.setItem('prefilledStartDate', prefilledData.startDate);
+      }
+    }
+  }, [searchParams, location.state, loadTourData, navigate]);
 
   // Calculate prices
   const calculatePrices = () => {
@@ -176,16 +184,22 @@ const BookingCheckoutPageNew: React.FC = () => {
       (numChildren * childPrice);
 
     // Apply promotion discount if exists
-    const discount = appliedPromotion?.discount || 0;
-    const total = subtotal - discount;
+    const promotionDiscount = appliedPromotion?.discount || 0;
+    const totalAfterPromotion = subtotal - promotionDiscount;
+    
+    // Apply voucher discount if exists (voucher is applied after promotion)
+    const voucherDiscount = appliedVoucher?.discount || 0;
+    const total = totalAfterPromotion - voucherDiscount;
+    
+    const totalDiscount = promotionDiscount + voucherDiscount;
 
-    return { subtotal, total, discount, adultPrice, childPrice };
+    return { subtotal, total, discount: totalDiscount, adultPrice, childPrice };
   };
   
   // Apply promotion code
   const handleApplyPromotion = async () => {
     if (!promotionCode.trim()) {
-      setPromotionError('Vui lòng nhập mã giảm giá');
+      setPromotionError(t('booking.checkout.summary.promotionPlaceholder'));
       return;
     }
     
@@ -214,13 +228,15 @@ const BookingCheckoutPageNew: React.FC = () => {
         });
         setPromotionError('');
       } else {
-        setPromotionError('Mã giảm giá không hợp lệ hoặc không áp dụng được');
+        setPromotionError(t('booking.checkout.summary.invalid'));
         setAppliedPromotion(null);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error validating promotion:', error);
       // Backend returns error message in 'error' field, not 'message'
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Mã giảm giá không hợp lệ';
+      const errorMessage = (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error 
+        || (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.message 
+        || t('booking.checkout.summary.invalid');
       setPromotionError(errorMessage);
       setAppliedPromotion(null);
     } finally {
@@ -234,6 +250,61 @@ const BookingCheckoutPageNew: React.FC = () => {
     setPromotionCode('');
     setPromotionError('');
   };
+  
+  // Apply voucher code
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) {
+      setVoucherError('Vui lòng nhập mã voucher');
+      return;
+    }
+    
+    if (!tour) return;
+    
+    setIsValidatingVoucher(true);
+    setVoucherError('');
+    
+    try {
+      // Call API to calculate price with voucher (backend will handle promotion + voucher correctly)
+      const priceResult = await bookingService.calculatePrice({
+        tourId: tour.id,
+        adults: numAdults,
+        children: numChildren,
+        promotionCode: appliedPromotion?.code,
+        voucherCode: voucherCode.trim().toUpperCase()
+      });
+      
+      // Backend returns voucher discount separately
+      const voucherDiscountAmount = priceResult.voucherDiscount || 0;
+      
+      if (voucherDiscountAmount > 0) {
+        // Voucher is valid and gives discount
+        setAppliedVoucher({
+          code: voucherCode.trim().toUpperCase(),
+          discount: voucherDiscountAmount
+        });
+        setVoucherError('');
+      } else {
+        setVoucherError('Voucher không hợp lệ hoặc không áp dụng được');
+        setAppliedVoucher(null);
+      }
+    } catch (error: unknown) {
+      console.error('Error validating voucher:', error);
+      const errorMessage = (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error 
+        || (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.message 
+        || 'Voucher không hợp lệ hoặc không áp dụng được';
+      setVoucherError(errorMessage);
+      setAppliedVoucher(null);
+    } finally {
+      setIsValidatingVoucher(false);
+    }
+  };
+  
+  // Remove applied voucher
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherCode('');
+    setVoucherError('');
+  };
 
   const { total, discount, adultPrice, childPrice } = calculatePrices();
 
@@ -243,20 +314,20 @@ const BookingCheckoutPageNew: React.FC = () => {
     
     // Only require schedule if schedules are available
     if (schedules.length > 0 && !selectedSchedule) {
-      newErrors.schedule = 'Vui lòng chọn lịch khởi hành';
+      newErrors.schedule = t('booking.checkout.schedule.selectSchedule');
     }
     
     const totalPeople = numAdults + numChildren;
     if (totalPeople < 1) {
-      newErrors.people = 'Phải có ít nhất 1 người tham gia';
+      newErrors.people = t('booking.checkout.schedule.atLeastOne');
     }
     
     if (numAdults < 1) {
-      newErrors.adults = 'Phải có ít nhất 1 người lớn';
+      newErrors.adults = t('booking.checkout.schedule.atLeastOneAdult');
     }
 
     if (selectedSchedule && totalPeople > selectedSchedule.availableSeats) {
-      newErrors.people = `Chỉ còn ${selectedSchedule.availableSeats} chỗ trống`;
+      newErrors.people = t('booking.checkout.schedule.onlySeats', { count: selectedSchedule.availableSeats });
     }
 
     setErrors(newErrors);
@@ -277,7 +348,7 @@ const BookingCheckoutPageNew: React.FC = () => {
     });
 
     if (!allComplete) {
-      newErrors.participants = 'Vui lòng điền đầy đủ thông tin hành khách';
+      newErrors.participants = t('booking.checkout.travelerInfo.fillAll');
     }
 
     // Validate first participant has contact info (phone & email)
@@ -285,16 +356,16 @@ const BookingCheckoutPageNew: React.FC = () => {
       const firstParticipant = participants[0];
       
       if (!firstParticipant.email) {
-        newErrors.participants = 'Vui lòng nhập email cho Người lớn 1 (để nhận thông tin booking)';
+        newErrors.participants = t('booking.checkout.travelerInfo.adult1Email');
       }
       
       if (!firstParticipant.phone) {
-        newErrors.participants = 'Vui lòng nhập số điện thoại cho Người lớn 1 (để liên hệ)';
+        newErrors.participants = t('booking.checkout.travelerInfo.adult1Phone');
       } else {
         // Validate phone format (10-11 digits only)
-        const cleanPhone = firstParticipant.phone.replace(/[\s\-\(\)]/g, '');
+        const cleanPhone = firstParticipant.phone.replace(/[\s\-()]/g, '');
         if (!/^[0-9]{10,11}$/.test(cleanPhone)) {
-          newErrors.participants = 'Số điện thoại Người lớn 1 phải có 10-11 chữ số';
+          newErrors.participants = t('booking.checkout.travelerInfo.adult1PhoneFormat');
         }
       }
     }
@@ -307,7 +378,7 @@ const BookingCheckoutPageNew: React.FC = () => {
     const newErrors: Record<string, string> = {};
     
     if (!selectedPaymentMethod) {
-      newErrors.payment = 'Vui lòng chọn phương thức thanh toán';
+      newErrors.payment = t('booking.checkout.payment.selectPayment');
     }
 
     setErrors(newErrors);
@@ -341,53 +412,53 @@ const BookingCheckoutPageNew: React.FC = () => {
   const handleSubmitBooking = async () => {
     if (!validateStep3() || !tour) return;
     
-    // If schedules exist, require one to be selected
-    if (schedules.length > 0 && !selectedSchedule) {
-      alert('Vui lòng chọn lịch khởi hành');
-      return;
-    }
+      // If schedules exist, require one to be selected
+      if (schedules.length > 0 && !selectedSchedule) {
+        alert(t('booking.checkout.errors.noSchedule'));
+        return;
+      }
 
-    setIsSubmitting(true);
-    try {
-      // Use first participant as contact info
-      const contactPerson = participants[0];
-      if (!contactPerson) {
-        alert('❌ Vui lòng quay lại Bước 2 và điền thông tin hành khách');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Validate contact person has required fields
-      if (!contactPerson.phone || !contactPerson.email) {
-        alert('❌ Người lớn 1 cần có đầy đủ Số điện thoại và Email');
-        setIsSubmitting(false);
-        setCurrentStep(2); // Go back to step 2
-        return;
-      }
-      
-      // Clean phone number (remove spaces, dashes, etc)
-      const cleanPhone = (contactPerson.phone || '').replace(/[\s\-\(\)]/g, '');
-      
-      // Validate phone format
-      if (!/^[0-9]{10,11}$/.test(cleanPhone)) {
-        alert('❌ Số điện thoại Người lớn 1 phải có 10-11 chữ số');
-        setIsSubmitting(false);
-        setCurrentStep(2); // Go back to step 2
-        return;
-      }
-      
-      // Validate selected date is not in the past
-      const selectedDate = selectedSchedule?.departureDate;
-      if (selectedDate) {
-        const startDate = new Date(selectedDate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
-        
-        if (startDate < today) {
-          alert('Ngày khởi hành đã chọn đã qua. Vui lòng chọn ngày khác.');
+      setIsSubmitting(true);
+      try {
+        // Use first participant as contact info
+        const contactPerson = participants[0];
+        if (!contactPerson) {
+          alert(t('booking.checkout.errors.noContact'));
+          setIsSubmitting(false);
           return;
         }
-      }
+        
+        // Validate contact person has required fields
+        if (!contactPerson.phone || !contactPerson.email) {
+          alert(t('booking.checkout.errors.noContactFields'));
+          setIsSubmitting(false);
+          setCurrentStep(2); // Go back to step 2
+          return;
+        }
+        
+        // Clean phone number (remove spaces, dashes, etc)
+        const cleanPhone = (contactPerson.phone || '').replace(/[\s\-()]/g, '');
+        
+        // Validate phone format
+        if (!/^[0-9]{10,11}$/.test(cleanPhone)) {
+          alert(t('booking.checkout.errors.invalidPhone'));
+          setIsSubmitting(false);
+          setCurrentStep(2); // Go back to step 2
+          return;
+        }
+        
+        // Validate selected date is not in the past
+        const selectedDate = selectedSchedule?.departureDate;
+        if (selectedDate) {
+          const startDate = new Date(selectedDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+          
+          if (startDate < today) {
+            alert(t('booking.checkout.errors.pastDate'));
+            return;
+          }
+        }
 
       // Create booking using the simpler BookingCreateRequest format
       const bookingRequest = {
@@ -397,11 +468,20 @@ const BookingCheckoutPageNew: React.FC = () => {
         numChildren: numChildren || 0,
         specialRequests: specialRequests || undefined,
         contactPhone: cleanPhone,
-        promotionCode: appliedPromotion?.code || undefined
+        promotionCode: appliedPromotion?.code || undefined,
+        voucherCode: appliedVoucher?.code || undefined
       };
       
       console.log('🔄 Creating booking with request:', bookingRequest);
-      const booking = await bookingService.createBooking(bookingRequest);
+      console.log('🎟️ Voucher code being sent:', appliedVoucher?.code);
+      
+      console.log('🔄 Creating booking with request:', bookingRequest);
+      if (!user?.id) {
+        alert(t('booking.checkout.errors.general'));
+        setIsSubmitting(false);
+        return;
+      }
+      const booking = await bookingService.createBooking(bookingRequest, user.id);
       console.log('✅ Booking created successfully:', booking);
       
       if (!booking || !booking.id) {
@@ -437,14 +517,14 @@ const BookingCheckoutPageNew: React.FC = () => {
               success: true,
               bookingCode: booking.bookingCode,
               bookingId: booking.id,
-              message: 'Đặt tour thành công! Vui lòng hoàn tất thanh toán.'
+              message: t('booking.checkout.payment.confirm')
             }
           }
         });
       }
     } catch (error) {
       console.error('Error creating booking:', error);
-      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || t('booking.checkout.errors.general');
       alert(errorMessage);
       
       // Don't redirect to success page on error
@@ -459,7 +539,7 @@ const BookingCheckoutPageNew: React.FC = () => {
       <div className="min-h-screen bg-stone-50 flex items-center justify-center">
         <div className="text-center animate-fade-in">
           <div className="animate-spin rounded-none h-16 w-16 border-b-2 mx-auto mb-4" style={{ borderColor: '#D4AF37' }}></div>
-          <p className="text-gray-600 font-normal">Đang tải thông tin tour...</p>
+          <p className="text-gray-600 font-normal">{t('booking.checkout.loading')}</p>
         </div>
       </div>
     );
@@ -475,10 +555,10 @@ const BookingCheckoutPageNew: React.FC = () => {
             className="flex items-center text-slate-700 hover:text-slate-900 font-medium mb-6 transition-colors duration-300 group"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2 transition-transform group-hover:-translate-x-1" />
-            {currentStep > 1 ? 'Quay lại bước trước' : 'Quay lại trang tour'}
+            {currentStep > 1 ? t('booking.checkout.backToPrevious') : t('booking.checkout.backToTour')}
           </button>
           
-          <h1 className="text-4xl font-normal text-slate-900 mb-3 tracking-tight">Đặt Tour</h1>
+          <h1 className="text-4xl font-normal text-slate-900 mb-3 tracking-tight">{t('booking.checkout.title')}</h1>
           <p className="text-base text-gray-600 font-normal">{tour.name}</p>
         </div>
 
@@ -486,9 +566,9 @@ const BookingCheckoutPageNew: React.FC = () => {
         <div className="mb-8 bg-white border border-stone-200 rounded-none p-8 animate-fade-in-up opacity-0 delay-100">
           <div className="flex items-center justify-between">
             {[
-              { step: 1, label: 'Chọn lịch & Số người' },
-              { step: 2, label: 'Thông tin hành khách' },
-              { step: 3, label: 'Thanh toán' }
+              { step: 1, label: t('booking.checkout.steps.schedule') },
+              { step: 2, label: t('booking.checkout.steps.travelerInfo') },
+              { step: 3, label: t('booking.checkout.steps.payment') }
             ].map(({ step, label }, index) => (
               <React.Fragment key={step}>
                 <div className="flex items-center">
@@ -536,7 +616,7 @@ const BookingCheckoutPageNew: React.FC = () => {
                       today.setHours(0, 0, 0, 0);
                       
                       if (startDate < today) {
-                        alert('Ngày khởi hành này đã qua. Vui lòng chọn ngày khác.');
+                        alert(t('booking.checkout.schedule.pastDate'));
                         return;
                       }
                       
@@ -550,12 +630,12 @@ const BookingCheckoutPageNew: React.FC = () => {
                 </div>
 
                 <div className="bg-white border border-stone-200 rounded-none p-6">
-                  <h3 className="text-xl font-normal text-slate-900 mb-6 tracking-tight">Số lượng hành khách</h3>
+                  <h3 className="text-xl font-normal text-slate-900 mb-6 tracking-tight">{t('booking.checkout.schedule.title')}</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-                        Người lớn (&gt; 12 tuổi)
+                        {t('booking.checkout.schedule.adults')}
                       </label>
                       <select
                         value={numAdults}
@@ -563,14 +643,14 @@ const BookingCheckoutPageNew: React.FC = () => {
                         className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                       >
                         {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                          <option key={num} value={num}>{num} người</option>
+                          <option key={num} value={num}>{t('booking.checkout.schedule.adultsCount', { count: num })}</option>
                         ))}
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-                        Trẻ em (&lt; 12 tuổi)
+                        {t('booking.checkout.schedule.children')}
                       </label>
                       <select
                         value={numChildren}
@@ -578,7 +658,7 @@ const BookingCheckoutPageNew: React.FC = () => {
                         className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                       >
                         {[0, 1, 2, 3, 4, 5].map(num => (
-                          <option key={num} value={num}>{num} trẻ</option>
+                          <option key={num} value={num}>{t('booking.checkout.schedule.childrenCount', { count: num })}</option>
                         ))}
                       </select>
                     </div>
@@ -601,7 +681,7 @@ const BookingCheckoutPageNew: React.FC = () => {
                 <div className="bg-white border border-stone-200 rounded-none p-6">
                   <div className="mb-6 pb-4 border-b border-stone-200">
                     <p className="text-sm text-slate-900 bg-amber-50 border border-amber-200 p-4 rounded-none font-normal">
-                      💡 <strong className="font-medium">Lưu ý:</strong> Thông tin của <strong className="font-medium">Người lớn 1</strong> sẽ được dùng làm thông tin liên hệ (nhận email xác nhận & gọi điện)
+                      {t('booking.checkout.travelerInfo.note')}
                     </p>
                   </div>
                   
@@ -616,8 +696,7 @@ const BookingCheckoutPageNew: React.FC = () => {
                       name: user.name,
                       email: user.email,
                       phone: user.phone,
-                      dateOfBirth: user.dateOfBirth,
-                      gender: user.gender
+                      dateOfBirth: user.dateOfBirth
                     } : undefined}
                   />
                   {errors.participants && (
@@ -627,16 +706,16 @@ const BookingCheckoutPageNew: React.FC = () => {
 
                 {/* Yêu cầu đặc biệt */}
                 <div className="bg-white border border-stone-200 rounded-none p-6">
-                  <h3 className="text-lg font-normal text-slate-900 mb-4 tracking-tight">Yêu cầu đặc biệt</h3>
+                  <h3 className="text-lg font-normal text-slate-900 mb-4 tracking-tight">{t('booking.checkout.travelerInfo.specialRequests')}</h3>
                   <textarea
                     value={specialRequests}
                     onChange={(e) => setSpecialRequests(e.target.value)}
                     className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                     rows={4}
-                    placeholder="Ví dụ: Ăn chay, dị ứng hải sản, cần xe lăn, phòng gần thang máy..."
+                    placeholder={t('booking.checkout.travelerInfo.specialRequestsPlaceholder')}
                   />
                   <p className="text-xs text-gray-500 mt-2 font-normal">
-                    Chúng tôi sẽ cố gắng đáp ứng yêu cầu của bạn (không đảm bảo 100%)
+                    {t('booking.checkout.travelerInfo.specialRequestsNote')}
                   </p>
                 </div>
               </>
@@ -645,11 +724,11 @@ const BookingCheckoutPageNew: React.FC = () => {
             {/* Step 3: Payment */}
             {currentStep === 3 && (
               <div className="bg-white border border-stone-200 rounded-none p-6">
-                <h3 className="text-xl font-normal text-slate-900 mb-6 tracking-tight">Phương thức thanh toán</h3>
+                <h3 className="text-xl font-normal text-slate-900 mb-6 tracking-tight">{t('booking.checkout.payment.title')}</h3>
                 
                 <div className="space-y-6">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                    <h4 className="text-lg font-semibold text-blue-900 mb-2">Tổng thanh toán</h4>
+                    <h4 className="text-lg font-semibold text-blue-900 mb-2">{t('booking.checkout.payment.total')}</h4>
                     <p className="text-3xl font-bold text-blue-600">
                       {new Intl.NumberFormat('vi-VN', {
                         style: 'currency',
@@ -660,7 +739,7 @@ const BookingCheckoutPageNew: React.FC = () => {
                   
                   {/* Payment Method Selection */}
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Chọn phương thức thanh toán:</h4>
+                    <h4 className="font-medium text-gray-900 mb-3">{t('booking.checkout.payment.selectMethod')}</h4>
                     
                     <div className="space-y-3">
                       {/* VNPay Option */}
@@ -682,8 +761,8 @@ const BookingCheckoutPageNew: React.FC = () => {
                               )}
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">Thanh toán qua VNPay</p>
-                              <p className="text-sm text-gray-500">Thanh toán ngay bằng thẻ ATM/Visa/MasterCard</p>
+                              <p className="font-medium text-gray-900">{t('booking.checkout.payment.vnpay.title')}</p>
+                              <p className="text-sm text-gray-500">{t('booking.checkout.payment.vnpay.description')}</p>
                             </div>
                           </div>
                           <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
@@ -711,8 +790,8 @@ const BookingCheckoutPageNew: React.FC = () => {
                               )}
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">Thanh toán sau</p>
-                              <p className="text-sm text-gray-500">Hoàn tất thanh toán trong vòng 24h</p>
+                              <p className="font-medium text-gray-900">{t('booking.checkout.payment.later.title')}</p>
+                              <p className="text-sm text-gray-500">{t('booking.checkout.payment.later.description')}</p>
                             </div>
                           </div>
                           <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -734,11 +813,11 @@ const BookingCheckoutPageNew: React.FC = () => {
                       disabled={isSubmitting || !selectedPaymentMethod}
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isSubmitting ? 'Đang xử lý...' : 'Xác nhận đặt tour'}
+                      {isSubmitting ? t('booking.checkout.payment.processing') : t('booking.checkout.payment.confirm')}
                     </button>
                     {selectedPaymentMethod === 'VNPAY' && (
                       <p className="text-sm text-gray-500 mt-2">
-                        Bạn sẽ được chuyển đến trang thanh toán VNPay
+                        {t('booking.checkout.payment.redirectNote')}
                       </p>
                     )}
                   </div>
@@ -748,8 +827,8 @@ const BookingCheckoutPageNew: React.FC = () => {
                   <div className="flex items-start">
                     <ShieldCheckIcon className="h-5 w-5 mr-3 mt-0.5" style={{ color: '#D4AF37' }} />
                     <div className="text-sm text-slate-900">
-                      <p className="font-medium tracking-tight">Thanh toán an toàn & bảo mật</p>
-                      <p className="font-normal mt-1">Thông tin thanh toán của bạn được mã hóa và bảo mật tuyệt đối.</p>
+                      <p className="font-medium tracking-tight">{t('booking.checkout.payment.secure')}</p>
+                      <p className="font-normal mt-1">{t('booking.checkout.payment.secureNote')}</p>
                     </div>
                   </div>
                 </div>
@@ -764,7 +843,7 @@ const BookingCheckoutPageNew: React.FC = () => {
                   className="px-8 py-3 text-white rounded-none hover:opacity-90 transition-all duration-300 font-medium tracking-wide"
                   style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                 >
-                  Tiếp tục
+                  {t('common.continue', { defaultValue: 'Continue' })}
                 </Button>
               </div>
             )}
@@ -773,7 +852,7 @@ const BookingCheckoutPageNew: React.FC = () => {
           {/* Sidebar: Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white border border-stone-200 rounded-none p-6 sticky top-4 animate-fade-in-up opacity-0 delay-200">
-              <h3 className="text-lg font-medium text-slate-900 mb-6 tracking-tight">Tóm tắt đơn hàng</h3>
+              <h3 className="text-lg font-medium text-slate-900 mb-6 tracking-tight">{t('booking.checkout.summary.title')}</h3>
               
               {/* Tour Image */}
               {tour.mainImage && (
@@ -790,7 +869,7 @@ const BookingCheckoutPageNew: React.FC = () => {
               {/* Schedule */}
               {selectedSchedule && (
                 <div className="mb-6 pb-4 border-b border-stone-200">
-                  <p className="text-sm text-gray-600 font-normal">Khởi hành</p>
+                  <p className="text-sm text-gray-600 font-normal">{t('booking.checkout.summary.departure')}</p>
                   <p className="font-medium text-slate-900 mt-1">{new Date(selectedSchedule.departureDate).toLocaleDateString('vi-VN')}</p>
                 </div>
               )}
@@ -798,7 +877,7 @@ const BookingCheckoutPageNew: React.FC = () => {
               {/* Promotion Code Section */}
               <div className="mb-6 pb-4 border-b border-gray-200">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  🎁 Mã giảm giá
+                  {t('booking.checkout.summary.promotionCode')}
                 </label>
                 {!appliedPromotion ? (
                   <div className="flex gap-2">
@@ -806,7 +885,7 @@ const BookingCheckoutPageNew: React.FC = () => {
                       type="text"
                       value={promotionCode}
                       onChange={(e) => setPromotionCode(e.target.value.toUpperCase())}
-                      placeholder="Nhập mã giảm giá"
+                      placeholder={t('booking.checkout.summary.promotionPlaceholder')}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm uppercase"
                       disabled={isValidatingPromotion}
                     />
@@ -815,7 +894,7 @@ const BookingCheckoutPageNew: React.FC = () => {
                       disabled={isValidatingPromotion || !promotionCode.trim()}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium transition-colors"
                     >
-                      {isValidatingPromotion ? '...' : 'Áp dụng'}
+                      {isValidatingPromotion ? '...' : t('booking.checkout.summary.apply')}
                     </button>
                   </div>
                 ) : (
@@ -823,14 +902,14 @@ const BookingCheckoutPageNew: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-green-600">✓</span>
                       <span className="text-sm font-medium text-green-700">
-                        Mã "{appliedPromotion.code}" đã được áp dụng
+                        {t('booking.checkout.summary.applied', { code: appliedPromotion.code })}
                       </span>
                     </div>
                     <button
                       onClick={handleRemovePromotion}
                       className="text-sm text-red-600 hover:text-red-700 font-medium"
                     >
-                      Xóa
+                      {t('booking.checkout.summary.remove')}
                     </button>
                   </div>
                 )}
@@ -839,32 +918,88 @@ const BookingCheckoutPageNew: React.FC = () => {
                 )}
               </div>
 
+              {/* Voucher Code Section */}
+              <div className="mb-6 pb-4 border-b border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mã Voucher
+                </label>
+                {!appliedVoucher ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={voucherCode}
+                      onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                      placeholder="Nhập mã voucher"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm uppercase"
+                      disabled={isValidatingVoucher}
+                    />
+                    <button
+                      onClick={handleApplyVoucher}
+                      disabled={isValidatingVoucher || !voucherCode.trim()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                    >
+                      {isValidatingVoucher ? '...' : 'Áp dụng'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600">✓</span>
+                      <span className="text-sm font-medium text-green-700">
+                        Đã áp dụng: {appliedVoucher.code} (-{appliedVoucher.discount.toLocaleString()} VND)
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleRemoveVoucher}
+                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                )}
+                {voucherError && (
+                  <p className="mt-2 text-sm text-red-600">{voucherError}</p>
+                )}
+              </div>
+
               {/* Price Breakdown */}
               <div className="space-y-3 mb-6">
                 {numAdults > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 font-normal">Người lớn ({numAdults})</span>
+                    <span className="text-gray-600 font-normal">{t('booking.checkout.summary.adults', { count: numAdults })}</span>
                     <span className="font-medium text-slate-900">{(adultPrice * numAdults).toLocaleString('vi-VN')}đ</span>
                   </div>
                 )}
                 {numChildren > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 font-normal">Trẻ em ({numChildren})</span>
+                    <span className="text-gray-600 font-normal">{t('booking.checkout.summary.children', { count: numChildren })}</span>
                     <span className="font-medium text-slate-900">{(childPrice * numChildren).toLocaleString('vi-VN')}đ</span>
                   </div>
                 )}
               </div>
 
-              {discount > 0 && (
+              {appliedPromotion && appliedPromotion.discount > 0 && (
+                <div className="flex justify-between text-sm mb-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <span className="font-medium text-yellow-800">Giảm giá (Mã: {appliedPromotion.code})</span>
+                  <span className="font-bold text-yellow-600">-{appliedPromotion.discount.toLocaleString('vi-VN')}đ</span>
+                </div>
+              )}
+              {appliedVoucher && appliedVoucher.discount > 0 && (
+                <div className="flex justify-between text-sm mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <span className="font-medium text-green-800">Voucher (Mã: {appliedVoucher.code})</span>
+                  <span className="font-bold text-green-600">-{appliedVoucher.discount.toLocaleString('vi-VN')}đ</span>
+                </div>
+              )}
+              {(!appliedPromotion && !appliedVoucher) && discount > 0 && (
                 <div className="flex justify-between text-sm mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <span className="font-medium text-yellow-800">💰 Giảm giá ({appliedPromotion?.code})</span>
+                  <span className="font-medium text-yellow-800">{t('booking.checkout.summary.discount', { code: appliedPromotion?.code || '' })}</span>
                   <span className="font-bold text-yellow-600">-{discount.toLocaleString('vi-VN')}đ</span>
                 </div>
               )}
 
               <div className="border-t border-stone-200 pt-5">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-medium text-slate-900 tracking-tight">Tổng cộng</span>
+                  <span className="text-lg font-medium text-slate-900 tracking-tight">{t('booking.checkout.summary.total')}</span>
                   <span className="text-2xl font-normal tracking-tight" style={{ color: '#D4AF37' }}>
                     {total.toLocaleString('vi-VN')}đ
                   </span>

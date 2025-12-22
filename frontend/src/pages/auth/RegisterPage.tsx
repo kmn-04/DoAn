@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 import { 
   EnvelopeIcon, 
   LockClosedIcon,
@@ -14,74 +15,84 @@ import {
 import { Button, Input, Card, CardContent } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
 
-// Validation schema
-const registerSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Họ tên là bắt buộc')
-    .min(2, 'Họ tên phải có ít nhất 2 ký tự')
-    .max(50, 'Họ tên không được quá 50 ký tự'),
-  email: z
-    .string()
-    .min(1, 'Email là bắt buộc')
-    .email('Email không hợp lệ'),
-  phone: z
-    .string()
-    .min(1, 'Số điện thoại là bắt buộc')
-    .min(10, 'Số điện thoại phải có ít nhất 10 chữ số')
-    .max(15, 'Số điện thoại không được quá 15 chữ số')
-    .regex(
-      /^[0-9+\-\s()]*$/,
-      'Số điện thoại chỉ được chứa số và ký tự +, -, (, )'
-    )
-    .refine(
-      (val) => val.replace(/[^0-9]/g, '').length >= 10,
-      'Số điện thoại phải có ít nhất 10 chữ số'
-    ),
-  dateOfBirth: z
-    .string()
-    .min(1, 'Ngày sinh là bắt buộc')
-    .refine(
-      (val) => {
-        const date = new Date(val);
-        const age = (new Date().getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 365);
-        return age >= 16 && age <= 120;
-      },
-      'Bạn phải từ 16 tuổi trở lên'
-    ),
-  gender: z
-    .enum(['MALE', 'FEMALE', 'OTHER'], {
-      errorMap: () => ({ message: 'Vui lòng chọn giới tính' })
-    }),
-  password: z
-    .string()
-    .min(1, 'Mật khẩu là bắt buộc')
-    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Mật khẩu phải chứa ít nhất 1 chữ thường, 1 chữ hoa và 1 số'
-    ),
-  confirmPassword: z
-    .string()
-    .min(1, 'Xác nhận mật khẩu là bắt buộc'),
-  acceptTerms: z
-    .boolean()
-    .refine(val => val === true, 'Bạn phải đồng ý với điều khoản dịch vụ'),
-}).refine(
-  (data) => data.password === data.confirmPassword,
-  {
-    message: 'Mật khẩu xác nhận không khớp',
-    path: ['confirmPassword'],
-  }
-);
-
-type RegisterFormData = z.infer<typeof registerSchema>;
+type RegisterFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: 'MALE' | 'FEMALE' | 'OTHER';
+  password: string;
+  confirmPassword: string;
+  acceptTerms: boolean;
+};
 
 const RegisterPage: React.FC = () => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register: registerUser, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Validation schema with translations
+  const registerSchema = useMemo(() => z.object({
+    name: z
+      .string()
+      .min(1, t('authErrors.nameRequired'))
+      .min(2, t('authErrors.nameMin'))
+      .max(50, t('authErrors.nameMax')),
+    email: z
+      .string()
+      .min(1, t('authErrors.emailRequired'))
+      .email(t('authErrors.emailInvalid')),
+    phone: z
+      .string()
+      .min(1, t('authErrors.phoneRequired'))
+      .min(10, t('authErrors.phoneMin'))
+      .max(15, t('authErrors.phoneMax'))
+      .regex(
+        /^[0-9+\-\s()]*$/,
+        t('authErrors.phoneInvalid')
+      )
+      .refine(
+        (val) => val.replace(/[^0-9]/g, '').length >= 10,
+        t('authErrors.phoneDigits')
+      ),
+    dateOfBirth: z
+      .string()
+      .min(1, t('authErrors.dateOfBirthRequired'))
+      .refine(
+        (val) => {
+          const date = new Date(val);
+          const age = (new Date().getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 365);
+          return age >= 16 && age <= 120;
+        },
+        t('authErrors.ageRequirement')
+      ),
+    gender: z
+      .enum(['MALE', 'FEMALE', 'OTHER'], {
+        errorMap: () => ({ message: t('authErrors.genderRequired') })
+      }),
+    password: z
+      .string()
+      .min(1, t('authErrors.passwordRequired'))
+      .min(6, t('authErrors.passwordMin'))
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        t('authErrors.passwordComplexity')
+      ),
+    confirmPassword: z
+      .string()
+      .min(1, t('authErrors.confirmPasswordRequired')),
+    acceptTerms: z
+      .boolean()
+      .refine(val => val === true, t('authErrors.acceptTermsRequired')),
+  }).refine(
+    (data) => data.password === data.confirmPassword,
+    {
+      message: t('authErrors.passwordMismatch'),
+      path: ['confirmPassword'],
+    }
+  ), [t]);
 
   const {
     register,
@@ -144,16 +155,16 @@ const RegisterPage: React.FC = () => {
         </div>
         
         <h2 className="mt-8 text-center text-4xl font-normal text-white tracking-tight animate-fade-in-up opacity-0 delay-100">
-          Tạo tài khoản TourBooking
+          {t('auth.registerTitle')}
         </h2>
         <p className="mt-3 text-center text-sm text-gray-300 font-normal animate-fade-in-up opacity-0 delay-200">
-          Hoặc{' '}
+          {t('auth.registerSubtitle')}{' '}
           <Link
             to="/login"
             className="font-medium hover:opacity-80 transition-opacity"
             style={{ color: '#D4AF37' }}
           >
-            đăng nhập với tài khoản có sẵn
+            {t('auth.loginWithExistingAccount')}
           </Link>
         </p>
       </div>
@@ -165,9 +176,9 @@ const RegisterPage: React.FC = () => {
               {/* Name Input */}
               <Input
                 {...register('name')}
-                label="Họ và tên"
+                label={t('auth.name')}
                 type="text"
-                placeholder="Nhập họ và tên của bạn"
+                placeholder={t('auth.namePlaceholder')}
                 leftIcon={<UserIcon className="h-4 w-4" />}
                 error={errors.name?.message}
                 disabled={isLoading}
@@ -176,9 +187,9 @@ const RegisterPage: React.FC = () => {
               {/* Email Input */}
               <Input
                 {...register('email')}
-                label="Email"
+                label={t('auth.email')}
                 type="email"
-                placeholder="Nhập email của bạn"
+                placeholder={t('auth.emailPlaceholder')}
                 leftIcon={<EnvelopeIcon className="h-4 w-4" />}
                 error={errors.email?.message}
                 disabled={isLoading}
@@ -187,9 +198,9 @@ const RegisterPage: React.FC = () => {
               {/* Phone Input */}
               <Input
                 {...register('phone')}
-                label="Số điện thoại"
+                label={t('auth.phone')}
                 type="tel"
-                placeholder="Nhập số điện thoại (VD: 0912345678)"
+                placeholder={t('auth.phonePlaceholder')}
                 leftIcon={<PhoneIcon className="h-4 w-4" />}
                 error={errors.phone?.message}
                 disabled={isLoading}
@@ -199,7 +210,7 @@ const RegisterPage: React.FC = () => {
               {/* Date of Birth */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ngày sinh <span className="text-red-500">*</span>
+                  {t('auth.dateOfBirth')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   {...register('dateOfBirth')}
@@ -217,7 +228,7 @@ const RegisterPage: React.FC = () => {
               {/* Gender */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Giới tính <span className="text-red-500">*</span>
+                  {t('auth.gender')} <span className="text-red-500">*</span>
                 </label>
                 <select
                   {...register('gender')}
@@ -225,9 +236,9 @@ const RegisterPage: React.FC = () => {
                   disabled={isLoading}
                   required
                 >
-                  <option value="MALE">Nam</option>
-                  <option value="FEMALE">Nữ</option>
-                  <option value="OTHER">Khác</option>
+                  <option value="MALE">{t('auth.genderMale')}</option>
+                  <option value="FEMALE">{t('auth.genderFemale')}</option>
+                  <option value="OTHER">{t('auth.genderOther')}</option>
                 </select>
                 {errors.gender && (
                   <p className="mt-1 text-sm text-red-600 font-normal">{errors.gender.message}</p>
@@ -238,9 +249,9 @@ const RegisterPage: React.FC = () => {
               <div className="relative">
                 <Input
                   {...register('password')}
-                  label="Mật khẩu"
+                  label={t('auth.password')}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Nhập mật khẩu"
+                  placeholder={t('auth.passwordPlaceholder')}
                   leftIcon={<LockClosedIcon className="h-4 w-4" />}
                   rightIcon={
                     <button
@@ -262,7 +273,7 @@ const RegisterPage: React.FC = () => {
                 {/* Password Strength Indicator */}
                 {password && (
                   <div className="mt-2 space-y-1">
-                    <div className="text-xs text-gray-600">Độ mạnh mật khẩu:</div>
+                    <div className="text-xs text-gray-600">{t('auth.passwordStrength')}</div>
                     <div className="flex space-x-1">
                       <div className={`h-1 flex-1 rounded ${password.length >= 6 ? 'bg-green-500' : 'bg-gray-300'}`} />
                       <div className={`h-1 flex-1 rounded ${/[A-Z]/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`} />
@@ -276,9 +287,9 @@ const RegisterPage: React.FC = () => {
               {/* Confirm Password Input */}
               <Input
                 {...register('confirmPassword')}
-                label="Xác nhận mật khẩu"
+                label={t('auth.confirmPassword')}
                 type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Nhập lại mật khẩu"
+                placeholder={t('auth.confirmPasswordPlaceholder')}
                 leftIcon={<LockClosedIcon className="h-4 w-4" />}
                 rightIcon={
                   <button
@@ -311,13 +322,13 @@ const RegisterPage: React.FC = () => {
                 </div>
                 <div className="ml-3 text-sm">
                   <label htmlFor="accept-terms" className="text-slate-900 font-normal">
-                    Tôi đồng ý với{' '}
+                    {t('auth.acceptTerms')}{' '}
                     <Link to="/terms" className="font-medium hover:opacity-80 transition-opacity" style={{ color: '#D4AF37' }}>
-                      Điều khoản dịch vụ
+                      {t('auth.termsOfServiceLink')}
                     </Link>{' '}
-                    và{' '}
+                    {t('auth.and')}{' '}
                     <Link to="/privacy" className="font-medium hover:opacity-80 transition-opacity" style={{ color: '#D4AF37' }}>
-                      Chính sách bảo mật
+                      {t('auth.privacyPolicyLink')}
                     </Link>
                   </label>
                   {errors.acceptTerms && (
@@ -334,7 +345,7 @@ const RegisterPage: React.FC = () => {
                 loading={isLoading}
                 disabled={isLoading}
               >
-                {isLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
+                {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
               </Button>
 
               {/* Divider */}
@@ -344,7 +355,7 @@ const RegisterPage: React.FC = () => {
                     <div className="w-full border-t border-stone-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-3 bg-white text-gray-500 font-normal">Hoặc đăng ký với</span>
+                    <span className="px-3 bg-white text-gray-500 font-normal">{t('auth.orRegisterWith')}</span>
                   </div>
                 </div>
 

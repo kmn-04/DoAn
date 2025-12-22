@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { UserIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
+import { UserIcon } from '@heroicons/react/24/outline';
 
 export interface Participant {
   fullName: string;
@@ -41,6 +42,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
   className = '',
   currentUser
 }) => {
+  const { t } = useTranslation();
   const totalParticipants = numAdults + numChildren + numInfants;
 
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
@@ -59,7 +61,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
             dateOfBirth: currentUser.dateOfBirth || '',
             gender: currentUser.gender || 'MALE',
             type: 'ADULT',
-            nationality: isInternational ? '' : 'Việt Nam',
+            nationality: isInternational ? '' : t('booking.checkout.travelerInfo.defaultNationality'),
             email: currentUser.email || '',
             phone: currentUser.phone || ''
           });
@@ -69,7 +71,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
             dateOfBirth: '',
             gender: 'MALE',
             type: 'ADULT',
-            nationality: isInternational ? '' : 'Việt Nam'
+            nationality: isInternational ? '' : t('booking.checkout.travelerInfo.defaultNationality')
           });
         }
       }
@@ -81,7 +83,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
           dateOfBirth: '',
           gender: 'MALE',
           type: 'CHILD',
-          nationality: isInternational ? '' : 'Việt Nam'
+          nationality: isInternational ? '' : t('booking.checkout.travelerInfo.defaultNationality')
         });
       }
       
@@ -92,13 +94,13 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
           dateOfBirth: '',
           gender: 'MALE',
           type: 'INFANT',
-          nationality: isInternational ? '' : 'Việt Nam'
+          nationality: isInternational ? '' : t('booking.checkout.travelerInfo.defaultNationality')
         });
       }
       
       onParticipantsChange(initial);
     }
-  }, [numAdults, numChildren, numInfants, totalParticipants, participants.length, onParticipantsChange, isInternational, currentUser]);
+  }, [numAdults, numChildren, numInfants, totalParticipants, participants.length, onParticipantsChange, isInternational, currentUser, t]);
 
   const updateParticipant = (index: number, field: keyof Participant, value: string) => {
     const updated = [...participants];
@@ -108,9 +110,9 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
 
   const getTypeLabel = (type: Participant['type'], index: number) => {
     const typeMap = {
-      ADULT: 'Người lớn',
-      CHILD: 'Trẻ em',
-      INFANT: 'Em bé'
+      ADULT: t('booking.checkout.travelerInfo.participantTypes.adult'),
+      CHILD: t('booking.checkout.travelerInfo.participantTypes.child'),
+      INFANT: t('booking.checkout.travelerInfo.participantTypes.infant')
     };
     
     // Count position within type
@@ -134,7 +136,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
     <div className={className}>
       <h3 className="text-xl font-normal text-slate-900 mb-6 flex items-center tracking-tight">
         <UserIcon className="h-6 w-6 mr-3" style={{ color: '#D4AF37' }} />
-        Thông tin hành khách
+        {t('booking.checkout.travelerInfo.title')}
       </h3>
 
       <div className="space-y-4">
@@ -177,7 +179,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                 </div>
                 <div className="flex items-center space-x-3">
                   {isComplete && !isExpanded && (
-                    <span className="text-sm font-medium" style={{ color: '#D4AF37' }}>✓ Hoàn thành</span>
+                    <span className="text-sm font-medium" style={{ color: '#D4AF37' }}>{t('booking.checkout.travelerInfo.completed')}</span>
                   )}
                   <span className="text-gray-400">
                     {isExpanded ? '▲' : '▼'}
@@ -192,13 +194,13 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                     {/* Full Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Họ và tên <span className="text-red-500">*</span>
+                        {t('booking.checkout.travelerInfo.fields.fullName')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={participant.fullName}
                         onChange={(e) => updateParticipant(index, 'fullName', e.target.value)}
-                        placeholder="Nguyễn Văn A"
+                        placeholder={t('booking.checkout.travelerInfo.placeholders.fullName')}
                         className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         required
                       />
@@ -207,7 +209,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                     {/* Date of Birth */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Ngày sinh <span className="text-red-500">*</span>
+                        {t('booking.checkout.travelerInfo.fields.dateOfBirth')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="date"
@@ -221,7 +223,7 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                     {/* Gender */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Giới tính <span className="text-red-500">*</span>
+                        {t('booking.checkout.travelerInfo.fields.gender')} <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={participant.gender}
@@ -229,9 +231,9 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                         className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         required
                       >
-                        <option value="MALE">Nam</option>
-                        <option value="FEMALE">Nữ</option>
-                        <option value="OTHER">Khác</option>
+                        <option value="MALE">{t('booking.checkout.travelerInfo.genderOptions.male')}</option>
+                        <option value="FEMALE">{t('booking.checkout.travelerInfo.genderOptions.female')}</option>
+                        <option value="OTHER">{t('booking.checkout.travelerInfo.genderOptions.other')}</option>
                       </select>
                     </div>
 
@@ -239,13 +241,13 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                     {participant.type === 'ADULT' && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Số điện thoại
+                          {t('booking.checkout.travelerInfo.fields.phone')}
                         </label>
                         <input
                           type="tel"
                           value={participant.phone || ''}
                           onChange={(e) => updateParticipant(index, 'phone', e.target.value)}
-                          placeholder="0901234567"
+                          placeholder={t('booking.checkout.travelerInfo.placeholders.phone')}
                           className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         />
                       </div>
@@ -255,13 +257,13 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                     {participant.type === 'ADULT' && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Email
+                          {t('booking.checkout.travelerInfo.fields.email')}
                         </label>
                         <input
                           type="email"
                           value={participant.email || ''}
                           onChange={(e) => updateParticipant(index, 'email', e.target.value)}
-                          placeholder="email@example.com"
+                          placeholder={t('booking.checkout.travelerInfo.placeholders.email')}
                           className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         />
                       </div>
@@ -271,13 +273,13 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                     {isInternational ? (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Số hộ chiếu <span className="text-red-500">*</span>
+                          {t('booking.checkout.travelerInfo.fields.passportNumber')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={participant.passportNumber || ''}
                           onChange={(e) => updateParticipant(index, 'passportNumber', e.target.value)}
-                          placeholder="A1234567"
+                          placeholder={t('booking.checkout.travelerInfo.placeholders.passportNumber')}
                           className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                           required
                         />
@@ -285,13 +287,13 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                     ) : (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          CMND/CCCD
+                          {t('booking.checkout.travelerInfo.fields.idNumber')}
                         </label>
                         <input
                           type="text"
                           value={participant.idNumber || ''}
                           onChange={(e) => updateParticipant(index, 'idNumber', e.target.value)}
-                          placeholder="001234567890"
+                          placeholder={t('booking.checkout.travelerInfo.placeholders.idNumber')}
                           className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         />
                       </div>
@@ -300,13 +302,13 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
                     {/* Nationality */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Quốc tịch {isInternational && <span className="text-red-500">*</span>}
+                        {t('booking.checkout.travelerInfo.fields.nationality')} {isInternational && <span className="text-red-500">*</span>}
                       </label>
                       <input
                         type="text"
                         value={participant.nationality || ''}
                         onChange={(e) => updateParticipant(index, 'nationality', e.target.value)}
-                        placeholder="Việt Nam"
+                        placeholder={t('booking.checkout.travelerInfo.placeholders.nationality')}
                         className="w-full px-3 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal"
                         required={isInternational}
                       />
@@ -322,10 +324,10 @@ const ParticipantForm: React.FC<ParticipantFormProps> = ({
       {/* Summary */}
       <div className="mt-6 bg-stone-50 border border-stone-200 rounded-none p-4">
         <p className="text-sm text-slate-900 font-normal">
-          📋 Tổng số hành khách: <strong className="font-medium">{totalParticipants}</strong> người 
-          ({numAdults} người lớn
-          {numChildren > 0 && `, ${numChildren} trẻ em`}
-          {numInfants > 0 && `, ${numInfants} em bé`})
+          {t('booking.checkout.travelerInfo.summary.title')} <strong className="font-medium">{totalParticipants}</strong> {t('booking.checkout.travelerInfo.summary.people')} 
+          ({t('booking.checkout.travelerInfo.summary.adults', { count: numAdults })}
+          {numChildren > 0 && `, ${t('booking.checkout.travelerInfo.summary.children', { count: numChildren })}`}
+          {numInfants > 0 && `, ${t('booking.checkout.travelerInfo.summary.infants', { count: numInfants })}`})
         </p>
       </div>
     </div>

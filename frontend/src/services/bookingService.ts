@@ -127,6 +127,7 @@ export interface BookingCreateRequest {
   specialRequests?: string;
   contactPhone?: string;
   promotionCode?: string;
+  voucherCode?: string;
 }
 
 export interface BookingUpdateRequest {
@@ -261,9 +262,12 @@ const bookingService = {
     adults: number;
     children?: number;
     promotionCode?: string;
+    voucherCode?: string;
   }): Promise<{
     subtotal: number;
     discount: number;
+    promotionDiscount?: number;
+    voucherDiscount?: number;
     total: number;
     adultPrice: number;
     childPrice: number;
@@ -271,6 +275,8 @@ const bookingService = {
     children: number;
     promotionCode?: string;
     promotionDescription?: string;
+    voucherCode?: string;
+    voucherDescription?: string;
   }> => {
     const response = await apiClient.get('/bookings/calculate-price', {
       params

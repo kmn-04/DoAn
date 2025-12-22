@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Bars3Icon, 
@@ -14,6 +14,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
 import { NotificationCenter } from '../notifications';
+import LanguageSwitcher from '../common/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,6 +28,7 @@ const Header: React.FC = () => {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const tourDropdownRef = useRef<HTMLDivElement>(null);
   const tourDropdownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { t } = useTranslation();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -83,41 +86,41 @@ const Header: React.FC = () => {
   };
 
   // Tour categories for dropdown
-  const tourCategories = [
-    { name: 'Tour Trong Nước', href: '/tours?tourType=domestic' },
-    { name: 'Tour Quốc Tế', href: '/tours?tourType=international' },
-    { name: 'Tour Châu Á', href: '/tours?continent=Asia' },
-    { name: 'Tour Châu Âu', href: '/tours?continent=Europe' },
-    { name: 'Tour Châu Mỹ', href: '/tours?continent=America' },
-    { name: 'Tour Châu Phi', href: '/tours?continent=Africa' },
-    { name: 'Tour Châu Đại Dương', href: '/tours?continent=Oceania' },
-  ];
+  const tourCategories = useMemo(() => [
+    { name: t('header.tourCategories.domestic'), href: '/tours?tourType=domestic' },
+    { name: t('header.tourCategories.international'), href: '/tours?tourType=international' },
+    { name: t('header.tourCategories.asia'), href: '/tours?continent=Asia' },
+    { name: t('header.tourCategories.europe'), href: '/tours?continent=Europe' },
+    { name: t('header.tourCategories.america'), href: '/tours?continent=America' },
+    { name: t('header.tourCategories.africa'), href: '/tours?continent=Africa' },
+    { name: t('header.tourCategories.oceania'), href: '/tours?continent=Oceania' },
+  ], [t]);
 
-  const navigation = [
-    { name: 'Trang chủ', href: '/dashboard', current: location.pathname === '/dashboard' },
+  const navigation = useMemo(() => [
+    { name: t('navigation.home'), href: '/dashboard', current: location.pathname === '/dashboard' },
     { 
-      name: 'Tour du lịch', 
+      name: t('navigation.tours'), 
       href: '/tours', 
       current: location.pathname === '/tours',
       hasDropdown: true
     },
-    { name: 'Đối tác', href: '/partners', current: location.pathname === '/partners' || location.pathname.startsWith('/partners/') },
-    { name: 'Về chúng tôi', href: '/about', current: location.pathname === '/about' },
-    { name: 'Liên hệ', href: '/contact', current: location.pathname === '/contact' },
-  ];
+    { name: t('navigation.partners'), href: '/partners', current: location.pathname === '/partners' || location.pathname.startsWith('/partners/') },
+    { name: t('navigation.about'), href: '/about', current: location.pathname === '/about' },
+    { name: t('navigation.contact'), href: '/contact', current: location.pathname === '/contact' },
+  ], [location.pathname, t]);
 
   // ✅ UPDATED: Clean user navigation - cancellation history is now integrated into booking page
-  const userNavigation = [
-    { name: 'Hồ sơ cá nhân', href: '/profile', icon: UserCircleIcon },
-    { name: 'Booking của tôi', href: '/bookings', icon: ShoppingBagIcon },
-    { name: 'Điểm thưởng', href: '/loyalty', icon: SparklesIcon },
-    { name: 'Tour yêu thích', href: '/wishlist', icon: HeartIcon },
-  ];
+  const userNavigation = useMemo(() => [
+    { name: t('userMenu.profile'), href: '/profile', icon: UserCircleIcon },
+    { name: t('userMenu.bookings'), href: '/bookings', icon: ShoppingBagIcon },
+    { name: t('userMenu.loyalty'), href: '/loyalty', icon: SparklesIcon },
+    { name: t('userMenu.wishlist'), href: '/wishlist', icon: HeartIcon },
+  ], [t]);
 
   // Admin-only navigation item
   // Debug: Log user role
   const adminNavigation = user?.role?.name?.toUpperCase() === 'ADMIN' 
-    ? [{ name: 'Quay lại Admin', href: '/admin', icon: ShieldCheckIcon }] 
+    ? [{ name: t('header.adminPortal'), href: '/admin', icon: ShieldCheckIcon }] 
     : [];
   return (
     <header className="bg-white shadow-sm border-b border-stone-200 relative z-50">
@@ -134,8 +137,8 @@ const Header: React.FC = () => {
                 </svg>
               </div>
               <div>
-                  <h1 className="text-xl font-semibold text-white tracking-wide">TourBooking</h1>
-                  <p className="text-xs text-gray-300 font-normal tracking-wider">Khám phá vẻ đẹp thế giới</p>
+                <h1 className="text-xl font-semibold text-white tracking-wide">TourBooking</h1>
+                <p className="text-xs text-gray-300 font-normal tracking-wider">{t('header.tagline')}</p>
               </div>
             </Link>
           </div>
@@ -150,7 +153,7 @@ const Header: React.FC = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Bạn muốn đi đâu?"
+                  placeholder={t('common.searchPlaceholder')}
                   className="block w-full pl-12 pr-3 py-2.5 border border-slate-700 rounded-none leading-5 bg-slate-800 text-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-500 focus:ring-1 focus:border-[#D4AF37] font-normal text-sm"
                 />
                 <button type="submit" className="absolute inset-y-0 right-0 pr-2 flex items-center">
@@ -161,13 +164,18 @@ const Header: React.FC = () => {
               </div>
             </form>
 
+            {/* Language Switcher */}
+            <div className="hidden lg:block">
+              <LanguageSwitcher />
+            </div>
+
             {/* Hotline */}
             <div className="hidden lg:flex items-center space-x-3 text-white px-5 py-2.5 rounded-none transition-all border shadow-lg" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)', borderColor: '#C5A028' }}>
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M2 3.5A1.5 1.5 0 013.5 2h1.148a1.5 1.5 0 011.465 1.175l.716 3.223a1.5 1.5 0 01-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 006.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 011.767-1.052l3.223.716A1.5 1.5 0 0118 15.352V16.5a1.5 1.5 0 01-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 012.43 8.326 13.019 13.019 0 012 5V3.5z" clipRule="evenodd" />
               </svg>
               <div className="text-sm">
-                <div className="font-normal text-xs tracking-wide">Hotline</div>
+                <div className="font-normal text-xs tracking-wide">{t('header.hotline')}</div>
                 <div className="font-semibold tracking-wider">(+84) 868.541.104</div>
               </div>
             </div>
@@ -175,7 +183,7 @@ const Header: React.FC = () => {
             {/* Mobile Search Icon */}
             <button 
               className="md:hidden p-3 text-gray-300 hover:text-white hover:bg-slate-800 rounded-none transition-colors"
-              aria-label="Tìm kiếm"
+              aria-label={t('common.search')}
             >
               <MagnifyingGlassIcon className="h-6 w-6" />
             </button>
@@ -236,7 +244,7 @@ const Header: React.FC = () => {
                               style={{ color: '#D4AF37' }}
                               onClick={() => setIsTourDropdownOpen(false)}
                             >
-                              Xem tất cả tour
+                              {t('header.viewAllTours')}
                             </Link>
                           </div>
                         </div>
@@ -338,7 +346,7 @@ const Header: React.FC = () => {
                       className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-stone-50 hover:text-slate-900 border-t border-stone-200 text-left font-normal"
                     >
                       <ArrowRightOnRectangleIcon className="h-4 w-4 mr-3" />
-                      Đăng xuất
+                      {t('userMenu.logout')}
                     </button>
                   </div>
                 )}
@@ -351,7 +359,7 @@ const Header: React.FC = () => {
                   to="/login"
                   className="text-gray-700 hover:text-slate-900 px-4 py-2 rounded-none text-base font-medium tracking-wide transition-colors"
                 >
-                  Đăng nhập
+                  {t('auth.login')}
                 </Link>
                 <Link
                   to="/register"
@@ -360,7 +368,7 @@ const Header: React.FC = () => {
                   onMouseEnter={(e) => e.currentTarget.style.borderColor = '#D4AF37'}
                   onMouseLeave={(e) => e.currentTarget.style.borderColor = '#0f172a'}
                 >
-                  Đăng ký
+                  {t('auth.register')}
                 </Link>
               </div>
             )}
@@ -369,7 +377,7 @@ const Header: React.FC = () => {
             <button
               className="md:hidden inline-flex items-center justify-center p-3 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors min-h-[48px] min-w-[48px]"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label={isMenuOpen ? 'Đóng menu' : 'Mở menu'}
+              aria-label={isMenuOpen ? t('common.closeMenu') : t('common.openMenu')}
             >
               {isMenuOpen ? (
                 <XMarkIcon className="block h-6 w-6" />
@@ -393,7 +401,7 @@ const Header: React.FC = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Bạn muốn đi đâu?"
+                  placeholder={t('common.searchPlaceholder')}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[48px]"
                 />
               </div>
@@ -459,18 +467,23 @@ const Header: React.FC = () => {
                     className="block text-center flex-1 text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-base font-medium"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Đăng nhập
+                    {t('auth.login')}
                   </Link>
                   <Link
                     to="/register"
                     className="block text-center flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-base font-medium"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Đăng ký
+                    {t('auth.register')}
                   </Link>
                 </div>
               </div>
             )}
+
+            {/* Mobile Language Switcher */}
+            <div className="px-3 py-3 border-t">
+              <LanguageSwitcher variant="mobile" />
+            </div>
           </div>
         </div>
       )}

@@ -9,6 +9,7 @@ import { tourService, categoryService, wishlistService } from '../services';
 import type { TourResponse, TourSearchRequest, CategoryResponse } from '../services';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Tour {
   id: number;
@@ -18,6 +19,7 @@ interface Tour {
   price: number;
   originalPrice?: number;
   duration: string;
+  durationValue: number;
   location: string;
   tourType?: 'domestic' | 'international';
   country?: {
@@ -33,6 +35,7 @@ interface Tour {
   maxPeople: number;
   image: string;
   badge?: string;
+  badgeKey?: string;
   category: string;
 }
 
@@ -54,36 +57,8 @@ interface FilterState {
 
 // No mock data - fetching from API only
 
-// Helper function to convert TourResponse to local Tour interface
-const convertTourResponse = (tourResponse: TourResponse): Tour => {
-  return {
-    id: tourResponse.id,
-    name: tourResponse.name,
-    slug: tourResponse.slug,
-    description: tourResponse.description || tourResponse.shortDescription || '',
-    price: tourResponse.salePrice || tourResponse.price, // Giá hiệu quả (đã sale hoặc gốc)
-    originalPrice: (tourResponse.salePrice && tourResponse.salePrice < tourResponse.price) ? tourResponse.price : undefined, // Giá gốc chỉ khi có sale
-    duration: `${tourResponse.duration} ngày`,
-    location: tourResponse.destination || tourResponse.departureLocation || 'quốc tế', // Use new fields
-    tourType: tourResponse.tourType === 'DOMESTIC' ? 'domestic' : 'international',
-    country: tourResponse.country ? {
-      name: tourResponse.country.name,
-      code: tourResponse.country.code,
-      flagUrl: tourResponse.country.flagUrl,
-      visaRequired: tourResponse.country.visaRequired || false
-    } : undefined,
-    flightIncluded: tourResponse.flightIncluded || false,
-    visaInfo: tourResponse.visaInfo,
-    rating: tourResponse.averageRating || 4.5,
-    reviewCount: tourResponse.totalReviews || 0,
-    maxPeople: tourResponse.maxPeople,
-    image: tourResponse.images?.[0]?.imageUrl || tourResponse.mainImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
-    badge: tourResponse.isFeatured ? 'Hot' : undefined,
-    category: tourResponse.category?.name || 'Du lịch'  // Handle null category
-  };
-};
-
 const ToursListingPage: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tours, setTours] = useState<Tour[]>([]);
@@ -96,6 +71,60 @@ const ToursListingPage: React.FC = () => {
   const [imageSearchOpen, setImageSearchOpen] = useState(false);
   
   const toursPerPage = 12;
+  const formatDuration = useCallback(
+    (days: number) => t('tours.card.durationDays', { count: days }),
+    [t]
+  );
+
+  const convertTourResponse = useCallback((tourResponse: TourResponse): Tour => {
+    const durationValue = Number(tourResponse.duration) || 1;
+    const badgeKey = tourResponse.isFeatured ? 'featured' : undefined;
+    return {
+      id: tourResponse.id,
+      name: tourResponse.name,
+      slug: tourResponse.slug,
+      description: tourResponse.description || tourResponse.shortDescription || '',
+      price: tourResponse.salePrice || tourResponse.price,
+      originalPrice:
+        tourResponse.salePrice && tourResponse.salePrice < tourResponse.price
+          ? tourResponse.price
+          : undefined,
+      duration: formatDuration(durationValue),
+      durationValue,
+      location: tourResponse.destination || tourResponse.departureLocation || t('tours.defaultLocation'),
+      tourType: tourResponse.tourType === 'DOMESTIC' ? 'domestic' : 'international',
+      country: tourResponse.country
+        ? {
+            name: tourResponse.country.name,
+            code: tourResponse.country.code,
+            flagUrl: tourResponse.country.flagUrl,
+            visaRequired: tourResponse.country.visaRequired || false
+          }
+        : undefined,
+      flightIncluded: tourResponse.flightIncluded || false,
+      visaInfo: tourResponse.visaInfo,
+      rating: tourResponse.averageRating || 4.5,
+      reviewCount: tourResponse.totalReviews || 0,
+      maxPeople: tourResponse.maxPeople,
+      image:
+        tourResponse.images?.[0]?.imageUrl ||
+        tourResponse.mainImage ||
+        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+      badge: badgeKey ? t(`tours.card.badges.${badgeKey}`) : undefined,
+      badgeKey,
+      category: tourResponse.category?.name || t('tours.defaultCategory')
+    };
+  }, [formatDuration, t]);
+  useEffect(() => {
+    setTours((prev) =>
+      prev.map((tour) => ({
+        ...tour,
+        duration: formatDuration(tour.durationValue),
+        badge: tour.badgeKey ? t(`tours.card.badges.${tour.badgeKey}`) : tour.badge
+      }))
+    );
+  }, [formatDuration, t]);
+
   
   // Ref to scroll to tours section when page changes
   const toursGridRef = useRef<HTMLDivElement>(null);
@@ -240,7 +269,7 @@ const ToursListingPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, filters, toursPerPage, getCategoryId]); // Removed 'categories' from deps
+  }, [currentPage, filters, toursPerPage, getCategoryId, convertTourResponse]);
 
   // Update URL when filters change
   useEffect(() => {
@@ -305,7 +334,7 @@ const ToursListingPage: React.FC = () => {
   const handleToggleWishlist = async (tourId: number) => {
     // Check if user is logged in
     if (!user?.id) {
-      toast.error('Vui lòng đăng nhập để lưu tour yêu thích');
+      toast.error(t('tours.toast.wishlistLogin'));
       return;
     }
 
@@ -322,11 +351,11 @@ const ToursListingPage: React.FC = () => {
       if (isCurrentlyWishlisted) {
         // Remove from wishlist
         await wishlistService.removeFromWishlist(user.id, tourId);
-        toast.success('Đã xóa khỏi danh sách yêu thích');
+        toast.success(t('tours.toast.wishlistRemoved'));
       } else {
         // Add to wishlist
         await wishlistService.addToWishlist(user.id, tourId);
-        toast.success('Đã thêm vào danh sách yêu thích');
+        toast.success(t('tours.toast.wishlistAdded'));
       }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
@@ -336,7 +365,7 @@ const ToursListingPage: React.FC = () => {
           ? [...prev, tourId]
           : prev.filter(id => id !== tourId)
       );
-      toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
+      toast.error(t('tours.toast.wishlistError'));
     }
   };
 
@@ -351,7 +380,7 @@ const ToursListingPage: React.FC = () => {
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&h=800&fit=crop"
-            alt="Du lịch quốc tế"
+            alt={t('tours.hero.imageAlt')}
             className="w-full h-full object-cover opacity-30"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90"></div>
@@ -366,16 +395,16 @@ const ToursListingPage: React.FC = () => {
           <div className="text-white text-center animate-fade-in-up opacity-0">
             {/* Label */}
             <div className="inline-block px-6 py-2 border rounded-none mb-6" style={{ borderColor: '#D4AF37' }}>
-              <span className="text-xs font-medium tracking-[0.3em] uppercase" style={{ color: '#D4AF37' }}>Khám Phá Thế Giới</span>
+              <span className="text-xs font-medium tracking-[0.3em] uppercase" style={{ color: '#D4AF37' }}>{t('tours.hero.label')}</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-normal mb-6 tracking-tight">Tours Du Lịch</h1>
+            <h1 className="text-5xl md:text-7xl font-normal mb-6 tracking-tight">{t('tours.hero.title')}</h1>
             
             {/* Divider */}
             <div className="w-20 h-px mx-auto mb-6" style={{ background: 'linear-gradient(to right, transparent, #D4AF37, transparent)' }}></div>
             
             <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto font-normal leading-relaxed">
-              Khám phá vẻ đẹp thế giới với hơn <span className="font-medium" style={{ color: '#D4AF37' }}>{totalTours}</span> tour đa dạng từ trong nước đến quốc tế
+              {t('tours.hero.subtitle', { count: totalTours })}
             </p>
 
             {/* Image Search Button */}
@@ -384,7 +413,7 @@ const ToursListingPage: React.FC = () => {
               className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
             >
               <PhotoIcon className="h-5 w-5" />
-              <span className="font-medium">Tìm kiếm bằng ảnh</span>
+              <span className="font-medium">{t('tours.hero.imageSearchButton')}</span>
             </button>
           </div>
         </div>
@@ -413,26 +442,26 @@ const ToursListingPage: React.FC = () => {
               <div className="text-center py-16 animate-fade-in bg-white rounded-none border border-stone-200 shadow-lg">
                 <div className="text-6xl mb-6 animate-bounce">🔍</div>
                 <h3 className="text-2xl font-normal text-slate-900 mb-3 tracking-tight">
-                  Không tìm thấy tour nào
+                  {t('tours.empty.title')}
                 </h3>
                 <p className="text-gray-600 mb-8 font-normal">
-                  Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
+                  {t('tours.empty.description')}
                 </p>
                 <button
                   onClick={handleClearFilters}
                   className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-none font-medium text-xs tracking-[0.2em] uppercase transition-all duration-300 border border-slate-900 shadow-lg hover:shadow-xl"
                   style={{ '--hover-border': '#D4AF37' } as React.CSSProperties}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = '#D4AF37'}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = '#0f172a'}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#D4AF37')}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#0f172a')}
                 >
-                  Xóa tất cả bộ lọc
+                  {t('tours.empty.reset')}
                 </button>
               </div>
             ) : (
               <>
                 {/* Tours Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8 items-stretch">
-                  {currentTours.map((tour, index) => (
+                  {currentTours.map((tour) => (
                     <div key={tour.id} className="stagger-animation opacity-0">
                       <TourCard
                         tour={tour}
@@ -468,7 +497,7 @@ const ToursListingPage: React.FC = () => {
           setTotalTours(results.length);
           setTotalPages(1);
           setCurrentPage(0);
-          toast.success(`Tìm thấy ${results.length} tour phù hợp với ảnh!`);
+          toast.success(t('tours.imageSearch.success', { count: results.length }));
           
           // Scroll to results
           toursGridRef.current?.scrollIntoView({ behavior: 'smooth' });

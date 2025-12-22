@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   HeartIcon,
   MagnifyingGlassIcon,
@@ -18,6 +19,7 @@ import type { WishlistItem } from '../../services/wishlistService';
 import { toast } from 'react-hot-toast';
 
 const WishlistPage: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [tours, setTours] = useState<WishlistItem[]>([]);
   const [filteredTours, setFilteredTours] = useState<WishlistItem[]>([]);
@@ -45,7 +47,7 @@ const WishlistPage: React.FC = () => {
         setTours(wishlistItems);
       } catch (error) {
         console.error('Error fetching wishlist:', error);
-        toast.error('Không thể tải danh sách yêu thích. Vui lòng thử lại sau.');
+        toast.error(t('wishlist.toast.loadError'));
         setTours([]);
       } finally {
         setIsLoading(false);
@@ -99,16 +101,16 @@ const WishlistPage: React.FC = () => {
   };
 
   const handleRemoveFromWishlist = async (tourId: number, tourName: string) => {
-    const confirmed = window.confirm(`Bạn có chắc muốn xóa "${tourName}" khỏi danh sách yêu thích?`);
+    const confirmed = window.confirm(t('wishlist.toast.removeConfirm', { tourName }));
     
     if (confirmed && user?.id) {
       try {
         await wishlistService.removeFromWishlist(user.id, tourId);
         setTours(prev => prev.filter(tour => tour.id !== tourId));
-        toast.success(`Đã xóa "${tourName}" khỏi danh sách yêu thích`);
+        toast.success(t('wishlist.toast.removeSuccess', { tourName }));
       } catch (error) {
         console.error('Error removing from wishlist:', error);
-        toast.error('Không thể xóa tour khỏi danh sách yêu thích');
+        toast.error(t('wishlist.toast.removeError'));
       }
     }
   };
@@ -118,14 +120,14 @@ const WishlistPage: React.FC = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    return new Date(dateString).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -176,10 +178,10 @@ const WishlistPage: React.FC = () => {
         <div className="mb-8 animate-fade-in">
           <div className="flex items-center space-x-3 mb-2">
             <HeartSolidIcon className="h-8 w-8" style={{ color: '#D4AF37' }} />
-            <h1 className="text-3xl font-normal text-slate-900 tracking-tight">Tour yêu thích</h1>
+            <h1 className="text-3xl font-normal text-slate-900 tracking-tight">{t('wishlist.title')}</h1>
           </div>
           <p className="text-gray-600 font-normal">
-            Danh sách các tour du lịch bạn đã lưu để xem sau ({tours.length} tour)
+            {t('wishlist.subtitle', { count: tours.length })}
           </p>
         </div>
 
@@ -188,11 +190,11 @@ const WishlistPage: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
             <h2 className="text-xl font-medium text-slate-900 flex items-center tracking-tight">
               <FunnelIcon className="h-5 w-5 mr-2" style={{ color: '#D4AF37' }} />
-              Bộ lọc và sắp xếp
+              {t('wishlist.filters.title')}
             </h2>
             
             <div className="text-sm font-normal" style={{ color: '#D4AF37' }}>
-              Hiển thị {filteredTours.length} / {tours.length} tour
+              {t('wishlist.filters.showing', { display: filteredTours.length, total: tours.length })}
             </div>
           </div>
 
@@ -202,7 +204,7 @@ const WishlistPage: React.FC = () => {
               <MagnifyingGlassIcon className="absolute left-3 top-3 h-5 w-5" style={{ color: '#D4AF37' }} />
               <input
                 type="text"
-                placeholder="Tìm tour yêu thích..."
+                placeholder={t('wishlist.filters.searchPlaceholder')}
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
@@ -215,11 +217,11 @@ const WishlistPage: React.FC = () => {
               onChange={(e) => handleFilterChange('category', e.target.value)}
               className="border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
             >
-              <option value="all">Tất cả danh mục</option>
-              <option value="beach">Tour Biển</option>
-              <option value="mountain">Tour Núi</option>
-              <option value="city">Tour Thành Phố</option>
-              <option value="culture">Tour Văn Hóa</option>
+              <option value="all">{t('wishlist.filters.category.all')}</option>
+              <option value="beach">{t('wishlist.filters.category.beach')}</option>
+              <option value="mountain">{t('wishlist.filters.category.mountain')}</option>
+              <option value="city">{t('wishlist.filters.category.city')}</option>
+              <option value="culture">{t('wishlist.filters.category.culture')}</option>
             </select>
 
             {/* Sort */}
@@ -228,11 +230,11 @@ const WishlistPage: React.FC = () => {
               onChange={(e) => handleFilterChange('sortBy', e.target.value)}
               className="border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
             >
-              <option value="newest">Mới thêm nhất</option>
-              <option value="oldest">Cũ nhất</option>
-              <option value="price-low">Giá thấp đến cao</option>
-              <option value="price-high">Giá cao đến thấp</option>
-              <option value="rating">Đánh giá cao nhất</option>
+              <option value="newest">{t('wishlist.filters.sort.newest')}</option>
+              <option value="oldest">{t('wishlist.filters.sort.oldest')}</option>
+              <option value="price-low">{t('wishlist.filters.sort.priceLow')}</option>
+              <option value="price-high">{t('wishlist.filters.sort.priceHigh')}</option>
+              <option value="rating">{t('wishlist.filters.sort.rating')}</option>
             </select>
 
             {/* Clear Filters */}
@@ -241,7 +243,7 @@ const WishlistPage: React.FC = () => {
               onClick={clearFilters}
               className="whitespace-nowrap border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none"
             >
-              Xóa bộ lọc
+              {t('wishlist.filters.clearFilters')}
             </Button>
           </div>
         </Card>
@@ -265,7 +267,7 @@ const WishlistPage: React.FC = () => {
                   <button
                     onClick={() => handleRemoveFromWishlist(tour.id, tour.name)}
                     className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-none hover:bg-white transition-colors group border border-stone-200"
-                    title="Xóa khỏi danh sách yêu thích"
+                    title={t('wishlist.tour.removeTitle')}
                   >
                     <XMarkIcon className="h-4 w-4 text-slate-600 group-hover:text-red-500 transition-colors duration-300" />
                   </button>
@@ -301,7 +303,7 @@ const WishlistPage: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-1">
                       <UsersIcon className="h-4 w-4" style={{ color: '#D4AF37' }} />
-                      <span className="font-normal">Max {tour.maxPeople}</span>
+                      <span className="font-normal">{t('wishlist.tour.maxPeople', { count: tour.maxPeople })}</span>
                     </div>
                   </div>
 
@@ -311,7 +313,7 @@ const WishlistPage: React.FC = () => {
                       <StarIcon className="h-4 w-4 fill-current" style={{ color: '#D4AF37' }} />
                       <span className="font-medium text-sm text-slate-900">{tour.rating}</span>
                     </div>
-                    <span className="text-xs text-gray-500 font-normal">({tour.reviewCount} đánh giá)</span>
+                    <span className="text-xs text-gray-500 font-normal">{t('wishlist.tour.reviews', { count: tour.reviewCount })}</span>
                   </div>
 
                   {/* Spacer to push price & action to bottom */}
@@ -334,14 +336,14 @@ const WishlistPage: React.FC = () => {
                       to={`/tours/${tour.slug}`}
                       className="text-white px-4 py-2 rounded-none text-sm font-medium transition-all duration-300 hover:opacity-90 tracking-wide" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                     >
-                      Xem Chi Tiết
+                      {t('wishlist.tour.viewDetails')}
                     </Link>
                   </div>
 
                   {/* Added Date */}
                   <div className="mt-3 pt-3 border-t border-stone-200">
                     <p className="text-xs text-gray-500 font-normal">
-                      Đã thêm: {formatDate(tour.addedDate)}
+                      {t('wishlist.tour.addedDate', { date: formatDate(tour.addedDate) })}
                     </p>
                   </div>
                 </div>
@@ -366,25 +368,25 @@ const WishlistPage: React.FC = () => {
           <HeartIcon className="mx-auto h-16 w-16 mb-4" style={{ color: '#D4AF37' }} />
           <h3 className="text-2xl font-normal text-slate-900 mb-2 tracking-tight">
             {filters.search || filters.category !== 'all'
-              ? 'Không tìm thấy tour nào'
-              : 'Chưa có tour yêu thích'
+              ? t('wishlist.empty.noResults')
+              : t('wishlist.empty.noWishlist')
             }
           </h3>
           <p className="text-gray-600 mb-6 font-normal">
             {filters.search || filters.category !== 'all'
-              ? 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm'
-              : 'Hãy khám phá và lưu những tour du lịch yêu thích của bạn!'
+              ? t('wishlist.empty.noResultsDescription')
+              : t('wishlist.empty.noWishlistDescription')
             }
           </p>
           <div className="flex justify-center space-x-4">
             {(filters.search || filters.category !== 'all') && (
               <Button variant="outline" onClick={clearFilters} className="border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none">
-                Xóa bộ lọc
+                {t('wishlist.filters.clearFilters')}
               </Button>
             )}
             <Link to="/tours">
               <Button className="text-white rounded-none hover:opacity-90 transition-all duration-300" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
-                Khám phá tours
+                {t('wishlist.empty.exploreTours')}
               </Button>
             </Link>
           </div>

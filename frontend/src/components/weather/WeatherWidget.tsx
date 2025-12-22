@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   CloudIcon, 
   SunIcon,
@@ -26,10 +27,12 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   longitude,
   weatherEnabled = true
 }) => {
+  const { t, i18n } = useTranslation();
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [locationName, setLocationName] = useState(destination);
+  const locale = i18n.language === 'vi' ? 'vi-VN' : 'en-US';
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -45,7 +48,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         // Kiểm tra xem đã có coordinates chưa
         if (!latitude || !longitude) {
           console.warn('⚠️ Tour chưa có coordinates, không thể hiển thị thời tiết');
-          setError('Thông tin thời tiết chưa có sẵn cho điểm đến này');
+          setError(t('weather.widget.errors.noData'));
           setLoading(false);
           return;
         }
@@ -62,14 +65,14 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         setWeatherData(data);
       } catch (err) {
         console.error('Error fetching weather:', err);
-        setError('Không thể tải thông tin thời tiết');
+        setError(t('weather.widget.errors.fetchFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchWeather();
-  }, [tourId, destination, latitude, longitude, weatherEnabled]);
+  }, [tourId, destination, latitude, longitude, weatherEnabled, t]);
 
   if (!weatherEnabled || error) {
     return null;
@@ -96,39 +99,6 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Hourly Forecast for today */}
-      {hourlyForecast && hourlyForecast.length > 0 && (
-        <div className="bg-white border border-stone-200 p-6">
-          <h4 className="text-lg font-medium text-slate-900 mb-4 tracking-tight">
-            📅 Dự báo theo giờ (24h tới)
-          </h4>
-          
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
-            {hourlyForecast.slice(0, 8).map((hour, index) => (
-              <div 
-                key={index}
-                className="bg-stone-50 p-3 text-center hover:bg-stone-100 transition-colors border border-stone-200"
-              >
-                <div className="text-sm font-medium text-slate-900 mb-2">
-                  {hour.time}
-                </div>
-                <img 
-                  src={getWeatherIconUrl(hour.icon)}
-                  alt={hour.description}
-                  className="w-10 h-10 mx-auto"
-                />
-                <div className="text-lg font-medium text-slate-900 mt-2">
-                  {hour.temperature}°
-                </div>
-                <div className="text-xs text-stone-500 mt-1">
-                  💧 {hour.humidity}%
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      
       {/* Current Weather */}
       <div className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 p-6 text-white shadow-lg relative overflow-hidden">
         {/* Decorative Elements */}
@@ -140,10 +110,10 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-xl font-medium tracking-tight mb-1">
-                Thời tiết tại {locationName}
+                {t('weather.widget.current.title', { location: locationName })}
               </h3>
               <p className="text-sm text-stone-300">
-                Cập nhật: {new Date(weatherData.lastUpdated).toLocaleTimeString('vi-VN')}
+                {t('weather.widget.current.updatedAt', { time: new Date(weatherData.lastUpdated).toLocaleTimeString(locale) })}
               </p>
             </div>
             <CloudIcon className="h-8 w-8 text-white opacity-50" />
@@ -167,16 +137,16 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
             </div>
 
             <div className="text-right space-y-2">
-              <div className="text-sm text-stone-300">
-                Cảm giác như <span className="font-medium text-white">{current.feelsLike}°C</span>
+                <div className="text-sm text-stone-300">
+                  {t('weather.widget.current.feelsLike', { value: current.feelsLike })}
               </div>
               <div className="flex items-center space-x-4 text-sm">
                 <div>
-                  <div className="text-stone-400">Độ ẩm</div>
+                    <div className="text-stone-400">{t('weather.widget.labels.humidity')}</div>
                   <div className="font-medium">{current.humidity}%</div>
                 </div>
                 <div>
-                  <div className="text-stone-400">Gió</div>
+                    <div className="text-stone-400">{t('weather.widget.labels.wind')}</div>
                   <div className="font-medium">{current.windSpeed} km/h</div>
                 </div>
               </div>
@@ -188,7 +158,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
       {/* 5-Day Forecast */}
       <div className="bg-white border border-stone-200 p-6">
         <h4 className="text-lg font-medium text-slate-900 mb-4 tracking-tight">
-          Dự báo 5 ngày tới
+          {t('weather.widget.forecast.title')}
         </h4>
         
         <div className="grid grid-cols-5 gap-3">
@@ -233,7 +203,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
             <div className="space-y-2">
               <div className="flex items-center space-x-2 text-amber-900">
                 <ExclamationTriangleIcon className="h-5 w-5" />
-                <span className="font-medium text-sm">Lưu ý thời tiết</span>
+                <span className="font-medium text-sm">{t('weather.widget.alerts.title')}</span>
               </div>
               <div className="space-y-1">
                 {recommendations.alerts.map((alert, index) => (
@@ -250,7 +220,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
             <div className="space-y-2">
               <div className="flex items-center space-x-2 text-slate-900">
                 <SunIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
-                <span className="font-medium text-sm">Chuẩn bị</span>
+                <span className="font-medium text-sm">{t('weather.widget.clothing.title')}</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {recommendations.clothing.map((item, index) => (
@@ -269,7 +239,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
           {recommendations.activities.length > 0 && (
             <div className="space-y-2">
               <div className="text-sm font-medium text-slate-900">
-                Hoạt động phù hợp
+                {t('weather.widget.activities.title')}
               </div>
               <div className="space-y-1">
                 {recommendations.activities.map((activity, index) => (
@@ -287,19 +257,19 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
       <div className="bg-stone-50 border border-stone-200 p-4">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <div className="text-xs text-stone-600 mb-1">Áp suất</div>
+            <div className="text-xs text-stone-600 mb-1">{t('weather.widget.labels.pressure')}</div>
             <div className="text-sm font-medium text-slate-900">
               {current.pressure} hPa
             </div>
           </div>
           <div>
-            <div className="text-xs text-stone-600 mb-1">Tầm nhìn</div>
+            <div className="text-xs text-stone-600 mb-1">{t('weather.widget.labels.visibility')}</div>
             <div className="text-sm font-medium text-slate-900">
               {current.visibility} km
             </div>
           </div>
           <div>
-            <div className="text-xs text-stone-600 mb-1">Độ ẩm</div>
+            <div className="text-xs text-stone-600 mb-1">{t('weather.widget.labels.humidity')}</div>
             <div className="text-sm font-medium text-slate-900">
               {current.humidity}%
             </div>

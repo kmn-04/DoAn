@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../services/api';
 import { CheckCircleIcon, XCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Card, CardContent } from '../../components/ui';
 
 const VerifyEmailPage: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
@@ -16,7 +18,7 @@ const VerifyEmailPage: React.FC = () => {
   useEffect(() => {
     if (!token) {
       setStatus('error');
-      setMessage('Token xác thực không hợp lệ.');
+      setMessage(t('auth.verifyEmail.invalidToken'));
       return;
     }
 
@@ -56,17 +58,17 @@ const VerifyEmailPage: React.FC = () => {
       // Backend trả về ApiResponse với field 'success'
       if (response.data.success) {
         setStatus('success');
-        setMessage(response.data.data || response.data.message || 'Email xác thực thành công!');
+        setMessage(response.data.data || response.data.message || t('auth.verifyEmail.success'));
       } else {
         setStatus('error');
-        setMessage(response.data.error || response.data.message || 'Xác thực email thất bại.');
+        setMessage(response.data.error || response.data.message || t('auth.verifyEmail.error'));
       }
     } catch (error: any) {
       setStatus('error');
       setMessage(
         error.response?.data?.error || 
         error.response?.data?.message || 
-        'Có lỗi xảy ra khi xác thực email. Vui lòng thử lại.'
+        t('auth.verifyEmail.error')
       );
     }
   };
@@ -100,10 +102,10 @@ const VerifyEmailPage: React.FC = () => {
                   <ArrowPathIcon className="h-16 w-16 text-white animate-spin" />
                 </div>
                 <h2 className="text-3xl font-normal text-gray-900 mb-2 tracking-tight">
-                  Đang xác thực email...
+                  {t('auth.verifyEmail.loading')}
                 </h2>
                 <p className="text-gray-600 font-normal">
-                  Vui lòng đợi trong giây lát
+                  {t('auth.verifyEmail.loadingMessage')}
                 </p>
               </div>
             )}
@@ -115,15 +117,15 @@ const VerifyEmailPage: React.FC = () => {
                   <CheckCircleIcon className="h-20 w-20 text-green-600 mx-auto" />
                 </div>
                 <h2 className="text-3xl font-normal text-gray-900 mb-3 tracking-tight">
-                  Xác thực thành công!
+                  {t('auth.verifyEmail.success')}
                 </h2>
                 <p className="text-gray-600 mb-6 font-normal">
                   {message}
                 </p>
                 <div className="bg-green-50 border border-green-200 rounded-none p-4 mb-6">
                   <p className="text-green-800 text-sm font-normal">
-                    Bạn sẽ được chuyển đến trang đăng nhập trong{' '}
-                    <span className="font-bold text-lg" style={{ color: '#D4AF37' }}>{countdown}</span> giây...
+                    {t('auth.verifyEmail.redirectMessage')}{' '}
+                    <span className="font-bold text-lg" style={{ color: '#D4AF37' }}>{countdown}</span> {t('auth.verifyEmail.seconds')}
                   </p>
                 </div>
                 <Link
@@ -131,7 +133,7 @@ const VerifyEmailPage: React.FC = () => {
                   className="inline-block w-full text-white py-3 px-6 rounded-none font-normal hover:opacity-90 transition-all shadow-md"
                   style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                 >
-                  Đăng nhập ngay
+                  {t('auth.verifyEmail.loginNow')}
                 </Link>
               </div>
             )}
@@ -143,14 +145,14 @@ const VerifyEmailPage: React.FC = () => {
                   <XCircleIcon className="h-20 w-20 text-red-600 mx-auto" />
                 </div>
                 <h2 className="text-3xl font-normal text-gray-900 mb-3 tracking-tight">
-                  Xác thực thất bại
+                  {t('auth.verifyEmail.error')}
                 </h2>
                 <p className="text-gray-600 mb-6 font-normal">
                   {message}
                 </p>
                 <div className="bg-red-50 border border-red-200 rounded-none p-4 mb-6">
                   <p className="text-red-800 text-sm font-normal">
-                    Link xác thực có thể đã hết hạn hoặc không hợp lệ.
+                    {t('auth.verifyEmail.expiredLink')}
                   </p>
                 </div>
                 <div className="space-y-3">
@@ -159,13 +161,13 @@ const VerifyEmailPage: React.FC = () => {
                     className="block w-full text-white py-3 px-6 rounded-none font-normal hover:opacity-90 transition-all shadow-md"
                     style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                   >
-                    Gửi lại email xác thực
+                    {t('auth.verifyEmail.resendVerification')}
                   </Link>
                   <Link
                     to="/auth/register"
                     className="block w-full bg-stone-200 text-gray-800 py-3 px-6 rounded-none font-normal hover:bg-stone-300 transition-colors"
                   >
-                    Đăng ký lại
+                    {t('auth.verifyEmail.registerAgain')}
                   </Link>
                 </div>
               </div>
@@ -180,7 +182,7 @@ const VerifyEmailPage: React.FC = () => {
             className="font-normal hover:opacity-80 transition-opacity"
             style={{ color: '#D4AF37' }}
           >
-            ← Về trang chủ
+            {t('auth.verifyEmail.backToHome')}
           </Link>
         </div>
       </div>

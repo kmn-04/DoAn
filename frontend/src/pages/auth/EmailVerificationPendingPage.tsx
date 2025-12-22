@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../services/api';
 import { 
   EnvelopeIcon, 
@@ -10,6 +11,7 @@ import {
 import { Card, CardContent } from '../../components/ui';
 
 const EmailVerificationPendingPage: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const email = location.state?.email || '';
   
@@ -19,7 +21,7 @@ const EmailVerificationPendingPage: React.FC = () => {
   const handleResendEmail = async () => {
     if (!email) {
       setResendStatus('error');
-      setResendMessage('Không tìm thấy địa chỉ email. Vui lòng đăng ký lại.');
+      setResendMessage(t('auth.resendVerification.emailRequired'));
       return;
     }
 
@@ -31,14 +33,14 @@ const EmailVerificationPendingPage: React.FC = () => {
       
       if (response.data.status === 'SUCCESS') {
         setResendStatus('success');
-        setResendMessage('Email xác thực đã được gửi lại thành công!');
+        setResendMessage(response.data.message || t('auth.emailVerificationPending.resendSuccess'));
       } else {
         setResendStatus('error');
-        setResendMessage(response.data.message || 'Không thể gửi lại email.');
+        setResendMessage(response.data.message || t('auth.resendVerification.error'));
       }
     } catch (error: any) {
       setResendStatus('error');
-      setResendMessage(error.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      setResendMessage(error.response?.data?.message || t('auth.resendVerification.error'));
     }
   };
 
@@ -70,10 +72,10 @@ const EmailVerificationPendingPage: React.FC = () => {
                 <EnvelopeIcon className="h-10 w-10 text-white" />
               </div>
               <h1 className="text-3xl font-normal text-gray-900 mb-2 tracking-tight">
-                Kiểm tra email của bạn!
+                {t('auth.emailVerificationPending.title')}
               </h1>
               <p className="text-lg text-gray-600 font-normal">
-                Vui lòng xác thực email để hoàn tất đăng ký
+                {t('auth.emailVerificationPending.subtitle')}
               </p>
             </div>
 
@@ -81,7 +83,7 @@ const EmailVerificationPendingPage: React.FC = () => {
             {email && (
               <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-none">
                 <p className="text-sm text-blue-800 text-center font-normal">
-                  Email xác thực đã được gửi đến:
+                  {t('auth.emailVerificationPending.emailSent')}
                 </p>
                 <p className="text-lg font-semibold text-center mt-1" style={{ color: '#D4AF37' }}>
                   {email}
@@ -96,9 +98,9 @@ const EmailVerificationPendingPage: React.FC = () => {
                   <span className="text-white font-bold">1</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Mở email của bạn</h3>
+                  <h3 className="font-semibold text-gray-900">{t('auth.emailVerificationPending.step1.title')}</h3>
                   <p className="text-sm text-gray-600 font-normal">
-                    Kiểm tra hộp thư đến (Inbox) hoặc thư rác (Spam/Junk) nếu không thấy email
+                    {t('auth.emailVerificationPending.step1.description')}
                   </p>
                 </div>
               </div>
@@ -108,9 +110,9 @@ const EmailVerificationPendingPage: React.FC = () => {
                   <span className="text-white font-bold">2</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Click vào link xác thực</h3>
+                  <h3 className="font-semibold text-gray-900">{t('auth.emailVerificationPending.step2.title')}</h3>
                   <p className="text-sm text-gray-600 font-normal">
-                    Nhấn vào nút "Xác thực Email" trong email để kích hoạt tài khoản
+                    {t('auth.emailVerificationPending.step2.description')}
                   </p>
                 </div>
               </div>
@@ -120,9 +122,9 @@ const EmailVerificationPendingPage: React.FC = () => {
                   <span className="text-white font-bold">3</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Đăng nhập vào hệ thống</h3>
+                  <h3 className="font-semibold text-gray-900">{t('auth.emailVerificationPending.step3.title')}</h3>
                   <p className="text-sm text-gray-600 font-normal">
-                    Sau khi xác thực thành công, bạn có thể đăng nhập và sử dụng dịch vụ
+                    {t('auth.emailVerificationPending.step3.description')}
                   </p>
                 </div>
               </div>
@@ -133,8 +135,7 @@ const EmailVerificationPendingPage: React.FC = () => {
               <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
               <div>
                 <p className="text-sm text-yellow-800 font-normal">
-                  <strong>Lưu ý:</strong> Link xác thực có hiệu lực trong <strong>24 giờ</strong>.
-                  Bạn không thể đăng nhập cho đến khi xác thực email.
+                  <strong>{t('auth.emailVerificationPending.warning')}</strong>
                 </p>
               </div>
             </div>
@@ -144,7 +145,7 @@ const EmailVerificationPendingPage: React.FC = () => {
               <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-none flex items-start">
                 <CheckCircleIcon className="h-5 w-5 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-green-800 font-medium">Thành công!</p>
+                  <p className="text-sm text-green-800 font-medium">{t('auth.emailVerificationPending.resendSuccess')}</p>
                   <p className="text-sm text-green-700 mt-1 font-normal">{resendMessage}</p>
                 </div>
               </div>
@@ -154,7 +155,7 @@ const EmailVerificationPendingPage: React.FC = () => {
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-none flex items-start">
                 <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-red-800 font-medium">Lỗi!</p>
+                  <p className="text-sm text-red-800 font-medium">{t('auth.emailVerificationPending.resendError')}</p>
                   <p className="text-sm text-red-700 mt-1 font-normal">{resendMessage}</p>
                 </div>
               </div>
@@ -171,12 +172,12 @@ const EmailVerificationPendingPage: React.FC = () => {
                 {resendStatus === 'loading' ? (
                   <>
                     <ArrowPathIcon className="h-5 w-5 animate-spin" />
-                    Đang gửi...
+                    {t('auth.emailVerificationPending.resendSending')}
                   </>
                 ) : (
                   <>
                     <EnvelopeIcon className="h-5 w-5" />
-                    Gửi lại email xác thực
+                    {t('auth.emailVerificationPending.resendButton')}
                   </>
                 )}
               </button>
@@ -185,20 +186,20 @@ const EmailVerificationPendingPage: React.FC = () => {
                 to="/login"
                 className="block w-full text-center bg-stone-200 text-gray-800 py-3 px-6 rounded-none font-normal hover:bg-stone-300 transition-colors"
               >
-                Đã xác thực? Đăng nhập ngay
+                {t('auth.emailVerificationPending.alreadyVerified')}
               </Link>
             </div>
 
             {/* Help text */}
             <div className="mt-8 pt-6 border-t border-gray-200 text-center">
               <p className="text-sm text-gray-600 mb-2 font-normal">
-                Không nhận được email?
+                {t('auth.emailVerificationPending.noEmailReceived')}
               </p>
               <ul className="text-sm text-gray-500 space-y-1 font-normal">
-                <li>• Kiểm tra thư mục Spam/Junk</li>
-                <li>• Đảm bảo địa chỉ email chính xác</li>
-                <li>• Chờ vài phút rồi kiểm tra lại</li>
-                <li>• Thử gửi lại email xác thực</li>
+                <li>• {t('auth.emailVerificationPending.checkSpam')}</li>
+                <li>• {t('auth.emailVerificationPending.checkEmail')}</li>
+                <li>• {t('auth.emailVerificationPending.waitMinutes')}</li>
+                <li>• {t('auth.emailVerificationPending.tryResend')}</li>
               </ul>
             </div>
           </CardContent>
@@ -211,7 +212,7 @@ const EmailVerificationPendingPage: React.FC = () => {
             className="font-normal hover:opacity-80 transition-opacity"
             style={{ color: '#D4AF37' }}
           >
-            ← Về trang chủ
+            {t('auth.emailVerificationPending.backToHome')}
           </Link>
         </div>
       </div>

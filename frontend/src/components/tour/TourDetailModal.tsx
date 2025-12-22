@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Loading } from '../ui/Loading';
@@ -80,6 +81,7 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
   tourId,
   tourSlug
 }) => {
+  const { t } = useTranslation();
   const [tour, setTour] = useState<TourDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -146,22 +148,22 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
       // Fallback data nếu không có
       if (includedList.length === 0) {
         includedList = [
-          'Xe du lịch đời mới, máy lạnh',
-          'Khách sạn tiêu chuẩn theo chương trình',
-          'Ăn uống theo chương trình',
-          'Vé tham quan các điểm trong chương trình',
-          'Hướng dẫn viên nhiệt tình, kinh nghiệm',
-          'Bảo hiểm du lịch theo quy định'
+          t('tours.detailModal.fallback.included.transport'),
+          t('tours.detailModal.fallback.included.hotel'),
+          t('tours.detailModal.fallback.included.meals'),
+          t('tours.detailModal.fallback.included.tickets'),
+          t('tours.detailModal.fallback.included.guide'),
+          t('tours.detailModal.fallback.included.insurance')
         ];
       }
       
       if (excludedList.length === 0) {
         excludedList = [
-          'Vé máy bay đi/về điểm tập trung (nếu có)',
-          'Chi phí cá nhân ngoài chương trình',
-          'Phụ thu phòng đơn',
-          'Tip cho hướng dẫn viên (tùy tâm)',
-          'Các chi phí phát sinh ngoài chương trình'
+          t('tours.detailModal.fallback.excluded.flight'),
+          t('tours.detailModal.fallback.excluded.personal'),
+          t('tours.detailModal.fallback.excluded.singleRoom'),
+          t('tours.detailModal.fallback.excluded.tip'),
+          t('tours.detailModal.fallback.excluded.extra')
         ];
       }
       
@@ -170,13 +172,13 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
         id: tourResponse.id,
         name: tourResponse.name,
         slug: tourResponse.slug,
-        description: tourResponse.description || tourResponse.shortDescription || 'Khám phá tour tuyệt vời này',
+        description: tourResponse.description || tourResponse.shortDescription || t('tours.detailModal.fallback.description'),
         shortDescription: tourResponse.shortDescription,
         price: tourResponse.salePrice || tourResponse.price,
         salePrice: tourResponse.salePrice,
         originalPrice: (tourResponse.salePrice && tourResponse.salePrice < tourResponse.price) ? tourResponse.price : undefined,
         duration: tourResponse.duration,
-        location: tourResponse.destination || tourResponse.departureLocation || tourResponse.location || 'Việt Nam',
+        location: tourResponse.destination || tourResponse.departureLocation || tourResponse.location || t('tours.detailModal.fallback.location'),
         departureLocation: tourResponse.departureLocation,
         destination: tourResponse.destination,
         averageRating: tourResponse.averageRating || 0,

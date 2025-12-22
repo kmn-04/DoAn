@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon, PhotoIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { Button } from '../ui';
 import tourService from '../../services/tourService';
@@ -10,6 +11,7 @@ interface ImageSearchModalProps {
 }
 
 const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, onResults }) => {
+  const { t } = useTranslation();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,13 +25,13 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setError('Vui lòng chọn file ảnh');
+      setError(t('tours.imageSearch.errors.invalidFileType'));
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError('File ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 5MB');
+      setError(t('tours.imageSearch.errors.fileTooLarge'));
       return;
     }
 
@@ -45,7 +47,7 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
 
   const handleSearch = async () => {
     if (!selectedImage) {
-      setError('Vui lòng chọn ảnh để tìm kiếm');
+      setError(t('tours.imageSearch.errors.noImageSelected'));
       return;
     }
 
@@ -62,11 +64,11 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
         onResults(results);
         onClose();
       } else {
-        setError('Không tìm thấy tour phù hợp với ảnh này. Vui lòng thử ảnh khác.');
+        setError(t('tours.imageSearch.errors.noResults'));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Image search error:', err);
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi tìm kiếm. Vui lòng thử lại.');
+      setError((err as any).response?.data?.message || t('tours.imageSearch.errors.searchFailed'));
     } finally {
       setSearching(false);
     }
@@ -97,10 +99,10 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">
-                  Tìm kiếm bằng hình ảnh
+                  {t('tours.imageSearch.title')}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Upload ảnh để tìm các tour du lịch tương tự
+                  {t('tours.imageSearch.subtitle')}
                 </p>
               </div>
             </div>
@@ -134,7 +136,7 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
                     className="max-h-64 mx-auto rounded-lg shadow-md"
                   />
                   <p className="text-sm text-gray-600">
-                    Click để chọn ảnh khác
+                    {t('tours.imageSearch.clickToChange')}
                   </p>
                 </div>
               ) : (
@@ -142,10 +144,10 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
                   <PhotoIcon className="h-16 w-16 mx-auto text-gray-400" />
                   <div>
                     <p className="text-gray-700 font-medium">
-                      Click để chọn ảnh
+                      {t('tours.imageSearch.clickToSelect')}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
-                      Hỗ trợ: JPG, PNG, WebP (tối đa 5MB)
+                      {t('tours.imageSearch.supportedFormats')}
                     </p>
                   </div>
                 </div>
@@ -170,8 +172,7 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
             {/* Info */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
-                💡 <strong>Gợi ý:</strong> Chọn ảnh của địa điểm du lịch (biển, núi, chùa, di tích...) 
-                để tìm các tour tương tự
+                💡 <strong>{t('tours.imageSearch.tip.title')}:</strong> {t('tours.imageSearch.tip.message')}
               </p>
             </div>
           </div>
@@ -184,7 +185,7 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
               className="flex-1"
               disabled={searching}
             >
-              Hủy
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleSearch}
@@ -197,12 +198,12 @@ const ImageSearchModal: React.FC<ImageSearchModalProps> = ({ isOpen, onClose, on
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                   </svg>
-                  Đang tìm kiếm...
+                  {t('tours.imageSearch.searching')}
                 </>
               ) : (
                 <>
                   <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
-                  Tìm kiếm
+                  {t('tours.imageSearch.searchButton')}
                 </>
               )}
             </Button>

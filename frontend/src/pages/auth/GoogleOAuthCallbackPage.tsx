@@ -1,17 +1,27 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import authService from '../../services/authService';
 
 const GoogleOAuthCallbackPage: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useAuthStore();
   
   useEffect(() => {
-    // Get token from URL query parameter
+    // Get token and error from URL query parameters
     const token = searchParams.get('token');
-    const email = searchParams.get('email');
+    const error = searchParams.get('error');
+    
+    // Check for OAuth error
+    if (error) {
+      console.error('OAuth error:', error);
+      // Redirect to login with error message
+      navigate('/login?error=oauth_failed', { replace: true });
+      return;
+    }
     
     if (token) {
       // Save token to localStorage first (needed for API calls)
@@ -43,7 +53,7 @@ const GoogleOAuthCallbackPage: React.FC = () => {
     <div className="min-h-screen bg-slate-900 flex items-center justify-center">
       <div className="text-center text-white">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-        <p className="text-lg">Đang xử lý đăng nhập Google...</p>
+        <p className="text-lg">{t('auth.googleOAuth.processing')}</p>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   MapPinIcon,
@@ -10,6 +11,7 @@ import newsletterService from '../../services/newsletterService';
 import toast from 'react-hot-toast';
 
 const Footer: React.FC = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -18,14 +20,14 @@ const Footer: React.FC = () => {
     e.preventDefault();
     
     if (!email || !email.trim()) {
-      toast.error('Vui lòng nhập email');
+      toast.error(t('footer.newsletter.errors.emailRequired'));
       return;
     }
     
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error('Email không hợp lệ');
+      toast.error(t('footer.newsletter.errors.emailInvalid'));
       return;
     }
     
@@ -33,41 +35,41 @@ const Footer: React.FC = () => {
     
     try {
       await newsletterService.subscribe(email);
-      toast.success('🎉 Đăng ký nhận tin thành công! Cảm ơn bạn đã quan tâm.');
+      toast.success(t('footer.newsletter.success'));
       setEmail(''); // Clear input
-    } catch (error: any) {
-      toast.error(error.message || 'Đăng ký không thành công. Vui lòng thử lại.');
+    } catch (error: unknown) {
+      toast.error((error as any).message || t('footer.newsletter.errors.subscribeFailed'));
     } finally {
       setIsSubscribing(false);
     }
   };
 
-  const quickLinks = [
-    { name: 'Trang chủ', href: '/dashboard' },
-    { name: 'Tour du lịch', href: '/tours' },
-    { name: 'Về chúng tôi', href: '/about' },
-    { name: 'Liên hệ', href: '/contact' },
-    { name: 'Câu hỏi thường gặp', href: '/faq' },
-    { name: 'Chính sách bảo mật', href: '/privacy' },
-  ];
+  const quickLinks = useMemo(() => [
+    { name: t('footer.quickLinks.home'), href: '/dashboard' },
+    { name: t('footer.quickLinks.tours'), href: '/tours' },
+    { name: t('footer.quickLinks.about'), href: '/about' },
+    { name: t('footer.quickLinks.contact'), href: '/contact' },
+    { name: t('footer.quickLinks.faq'), href: '/faq' },
+    { name: t('footer.quickLinks.privacy'), href: '/privacy' },
+  ], [t]);
 
-  const destinations = [
-    { name: 'Tour Hà Nội', href: '/tours?destination=hanoi' },
-    { name: 'Tour Hồ Chí Minh', href: '/tours?destination=hcm' },
-    { name: 'Tour Đà Nẵng', href: '/tours?destination=danang' },
-    { name: 'Tour Nha Trang', href: '/tours?destination=nhatrang' },
-    { name: 'Tour Đà Lạt', href: '/tours?destination=dalat' },
-    { name: 'Tour Phú Quốc', href: '/tours?destination=phuquoc' },
-  ];
+  const destinations = useMemo(() => [
+    { name: t('footer.destinations.hanoi'), href: '/tours?destination=hanoi' },
+    { name: t('footer.destinations.hcm'), href: '/tours?destination=hcm' },
+    { name: t('footer.destinations.danang'), href: '/tours?destination=danang' },
+    { name: t('footer.destinations.nhatrang'), href: '/tours?destination=nhatrang' },
+    { name: t('footer.destinations.dalat'), href: '/tours?destination=dalat' },
+    { name: t('footer.destinations.phuquoc'), href: '/tours?destination=phuquoc' },
+  ], [t]);
 
-  const services = [
-    { name: 'Tour trong nước', href: '/tours?type=domestic' },
-    { name: 'Tour nước ngoài', href: '/tours?type=international' },
-    { name: 'Tour doanh nghiệp', href: '/tours?type=corporate' },
-    { name: 'Tour tự túc', href: '/tours?type=self-guided' },
-    { name: 'Vé máy bay', href: '/flights' },
-    { name: 'Đặt khách sạn', href: '/hotels' },
-  ];
+  const services = useMemo(() => [
+    { name: t('footer.services.domestic'), href: '/tours?type=domestic' },
+    { name: t('footer.services.international'), href: '/tours?type=international' },
+    { name: t('footer.services.corporate'), href: '/tours?type=corporate' },
+    { name: t('footer.services.selfGuided'), href: '/tours?type=self-guided' },
+    { name: t('footer.services.flights'), href: '/flights' },
+    { name: t('footer.services.hotels'), href: '/hotels' },
+  ], [t]);
 
   const socialLinks = [
     {
@@ -123,14 +125,12 @@ const Footer: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-xl font-normal tracking-wide">TourBooking</h3>
-                <p className="text-xs text-gray-400 font-normal tracking-wider">Khám phá thế giới</p>
+                <p className="text-xs text-gray-400 font-normal tracking-wider">{t('footer.company.tagline')}</p>
               </div>
             </div>
             
             <p className="text-gray-300 text-sm leading-relaxed font-normal">
-              Chúng tôi chuyên cung cấp các tour du lịch chất lượng cao, 
-              mang đến cho bạn những trải nghiệm đáng nhớ và an toàn trên 
-              khắp Việt Nam và thế giới.
+              {t('footer.company.description')}
             </p>
 
             {/* Contact Info */}
@@ -156,7 +156,7 @@ const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-base font-medium mb-6 tracking-wider uppercase" style={{ color: '#C0C0C0' }}>Liên kết nhanh</h3>
+            <h3 className="text-base font-medium mb-6 tracking-wider uppercase" style={{ color: '#C0C0C0' }}>{t('footer.quickLinks.title')}</h3>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.name}>
@@ -173,7 +173,7 @@ const Footer: React.FC = () => {
 
           {/* Popular Destinations */}
           <div>
-            <h3 className="text-base font-medium mb-6 tracking-wider uppercase" style={{ color: '#D4AF37' }}>Điểm đến phổ biến</h3>
+            <h3 className="text-base font-medium mb-6 tracking-wider uppercase" style={{ color: '#D4AF37' }}>{t('footer.destinations.title')}</h3>
             <ul className="space-y-3">
               {destinations.map((destination) => (
                 <li key={destination.name}>
@@ -190,7 +190,7 @@ const Footer: React.FC = () => {
 
           {/* Services */}
           <div>
-            <h3 className="text-base font-medium mb-6 tracking-wider uppercase" style={{ color: '#D4AF37' }}>Dịch vụ</h3>
+            <h3 className="text-base font-medium mb-6 tracking-wider uppercase" style={{ color: '#D4AF37' }}>{t('footer.services.title')}</h3>
             <ul className="space-y-3">
               {services.map((service) => (
                 <li key={service.name}>
@@ -209,16 +209,16 @@ const Footer: React.FC = () => {
         {/* Newsletter Signup */}
         <div className="border-t border-slate-800 py-12">
           <div className="text-center">
-            <h3 className="text-xl font-normal mb-3 tracking-wide">Đăng ký nhận tin tức</h3>
+            <h3 className="text-xl font-normal mb-3 tracking-wide">{t('footer.newsletter.title')}</h3>
             <p className="text-gray-400 text-sm mb-6 font-normal">
-              Nhận thông tin về các tour mới và ưu đãi đặc biệt
+              {t('footer.newsletter.description')}
             </p>
             <form onSubmit={handleNewsletterSubscribe} className="max-w-md mx-auto flex">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Nhập email của bạn"
+                placeholder={t('footer.newsletter.placeholder')}
                 className="flex-1 px-5 py-3 bg-slate-800 border border-slate-700 rounded-none text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:border-[#D4AF37] font-normal text-sm"
                 style={{ '--focus-ring-color': '#D4AF37' } as React.CSSProperties}
                 disabled={isSubscribing}
@@ -230,7 +230,7 @@ const Footer: React.FC = () => {
                 className="px-8 py-3 text-white rounded-none transition-all text-sm font-medium tracking-wider uppercase shadow-md disabled:opacity-50 disabled:cursor-not-allowed" 
                 style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
               >
-                {isSubscribing ? 'Đang xử lý...' : 'Đăng ký'}
+                {isSubscribing ? t('footer.newsletter.processing') : t('footer.newsletter.subscribe')}
               </button>
             </form>
           </div>
@@ -264,9 +264,9 @@ const Footer: React.FC = () => {
 
             {/* Copyright */}
             <div className="text-center md:text-right text-gray-400 text-sm font-normal">
-              <p>&copy; {currentYear} TourBooking. Tất cả quyền được bảo lưu.</p>
+              <p>{t('footer.copyright.text', { year: currentYear })}</p>
               <p className="mt-2 text-xs">
-                Được phát triển với <span style={{ color: '#D4AF37' }}>❤</span> tại Việt Nam
+                {t('footer.copyright.developed')} <span style={{ color: '#D4AF37' }}>❤</span> {t('footer.copyright.location')}
               </p>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { StarIcon as StarOutlineIcon } from '@heroicons/react/24/outline';
 import { Button, Input } from '../ui';
@@ -20,6 +21,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   onSuccess,
   onCancel
 }) => {
+  const { t } = useTranslation();
   const [rating, setRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [comment, setComment] = useState('');
@@ -29,12 +31,12 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
     e.preventDefault();
 
     if (rating === 0) {
-      toast.error('Vui lòng chọn số sao đánh giá');
+      toast.error(t('tours.reviews.form.errors.ratingRequired'));
       return;
     }
 
     if (comment.trim().length < 10) {
-      toast.error('Đánh giá phải có ít nhất 10 ký tự');
+      toast.error(t('tours.reviews.form.errors.commentMinLength'));
       return;
     }
 
@@ -50,7 +52,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
 
       await reviewService.createReview(request);
       
-      toast.success('Đánh giá của bạn đã được gửi thành công! Chúng tôi sẽ duyệt và hiển thị sớm nhất.');
+      toast.success(t('tours.reviews.form.success'));
       
       // Reset form
       setRating(5);
@@ -59,9 +61,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting review:', error);
-      const message = error?.response?.data?.error || 'Có lỗi xảy ra khi gửi đánh giá';
+      const message = (error as any)?.response?.data?.error || t('tours.reviews.form.errors.submitError');
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -71,14 +73,14 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
       <h3 className="text-xl font-semibold text-gray-900 mb-4">
-        Viết đánh giá cho "{tourName}"
+        {t('tours.reviews.form.title', { tourName })}
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Rating Stars */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Đánh giá của bạn <span className="text-red-500">*</span>
+            {t('tours.reviews.form.rating.label')} <span className="text-red-500">*</span>
           </label>
           <div className="flex items-center space-x-2">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -98,38 +100,34 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
               </button>
             ))}
             <span className="ml-3 text-lg font-medium text-gray-900">
-              {rating > 0 ? `${rating}/5` : 'Chọn số sao'}
+              {rating > 0 ? `${rating}/5` : t('tours.reviews.form.rating.select')}
             </span>
           </div>
           <p className="mt-1 text-sm text-gray-500">
-            {rating === 5 && 'Tuyệt vời!'}
-            {rating === 4 && 'Rất tốt'}
-            {rating === 3 && 'Tốt'}
-            {rating === 2 && 'Bình thường'}
-            {rating === 1 && 'Cần cải thiện'}
+            {t(`tours.reviews.form.rating.labels.${rating}` as any)}
           </p>
         </div>
 
         {/* Comment */}
         <div>
           <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
-            Nhận xét của bạn <span className="text-red-500">*</span>
+            {t('tours.reviews.form.comment.label')} <span className="text-red-500">*</span>
           </label>
           <textarea
             id="comment"
             rows={6}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Chia sẻ trải nghiệm của bạn về chuyến đi này... (Tối thiểu 10 ký tự)"
+            placeholder={t('tours.reviews.form.comment.placeholder')}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             required
             minLength={10}
             maxLength={1000}
           />
           <div className="mt-1 flex justify-between items-center text-sm text-gray-500">
-            <span>Tối thiểu 10 ký tự, tối đa 1000 ký tự</span>
+            <span>{t('tours.reviews.form.comment.minMax')}</span>
             <span className={comment.length > 1000 ? 'text-red-500' : ''}>
-              {comment.length}/1000
+              {t('tours.reviews.form.comment.counter', { count: comment.length })}
             </span>
           </div>
         </div>
@@ -137,8 +135,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
         {/* Info Box */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-800">
-            <span className="font-medium">Lưu ý:</span> Đánh giá của bạn sẽ được kiểm duyệt trước khi hiển thị công khai. 
-            Chúng tôi khuyến khích bạn chia sẻ trải nghiệm thật và chi tiết để giúp ích cho những khách hàng khác.
+            <span className="font-medium">{t('tours.reviews.form.note.title')}</span> {t('tours.reviews.form.note.message')}
           </p>
         </div>
 
@@ -151,7 +148,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
               onClick={onCancel}
               disabled={isSubmitting}
             >
-              Hủy
+              {t('tours.reviews.form.buttons.cancel')}
             </Button>
           )}
           <Button
@@ -159,7 +156,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
             disabled={isSubmitting || rating === 0 || comment.trim().length < 10}
             className="bg-blue-600 hover:bg-blue-700 text-white px-8"
           >
-            {isSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
+            {isSubmitting ? t('tours.reviews.form.buttons.submitting') : t('tours.reviews.form.buttons.submit')}
           </Button>
         </div>
       </form>

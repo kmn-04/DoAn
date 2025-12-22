@@ -1,26 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
+import { Button, Input, Card, CardContent } from '../../components/ui';
 import { showToast } from '../../components/ui/Toast';
 import authService from '../../services/authService';
 
-// Validation schema
-const forgotPasswordSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email là bắt buộc')
-    .email('Email không hợp lệ'),
-});
-
-type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+type ForgotPasswordFormData = {
+  email: string;
+};
 
 const ForgotPasswordPage: React.FC = () => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Validation schema with translations
+  const forgotPasswordSchema = useMemo(() => z.object({
+    email: z
+      .string()
+      .min(1, t('authErrors.emailRequired'))
+      .email(t('authErrors.emailInvalid')),
+  }), [t]);
 
   const {
     register,
@@ -41,15 +45,16 @@ const ForgotPasswordPage: React.FC = () => {
       
       setIsSubmitted(true);
       showToast.success(
-        'Email đã được gửi!', 
-        'Vui lòng kiểm tra email để đặt lại mật khẩu'
+        t('auth.forgotPasswordPage.emailSent'), 
+        t('auth.forgotPasswordPage.checkInbox')
       );
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Forgot password error:', error);
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       showToast.error(
-        'Có lỗi xảy ra', 
-        error.response?.data?.message || 'Không thể gửi email đặt lại mật khẩu'
+        t('common.errorOccurred'), 
+        errorMessage || t('auth.forgotPasswordPage.error')
       );
     } finally {
       setIsLoading(false);
@@ -73,10 +78,10 @@ const ForgotPasswordPage: React.FC = () => {
               </svg>
             </div>
             <h2 className="mt-8 text-center text-4xl font-normal text-white tracking-tight animate-fade-in-up opacity-0 delay-100">
-              Email đã được gửi
+              {t('auth.forgotPasswordPage.emailSent')}
             </h2>
             <p className="mt-3 text-center text-sm text-gray-300 font-normal animate-fade-in-up opacity-0 delay-200">
-              Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu đến email{' '}
+              {t('auth.forgotPasswordPage.emailSentMessage')}{' '}
               <span className="font-medium" style={{ color: '#D4AF37' }}>{getValues('email')}</span>
             </p>
           </div>
@@ -86,10 +91,10 @@ const ForgotPasswordPage: React.FC = () => {
               <CardContent className="py-10 px-8 text-center">
                 <div className="space-y-4">
                   <p className="text-sm text-slate-900 font-normal">
-                    Vui lòng kiểm tra hộp thư đến và làm theo hướng dẫn để đặt lại mật khẩu của bạn.
+                    {t('auth.forgotPasswordPage.checkInbox')}
                   </p>
                   <p className="text-xs text-gray-500 font-normal">
-                    Không nhận được email? Kiểm tra thư mục spam hoặc thử gửi lại sau 5 phút.
+                    {t('auth.forgotPasswordPage.noEmailReceived')}
                   </p>
                   
                   <div className="flex flex-col space-y-3 mt-6">
@@ -98,12 +103,12 @@ const ForgotPasswordPage: React.FC = () => {
                       variant="outline"
                       className="w-full border-2 border-stone-300 hover:border-slate-900 rounded-none transition-all duration-300"
                     >
-                      Gửi lại email
+                      {t('auth.forgotPasswordPage.resendEmail')}
                     </Button>
                     <Link to="/login">
                       <Button variant="ghost" className="w-full text-slate-600 hover:text-slate-900 rounded-none">
                         <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                        Quay lại đăng nhập
+                        {t('auth.forgotPasswordPage.backToLogin')}
                       </Button>
                     </Link>
                   </div>
@@ -135,10 +140,10 @@ const ForgotPasswordPage: React.FC = () => {
         </div>
         
         <h2 className="mt-8 text-center text-4xl font-normal text-white tracking-tight animate-fade-in-up opacity-0 delay-100">
-          Quên mật khẩu?
+          {t('auth.forgotPasswordPage.title')}
         </h2>
         <p className="mt-3 text-center text-sm text-gray-300 font-normal animate-fade-in-up opacity-0 delay-200">
-          Nhập email của bạn và chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu
+          {t('auth.forgotPasswordPage.subtitle')}
         </p>
       </div>
 
@@ -149,9 +154,9 @@ const ForgotPasswordPage: React.FC = () => {
               {/* Email Input */}
               <Input
                 {...register('email')}
-                label="Email"
+                label={t('auth.forgotPasswordPage.emailLabel')}
                 type="email"
-                placeholder="Nhập email của bạn"
+                placeholder={t('auth.forgotPasswordPage.emailPlaceholder')}
                 leftIcon={<EnvelopeIcon className="h-4 w-4" />}
                 error={errors.email?.message}
                 disabled={isLoading}
@@ -166,7 +171,7 @@ const ForgotPasswordPage: React.FC = () => {
                 loading={isLoading}
                 disabled={isLoading}
               >
-                {isLoading ? 'Đang gửi...' : 'Gửi hướng dẫn đặt lại mật khẩu'}
+                {isLoading ? t('auth.forgotPasswordPage.sending') : t('auth.forgotPasswordPage.submit')}
               </Button>
 
               {/* Back to Login */}
@@ -177,7 +182,7 @@ const ForgotPasswordPage: React.FC = () => {
                   style={{ color: '#D4AF37' }}
                 >
                   <ArrowLeftIcon className="h-4 w-4 mr-1" />
-                  Quay lại đăng nhập
+                  {t('auth.forgotPasswordPage.backToLogin')}
                 </Link>
               </div>
             </form>
@@ -187,9 +192,9 @@ const ForgotPasswordPage: React.FC = () => {
         {/* Help Text */}
         <div className="mt-8 text-center animate-fade-in opacity-0 delay-400">
           <p className="text-xs text-gray-300 font-normal">
-            Bạn nhớ mật khẩu rồi?{' '}
+            {t('auth.forgotPasswordPage.rememberPassword')}{' '}
             <Link to="/login" className="font-medium hover:opacity-80 transition-opacity" style={{ color: '#D4AF37' }}>
-              Đăng nhập ngay
+              {t('auth.forgotPasswordPage.loginNow')}
             </Link>
           </p>
         </div>

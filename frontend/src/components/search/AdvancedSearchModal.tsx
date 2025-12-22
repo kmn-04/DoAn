@@ -1,19 +1,66 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   MagnifyingGlassIcon,
   XMarkIcon,
   MapPinIcon,
-  CalendarDaysIcon,
   UsersIcon,
   CurrencyDollarIcon,
   StarIcon,
   ClockIcon,
   AdjustmentsHorizontalIcon,
   SparklesIcon,
-  GlobeAltIcon,
-  HomeIcon
+  GlobeAltIcon
 } from '@heroicons/react/24/outline';
-import { Button, Input, Card } from '../ui';
+import { Button } from '../ui';
+
+const AMENITIES = [
+  { value: 'WiFi miễn phí', key: 'freeWifi' },
+  { value: 'Bữa ăn bao gồm', key: 'mealsIncluded' },
+  { value: 'Hướng dẫn viên', key: 'tourGuide' },
+  { value: 'Xe đưa đón', key: 'transfers' },
+  { value: 'Bảo hiểm du lịch', key: 'travelInsurance' },
+  { value: 'Nước uống', key: 'beverages' },
+  { value: 'Thiết bị an toàn', key: 'safetyGear' },
+  { value: 'Quà lưu niệm', key: 'souvenirs' }
+];
+
+const INTERESTS = [
+  { value: 'Nhiếp ảnh', key: 'photography' },
+  { value: 'Lịch sử', key: 'history' },
+  { value: 'Ẩm thực', key: 'cuisine' },
+  { value: 'Nghệ thuật', key: 'art' },
+  { value: 'Thiên nhiên', key: 'nature' },
+  { value: 'Thể thao', key: 'sports' },
+  { value: 'Shopping', key: 'shopping' },
+  { value: 'Spa & Wellness', key: 'spaWellness' },
+  { value: 'Kiến trúc', key: 'architecture' },
+  { value: 'Âm nhạc', key: 'music' }
+];
+
+const MOOD_PRESETS = [
+  { id: 'relaxing', emoji: '😌', color: 'bg-green-100 text-green-800' },
+  { id: 'adventurous', emoji: '🎯', color: 'bg-red-100 text-red-800' },
+  { id: 'romantic', emoji: '💕', color: 'bg-pink-100 text-pink-800' },
+  { id: 'cultural', emoji: '🎭', color: 'bg-purple-100 text-purple-800' },
+  { id: 'family', emoji: '👨‍👩‍👧‍👦', color: 'bg-blue-100 text-blue-800' },
+  { id: 'solo', emoji: '🚶', color: 'bg-yellow-100 text-yellow-800' }
+];
+
+const TRAVEL_STYLE_PRESETS = [
+  { id: 'luxury' },
+  { id: 'comfort' },
+  { id: 'budget' },
+  { id: 'backpacker' }
+];
+
+const SUGGESTION_KEYS = [
+  'familyHalong',
+  'sapaPhoto',
+  'hoiAnFoodCulture',
+  'phuQuocRelax',
+  'tokyoCulture'
+];
 
 interface AdvancedSearchProps {
   isOpen: boolean;
@@ -56,6 +103,7 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
   onSearch,
   initialFilters = {}
 }) => {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<SearchFilters>({
     search: '',
     destination: '',
@@ -82,50 +130,46 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
   });
 
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'advanced' | 'ai'>('basic');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Mock data
-  const destinations = [
-    'Hạ Long Bay', 'Sapa', 'Hội An', 'Đà Nẵng', 'Phú Quốc', 'Nha Trang',
-    'Tokyo', 'Seoul', 'Bangkok', 'Singapore', 'Paris', 'London'
-  ];
+  const moodOptions = useMemo(() => (
+    MOOD_PRESETS.map((preset) => ({
+      ...preset,
+      name: t(`tours.advancedSearch.ai.moods.${preset.id}`)
+    }))
+  ), [t]);
 
-  const categories = [
-    { id: 'beach', name: 'Tour biển đảo', icon: '🏖️' },
-    { id: 'mountain', name: 'Tour núi rừng', icon: '🏔️' },
-    { id: 'city', name: 'Tour thành phố', icon: '🏙️' },
-    { id: 'culture', name: 'Tour văn hóa', icon: '🏛️' },
-    { id: 'adventure', name: 'Tour phiêu lưu', icon: '🎯' },
-    { id: 'food', name: 'Tour ẩm thực', icon: '🍜' }
-  ];
+  const travelStyleOptions = useMemo(() => (
+    TRAVEL_STYLE_PRESETS.map((style) => ({
+      ...style,
+      name: t(`tours.advancedSearch.ai.travelStyles.${style.id}.name`),
+      description: t(`tours.advancedSearch.ai.travelStyles.${style.id}.description`)
+    }))
+  ), [t]);
 
-  const amenities = [
-    'WiFi miễn phí', 'Bữa ăn bao gồm', 'Hướng dẫn viên', 'Xe đưa đón',
-    'Bảo hiểm du lịch', 'Nước uống', 'Thiết bị an toàn', 'Quà lưu niệm'
-  ];
+  const amenityLabels = useMemo(
+    () =>
+      AMENITIES.reduce<Record<string, string>>((acc, amenity) => {
+        acc[amenity.value] = t(`tours.advancedSearch.advanced.amenities.${amenity.key}`);
+        return acc;
+      }, {}),
+    [t]
+  );
 
-  const moods = [
-    { id: 'relaxing', name: 'Thư giãn', emoji: '😌', color: 'bg-green-100 text-green-800' },
-    { id: 'adventurous', name: 'Phiêu lưu', emoji: '🎯', color: 'bg-red-100 text-red-800' },
-    { id: 'romantic', name: 'Lãng mạn', emoji: '💕', color: 'bg-pink-100 text-pink-800' },
-    { id: 'cultural', name: 'Văn hóa', emoji: '🎭', color: 'bg-purple-100 text-purple-800' },
-    { id: 'family', name: 'Gia đình', emoji: '👨‍👩‍👧‍👦', color: 'bg-blue-100 text-blue-800' },
-    { id: 'solo', name: 'Du lịch một mình', emoji: '🚶', color: 'bg-yellow-100 text-yellow-800' }
-  ];
+  const interestLabels = useMemo(
+    () =>
+      INTERESTS.reduce<Record<string, string>>((acc, interest) => {
+        acc[interest.value] = t(`tours.advancedSearch.ai.interests.${interest.key}`);
+        return acc;
+      }, {}),
+    [t]
+  );
 
-  const interests = [
-    'Nhiếp ảnh', 'Lịch sử', 'Ẩm thực', 'Nghệ thuật', 'Thiên nhiên',
-    'Thể thao', 'Shopping', 'Spa & Wellness', 'Kiến trúc', 'Âm nhạc'
-  ];
-
-  const travelStyles = [
-    { id: 'luxury', name: 'Sang trọng', description: 'Khách sạn 5 sao, dịch vụ cao cấp' },
-    { id: 'comfort', name: 'Thoải mái', description: 'Cân bằng giữa chất lượng và giá cả' },
-    { id: 'budget', name: 'Tiết kiệm', description: 'Tối ưu chi phí, trải nghiệm cơ bản' },
-    { id: 'backpacker', name: 'Phượt', description: 'Tự do, linh hoạt, gần gũi địa phương' }
-  ];
+  const suggestionTexts = useMemo(
+    () => SUGGESTION_KEYS.map((key) => t(`tours.advancedSearch.suggestions.${key}`)),
+    [t]
+  );
 
   // Load AI suggestions based on current filters
   useEffect(() => {
@@ -135,29 +179,20 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
         return;
       }
 
-      setIsLoadingSuggestions(true);
-      
       // Simulate AI API call
       setTimeout(() => {
-        const mockSuggestions = [
-          'Tour Hạ Long 2 ngày phù hợp cho gia đình',
-          'Khám phá Sapa mùa lúa chín với nhiếp ảnh',
-          'Tour ẩm thực Hội An cho người yêu văn hóa',
-          'Phú Quốc thư giãn 3 ngày 2 đêm',
-          'Tokyo - Osaka văn hóa truyền thống'
-        ].filter(suggestion => 
-          suggestion.toLowerCase().includes(filters.search.toLowerCase()) ||
-          (filters.mood && suggestion.includes(moods.find(m => m.id === filters.mood)?.name || '')) ||
-          filters.interests.some(interest => suggestion.includes(interest))
+        const mockSuggestions = suggestionTexts.filter((suggestion) =>
+          filters.search
+            ? suggestion.toLowerCase().includes(filters.search.toLowerCase())
+            : true
         );
-        
+
         setSuggestions(mockSuggestions.slice(0, 5));
-        setIsLoadingSuggestions(false);
       }, 1000);
     };
 
     loadSuggestions();
-  }, [filters.search, filters.mood, filters.interests]);
+  }, [filters.search, filters.mood, filters.interests, suggestionTexts]);
 
   // Focus search input when modal opens
   useEffect(() => {
@@ -166,7 +201,7 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
     }
   }, [isOpen]);
 
-  const handleFilterChange = (key: keyof SearchFilters, value: any) => {
+  const handleFilterChange = (key: keyof SearchFilters, value: SearchFilters[keyof SearchFilters]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -227,7 +262,7 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <MagnifyingGlassIcon className="h-6 w-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Tìm kiếm nâng cao</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('tours.advancedSearch.title')}</h2>
             </div>
             <button
               onClick={onClose}
@@ -244,7 +279,7 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Tìm kiếm tour, điểm đến, hoạt động..."
+                placeholder={t('tours.advancedSearch.searchPlaceholder')}
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -256,7 +291,7 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
               <div className="mt-4">
                 <div className="flex items-center space-x-2 mb-2">
                   <SparklesIcon className="h-4 w-4 text-purple-500" />
-                  <span className="text-sm font-medium text-purple-600">Gợi ý thông minh</span>
+                  <span className="text-sm font-medium text-purple-600">{t('tours.advancedSearch.aiSuggestions')}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {suggestions.map((suggestion, index) => (
@@ -277,13 +312,13 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6">
               {[
-                { id: 'basic', name: 'Cơ bản', icon: AdjustmentsHorizontalIcon },
-                { id: 'advanced', name: 'Nâng cao', icon: StarIcon },
-                { id: 'ai', name: 'AI Thông minh', icon: SparklesIcon }
+                { id: 'basic', name: t('tours.advancedSearch.tabs.basic'), icon: AdjustmentsHorizontalIcon },
+                { id: 'advanced', name: t('tours.advancedSearch.tabs.advanced'), icon: StarIcon },
+                { id: 'ai', name: t('tours.advancedSearch.tabs.ai'), icon: SparklesIcon }
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as 'basic' | 'advanced' | 'ai')}
                   className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
@@ -308,7 +343,8 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
                 filters={filters} 
                 onChange={handleFilterChange}
                 onArrayToggle={handleArrayFilterToggle}
-                amenities={amenities}
+                amenities={AMENITIES}
+                amenityLabels={amenityLabels}
               />
             )}
             
@@ -317,9 +353,10 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
                 filters={filters}
                 onChange={handleFilterChange}
                 onArrayToggle={handleArrayFilterToggle}
-                moods={moods}
-                interests={interests}
-                travelStyles={travelStyles}
+                moods={moodOptions}
+                interests={INTERESTS}
+                interestLabels={interestLabels}
+                travelStyles={travelStyleOptions}
               />
             )}
           </div>
@@ -330,15 +367,15 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
               onClick={handleClear}
               className="text-gray-600 hover:text-gray-800 font-medium"
             >
-              Xóa tất cả
+              {t('tours.advancedSearch.buttons.clearAll')}
             </button>
             
             <div className="flex items-center space-x-3">
               <Button variant="outline" onClick={onClose}>
-                Hủy
+                {t('tours.advancedSearch.buttons.cancel')}
               </Button>
               <Button onClick={handleSearch} className="px-8">
-                Tìm kiếm
+                {t('tours.advancedSearch.buttons.search')}
               </Button>
             </div>
           </div>
@@ -351,23 +388,25 @@ const AdvancedSearchModal: React.FC<AdvancedSearchProps> = ({
 // Basic Filters Component
 const BasicFilters: React.FC<{
   filters: SearchFilters;
-  onChange: (key: keyof SearchFilters, value: any) => void;
-}> = ({ filters, onChange }) => (
+  onChange: (key: keyof SearchFilters, value: SearchFilters[keyof SearchFilters]) => void;
+}> = ({ filters, onChange }) => {
+  const { t } = useTranslation();
+  return (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {/* Destination */}
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
         <MapPinIcon className="inline h-4 w-4 mr-1" />
-        Điểm đến
+        {t('tours.advancedSearch.basic.destination.label')}
       </label>
       <select
         value={filters.destination}
         onChange={(e) => onChange('destination', e.target.value)}
         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
-        <option value="">Tất cả điểm đến</option>
-        <option value="domestic">Trong nước</option>
-        <option value="international">Quốc tế</option>
+        <option value="">{t('tours.advancedSearch.basic.destination.options.all')}</option>
+        <option value="domestic">{t('tours.advancedSearch.basic.destination.options.domestic')}</option>
+        <option value="international">{t('tours.advancedSearch.basic.destination.options.international')}</option>
       </select>
     </div>
 
@@ -375,16 +414,16 @@ const BasicFilters: React.FC<{
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
         <GlobeAltIcon className="inline h-4 w-4 mr-1" />
-        Loại tour
+        {t('tours.advancedSearch.basic.tourType.label')}
       </label>
       <select
         value={filters.tourType}
         onChange={(e) => onChange('tourType', e.target.value)}
         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
-        <option value="all">Tất cả</option>
-        <option value="domestic">Tour trong nước</option>
-        <option value="international">Tour quốc tế</option>
+        <option value="all">{t('tours.advancedSearch.basic.tourType.options.all')}</option>
+        <option value="domestic">{t('tours.advancedSearch.basic.tourType.options.domestic')}</option>
+        <option value="international">{t('tours.advancedSearch.basic.tourType.options.international')}</option>
       </select>
     </div>
 
@@ -392,19 +431,19 @@ const BasicFilters: React.FC<{
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
         <CurrencyDollarIcon className="inline h-4 w-4 mr-1" />
-        Khoảng giá
+        {t('tours.advancedSearch.basic.priceRange.label')}
       </label>
       <div className="flex space-x-2">
         <input
           type="number"
-          placeholder="Từ"
+          placeholder={t('tours.advancedSearch.basic.priceRange.minPlaceholder')}
           value={filters.priceMin}
           onChange={(e) => onChange('priceMin', e.target.value)}
           className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
         <input
           type="number"
-          placeholder="Đến"
+          placeholder={t('tours.advancedSearch.basic.priceRange.maxPlaceholder')}
           value={filters.priceMax}
           onChange={(e) => onChange('priceMax', e.target.value)}
           className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -416,18 +455,18 @@ const BasicFilters: React.FC<{
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
         <ClockIcon className="inline h-4 w-4 mr-1" />
-        Thời gian
+        {t('tours.advancedSearch.basic.duration.label')}
       </label>
       <select
         value={filters.duration}
         onChange={(e) => onChange('duration', e.target.value)}
         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
-        <option value="">Tất cả</option>
-        <option value="1-2">1-2 ngày</option>
-        <option value="3-5">3-5 ngày</option>
-        <option value="6-10">6-10 ngày</option>
-        <option value="10+">Trên 10 ngày</option>
+        <option value="">{t('tours.advancedSearch.basic.duration.options.all')}</option>
+        <option value="1-2">{t('tours.advancedSearch.basic.duration.options.oneTwo')}</option>
+        <option value="3-5">{t('tours.advancedSearch.basic.duration.options.threeFive')}</option>
+        <option value="6-10">{t('tours.advancedSearch.basic.duration.options.sixTen')}</option>
+        <option value="10+">{t('tours.advancedSearch.basic.duration.options.tenPlus')}</option>
       </select>
     </div>
 
@@ -435,17 +474,17 @@ const BasicFilters: React.FC<{
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
         <StarIcon className="inline h-4 w-4 mr-1" />
-        Đánh giá
+        {t('tours.advancedSearch.basic.rating.label')}
       </label>
       <select
         value={filters.rating}
         onChange={(e) => onChange('rating', e.target.value)}
         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
-        <option value="">Tất cả</option>
-        <option value="4.5+">4.5+ sao</option>
-        <option value="4.0+">4.0+ sao</option>
-        <option value="3.5+">3.5+ sao</option>
+        <option value="">{t('tours.advancedSearch.basic.rating.options.all')}</option>
+        <option value="4.5+">{t('tours.advancedSearch.basic.rating.options.fourHalf')}</option>
+        <option value="4.0+">{t('tours.advancedSearch.basic.rating.options.four')}</option>
+        <option value="3.5+">{t('tours.advancedSearch.basic.rating.options.threeHalf')}</option>
       </select>
     </div>
 
@@ -453,7 +492,7 @@ const BasicFilters: React.FC<{
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
         <UsersIcon className="inline h-4 w-4 mr-1" />
-        Số người
+        {t('tours.advancedSearch.basic.participants.label')}
       </label>
       <input
         type="number"
@@ -464,34 +503,37 @@ const BasicFilters: React.FC<{
       />
     </div>
   </div>
-);
+)};
 
 // Advanced Filters Component  
 const AdvancedFilters: React.FC<{
   filters: SearchFilters;
-  onChange: (key: keyof SearchFilters, value: any) => void;
+  onChange: (key: keyof SearchFilters, value: SearchFilters[keyof SearchFilters]) => void;
   onArrayToggle: (key: keyof SearchFilters, value: string) => void;
-  amenities: string[];
-}> = ({ filters, onChange, onArrayToggle, amenities }) => (
+  amenities: typeof AMENITIES;
+  amenityLabels: Record<string, string>;
+}> = ({ filters, onChange, onArrayToggle, amenities, amenityLabels }) => {
+  const { t } = useTranslation();
+  return (
   <div className="space-y-6">
     {/* Amenities */}
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-3">
-        Tiện ích bao gồm
+        {t('tours.advancedSearch.advanced.amenitiesLabel')}
       </label>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {amenities.map((amenity) => (
           <label
-            key={amenity}
+            key={amenity.value}
             className="flex items-center space-x-2 p-2 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer"
           >
             <input
               type="checkbox"
-              checked={filters.amenities.includes(amenity)}
-              onChange={() => onArrayToggle('amenities', amenity)}
+              checked={filters.amenities.includes(amenity.value)}
+              onChange={() => onArrayToggle('amenities', amenity.value)}
               className="text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">{amenity}</span>
+            <span className="text-sm text-gray-700">{amenityLabels[amenity.value] || amenity.value}</span>
           </label>
         ))}
       </div>
@@ -506,7 +548,7 @@ const AdvancedFilters: React.FC<{
           onChange={(e) => onChange('accessibility', e.target.checked)}
           className="text-blue-600 focus:ring-blue-500"
         />
-        <span className="text-sm font-medium text-gray-700">Phù hợp người khuyết tật</span>
+        <span className="text-sm font-medium text-gray-700">{t('tours.advancedSearch.advanced.quickFilters.accessibility')}</span>
       </label>
 
       <label className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">
@@ -516,7 +558,7 @@ const AdvancedFilters: React.FC<{
           onChange={(e) => onChange('instantBooking', e.target.checked)}
           className="text-blue-600 focus:ring-blue-500"
         />
-        <span className="text-sm font-medium text-gray-700">Đặt ngay lập tức</span>
+        <span className="text-sm font-medium text-gray-700">{t('tours.advancedSearch.advanced.quickFilters.instantBooking')}</span>
       </label>
 
       <label className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">
@@ -526,27 +568,31 @@ const AdvancedFilters: React.FC<{
           onChange={(e) => onChange('freeCancellation', e.target.checked)}
           className="text-blue-600 focus:ring-blue-500"
         />
-        <span className="text-sm font-medium text-gray-700">Hủy miễn phí</span>
+        <span className="text-sm font-medium text-gray-700">{t('tours.advancedSearch.advanced.quickFilters.freeCancellation')}</span>
       </label>
     </div>
   </div>
 );
+};
 
 // AI Filters Component
 const AIFilters: React.FC<{
   filters: SearchFilters;
-  onChange: (key: keyof SearchFilters, value: any) => void;
+  onChange: (key: keyof SearchFilters, value: SearchFilters[keyof SearchFilters]) => void;
   onArrayToggle: (key: keyof SearchFilters, value: string) => void;
-  moods: any[];
-  interests: string[];
-  travelStyles: any[];
-}> = ({ filters, onChange, onArrayToggle, moods, interests, travelStyles }) => (
+  moods: Array<{ id: string; emoji: string; color: string; name: string }>;
+  interests: typeof INTERESTS;
+  interestLabels: Record<string, string>;
+  travelStyles: Array<{ id: string; name: string; description: string }>;
+}> = ({ filters, onChange, onArrayToggle, moods, interests, interestLabels, travelStyles }) => {
+  const { t } = useTranslation();
+  return (
   <div className="space-y-6">
     {/* Mood Selection */}
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-3">
         <SparklesIcon className="inline h-4 w-4 mr-1" />
-        Tâm trạng du lịch
+        {t('tours.advancedSearch.ai.moodLabel')}
       </label>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {moods.map((mood) => (
@@ -571,20 +617,20 @@ const AIFilters: React.FC<{
     {/* Interests */}
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-3">
-        Sở thích
+        {t('tours.advancedSearch.ai.interestsLabel')}
       </label>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
         {interests.map((interest) => (
           <button
-            key={interest}
-            onClick={() => onArrayToggle('interests', interest)}
+            key={interest.value}
+            onClick={() => onArrayToggle('interests', interest.value)}
             className={`p-2 rounded-lg text-sm font-medium transition-colors ${
-              filters.interests.includes(interest)
+              filters.interests.includes(interest.value)
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            {interest}
+            {interestLabels[interest.value] || interest.value}
           </button>
         ))}
       </div>
@@ -593,7 +639,7 @@ const AIFilters: React.FC<{
     {/* Travel Style */}
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-3">
-        Phong cách du lịch
+        {t('tours.advancedSearch.ai.travelStyleLabel')}
       </label>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {travelStyles.map((style) => (
@@ -614,6 +660,6 @@ const AIFilters: React.FC<{
     </div>
   </div>
 );
+};
 
 export default AdvancedSearchModal;
-export type { SearchFilters };

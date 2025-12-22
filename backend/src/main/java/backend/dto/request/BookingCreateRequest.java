@@ -37,6 +37,8 @@ public class BookingCreateRequest {
     
     private String promotionCode;
     
+    private String voucherCode;
+    
     // User ID for booking (optional, can be extracted from JWT token)
     private Long userId;
     

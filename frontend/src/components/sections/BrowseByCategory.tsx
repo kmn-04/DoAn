@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   ChevronLeftIcon,
   ChevronRightIcon
@@ -29,6 +30,7 @@ const imageMap: Record<string, string> = {
 };
 
 const BrowseByCategory: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +68,7 @@ const BrowseByCategory: React.FC = () => {
         setCategories(sortedCategories);
       } catch (err) {
         console.error('Error fetching categories:', err);
-        setError('Không thể tải danh mục. Vui lòng thử lại sau.');
+        setError(t('landing.browseByCategory.errorMessage'));
       } finally {
         setIsLoading(false);
       }
@@ -148,7 +150,7 @@ const BrowseByCategory: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Khám Phá Theo Chủ Đề
+              {t('landing.browseByCategory.loadingTitle')}
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -174,7 +176,7 @@ const BrowseByCategory: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Khám Phá Theo Chủ Đề
+              {t('landing.browseByCategory.errorTitle')}
             </h2>
             <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-lg mx-auto">
               <p className="text-red-600">{error}</p>
@@ -182,7 +184,7 @@ const BrowseByCategory: React.FC = () => {
                 onClick={() => window.location.reload()}
                 className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
               >
-                Tải lại
+                {t('landing.browseByCategory.reload')}
               </button>
             </div>
           </div>
@@ -198,9 +200,9 @@ const BrowseByCategory: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Khám Phá Theo Chủ Đề
+              {t('landing.browseByCategory.title')}
             </h2>
-            <p className="text-gray-600">Chưa có danh mục nào.</p>
+            <p className="text-gray-600">{t('landing.browseByCategory.emptyMessage')}</p>
           </div>
         </div>
       </section>
@@ -213,10 +215,10 @@ const BrowseByCategory: React.FC = () => {
         {/* Section Header */}
         <div className="text-center mb-20 animate-fade-in-up opacity-0">
           <div className="inline-block px-8 py-3 border border-slate-800 rounded-none mb-6">
-            <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">Khám Phá Theo Chủ Đề</span>
+            <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">{t('landing.browseByCategory.title')}</span>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            Tìm kiếm tour phù hợp với sở thích và phong cách du lịch của bạn
+            {t('landing.browseByCategory.subtitle')}
           </p>
         </div>
 
@@ -284,7 +286,7 @@ const BrowseByCategory: React.FC = () => {
                     {/* Tour Count Badge */}
                     <div className="absolute top-4 right-4">
                       <div className="bg-white text-gray-900 px-3 py-1.5 rounded-none text-xs font-medium shadow-lg">
-                        {category.tourCount || 0} tours
+                        {category.tourCount || 0} {t('landing.browseByCategory.tours')}
                       </div>
                     </div>
                   </div>
@@ -295,13 +297,13 @@ const BrowseByCategory: React.FC = () => {
                       {category.name}
                     </h3>
                     <p className="text-gray-500 text-sm leading-relaxed font-normal h-12 overflow-hidden">
-                      {category.description || `Khám phá các tour ${category.name.toLowerCase()}`}
+                      {category.description || t('landing.browseByCategory.exploreCategory', { category: category.name.toLowerCase() })}
                     </p>
                     
                     {/* Arrow Icon */}
                     <div className="mt-4 flex items-center space-x-2 text-gray-900 opacity-0 group-hover:opacity-100 transition-all duration-300">
                       <span className="text-xs font-medium tracking-wider uppercase">
-                        Khám Phá
+                        {t('landing.browseByCategory.explore')}
                       </span>
                       <ChevronRightIcon className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -319,7 +321,7 @@ const BrowseByCategory: React.FC = () => {
             to="/tours"
             className="inline-flex items-center bg-slate-900 text-white hover:bg-slate-800 px-8 py-3 rounded-none text-xs font-medium tracking-[0.2em] uppercase transition-all duration-300 border border-slate-900 hover:border-amber-600 group"
           >
-            <span>Xem Tất Cả Tour</span>
+            <span>{t('landing.browseByCategory.viewAllTours')}</span>
             <ChevronRightIcon className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
         </div>

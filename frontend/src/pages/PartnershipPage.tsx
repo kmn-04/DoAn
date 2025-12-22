@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   UsersIcon,
   ChartBarIcon,
@@ -21,115 +22,115 @@ import { Link } from 'react-router-dom';
 import PartnerContactForm from '../components/partners/PartnerContactForm';
 import { Button } from '../components/ui';
 
-const benefits = [
+const getBenefits = (t: any) => [
   {
     icon: UsersIcon,
-    title: 'Tiếp cận 50K+ khách hàng/tháng',
-    description: 'Kết nối với cơ sở khách hàng rộng lớn và đa dạng trên toàn quốc',
+    title: t('partners.partnership.benefits.items.access.title'),
+    description: t('partners.partnership.benefits.items.access.description'),
     stats: '50,000+'
   },
   {
     icon: ChartBarIcon,
-    title: 'Tăng doanh thu 30-50%',
-    description: 'Nguồn booking ổn định từ platform với commission hấp dẫn',
+    title: t('partners.partnership.benefits.items.revenue.title'),
+    description: t('partners.partnership.benefits.items.revenue.description'),
     stats: '30-50%'
   },
   {
     icon: SpeakerWaveIcon,
-    title: 'Quảng bá thương hiệu miễn phí',
-    description: 'Featured placement, social media marketing và SEO optimization',
-    stats: 'Miễn phí'
+    title: t('partners.partnership.benefits.items.marketing.title'),
+    description: t('partners.partnership.benefits.items.marketing.description'),
+    stats: 'Free'
   },
   {
     icon: UserGroupIcon,
-    title: 'Hỗ trợ chuyên nghiệp 24/7',
-    description: 'Đội ngũ chăm sóc đối tác tận tình và quy trình hợp tác minh bạch',
+    title: t('partners.partnership.benefits.items.support.title'),
+    description: t('partners.partnership.benefits.items.support.description'),
     stats: '24/7'
   },
   {
     icon: ShieldCheckIcon,
-    title: 'Bảo vệ uy tín thương hiệu',
-    description: 'Verification system và quality control nghiêm ngặt',
+    title: t('partners.partnership.benefits.items.protection.title'),
+    description: t('partners.partnership.benefits.items.protection.description'),
     stats: '100%'
   },
   {
     icon: CurrencyDollarIcon,
-    title: 'Hoa hồng cạnh tranh',
-    description: 'Mức commission hấp dẫn với thanh toán đúng hạn',
+    title: t('partners.partnership.benefits.items.commission.title'),
+    description: t('partners.partnership.benefits.items.commission.description'),
     stats: '10-20%'
   }
 ];
 
-const partnerTypes = [
+const getPartnerTypes = (t: any) => [
   {
     icon: BuildingOffice2Icon,
-    title: 'Khách sạn & Resort',
-    description: 'Từ homestay đến resort 5 sao',
+    title: t('partners.partnership.partnerTypes.hotel.title'),
+    description: t('partners.partnership.partnerTypes.hotel.description'),
     count: '500+',
     commission: '12-18%',
     requirements: ['Giấy phép kinh doanh', 'Rating tối thiểu 3.5⭐', 'Hỗ trợ booking online']
   },
   {
     icon: HomeIcon,
-    title: 'Nhà hàng & F&B',
-    description: 'Ẩm thực địa phương và quốc tế',
+    title: t('partners.partnership.partnerTypes.restaurant.title'),
+    description: t('partners.partnership.partnerTypes.restaurant.description'),
     count: '300+',
     commission: '8-12%',
     requirements: ['Chứng nhận ATTP', 'Menu đa dạng', 'Phục vụ group tour']
   },
   {
     icon: TruckIcon,
-    title: 'Vận chuyển',
-    description: 'Xe bus, taxi, thuê xe máy',
+    title: t('partners.partnership.partnerTypes.transport.title'),
+    description: t('partners.partnership.partnerTypes.transport.description'),
     count: '200+',
     commission: '10-15%',
     requirements: ['Bảo hiểm xe', 'Lái xe có kinh nghiệm', 'Đúng giờ, an toàn']
   },
   {
     icon: MapIcon,
-    title: 'Tour Operator',
-    description: 'Nhà điều hành tour chuyên nghiệp',
+    title: t('partners.partnership.partnerTypes.tourOperator.title'),
+    description: t('partners.partnership.partnerTypes.tourOperator.description'),
     count: '150+',
     commission: '15-20%',
     requirements: ['Hướng dẫn viên chuyên nghiệp', 'Chương trình tour chi tiết', 'Emergency support']
   },
   {
     icon: CogIcon,
-    title: 'Dịch vụ khác',
-    description: 'SPA, giải trí, hoạt động thể thao',
+    title: t('partners.partnership.partnerTypes.service.title'),
+    description: t('partners.partnership.partnerTypes.service.description'),
     count: '100+',
     commission: '8-15%',
     requirements: ['Thiết bị an toàn', 'Staff được training', 'Insurance coverage']
   }
 ];
 
-const processSteps = [
+const getProcessSteps = (t: any) => [
   {
     step: 1,
-    title: 'Gửi thông tin đăng ký',
-    description: 'Điền form với thông tin cơ bản về doanh nghiệp',
-    time: '5 phút',
+    title: t('partners.partnership.process.steps.1.title'),
+    description: t('partners.partnership.process.steps.1.description'),
+    time: t('partners.partnership.process.steps.1.time'),
     details: ['Thông tin công ty', 'Người liên hệ', 'Loại hình kinh doanh', 'Tài liệu đính kèm']
   },
   {
     step: 2,
-    title: 'Đánh giá & Xét duyệt',
-    description: 'Team chúng tôi xem xét hồ sơ và đánh giá',
-    time: '1-2 ngày',
+    title: t('partners.partnership.process.steps.2.title'),
+    description: t('partners.partnership.process.steps.2.description'),
+    time: t('partners.partnership.process.steps.2.time'),
     details: ['Kiểm tra giấy tờ', 'Đánh giá chất lượng', 'Background check', 'Site visit (nếu cần)']
   },
   {
     step: 3,
-    title: 'Thảo luận điều khoản',
-    description: 'Họp online thống nhất mức hoa hồng và điều khoản',
-    time: '3-5 ngày',
+    title: t('partners.partnership.process.steps.3.title'),
+    description: t('partners.partnership.process.steps.3.description'),
+    time: t('partners.partnership.process.steps.3.time'),
     details: ['Commission rate', 'Payment terms', 'Marketing support', 'Service standards']
   },
   {
     step: 4,
-    title: 'Onboarding & Launch',
-    description: 'Ký kết hợp đồng và setup trên hệ thống',
-    time: '1 tuần',
+    title: t('partners.partnership.process.steps.4.title'),
+    description: t('partners.partnership.process.steps.4.description'),
+    time: t('partners.partnership.process.steps.4.time'),
     details: ['Ký hợp đồng', 'Setup profile', 'Training hệ thống', 'First listing']
   }
 ];
@@ -170,6 +171,10 @@ const successStories = [
 ];
 
 const PartnershipPage: React.FC = () => {
+  const { t } = useTranslation();
+  const benefits = getBenefits(t);
+  const partnerTypes = getPartnerTypes(t);
+  const processSteps = getProcessSteps(t);
   return (
     <div className="min-h-screen bg-stone-50">
       {/* Navigation Header */}
@@ -180,7 +185,7 @@ const PartnershipPage: React.FC = () => {
             className="inline-flex items-center text-sm text-slate-700 hover:text-slate-900 transition-colors group font-normal tracking-wide"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Quay lại danh sách đối tác
+            {t('partners.partnership.backToList')}
           </Link>
         </div>
       </div>
@@ -201,30 +206,30 @@ const PartnershipPage: React.FC = () => {
             <div className="flex items-center justify-center mb-6 animate-fade-in opacity-0 delay-200">
               <SparklesIcon className="h-10 w-10 mr-4" style={{ color: '#D4AF37' }} />
               <h1 className="text-4xl md:text-6xl font-normal tracking-tight">
-                Trở thành Đối tác
+                {t('partners.partnership.hero.title')}
               </h1>
             </div>
             <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-12 font-normal leading-relaxed animate-fade-in opacity-0 delay-300">
-              Cùng xây dựng hệ sinh thái du lịch toàn cầu với hơn <span className="font-medium" style={{ color: '#D4AF37' }}>1,250+</span> đối tác tin cậy
+              {t('partners.partnership.hero.subtitle')} <span className="font-medium" style={{ color: '#D4AF37' }}>1,250+</span> {t('partners.partnership.hero.subtitle', { defaultValue: 'trusted partners' })}
             </p>
             
             {/* Quick Benefits */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto animate-fade-in opacity-0 delay-400">
               <div className="text-center bg-white/5 backdrop-blur-sm p-6 rounded-none border border-white/10 hover:bg-white/10 transition-all duration-300">
                 <div className="text-3xl font-normal mb-2" style={{ color: '#D4AF37' }}>50K+</div>
-                <div className="text-sm text-gray-400 font-normal tracking-wide">Khách hàng/tháng</div>
+                <div className="text-sm text-gray-400 font-normal tracking-wide">{t('partners.partnership.hero.stats.customers')}</div>
               </div>
               <div className="text-center bg-white/5 backdrop-blur-sm p-6 rounded-none border border-white/10 hover:bg-white/10 transition-all duration-300">
                 <div className="text-3xl font-normal mb-2" style={{ color: '#D4AF37' }}>15-20%</div>
-                <div className="text-sm text-gray-400 font-normal tracking-wide">Hoa hồng</div>
+                <div className="text-sm text-gray-400 font-normal tracking-wide">{t('partners.partnership.hero.stats.commission')}</div>
               </div>
               <div className="text-center bg-white/5 backdrop-blur-sm p-6 rounded-none border border-white/10 hover:bg-white/10 transition-all duration-300">
                 <div className="text-3xl font-normal mb-2" style={{ color: '#D4AF37' }}>24/7</div>
-                <div className="text-sm text-gray-400 font-normal tracking-wide">Hỗ trợ</div>
+                <div className="text-sm text-gray-400 font-normal tracking-wide">{t('partners.partnership.hero.stats.support')}</div>
               </div>
               <div className="text-center bg-white/5 backdrop-blur-sm p-6 rounded-none border border-white/10 hover:bg-white/10 transition-all duration-300">
                 <div className="text-3xl font-normal mb-2" style={{ color: '#D4AF37' }}>1,250+</div>
-                <div className="text-sm text-gray-400 font-normal tracking-wide">Đối tác hiện tại</div>
+                <div className="text-sm text-gray-400 font-normal tracking-wide">{t('partners.partnership.hero.stats.currentPartners')}</div>
               </div>
             </div>
           </div>
@@ -236,10 +241,10 @@ const PartnershipPage: React.FC = () => {
         <section className="mb-20">
           <div className="text-center mb-12 animate-fade-in opacity-0 delay-100">
             <h2 className="text-3xl md:text-4xl font-normal text-slate-900 mb-4 tracking-tight">
-              Tại sao chọn chúng tôi?
+              {t('partners.partnership.benefits.title')}
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto font-normal leading-relaxed">
-              Những lợi ích vượt trội khi trở thành đối tác chiến lược
+              {t('partners.partnership.benefits.subtitle')}
             </p>
           </div>
           
@@ -273,10 +278,10 @@ const PartnershipPage: React.FC = () => {
         <section className="mb-20">
           <div className="text-center mb-12 animate-fade-in opacity-0 delay-100">
             <h2 className="text-3xl md:text-4xl font-normal text-slate-900 mb-4 tracking-tight">
-              Chúng tôi đang tìm kiếm
+              {t('partners.partnership.partnerTypes.title')}
             </h2>
             <p className="text-lg text-gray-600 font-normal leading-relaxed">
-              Các đối tác trong những lĩnh vực sau
+              {t('partners.partnership.partnerTypes.subtitle')}
             </p>
           </div>
           
@@ -294,10 +299,10 @@ const PartnershipPage: React.FC = () => {
                       </h3>
                       <div className="text-right">
                         <div className="text-sm font-medium mb-1" style={{ color: '#D4AF37' }}>
-                          Hoa hồng: {type.commission}
+                          {t('partners.partnership.partnerTypes.hotel.commission')} {type.commission}
                         </div>
                         <div className="text-xs text-gray-500 font-normal">
-                          {type.count} đối tác
+                          {type.count} {t('partners.partnership.partnerTypes.hotel.partners')}
                         </div>
                       </div>
                     </div>
@@ -305,7 +310,7 @@ const PartnershipPage: React.FC = () => {
                       {type.description}
                     </p>
                     <div>
-                      <h4 className="text-sm font-medium text-slate-900 mb-2">Yêu cầu cơ bản:</h4>
+                      <h4 className="text-sm font-medium text-slate-900 mb-2">{t('partners.partnership.partnerTypes.hotel.requirements')}</h4>
                       <ul className="text-sm text-gray-600 space-y-1.5">
                         {type.requirements.map((req, idx) => (
                           <li key={idx} className="flex items-center font-normal">
@@ -326,10 +331,10 @@ const PartnershipPage: React.FC = () => {
         <section className="mb-20">
           <div className="text-center mb-12 animate-fade-in opacity-0 delay-100">
             <h2 className="text-3xl md:text-4xl font-normal text-slate-900 mb-4 tracking-tight">
-              Quy trình hợp tác
+              {t('partners.partnership.process.title')}
             </h2>
             <p className="text-lg text-gray-600 font-normal leading-relaxed">
-              4 bước đơn giản để trở thành đối tác
+              {t('partners.partnership.process.subtitle')}
             </p>
           </div>
           
@@ -359,7 +364,7 @@ const PartnershipPage: React.FC = () => {
                   </div>
                   
                   <div>
-                    <h4 className="text-xs font-medium text-slate-900 mb-2">Bao gồm:</h4>
+                    <h4 className="text-xs font-medium text-slate-900 mb-2">{t('partners.partnership.process.steps.1.includes')}</h4>
                     <ul className="text-xs text-gray-600 space-y-1.5">
                       {step.details.map((detail, idx) => (
                         <li key={idx} className="flex items-center font-normal">
@@ -379,10 +384,10 @@ const PartnershipPage: React.FC = () => {
         <section className="mb-20">
           <div className="text-center mb-12 animate-fade-in opacity-0 delay-100">
             <h2 className="text-3xl md:text-4xl font-normal text-slate-900 mb-4 tracking-tight">
-              Câu chuyện thành công
+              {t('partners.partnership.successStories.title')}
             </h2>
             <p className="text-lg text-gray-600 font-normal leading-relaxed">
-              Những đối tác đã thành công cùng chúng tôi
+              {t('partners.partnership.successStories.subtitle')}
             </p>
           </div>
           
@@ -401,7 +406,7 @@ const PartnershipPage: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-medium" style={{ color: '#D4AF37' }}>{story.growth}</div>
-                    <div className="text-xs text-gray-500 font-normal">tăng trưởng</div>
+                    <div className="text-xs text-gray-500 font-normal">{t('partners.partnership.successStories.growth')}</div>
                   </div>
                 </div>
                 <blockquote className="text-gray-700 italic font-normal text-sm leading-relaxed">
@@ -418,7 +423,7 @@ const PartnershipPage: React.FC = () => {
             {/* Requirements */}
             <div className="animate-fade-in-up opacity-0 delay-200">
               <h3 className="text-2xl font-normal text-slate-900 mb-6 tracking-tight">
-                Yêu cầu đối tác
+                {t('partners.partnership.requirements.title')}
               </h3>
               <div className="bg-white rounded-none p-6 border border-stone-200 mb-6">
                 <ul className="space-y-3.5">
@@ -436,12 +441,10 @@ const PartnershipPage: React.FC = () => {
                   <HeartIcon className="h-6 w-6 mr-3 mt-1 flex-shrink-0" style={{ color: '#D4AF37' }} />
                   <div>
                     <h4 className="font-medium text-slate-900 mb-2 tracking-tight">
-                      💡 Cam kết của chúng tôi
+                      {t('partners.partnership.requirements.commitment.title')}
                     </h4>
                     <p className="text-sm text-gray-700 leading-relaxed font-normal">
-                      Chúng tôi cam kết hỗ trợ đối tác phát triển bền vững thông qua 
-                      công nghệ hiện đại, marketing hiệu quả và dịch vụ khách hàng xuất sắc. 
-                      Thành công của bạn chính là thành công của chúng tôi!
+                      {t('partners.partnership.requirements.commitment.description')}
                     </p>
                   </div>
                 </div>

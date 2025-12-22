@@ -37,11 +37,26 @@ public class VnPayController {
         String ipAddress = getClientIp(httpRequest);
         log.info("Client IP: {}", ipAddress);
         
-        VnPayPaymentResponse response = vnPayService.createPaymentUrl(request, ipAddress);
-        
-        log.info("✅ VNPay payment URL created successfully: {}", response.getOrderId());
-        
-        return ResponseEntity.ok(response);
+        try {
+            VnPayPaymentResponse response = vnPayService.createPaymentUrl(request, ipAddress);
+            
+            log.info("✅ VNPay payment URL created successfully: {}", response.getOrderId());
+            log.info("📋 Payment URL preview (first 100 chars): {}", 
+                    response.getPaymentUrl().length() > 100 ? 
+                    response.getPaymentUrl().substring(0, 100) + "..." : 
+                    response.getPaymentUrl());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("❌ Error creating VNPay payment URL", e);
+            // Nếu lỗi code 71 (website chưa được phê duyệt), cung cấp thông tin hữu ích
+            if (e.getMessage() != null && e.getMessage().contains("71")) {
+                log.error("⚠️ VNPay Error Code 71: Website chưa được phê duyệt.");
+                log.error("💡 Solution: Đăng nhập vào VNPay merchant portal và đăng ký Return URL.");
+                log.error("📍 Return URL cần đăng ký: {}", request);
+            }
+            throw e;
+        }
     }
     
     /**

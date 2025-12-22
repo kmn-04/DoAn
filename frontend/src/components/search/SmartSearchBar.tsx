@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   MagnifyingGlassIcon,
   AdjustmentsHorizontalIcon,
@@ -31,7 +32,7 @@ interface SearchSuggestion {
 
 const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
   className = '',
-  placeholder = 'Tìm kiếm tour, điểm đến...',
+  placeholder,
   onSearch,
   showAdvanced = true,
   initialValue = ''
@@ -44,16 +45,17 @@ const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [popularSearches] = useState<SearchSuggestion[]>([
-    { id: '1', type: 'destination', text: 'Hạ Long Bay', subtitle: '245 tours', icon: '🏖️', trending: true },
-    { id: '2', type: 'destination', text: 'Sapa', subtitle: '189 tours', icon: '🏔️', trending: true },
-    { id: '3', type: 'destination', text: 'Hội An', subtitle: '156 tours', icon: '🏛️' },
-    { id: '4', type: 'tour', text: 'Tour Phú Quốc 3 ngày 2 đêm', subtitle: 'Từ 2.500.000đ', icon: '🏝️' },
-    { id: '5', type: 'category', text: 'Tour ẩm thực', subtitle: '89 tours', icon: '🍜' },
-    { id: '6', type: 'destination', text: 'Tokyo', subtitle: '67 tours', icon: '🗾', trending: true },
-    { id: '7', type: 'keyword', text: 'tour cuối tuần', subtitle: 'Gần Hà Nội', icon: '📅' },
-    { id: '8', type: 'keyword', text: 'du lịch gia đình', subtitle: 'Phù hợp trẻ em', icon: '👨‍👩‍👧‍👦' }
-  ]);
+  const { t } = useTranslation();
+  const popularSearches = useMemo<SearchSuggestion[]>(() => [
+    { id: '1', type: 'destination', text: t('search.smart.popular.halong.title'), subtitle: t('search.smart.popular.halong.subtitle'), icon: '🏖️', trending: true },
+    { id: '2', type: 'destination', text: t('search.smart.popular.sapa.title'), subtitle: t('search.smart.popular.sapa.subtitle'), icon: '🏔️', trending: true },
+    { id: '3', type: 'destination', text: t('search.smart.popular.hoian.title'), subtitle: t('search.smart.popular.hoian.subtitle'), icon: '🏛️' },
+    { id: '4', type: 'tour', text: t('search.smart.popular.phuQuoc.title'), subtitle: t('search.smart.popular.phuQuoc.subtitle'), icon: '🏝️' },
+    { id: '5', type: 'category', text: t('search.smart.popular.cuisine.title'), subtitle: t('search.smart.popular.cuisine.subtitle'), icon: '🍜' },
+    { id: '6', type: 'destination', text: t('search.smart.popular.tokyo.title'), subtitle: t('search.smart.popular.tokyo.subtitle'), icon: '🗾', trending: true },
+    { id: '7', type: 'keyword', text: t('search.smart.popular.weekend.title'), subtitle: t('search.smart.popular.weekend.subtitle'), icon: '📅' },
+    { id: '8', type: 'keyword', text: t('search.smart.popular.family.title'), subtitle: t('search.smart.popular.family.subtitle'), icon: '👨‍👩‍👧‍👦' }
+  ], [t]);
 
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -88,22 +90,22 @@ const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
           { 
             id: 'ai-1', 
             type: 'keyword', 
-            text: `${query} cho gia đình`, 
-            subtitle: 'Gợi ý AI - Phù hợp trẻ em',
+            text: t('search.smart.aiSuggestions.family.title', { query }), 
+            subtitle: t('search.smart.aiSuggestions.family.subtitle'),
             icon: '🤖'
           },
           { 
             id: 'ai-2', 
             type: 'keyword', 
-            text: `${query} giá tốt`, 
-            subtitle: 'Gợi ý AI - Tiết kiệm',
+            text: t('search.smart.aiSuggestions.budget.title', { query }), 
+            subtitle: t('search.smart.aiSuggestions.budget.subtitle'),
             icon: '🤖'
           },
           { 
             id: 'ai-3', 
             type: 'keyword', 
-            text: `${query} cuối tuần`, 
-            subtitle: 'Gợi ý AI - 2-3 ngày',
+            text: t('search.smart.aiSuggestions.weekend.title', { query }), 
+            subtitle: t('search.smart.aiSuggestions.weekend.subtitle'),
             icon: '🤖'
           }
         ];
@@ -263,7 +265,7 @@ const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
           onChange={handleInputChange}
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t('search.smart.placeholder')}
           className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
 
@@ -286,7 +288,7 @@ const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
           <button
             onClick={() => setIsAdvancedOpen(true)}
             className="absolute inset-y-0 right-0 flex items-center pr-3"
-            title="Tìm kiếm nâng cao"
+            title={t('search.smart.advancedTooltip')}
           >
             <AdjustmentsHorizontalIcon className="h-5 w-5 text-gray-400 hover:text-blue-600 transition-colors" />
           </button>
@@ -297,9 +299,9 @@ const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
       {showSuggestions && (
         <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto">
           {isLoading ? (
-            <div className="p-4 text-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-sm text-gray-500 mt-2">Đang tìm kiếm...</p>
+              <div className="p-4 text-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-sm text-gray-500 mt-2">{t('search.smart.loading')}</p>
             </div>
           ) : (
             <div>
@@ -308,13 +310,13 @@ const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
                 <div className="p-3 border-b border-gray-100">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Tìm kiếm gần đây
+                      {t('search.smart.recent.title')}
                     </h4>
                     <button
                       onClick={clearRecentSearches}
                       className="text-xs text-blue-600 hover:text-blue-800"
                     >
-                      Xóa
+                      {t('search.smart.recent.clear')}
                     </button>
                   </div>
                   {recentSearches.map((search, index) => (
@@ -339,7 +341,7 @@ const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
                 <div className="py-2">
                   {!query && (
                     <h4 className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Tìm kiếm phổ biến
+                      {t('search.smart.popular.title')}
                     </h4>
                   )}
                   {suggestions.map((suggestion, index) => (
@@ -366,7 +368,7 @@ const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
                           {suggestion.trending && (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                               <SparklesIcon className="h-3 w-3 mr-0.5" />
-                              Hot
+                              {t('search.smart.badges.trending')}
                             </span>
                           )}
                         </div>
@@ -382,7 +384,7 @@ const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
               ) : (
                 <div className="p-4 text-center">
                   <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-500">Không tìm thấy kết quả</p>
+                  <p className="text-sm text-gray-500">{t('search.smart.empty')}</p>
                 </div>
               )}
             </div>

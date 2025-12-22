@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Button } from '../ui';
 import { bannerService } from '../../services';
 import type { Banner } from '../../services';
 
 const HeroSection: React.FC = () => {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,11 +34,11 @@ const HeroSection: React.FC = () => {
   // Fallback banner if no banners from API
   const defaultBanner: Banner = {
     id: 0,
-    title: 'Khám Phá Thế Giới Cùng Chúng Tôi',
-    subtitle: 'Những chuyến đi đáng nhớ đang chờ đón bạn',
+    title: t('landing.hero.defaultTitle'),
+    subtitle: t('landing.hero.defaultSubtitle'),
     imageUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&h=1080&fit=crop',
     linkUrl: '/tours',
-    buttonText: 'Xem Tours',
+    buttonText: t('landing.hero.defaultButton'),
     displayOrder: 0,
     isActive: true,
     createdAt: new Date().toISOString(),
@@ -71,7 +73,7 @@ const HeroSection: React.FC = () => {
   if (isLoading) {
     return (
       <section className="relative h-screen overflow-hidden bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Đang tải...</div>
+        <div className="text-white text-xl">{t('landing.hero.loading')}</div>
       </section>
     );
   }
@@ -79,7 +81,7 @@ const HeroSection: React.FC = () => {
   // Get current banner to display
   const currentBanner = displayBanners[currentSlide];
   const bannerLink = currentBanner?.linkUrl || '/tours';
-  const bannerText = currentBanner?.buttonText || 'Xem Tours';
+  const bannerText = currentBanner?.buttonText || t('landing.hero.defaultButton');
 
   return (
     <section className="relative h-screen overflow-hidden">
@@ -120,7 +122,7 @@ const HeroSection: React.FC = () => {
                 <div className="w-20 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent mb-8 mx-auto animate-fade-in-up opacity-0 delay-250"></div>
                 
                 <p className="text-base md:text-lg text-gray-300 mb-12 max-w-2xl mx-auto font-normal leading-relaxed animate-fade-in-up opacity-0 delay-300">
-                  Trải nghiệm những điều kỳ diệu trên khắp thế giới với dịch vụ chuyên nghiệp
+                  {t('landing.hero.description')}
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up opacity-0 delay-400">
@@ -131,7 +133,7 @@ const HeroSection: React.FC = () => {
                   </Link>
                   <Link to="/about">
                     <Button className="bg-transparent hover:bg-white/5 backdrop-blur-sm text-white px-10 py-4 text-sm font-semibold tracking-wider uppercase rounded-none border border-white/30 hover:border-white/50 transition-all duration-300">
-                      Về chúng tôi
+                      {t('landing.hero.aboutUs')}
                     </Button>
                   </Link>
                 </div>
@@ -178,7 +180,7 @@ const HeroSection: React.FC = () => {
       {/* Scroll Down Indicator - Minimalist */}
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 animate-bounce z-10">
         <div className="flex flex-col items-center text-white/70">
-          <span className="text-xs font-normal mb-3 tracking-[0.2em] uppercase">Scroll</span>
+          <span className="text-xs font-normal mb-3 tracking-[0.2em] uppercase">{t('landing.hero.scroll')}</span>
           <div className="w-px h-12 bg-gradient-to-b from-white/70 to-transparent"></div>
         </div>
       </div>

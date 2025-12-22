@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   ChevronLeftIcon, 
   ChevronRightIcon,
@@ -34,6 +35,7 @@ interface Tour {
 }
 
 const FeaturedTours: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [tours, setTours] = useState<Tour[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +55,7 @@ const FeaturedTours: React.FC = () => {
         setTours(data);
       } catch (err) {
         console.error('Error fetching featured tours:', err);
-        setError('Không thể tải tour nổi bật. Vui lòng thử lại sau.');
+        setError(t('landing.featuredTours.errorMessage'));
       } finally {
         setIsLoading(false);
       }
@@ -146,7 +148,7 @@ const FeaturedTours: React.FC = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
@@ -159,7 +161,7 @@ const FeaturedTours: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Tour Du Lịch Nổi Bật
+              {t('landing.featuredTours.loadingTitle')}
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -179,7 +181,7 @@ const FeaturedTours: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Tour Du Lịch Nổi Bật
+              {t('landing.featuredTours.errorTitle')}
             </h2>
             <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-lg mx-auto">
               <p className="text-red-600">{error}</p>
@@ -187,7 +189,7 @@ const FeaturedTours: React.FC = () => {
                 onClick={() => window.location.reload()}
                 className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
               >
-                Tải lại
+                {t('landing.featuredTours.reload')}
               </button>
             </div>
           </div>
@@ -203,9 +205,9 @@ const FeaturedTours: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Tour Du Lịch Nổi Bật
+              {t('landing.featuredTours.title')}
             </h2>
-            <p className="text-gray-600">Chưa có tour nổi bật nào.</p>
+            <p className="text-gray-600">{t('landing.featuredTours.emptyMessage')}</p>
           </div>
         </div>
       </section>
@@ -224,10 +226,10 @@ const FeaturedTours: React.FC = () => {
         {/* Section Header */}
         <div className="text-center mb-20 animate-fade-in-up opacity-0">
           <div className="inline-block px-8 py-3 border border-slate-800 rounded-none mb-6">
-            <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">Tour Nổi Bật</span>
+            <span className="text-slate-900 font-medium text-base tracking-[0.3em] uppercase">{t('landing.featuredTours.badge')}</span>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            Khám phá những điểm đến tuyệt vời nhất thế giới với các tour du lịch được yêu thích nhất
+            {t('landing.featuredTours.subtitle')}
           </p>
         </div>
 
@@ -288,12 +290,12 @@ const FeaturedTours: React.FC = () => {
                   {/* Badge - Minimalist */}
                   {tour.isNew && (
                     <div className="absolute top-4 left-4 bg-slate-900 text-white px-3 py-1.5 rounded-none text-xs font-medium tracking-wider uppercase">
-                      Mới
+                      {t('landing.featuredTours.new')}
                     </div>
                   )}
                   {tour.isFeatured && !tour.isNew && (
                     <div className="absolute top-4 left-4 bg-amber-700 text-white px-3 py-1.5 rounded-none text-xs font-medium tracking-wider uppercase">
-                      Nổi Bật
+                      {t('landing.featuredTours.badge')}
                     </div>
                   )}
 
@@ -327,11 +329,11 @@ const FeaturedTours: React.FC = () => {
                   <div className="flex gap-4 text-xs text-gray-600 mb-5">
                     <div className="flex items-center space-x-1.5">
                       <MapPinIcon className="h-4 w-4" />
-                      <span className="font-normal">{tour.destination || tour.region || 'quốc tế'}</span>
+                      <span className="font-normal">{tour.destination || tour.region || t('landing.featuredTours.international')}</span>
                     </div>
                     <div className="flex items-center space-x-1.5">
                       <ClockIcon className="h-4 w-4" />
-                      <span className="font-normal">{tour.duration} ngày</span>
+                      <span className="font-normal">{tour.duration} {t('landing.featuredTours.days')}</span>
                     </div>
                   </div>
 
@@ -350,7 +352,7 @@ const FeaturedTours: React.FC = () => {
                       to={`/tours/${tour.slug}`}
                       className="text-xs font-medium text-gray-900 hover:text-gray-600 tracking-wider uppercase transition-colors duration-300 flex items-center space-x-1 group"
                     >
-                      <span>Xem</span>
+                      <span>{t('landing.featuredTours.view')}</span>
                       <ChevronRightIcon className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </div>
@@ -366,7 +368,7 @@ const FeaturedTours: React.FC = () => {
             to="/tours"
             className="inline-flex items-center bg-slate-900 text-white hover:bg-slate-800 px-8 py-3 rounded-none text-xs font-medium tracking-[0.2em] uppercase transition-all duration-300 border border-slate-900 hover:border-amber-600 group"
           >
-            <span>Khám Phá Tất Cả</span>
+            <span>{t('landing.featuredTours.exploreAll')}</span>
             <ChevronRightIcon className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
         </div>

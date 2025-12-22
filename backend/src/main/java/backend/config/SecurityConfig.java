@@ -2,6 +2,7 @@ package backend.config;
 
 import backend.security.JwtAuthenticationFilter;
 import backend.security.OAuth2SuccessHandler;
+import backend.security.OAuth2FailureHandler;
 import backend.security.RateLimitFilter;
 import backend.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class SecurityConfig {
     private final RateLimitFilter rateLimitFilter;
     private final CorsConfigurationSource corsConfigurationSource;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
     private final PasswordEncoder passwordEncoder;
     
     @Bean
@@ -67,7 +69,7 @@ public class SecurityConfig {
             )
             .oauth2Login(oauth2 -> oauth2
                 .successHandler(oAuth2SuccessHandler)
-                .failureUrl("/auth/google/failure")
+                .failureHandler(oAuth2FailureHandler)
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)  // Rate limit before auth

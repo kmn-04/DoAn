@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import { 
   BellIcon,
   CheckIcon,
@@ -39,6 +41,7 @@ interface Notification {
 }
 
 const NotificationsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -72,7 +75,7 @@ const NotificationsPage: React.FC = () => {
         const mappedNotifications: Notification[] = notificationList.map(notif => ({
           id: String(notif.id),
           type: mapNotificationType(notif.type?.toLowerCase() || 'info'),
-          title: notif.title || 'Thông báo',
+          title: notif.title || t('dashboard.notifications.title'),
           message: notif.message || '',
           date: notif.createdAt || new Date().toISOString(),
           isRead: notif.isRead || false,
@@ -93,7 +96,7 @@ const NotificationsPage: React.FC = () => {
         
       } catch (error) {
         console.error('Error fetching notifications:', error);
-        toast.error('Không thể tải thông báo. Vui lòng thử lại sau.');
+        toast.error(t('dashboard.notifications.toast.loadError'));
         setNotifications([]);
       } finally {
         setIsLoading(false);
@@ -153,14 +156,14 @@ const NotificationsPage: React.FC = () => {
 
   const getActionText = (type: string): string => {
     const actionMap: Record<string, string> = {
-      'booking': 'Xem đặt tour',
-      'success': 'Xem đặt tour', // Success notifications are usually booking success
-      'payment': 'Xem thanh toán',
-      'tour_update': 'Xem tour',
-      'promotion': 'Xem ưu đãi',
-      'system': 'Xem chi tiết'
+      'booking': t('dashboard.notifications.actions.viewDetails'),
+      'success': t('dashboard.notifications.actions.viewDetails'),
+      'payment': t('dashboard.notifications.actions.viewDetails'),
+      'tour_update': t('dashboard.notifications.actions.viewDetails'),
+      'promotion': t('dashboard.notifications.actions.viewDetails'),
+      'system': t('dashboard.notifications.actions.viewDetails')
     };
-    return actionMap[type] || 'Xem chi tiết';
+    return actionMap[type] || t('dashboard.notifications.actions.viewDetails');
   };
 
   const getNavigationUrl = (notification: Notification): string => {
@@ -250,10 +253,10 @@ const NotificationsPage: React.FC = () => {
         read: prev.read + 1
       }));
       
-      toast.success('Đã đánh dấu đã đọc');
+      toast.success(t('dashboard.notifications.toast.markReadSuccess'));
     } catch (error) {
       console.error('Error marking as read:', error);
-      toast.error('Không thể đánh dấu đã đọc');
+      toast.error(t('dashboard.notifications.toast.markReadError'));
     }
   };
 
@@ -272,10 +275,10 @@ const NotificationsPage: React.FC = () => {
         read: prev.total
       }));
       
-      toast.success('Đã đánh dấu tất cả đã đọc');
+      toast.success(t('dashboard.notifications.toast.markAllReadSuccess'));
     } catch (error) {
       console.error('Error marking all as read:', error);
-      toast.error('Không thể đánh dấu tất cả đã đọc');
+      toast.error(t('dashboard.notifications.toast.markAllReadError'));
     }
   };
 
@@ -283,10 +286,10 @@ const NotificationsPage: React.FC = () => {
     try {
       await notificationService.deleteNotification(notificationId);
       setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
-      toast.success('Đã xóa thông báo');
+      toast.success(t('dashboard.notifications.toast.deleteSuccess'));
     } catch (error) {
       console.error('Error deleting notification:', error);
-      toast.error('Không thể xóa thông báo');
+      toast.error(t('dashboard.notifications.toast.deleteError'));
     }
   };
 
@@ -339,10 +342,10 @@ const NotificationsPage: React.FC = () => {
       );
       
       setSelectedNotifications(new Set());
-      toast.success(`Đã xóa ${selectedNotifications.size} thông báo`);
+      toast.success(t('dashboard.notifications.toast.deleteSelectedSuccess', { count: selectedNotifications.size }));
     } catch (error) {
       console.error('Error deleting notifications:', error);
-      toast.error('Không thể xóa thông báo');
+      toast.error(t('dashboard.notifications.toast.deleteError'));
     }
   };
 
@@ -351,12 +354,12 @@ const NotificationsPage: React.FC = () => {
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
     
-    if (diffInMinutes < 1) return 'Vừa xong';
-    if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} giờ trước`;
-    if (diffInMinutes < 10080) return `${Math.floor(diffInMinutes / 1440)} ngày trước`;
+    if (diffInMinutes < 1) return t('dashboard.notifications.time.justNow');
+    if (diffInMinutes < 60) return t('dashboard.notifications.time.minutesAgo', { count: diffInMinutes });
+    if (diffInMinutes < 1440) return t('dashboard.notifications.time.hoursAgo', { count: Math.floor(diffInMinutes / 60) });
+    if (diffInMinutes < 10080) return t('dashboard.notifications.time.daysAgo', { count: Math.floor(diffInMinutes / 1440) });
     
-    return date.toLocaleDateString('vi-VN', {
+    return date.toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -389,10 +392,10 @@ const NotificationsPage: React.FC = () => {
             <div className="mb-4 sm:mb-0">
               <h1 className="text-2xl font-bold text-gray-900 flex items-center">
                 <BellSolidIcon className="w-6 h-6 mr-2 text-blue-600" />
-                Thông báo
+                {t('dashboard.notifications.title')}
               </h1>
               <p className="text-gray-600 mt-1">
-                Quản lý và theo dõi các thông báo của bạn
+                {t('dashboard.notifications.subtitle')}
               </p>
             </div>
             
@@ -403,7 +406,7 @@ const NotificationsPage: React.FC = () => {
                 className="flex items-center space-x-2"
               >
                 <CheckIcon className="w-4 h-4" />
-                <span>Đánh dấu tất cả đã đọc</span>
+                <span>{t('dashboard.notifications.markAllRead')}</span>
               </Button>
             )}
           </div>
@@ -414,7 +417,7 @@ const NotificationsPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <div className="flex items-center space-x-2">
               <FunnelIcon className="w-5 h-5 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">Lọc:</span>
+              <span className="text-sm font-medium text-gray-700">{t('dashboard.notifications.filters.label')}</span>
             </div>
             
             <div className="flex flex-wrap gap-3">
@@ -423,12 +426,12 @@ const NotificationsPage: React.FC = () => {
                 onChange={(e) => handleFilterChange('type', e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">Tất cả loại</option>
-                <option value="booking">Đặt tour</option>
-                <option value="payment">Thanh toán</option>
-                <option value="tour_update">Cập nhật tour</option>
-                <option value="promotion">Khuyến mãi</option>
-                <option value="system">Hệ thống</option>
+                <option value="all">{t('dashboard.notifications.filters.type.all')}</option>
+                <option value="booking">{t('dashboard.notifications.filters.type.booking')}</option>
+                <option value="payment">{t('dashboard.notifications.filters.type.payment')}</option>
+                <option value="tour_update">{t('dashboard.notifications.filters.type.tour_update')}</option>
+                <option value="promotion">{t('dashboard.notifications.filters.type.promotion')}</option>
+                <option value="system">{t('dashboard.notifications.filters.type.system')}</option>
               </select>
               
               <select
@@ -436,9 +439,9 @@ const NotificationsPage: React.FC = () => {
                 onChange={(e) => handleFilterChange('status', e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="unread">Chưa đọc</option>
-                <option value="read">Đã đọc</option>
+                <option value="all">{t('dashboard.notifications.filters.status.all')}</option>
+                <option value="unread">{t('dashboard.notifications.filters.status.unread')}</option>
+                <option value="read">{t('dashboard.notifications.filters.status.read')}</option>
               </select>
               
               <select
@@ -446,17 +449,17 @@ const NotificationsPage: React.FC = () => {
                 onChange={(e) => handleFilterChange('priority', e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">Tất cả mức độ</option>
-                <option value="high">Cao</option>
-                <option value="medium">Trung bình</option>
-                <option value="low">Thấp</option>
+                <option value="all">{t('dashboard.notifications.filters.priority.all')}</option>
+                <option value="high">{t('dashboard.notifications.filters.priority.high')}</option>
+                <option value="medium">{t('dashboard.notifications.filters.priority.medium')}</option>
+                <option value="low">{t('dashboard.notifications.filters.priority.low')}</option>
               </select>
             </div>
             
             {selectedNotifications.size > 0 && (
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 sm:ml-auto">
                 <span className="text-sm text-gray-600">
-                  Đã chọn {selectedNotifications.size}
+                  {t('dashboard.notifications.filters.selected', { count: selectedNotifications.size })}
                 </span>
                 <div className="flex items-center space-x-2">
                   <Button
@@ -466,15 +469,15 @@ const NotificationsPage: React.FC = () => {
                     className="text-red-600 border-red-300 hover:bg-red-50"
                   >
                     <TrashIcon className="w-4 h-4 mr-1" />
-                    <span className="hidden sm:inline">Xóa</span>
+                    <span className="hidden sm:inline">{t('dashboard.notifications.filters.delete')}</span>
                   </Button>
                   <Button
                     onClick={clearSelection}
                     variant="outline"
                     size="sm"
                   >
-                    <span className="hidden sm:inline">Hủy chọn</span>
-                    <span className="sm:hidden">Hủy</span>
+                    <span className="hidden sm:inline">{t('dashboard.notifications.filters.cancel')}</span>
+                    <span className="sm:hidden">{t('dashboard.notifications.filters.cancelShort')}</span>
                   </Button>
                 </div>
               </div>
@@ -499,12 +502,12 @@ const NotificationsPage: React.FC = () => {
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-sm text-gray-600">
-                Chọn tất cả ({filteredNotifications.length})
+                {t('dashboard.notifications.bulkActions.selectAll', { count: filteredNotifications.length })}
               </span>
             </div>
             
             <p className="text-sm text-gray-500">
-              Hiển thị {filteredNotifications.length} / {notifications.length} thông báo
+              {t('dashboard.notifications.bulkActions.showing', { display: filteredNotifications.length, total: notifications.length })}
             </p>
           </div>
         )}
@@ -515,12 +518,12 @@ const NotificationsPage: React.FC = () => {
             <Card className="p-8 text-center">
               <BellIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Không có thông báo
+                {t('dashboard.notifications.empty.title')}
               </h3>
               <p className="text-gray-500">
                 {notifications.length === 0 
-                  ? 'Bạn chưa có thông báo nào.'
-                  : 'Không có thông báo nào phù hợp với bộ lọc hiện tại.'
+                  ? t('dashboard.notifications.empty.noNotifications')
+                  : t('dashboard.notifications.empty.noResults')
                 }
               </p>
             </Card>
@@ -569,8 +572,8 @@ const NotificationsPage: React.FC = () => {
                         <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
                           <span>{formatDate(notification.date)}</span>
                           <span className="capitalize">
-                            Mức độ: {notification.priority === 'high' ? 'Cao' : 
-                                   notification.priority === 'medium' ? 'Trung bình' : 'Thấp'}
+                            {t('dashboard.notifications.priority.label')} {notification.priority === 'high' ? t('dashboard.notifications.priority.high') : 
+                                   notification.priority === 'medium' ? t('dashboard.notifications.priority.medium') : t('dashboard.notifications.priority.low')}
                           </span>
                         </div>
                       </div>
@@ -588,7 +591,7 @@ const NotificationsPage: React.FC = () => {
                           >
                             <ArrowTopRightOnSquareIcon className="w-3 h-3 mr-1" />
                             <span className="hidden sm:inline">{notification.actionText}</span>
-                            <span className="sm:hidden">Xem</span>
+                            <span className="sm:hidden">{t('dashboard.notifications.actions.view')}</span>
                           </Button>
                         )}
                         
@@ -604,8 +607,8 @@ const NotificationsPage: React.FC = () => {
                               className="text-xs"
                             >
                               <EyeIcon className="w-3 h-3 mr-1" />
-                              <span className="hidden sm:inline">Đánh dấu đã đọc</span>
-                              <span className="sm:hidden">Đọc</span>
+                              <span className="hidden sm:inline">{t('dashboard.notifications.actions.markRead')}</span>
+                              <span className="sm:hidden">{t('dashboard.notifications.actions.markReadShort')}</span>
                             </Button>
                           )}
                           
@@ -637,10 +640,10 @@ const NotificationsPage: React.FC = () => {
               variant="outline"
               onClick={() => {
                 // TODO: Implement load more functionality
-                toast('Tính năng tải thêm sẽ được cập nhật');
+                toast(t('dashboard.notifications.loadMoreToast'));
               }}
             >
-              Tải thêm thông báo
+              {t('dashboard.notifications.loadMore')}
             </Button>
           </div>
         )}

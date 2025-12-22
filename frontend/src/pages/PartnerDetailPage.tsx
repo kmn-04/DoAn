@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 // import { Helmet } from 'react-helmet-async';
 import {
   StarIcon,
@@ -21,6 +22,7 @@ import { Loading, Button, Card, ImageCarousel } from '../components/ui';
 import ImageGallery from '../components/ui/ImageGallery';
 
 const PartnerDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const [partner, setPartner] = useState<PartnerResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,8 +76,8 @@ const PartnerDetailPage: React.FC = () => {
       <div className="min-h-screen bg-stone-50 flex items-center justify-center">
         <div className="text-center">
           <BuildingOffice2Icon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-semibold text-slate-900 mb-2 tracking-tight">Không tìm thấy đối tác</h1>
-          <p className="text-gray-600 mb-6 font-normal">Đối tác bạn tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+          <h1 className="text-2xl font-semibold text-slate-900 mb-2 tracking-tight">{t('partners.detail.notFound.title')}</h1>
+          <p className="text-gray-600 mb-6 font-normal">{t('partners.detail.notFound.description')}</p>
           <Link to="/partners">
             <button className="inline-flex items-center bg-slate-900 text-white px-6 py-3 rounded-none hover:bg-slate-800 transition-all duration-300 text-sm font-medium tracking-wide border border-slate-900 hover:shadow-lg"
               onMouseEnter={(e) => {
@@ -86,7 +88,7 @@ const PartnerDetailPage: React.FC = () => {
               }}
             >
               <ChevronLeftIcon className="h-4 w-4 mr-2" />
-              Quay lại danh sách đối tác
+              {t('partners.detail.backToList')}
             </button>
           </Link>
         </div>
@@ -106,7 +108,7 @@ const PartnerDetailPage: React.FC = () => {
               className="inline-flex items-center text-sm text-slate-700 hover:text-slate-900 transition-colors group font-normal tracking-wide"
             >
               <ChevronLeftIcon className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-              Quay lại danh sách đối tác
+              {t('partners.detail.backToList')}
             </Link>
           </div>
         </div>
@@ -152,15 +154,15 @@ const PartnerDetailPage: React.FC = () => {
                     <div className="flex items-center space-x-1.5">
                       {renderStars(partner.rating || 0)}
                       <span className="ml-2 font-medium text-lg">{(partner.rating || 0).toFixed(1)}</span>
-                      <span className="text-sm font-normal">({partner.totalReviews || 0} đánh giá)</span>
+                      <span className="text-sm font-normal">({partner.totalReviews || 0} {t('partners.detail.sidebar.reviews')})</span>
                     </div>
                     <div className="flex items-center">
                       <CalendarIcon className="h-5 w-5 mr-2" style={{ color: '#D4AF37' }} />
-                      <span className="font-normal">Từ {partner.establishedYear || 'N/A'}</span>
+                      <span className="font-normal">{t('partners.detail.sidebar.from')} {partner.establishedYear || 'N/A'}</span>
                     </div>
                     <div className="flex items-center">
                       <TicketIcon className="h-5 w-5 mr-2" style={{ color: '#D4AF37' }} />
-                      <span className="font-normal">{partner.totalTours || 0} tours</span>
+                      <span className="font-normal">{partner.totalTours || 0} {t('partners.detail.tabs.tours')}</span>
                     </div>
                   </div>
                 </div>
@@ -178,9 +180,9 @@ const PartnerDetailPage: React.FC = () => {
               <div className="bg-white border border-stone-200 rounded-none mb-8 animate-fade-in opacity-0 delay-500">
                 <div className="flex space-x-0">
                   {[
-                    { key: 'overview', label: 'Tổng quan' },
-                    { key: 'tours', label: `Tours (${partner.tours?.length || 0})` },
-                    { key: 'reviews', label: 'Đánh giá' }
+                    { key: 'overview', label: t('partners.detail.tabs.overview') },
+                    { key: 'tours', label: `${t('partners.detail.tabs.tours')} (${partner.tours?.length || 0})` },
+                    { key: 'reviews', label: t('partners.detail.tabs.reviews') }
                   ].map((tab) => (
                     <button
                       key={tab.key}
@@ -204,7 +206,7 @@ const PartnerDetailPage: React.FC = () => {
                   {/* Image Gallery with Navigation */}
                   {partner.images && partner.images.length > 0 && (
                     <div className="bg-white border border-stone-200 rounded-none p-6 animate-fade-in-up opacity-0 delay-200">
-                      <h3 className="text-xl font-medium mb-6 text-slate-900 tracking-tight">Hình ảnh đối tác</h3>
+                      <h3 className="text-xl font-medium mb-6 text-slate-900 tracking-tight">{t('partners.detail.sections.images')}</h3>
                       <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 h-96 lg:h-[500px]">
                         {/* Main Image with Navigation */}
                         <div className="lg:col-span-3 relative group cursor-pointer overflow-hidden rounded-none">
@@ -247,14 +249,14 @@ const PartnerDetailPage: React.FC = () => {
 
                   {/* Description */}
                   <div className="bg-white border border-stone-200 rounded-none p-6 animate-fade-in-up opacity-0 delay-300">
-                    <h3 className="text-xl font-medium text-slate-900 mb-4 tracking-tight">Giới thiệu</h3>
+                    <h3 className="text-xl font-medium text-slate-900 mb-4 tracking-tight">{t('partners.detail.sections.introduction')}</h3>
                     <p className="text-gray-700 leading-relaxed font-normal text-base">{partner.description}</p>
                   </div>
 
                   {/* Specialties */}
                   {partner.specialties && partner.specialties.length > 0 && (
                     <div className="bg-white border border-stone-200 rounded-none p-6 animate-fade-in-up opacity-0 delay-400">
-                      <h3 className="text-xl font-medium text-slate-900 mb-4 tracking-tight">Chuyên môn</h3>
+                      <h3 className="text-xl font-medium text-slate-900 mb-4 tracking-tight">{t('partners.detail.sections.specialties')}</h3>
                       <div className="flex flex-wrap gap-2">
                         {partner.specialties.map((specialty, index) => (
                           <span
@@ -272,19 +274,19 @@ const PartnerDetailPage: React.FC = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-white border border-stone-200 rounded-none p-5 text-center hover:shadow-lg transition-all duration-300 group animate-fade-in-up opacity-0 delay-500">
                       <div className="text-3xl font-normal mb-1 transition-all duration-300" style={{ color: '#D4AF37' }}>{partner.totalTours || 0}</div>
-                      <div className="text-sm text-gray-600 font-normal tracking-wide">Tours</div>
+                      <div className="text-sm text-gray-600 font-normal tracking-wide">{t('partners.detail.sections.stats.tours')}</div>
                     </div>
                     <div className="bg-white border border-stone-200 rounded-none p-5 text-center hover:shadow-lg transition-all duration-300 group animate-fade-in-up opacity-0 delay-600">
                       <div className="text-3xl font-normal mb-1 transition-all duration-300" style={{ color: '#D4AF37' }}>{(partner.totalBookings || 0).toLocaleString()}</div>
-                      <div className="text-sm text-gray-600 font-normal tracking-wide">Lượt đặt</div>
+                      <div className="text-sm text-gray-600 font-normal tracking-wide">{t('partners.detail.sections.stats.bookings')}</div>
                     </div>
                     <div className="bg-white border border-stone-200 rounded-none p-5 text-center hover:shadow-lg transition-all duration-300 group animate-fade-in-up opacity-0 delay-700">
                       <div className="text-3xl font-normal mb-1 transition-all duration-300" style={{ color: '#D4AF37' }}>{(partner.rating || 0).toFixed(1)}</div>
-                      <div className="text-sm text-gray-600 font-normal tracking-wide">Đánh giá</div>
+                      <div className="text-sm text-gray-600 font-normal tracking-wide">{t('partners.detail.sections.stats.rating')}</div>
                     </div>
                     <div className="bg-white border border-stone-200 rounded-none p-5 text-center hover:shadow-lg transition-all duration-300 group animate-fade-in-up opacity-0 delay-800">
                       <div className="text-3xl font-normal mb-1 transition-all duration-300" style={{ color: '#D4AF37' }}>{partner.establishedYear ? new Date().getFullYear() - partner.establishedYear : 'N/A'}</div>
-                      <div className="text-sm text-gray-600 font-normal tracking-wide">Năm kinh nghiệm</div>
+                      <div className="text-sm text-gray-600 font-normal tracking-wide">{t('partners.detail.sections.stats.yearsExperience')}</div>
                     </div>
                   </div>
                 </div>
@@ -313,10 +315,10 @@ const PartnerDetailPage: React.FC = () => {
                     <div className="bg-white border border-stone-200 rounded-none text-center py-16 px-6">
                       <TicketIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-xl font-medium text-slate-900 mb-2 tracking-tight">
-                        Chưa có tour nào
+                        {t('partners.detail.tours.empty.title')}
                       </h3>
                       <p className="text-gray-600 font-normal">
-                        Đối tác này chưa có tour du lịch nào được đăng tải.
+                        {t('partners.detail.tours.empty.description')}
                       </p>
                     </div>
                   )}
@@ -328,10 +330,10 @@ const PartnerDetailPage: React.FC = () => {
                   <div className="bg-white border border-stone-200 rounded-none text-center py-16 px-6">
                     <StarIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-xl font-medium text-slate-900 mb-2 tracking-tight">
-                      Đánh giá sẽ sớm có mặt
+                      {t('partners.detail.reviews.comingSoon.title')}
                     </h3>
                     <p className="text-gray-600 font-normal">
-                      Tính năng đánh giá đối tác đang được phát triển.
+                      {t('partners.detail.reviews.comingSoon.description')}
                     </p>
                   </div>
                 </div>
@@ -342,7 +344,7 @@ const PartnerDetailPage: React.FC = () => {
             <div className="space-y-6">
               {/* Contact Info */}
               <div className="bg-white border border-stone-200 rounded-none p-6 animate-fade-in opacity-0 delay-500 sticky top-24">
-                <h3 className="text-lg font-medium text-slate-900 mb-5 tracking-tight">Thông tin liên hệ</h3>
+                <h3 className="text-lg font-medium text-slate-900 mb-5 tracking-tight">{t('partners.detail.sidebar.contactInfo')}</h3>
                 <div className="space-y-4">
                   {partner.address && (
                     <div className="flex items-start group">
@@ -375,7 +377,7 @@ const PartnerDetailPage: React.FC = () => {
                         rel="noopener noreferrer"
                         className="text-sm text-slate-700 hover:text-slate-900 font-normal transition-colors"
                       >
-                        Website chính thức
+                        {t('partners.detail.sidebar.website')}
                       </a>
                     </div>
                   )}
@@ -384,25 +386,25 @@ const PartnerDetailPage: React.FC = () => {
 
               {/* Quick Stats */}
               <div className="bg-white border border-stone-200 rounded-none p-6 animate-fade-in opacity-0 delay-600">
-                <h3 className="text-lg font-medium text-slate-900 mb-5 tracking-tight">Thống kê nhanh</h3>
+                <h3 className="text-lg font-medium text-slate-900 mb-5 tracking-tight">{t('partners.detail.sidebar.quickStats')}</h3>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center py-2 border-b border-stone-100">
-                    <span className="text-sm text-gray-600 font-normal">Đánh giá trung bình</span>
+                    <span className="text-sm text-gray-600 font-normal">{t('partners.detail.sidebar.averageRating')}</span>
                     <div className="flex items-center">
                       <StarIconSolid className="h-4 w-4 mr-1" style={{ color: '#D4AF37' }} />
                       <span className="text-sm font-medium text-slate-900">{(partner.rating || 0).toFixed(1)}/5</span>
                     </div>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-stone-100">
-                    <span className="text-sm text-gray-600 font-normal">Tổng số tours</span>
+                    <span className="text-sm text-gray-600 font-normal">{t('partners.detail.sidebar.totalTours')}</span>
                     <span className="text-sm font-medium text-slate-900">{partner.totalTours || 0}</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-stone-100">
-                    <span className="text-sm text-gray-600 font-normal">Lượt đặt tour</span>
+                    <span className="text-sm text-gray-600 font-normal">{t('partners.detail.sidebar.totalBookings')}</span>
                     <span className="text-sm font-medium text-slate-900">{(partner.totalBookings || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center py-2">
-                    <span className="text-sm text-gray-600 font-normal">Thành lập</span>
+                    <span className="text-sm text-gray-600 font-normal">{t('partners.detail.sidebar.established')}</span>
                     <span className="text-sm font-medium text-slate-900">{partner.establishedYear || 'N/A'}</span>
                   </div>
                 </div>
@@ -410,9 +412,9 @@ const PartnerDetailPage: React.FC = () => {
 
               {/* CTA */}
               <div className="bg-stone-100 border border-stone-200 rounded-none p-6 animate-fade-in opacity-0 delay-700">
-                <h3 className="text-lg font-medium text-slate-900 mb-2 tracking-tight">Quan tâm đến đối tác này?</h3>
+                <h3 className="text-lg font-medium text-slate-900 mb-2 tracking-tight">{t('partners.detail.sidebar.cta.title')}</h3>
                 <p className="text-sm text-gray-700 mb-5 font-normal leading-relaxed">
-                  Khám phá các tour du lịch tuyệt vời từ {partner.name}
+                  {t('partners.detail.sidebar.cta.description')} {partner.name}
                 </p>
                 <button 
                   className="w-full bg-slate-900 text-white px-6 py-3 rounded-none hover:bg-slate-800 transition-all duration-300 text-sm font-medium tracking-wide border border-slate-900 hover:shadow-lg"
@@ -424,7 +426,7 @@ const PartnerDetailPage: React.FC = () => {
                     e.currentTarget.style.borderColor = '#1e293b';
                   }}
                 >
-                  Xem tất cả tours
+                  {t('partners.detail.sidebar.cta.button')}
                 </button>
               </div>
             </div>

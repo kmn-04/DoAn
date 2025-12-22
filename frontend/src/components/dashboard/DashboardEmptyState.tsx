@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { 
   HeartIcon,
@@ -44,41 +45,43 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({
     }
   };
 
+  const { t } = useTranslation();
+
   const getDefaultContent = () => {
     switch (type) {
       case 'wishlist':
         return {
-          title: 'Chưa có tour yêu thích',
-          description: 'Hãy khám phá và lưu những tour du lịch yêu thích của bạn!',
-          actionText: 'Khám phá tours',
+          title: t('dashboard.emptyState.wishlist.title'),
+          description: t('dashboard.emptyState.wishlist.description'),
+          actionText: t('dashboard.emptyState.wishlist.action'),
           actionUrl: '/tours'
         };
       case 'bookings':
         return {
-          title: 'Chưa có booking nào',
-          description: 'Bạn chưa đặt tour nào. Hãy bắt đầu cuộc hành trình của bạn!',
-          actionText: 'Đặt tour ngay',
+          title: t('dashboard.emptyState.bookings.title'),
+          description: t('dashboard.emptyState.bookings.description'),
+          actionText: t('dashboard.emptyState.bookings.action'),
           actionUrl: '/tours'
         };
       case 'notifications':
         return {
-          title: 'Không có thông báo mới',
-          description: 'Tất cả thông báo đã được xem. Chúng tôi sẽ thông báo khi có cập nhật mới.',
-          actionText: 'Xem tất cả',
+          title: t('dashboard.emptyState.notifications.title'),
+          description: t('dashboard.emptyState.notifications.description'),
+          actionText: t('dashboard.emptyState.notifications.action'),
           actionUrl: '/notifications'
         };
       case 'search':
         return {
-          title: 'Không tìm thấy kết quả',
-          description: 'Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc để tìm thấy những gì bạn cần.',
-          actionText: 'Xóa bộ lọc',
+          title: t('dashboard.emptyState.search.title'),
+          description: t('dashboard.emptyState.search.description'),
+          actionText: t('dashboard.emptyState.search.action'),
           actionUrl: ''
         };
       default:
         return {
-          title: 'Không có dữ liệu',
-          description: 'Hiện tại không có thông tin để hiển thị.',
-          actionText: 'Làm mới',
+          title: t('dashboard.emptyState.general.title'),
+          description: t('dashboard.emptyState.general.description'),
+          actionText: t('dashboard.emptyState.general.action'),
           actionUrl: ''
         };
     }
@@ -124,12 +127,18 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({
 
         {showSearchSuggestion && (
           <div className="mt-4">
-            <p className="text-sm text-gray-500 mb-2">Gợi ý tìm kiếm:</p>
+            <p className="text-sm text-gray-500 mb-2">{t('dashboard.emptyState.search.suggestions')}</p>
             <div className="flex flex-wrap gap-2 justify-center">
-              {['Hạ Long', 'Sapa', 'Phú Quốc', 'Đà Nẵng', 'Hội An'].map((keyword) => (
+              {[
+                t('dashboard.emptyState.search.destinations.halong'),
+                t('dashboard.emptyState.search.destinations.sapa'),
+                t('dashboard.emptyState.search.destinations.phuQuoc'),
+                t('dashboard.emptyState.search.destinations.daNang'),
+                t('dashboard.emptyState.search.destinations.hoiAn')
+              ].map((keyword) => (
                 <Link
                   key={keyword}
-                  to={`/tours?search=${keyword}`}
+                  to={`/tours?search=${encodeURIComponent(keyword)}`}
                   className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition-colors"
                 >
                   {keyword}

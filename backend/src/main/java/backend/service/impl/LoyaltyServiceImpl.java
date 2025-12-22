@@ -75,7 +75,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         transaction.setBalanceAfter(loyaltyPoints.getPointsBalance() + points);
         
         // Set expiry date (24 months from now)
-        String expiryMonthsStr = getConfigValue("point_expiry_months", "24");
+        String expiryMonthsStr = getConfigValue("point_expiry_months", "12");
         int expiryMonths = Integer.parseInt(expiryMonthsStr);
         transaction.setExpiresAt(LocalDate.now().plusMonths(expiryMonths));
         
@@ -141,38 +141,29 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Override
     public PointTransaction awardBookingPoints(Long userId, Long bookingId,
                                                BigDecimal bookingAmount, String tourType) {
-        // Hardcode rates to avoid database dependency
-        double rate = tourType != null && tourType.equals("INTERNATIONAL") 
-            ? 0.0008  // 0.08% for international
-            : 0.0005; // 0.05% for domestic
-        
-        // Calculate base points
-        int basePoints = (int) (bookingAmount.doubleValue() * rate);
-        
-        // Apply multipliers
-        double multiplier = 1.0;
-        
-        // Check if first booking
-        long bookingCount = pointTransactionRepository.countByUserIdAndTransactionType(
-            userId, TransactionType.EARNED);
-        
-        // Hardcode first booking multiplier
-        if (bookingCount == 0) {
-            multiplier *= 1.3; // Fixed multiplier
-        }
-        
-        // Check birthday month
-        User user = userRepository.findById(userId).orElse(null);
-        if (user != null && user.getDateOfBirth() != null) {
-            if (user.getDateOfBirth().getMonth() == LocalDate.now().getMonth()) {
-                multiplier *= Double.parseDouble(getConfigValue("birthday_month_multiplier", "1.5"));
-            }
-        }
-        
-        int finalPoints = (int) (basePoints * multiplier);
-        
-        String description = String.format("Tích điểm từ booking #%d (x%.1f)", bookingId, multiplier);
-        
+        // Rule: 1 point / 10,000đ on paid booking amount (after discounts, before fees)
+        int basePoints = bookingAmount
+            .divide(BigDecimal.valueOf(10_000), 0, java.math.RoundingMode.DOWN)
+            .intValue();
+
+        // Tier bonus: Silver +5%, Gold +10%, Platinum +15% (Bronze 0%)
+        LoyaltyPoints loyaltyPoints = getOrCreateLoyaltyPoints(userId);
+        double tierBonus = switch (loyaltyPoints.getLevel()) {
+            case SILVER -> 0.05;
+            case GOLD -> 0.10;
+            case PLATINUM, DIAMOND -> 0.15;
+            default -> 0.0;
+        };
+
+        int finalPoints = (int) Math.floor(basePoints * (1 + tierBonus));
+
+        String description = String.format(
+            "Tích điểm từ booking #%d (cộng %.0f%% bonus hạng %s)",
+            bookingId,
+            tierBonus * 100,
+            loyaltyPoints.getLevel().name()
+        );
+
         return addPoints(userId, finalPoints, SourceType.BOOKING, bookingId, description);
     }
     
@@ -221,7 +212,8 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     public boolean checkAndUpdateLevel(Long userId) {
         LoyaltyPoints loyaltyPoints = getLoyaltyPointsByUserId(userId);
         LoyaltyLevel currentLevel = loyaltyPoints.getLevel();
-        LoyaltyLevel newLevel = calculateLevel(loyaltyPoints.getTotalEarned());
+        int rollingEarned12M = getEarnedPointsWithinMonths(userId, 12);
+        LoyaltyLevel newLevel = calculateLevel(rollingEarned12M);
         
         if (newLevel != currentLevel) {
             LoyaltyLevel oldLevel = currentLevel;
@@ -339,6 +331,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Override
     public Map<String, Object> getUserLoyaltyStats(Long userId) {
         LoyaltyPoints loyaltyPoints = getLoyaltyPointsByUserId(userId);
+        int rollingEarned12M = getEarnedPointsWithinMonths(userId, 12);
         
         Map<String, Object> stats = new HashMap<>();
         stats.put("currentLevel", loyaltyPoints.getLevel().name());
@@ -346,11 +339,12 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         stats.put("totalEarned", loyaltyPoints.getTotalEarned());
         stats.put("totalRedeemed", loyaltyPoints.getTotalRedeemed());
         stats.put("totalExpired", loyaltyPoints.getTotalExpired());
+        stats.put("earnedLast12Months", rollingEarned12M);
         
         // Calculate points to next level
         LoyaltyLevel nextLevel = getNextLevel(loyaltyPoints.getLevel());
         if (nextLevel != null) {
-            int pointsToNext = getPointsForLevel(nextLevel) - loyaltyPoints.getTotalEarned();
+            int pointsToNext = getPointsForLevel(nextLevel) - rollingEarned12M;
             stats.put("pointsToNextLevel", Math.max(0, pointsToNext));
             stats.put("nextLevel", nextLevel.name());
         } else {
@@ -387,10 +381,10 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     private int getPointsForLevel(LoyaltyLevel level) {
         return switch (level) {
             case BRONZE -> 0;
-            case SILVER -> 5000;      // 5,000 điểm
-            case GOLD -> 20000;       // 20,000 điểm  
-            case PLATINUM -> 50000;   // 50,000 điểm
-            case DIAMOND -> 100000;   // 100,000 điểm
+            case SILVER -> 10_000;      // 10,000 điểm / 12 tháng
+            case GOLD -> 30_000;        // 30,000 điểm / 12 tháng
+            case PLATINUM -> 70_000;    // 70,000 điểm / 12 tháng
+            case DIAMOND -> 100_000;    // 100,000 điểm / 12 tháng
         };
     }
     
@@ -406,6 +400,15 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     
     private String getConfigValue(String key, String defaultValue) {
         return loyaltyConfigRepository.getConfigValue(key).orElse(defaultValue);
+    }
+
+    /**
+     * Rolling earned points within last N months (for tier calculation)
+     */
+    private int getEarnedPointsWithinMonths(Long userId, int months) {
+        LocalDateTime fromDate = LocalDateTime.now().minusMonths(months);
+        Integer sum = pointTransactionRepository.sumEarnedSince(userId, fromDate);
+        return sum != null ? sum : 0;
     }
 }
 

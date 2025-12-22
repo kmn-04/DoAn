@@ -22,6 +22,12 @@ public interface PointVoucherRepository extends JpaRepository<PointVoucher, Long
     Optional<PointVoucher> findByVoucherCode(String voucherCode);
     
     /**
+     * Find voucher by code with user (fetch join to avoid lazy loading)
+     */
+    @Query("SELECT DISTINCT pv FROM PointVoucher pv JOIN FETCH pv.user WHERE pv.voucherCode = :code")
+    Optional<PointVoucher> findByVoucherCodeWithUser(@Param("code") String code);
+    
+    /**
      * Find vouchers by user ID
      */
     List<PointVoucher> findByUserIdOrderByCreatedAtDesc(Long userId);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   UserIcon,
   EnvelopeIcon,
@@ -38,6 +39,7 @@ interface UserStats {
 }
 
 const ProfilePage: React.FC = () => {
+  const { t } = useTranslation();
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -187,13 +189,13 @@ const ProfilePage: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!editData.name.trim()) {
-      newErrors.name = 'Vui lòng nhập họ tên';
+      newErrors.name = t('profile.errors.nameRequired');
     }
 
     if (!editData.phone.trim()) {
-      newErrors.phone = 'Vui lòng nhập số điện thoại';
+      newErrors.phone = t('profile.errors.phoneRequired');
     } else if (!/^[0-9]{10,11}$/.test(editData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Số điện thoại không hợp lệ';
+      newErrors.phone = t('profile.errors.phoneInvalid');
     }
 
     setErrors(newErrors);
@@ -232,10 +234,10 @@ const ProfilePage: React.FC = () => {
         });
       }
       
-      toast.success('Thông tin cá nhân đã được cập nhật thành công');
+      toast.success(t('profile.errors.updateSuccess'));
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Không thể cập nhật thông tin. Vui lòng thử lại');
+      toast.error(t('profile.errors.updateError'));
     } finally {
       setIsLoading(false);
     }
@@ -256,13 +258,13 @@ const ProfilePage: React.FC = () => {
       if (file) {
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-          toast.error('File quá lớn. Vui lòng chọn ảnh có kích thước nhỏ hơn 5MB');
+          toast.error(t('profile.avatar.tooLarge'));
           return;
         }
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-          toast.error('File không hợp lệ. Vui lòng chọn file ảnh (JPG, PNG, GIF)');
+          toast.error(t('profile.avatar.invalidType'));
           return;
         }
 
@@ -321,17 +323,17 @@ const ProfilePage: React.FC = () => {
               updateUser({ avatarUrl: imageUrl });
             }
             
-            toast.success('Ảnh đại diện đã được cập nhật thành công');
+            toast.success(t('profile.avatar.success'));
             
           } catch (error) {
             console.error('Error updating profile with avatar:', error);
-            toast.error('Không thể lưu ảnh đại diện. Vui lòng thử lại');
+            toast.error(t('profile.avatar.error'));
           } finally {
             setIsUploadingAvatar(false);
           }
         } catch (error) {
           console.error('Error uploading avatar:', error);
-          toast.error('Không thể upload ảnh. Vui lòng thử lại');
+          toast.error(t('profile.avatar.uploadError'));
           setIsUploadingAvatar(false);
         }
       }
@@ -363,23 +365,23 @@ const ProfilePage: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!passwordData.currentPassword.trim()) {
-      newErrors.currentPassword = 'Vui lòng nhập mật khẩu hiện tại';
+      newErrors.currentPassword = t('profile.errors.passwordRequired');
     }
 
     if (!passwordData.newPassword.trim()) {
-      newErrors.newPassword = 'Vui lòng nhập mật khẩu mới';
+      newErrors.newPassword = t('profile.errors.newPasswordRequired');
     } else if (passwordData.newPassword.length < 6) {
-      newErrors.newPassword = 'Mật khẩu mới phải có ít nhất 6 ký tự';
+      newErrors.newPassword = t('profile.errors.newPasswordMin');
     }
 
     if (!passwordData.confirmPassword.trim()) {
-      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới';
+      newErrors.confirmPassword = t('profile.errors.confirmRequired');
     } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+      newErrors.confirmPassword = t('profile.errors.confirmMismatch');
     }
 
     if (passwordData.currentPassword === passwordData.newPassword) {
-      newErrors.newPassword = 'Mật khẩu mới phải khác mật khẩu hiện tại';
+      newErrors.newPassword = t('profile.errors.samePassword');
     }
 
     setPasswordErrors(newErrors);
@@ -402,7 +404,7 @@ const ProfilePage: React.FC = () => {
         confirmPassword: passwordData.confirmPassword
       });
       
-      toast.success('Mật khẩu đã được thay đổi thành công');
+      toast.success(t('profile.errors.changeSuccess'));
       setShowChangePasswordModal(false);
       
       // Reset form
@@ -412,16 +414,17 @@ const ProfilePage: React.FC = () => {
         confirmPassword: ''
       });
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error changing password:', error);
       
       // Handle specific error messages
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else if (error.response?.status === 400) {
-        toast.error('Mật khẩu hiện tại không đúng');
+      const err = error as { response?: { data?: { message?: string }; status?: number } };
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else if (err.response?.status === 400) {
+        toast.error(t('profile.errors.currentIncorrect'));
       } else {
-        toast.error('Không thể thay đổi mật khẩu. Vui lòng thử lại');
+        toast.error(t('profile.errors.changeError'));
       }
     } finally {
       setIsChangingPassword(false);
@@ -483,8 +486,8 @@ const ProfilePage: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         {/* Page Header */}
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-normal text-slate-900 mb-2 tracking-tight">Thông tin cá nhân</h1>
-          <p className="text-gray-600 font-normal">Quản lý thông tin tài khoản và cài đặt cá nhân của bạn</p>
+          <h1 className="text-3xl font-normal text-slate-900 mb-2 tracking-tight">{t('profile.title')}</h1>
+          <p className="text-gray-600 font-normal">{t('profile.subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -526,16 +529,16 @@ const ProfilePage: React.FC = () => {
             </div>
 
             <h2 className="text-2xl font-medium text-slate-900 mb-1 tracking-tight">{profileData.name}</h2>
-            <p className="text-gray-600 mb-6 font-normal">{profileData.email}</p>
+              <p className="text-gray-600 mb-6 font-normal">{profileData.email}</p>
             
             <div className="text-sm text-gray-600 space-y-3 border-t border-stone-200 pt-4">
               <p className="flex items-center justify-center space-x-2">
                 <PhoneIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
-                <span className="font-normal">{profileData.phone || 'Chưa cập nhật'}</span>
+                <span className="font-normal">{profileData.phone || t('profile.details.notUpdated')}</span>
               </p>
               <p className="flex items-center justify-center space-x-2">
                 <MapPinIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
-                <span className="font-normal">{profileData.address || 'Chưa cập nhật'}</span>
+                <span className="font-normal">{profileData.address || t('profile.details.notUpdated')}</span>
               </p>
             </div>
 
@@ -545,29 +548,29 @@ const ProfilePage: React.FC = () => {
                 className="mt-6 w-full text-white rounded-none hover:opacity-90 transition-all duration-300" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
               >
                 <PencilIcon className="h-4 w-4 mr-2" />
-                Chỉnh sửa thông tin
+                {t('profile.edit')}
               </Button>
             )}
           </Card>
 
             {/* Stats */}
             <Card className="p-6 bg-white border border-stone-200 rounded-none hover:border-slate-700 transition-all duration-300 animate-fade-in-up opacity-0 delay-100">
-              <h3 className="text-xl font-medium text-slate-900 mb-6 tracking-tight">Thống kê</h3>
+              <h3 className="text-xl font-medium text-slate-900 mb-6 tracking-tight">{t('profile.stats.title')}</h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center pb-3 border-b border-stone-100">
-                  <span className="text-gray-600 font-normal">Tours đã đặt</span>
+                  <span className="text-gray-600 font-normal">{t('profile.stats.totalBookings')}</span>
                   <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>{userStats.totalBookings}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-stone-100">
-                  <span className="text-gray-600 font-normal">Tours hoàn thành</span>
+                  <span className="text-gray-600 font-normal">{t('profile.stats.completedTours')}</span>
                   <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>{userStats.completedBookings}</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b border-stone-100">
-                  <span className="text-gray-600 font-normal">Đánh giá đã viết</span>
+                  <span className="text-gray-600 font-normal">{t('profile.stats.reviewsWritten')}</span>
                   <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>{userStats.totalReviews}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-normal">Thành viên từ</span>
+                  <span className="text-gray-600 font-normal">{t('profile.stats.memberSince')}</span>
                   <span className="text-2xl font-normal" style={{ color: '#D4AF37' }}>{userStats.memberSince}</span>
                 </div>
               </div>
@@ -578,7 +581,7 @@ const ProfilePage: React.FC = () => {
           <div className="lg:col-span-2">
             <Card className="p-8 bg-white border border-stone-200 rounded-none hover:border-slate-700 transition-all duration-300 animate-fade-in-up opacity-0 delay-200">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-normal text-slate-900 tracking-tight">Chi tiết thông tin</h3>
+                <h3 className="text-2xl font-normal text-slate-900 tracking-tight">{t('profile.details.title')}</h3>
               
               {isEditing && (
                 <div className="flex space-x-2">
@@ -589,7 +592,7 @@ const ProfilePage: React.FC = () => {
                     className="border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none"
                   >
                     <XMarkIcon className="h-4 w-4 mr-1" />
-                    Hủy
+                    {t('profile.cancel')}
                   </Button>
                   
                   <Button
@@ -600,12 +603,12 @@ const ProfilePage: React.FC = () => {
                     {isLoading ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Đang lưu...
+                        {t('profile.saving')}
                       </>
                     ) : (
                       <>
                         <CheckIcon className="h-4 w-4 mr-1" />
-                        Lưu thay đổi
+                        {t('profile.saveChanges')}
                       </>
                     )}
                   </Button>
@@ -616,10 +619,10 @@ const ProfilePage: React.FC = () => {
             <div className="space-y-6">
               {/* Personal Information */}
               <div>
-                <h4 className="font-medium text-slate-900 mb-6 tracking-tight text-lg">Thông tin cá nhân</h4>
+                <h4 className="font-medium text-slate-900 mb-6 tracking-tight text-lg">{t('profile.details.personalInfo')}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    label="Họ và tên *"
+                    label={t('profile.details.fullName')}
                     value={isEditing ? editData.name : profileData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     error={errors.name}
@@ -627,7 +630,7 @@ const ProfilePage: React.FC = () => {
                   />
                   
                   <Input
-                    label="Email *"
+                    label={t('profile.details.email')}
                     type="email"
                     value={profileData.email}
                     disabled={true}
@@ -635,7 +638,7 @@ const ProfilePage: React.FC = () => {
                   />
                   
                   <Input
-                    label="Số điện thoại *"
+                    label={t('profile.details.phone')}
                     value={isEditing ? editData.phone : profileData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     error={errors.phone}
@@ -643,7 +646,7 @@ const ProfilePage: React.FC = () => {
                   />
                   
                   <Input
-                    label="Ngày sinh"
+                    label={t('profile.details.dateOfBirth')}
                     type="date"
                     value={isEditing ? editData.dateOfBirth : profileData.dateOfBirth}
                     onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
@@ -652,7 +655,7 @@ const ProfilePage: React.FC = () => {
                   
                   <div className="md:col-span-2">
                     <Input
-                      label="Địa chỉ"
+                      label={t('profile.details.address')}
                       value={isEditing ? editData.address : profileData.address}
                       onChange={(e) => handleInputChange('address', e.target.value)}
                       disabled={!isEditing}
@@ -661,7 +664,7 @@ const ProfilePage: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-                      Giới tính
+                      {t('profile.details.gender')}
                     </label>
                     <select
                       value={isEditing ? editData.gender : profileData.gender}
@@ -669,16 +672,16 @@ const ProfilePage: React.FC = () => {
                       disabled={!isEditing}
                       className="w-full border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 disabled:bg-stone-50 disabled:cursor-not-allowed font-normal transition-all duration-300"
                     >
-                      <option value="male">Nam</option>
-                      <option value="female">Nữ</option>
-                      <option value="other">Khác</option>
+                      <option value="male">{t('profile.details.genderOptions.male')}</option>
+                      <option value="female">{t('profile.details.genderOptions.female')}</option>
+                      <option value="other">{t('profile.details.genderOptions.other')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-                    Giới thiệu bản thân
+                    {t('profile.details.bio')}
                   </label>
                   <textarea
                     value={isEditing ? editData.bio : profileData.bio}
@@ -686,7 +689,7 @@ const ProfilePage: React.FC = () => {
                     disabled={!isEditing}
                     rows={3}
                     className="w-full border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 disabled:bg-stone-50 disabled:cursor-not-allowed resize-none font-normal transition-all duration-300"
-                    placeholder="Chia sẻ về sở thích du lịch của bạn..."
+                    placeholder={t('profile.details.bioPlaceholder')}
                   />
                 </div>
               </div>
@@ -694,12 +697,12 @@ const ProfilePage: React.FC = () => {
 
               {/* Account Security */}
               <div className="border-t border-stone-200 pt-6">
-                <h4 className="font-medium text-slate-900 mb-6 tracking-tight text-lg">Bảo mật tài khoản</h4>
+                <h4 className="font-medium text-slate-900 mb-6 tracking-tight text-lg">{t('profile.security.title')}</h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-4 bg-stone-50 rounded-none border border-stone-200">
                     <div>
-                      <h5 className="font-medium text-slate-900 tracking-tight">Mật khẩu</h5>
-                      <p className="text-sm text-gray-600 font-normal">Cập nhật lần cuối: 30 ngày trước</p>
+                      <h5 className="font-medium text-slate-900 tracking-tight">{t('profile.security.password.title')}</h5>
+                      <p className="text-sm text-gray-600 font-normal">{t('profile.security.password.lastUpdated')}</p>
                     </div>
                     <Button 
                       variant="outline" 
@@ -707,17 +710,17 @@ const ProfilePage: React.FC = () => {
                       onClick={handleChangePassword}
                       className="border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none"
                     >
-                      Đổi mật khẩu
+                      {t('profile.security.password.change')}
                     </Button>
                   </div>
 
                   <div className="flex items-center justify-between p-4 bg-stone-50 rounded-none border border-stone-200">
                     <div>
-                      <h5 className="font-medium text-slate-900 tracking-tight">Xác thực 2 bước</h5>
-                      <p className="text-sm text-gray-600 font-normal">Tăng cường bảo mật cho tài khoản</p>
+                      <h5 className="font-medium text-slate-900 tracking-tight">{t('profile.security.twoFactor.title')}</h5>
+                      <p className="text-sm text-gray-600 font-normal">{t('profile.security.twoFactor.description')}</p>
                     </div>
                     <Button variant="outline" size="sm" className="border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none">
-                      Kích hoạt
+                      {t('profile.security.twoFactor.activate')}
                     </Button>
                   </div>
                 </div>
@@ -732,14 +735,14 @@ const ProfilePage: React.FC = () => {
       {showChangePasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-xl font-medium text-slate-900 mb-6 tracking-tight">Đổi mật khẩu</h3>
+            <h3 className="text-xl font-medium text-slate-900 mb-6 tracking-tight">{t('profile.password.title')}</h3>
             
             <form onSubmit={handlePasswordSubmit}>
               <div className="space-y-4">
                 {/* Current Password */}
                 <div>
                   <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-                    Mật khẩu hiện tại *
+                    {t('profile.password.current')}
                   </label>
                   <div className="relative">
                     <input
@@ -750,7 +753,7 @@ const ProfilePage: React.FC = () => {
                       className={`w-full border rounded-none px-3 py-2 pr-10 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300 ${
                         passwordErrors.currentPassword ? 'border-red-500' : 'border-stone-300'
                       }`}
-                      placeholder="Nhập mật khẩu hiện tại"
+                      placeholder={t('profile.password.currentPlaceholder')}
                     />
                     {passwordErrors.currentPassword && (
                       <p className="text-red-500 text-sm mt-1">{passwordErrors.currentPassword}</p>
@@ -772,7 +775,7 @@ const ProfilePage: React.FC = () => {
                 {/* New Password */}
                 <div>
                   <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-                    Mật khẩu mới *
+                    {t('profile.password.new')}
                   </label>
                   <div className="relative">
                     <input
@@ -783,7 +786,7 @@ const ProfilePage: React.FC = () => {
                       className={`w-full border rounded-none px-3 py-2 pr-10 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300 ${
                         passwordErrors.newPassword ? 'border-red-500' : 'border-stone-300'
                       }`}
-                      placeholder="Nhập mật khẩu mới"
+                      placeholder={t('profile.password.newPlaceholder')}
                     />
                     {passwordErrors.newPassword && (
                       <p className="text-red-500 text-sm mt-1">{passwordErrors.newPassword}</p>
@@ -805,7 +808,7 @@ const ProfilePage: React.FC = () => {
                 {/* Confirm Password */}
                 <div>
                   <label className="block text-sm font-medium text-slate-900 mb-2 tracking-tight">
-                    Xác nhận mật khẩu mới *
+                    {t('profile.password.confirm')}
                   </label>
                   <div className="relative">
                     <input
@@ -816,7 +819,7 @@ const ProfilePage: React.FC = () => {
                       className={`w-full border rounded-none px-3 py-2 pr-10 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300 ${
                         passwordErrors.confirmPassword ? 'border-red-500' : 'border-stone-300'
                       }`}
-                      placeholder="Xác nhận mật khẩu mới"
+                      placeholder={t('profile.password.confirmPlaceholder')}
                     />
                     {passwordErrors.confirmPassword && (
                       <p className="text-red-500 text-sm mt-1">{passwordErrors.confirmPassword}</p>
@@ -844,7 +847,7 @@ const ProfilePage: React.FC = () => {
                   disabled={isChangingPassword}
                   className="border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none disabled:opacity-50"
                 >
-                  Hủy
+                  {t('profile.cancel')}
                 </Button>
                 
                 <Button
@@ -856,10 +859,10 @@ const ProfilePage: React.FC = () => {
                   {isChangingPassword ? (
                     <div className="flex items-center space-x-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Đang xử lý...</span>
+                      <span>{t('profile.password.changing')}</span>
                     </div>
                   ) : (
-                    'Đổi mật khẩu'
+                    t('profile.password.change')
                   )}
                 </Button>
               </div>

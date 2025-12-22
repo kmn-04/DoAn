@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { vnpayService } from '../services/vnpayService';
 import { Loading } from '../components/ui/Loading';
 import { 
@@ -35,6 +36,7 @@ interface BookingDetails {
 }
 
 const VnPayReturnPage: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [processing, setProcessing] = useState(true);
@@ -54,7 +56,7 @@ const VnPayReturnPage: React.FC = () => {
         if (!queryParams) {
           setResult({
             success: false,
-            message: 'Không tìm thấy thông tin thanh toán',
+            message: t('vnpay.error.noPaymentInfo'),
           });
           setProcessing(false);
           return;
@@ -73,7 +75,7 @@ const VnPayReturnPage: React.FC = () => {
         if (responseCode === '00') {
           setResult({
             success: true,
-            message: response?.message || 'Thanh toán thành công',
+            message: response?.message || t('vnpay.error.paymentSuccess'),
             orderId: response?.orderId || '',
             transactionNo: response?.transactionNo || '',
           });
@@ -107,7 +109,7 @@ const VnPayReturnPage: React.FC = () => {
           }
         } else {
           // Get error message from response code
-          let errorMessage = response?.message || 'Thanh toán thất bại';
+          let errorMessage = response?.message || t('vnpay.error.paymentFailed');
           
           if (responseCode) {
             try {
@@ -126,7 +128,7 @@ const VnPayReturnPage: React.FC = () => {
         }
       } catch (error: any) {
         console.error('Error processing payment return:', error);
-        const errorMsg = error?.response?.data?.message || error?.message || 'Có lỗi xảy ra khi xử lý kết quả thanh toán';
+        const errorMsg = error?.response?.data?.message || error?.message || t('vnpay.error.processingError');
         setResult({
           success: false,
           message: String(errorMsg),
@@ -140,14 +142,14 @@ const VnPayReturnPage: React.FC = () => {
   }, [location.search, navigate]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       style: 'currency',
       currency: 'VND'
     }).format(price);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    return new Date(dateString).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -160,7 +162,7 @@ const VnPayReturnPage: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
         <div className="text-center">
           <Loading size="lg" />
-          <p className="mt-4 text-gray-600 font-normal">Đang xử lý kết quả thanh toán...</p>
+          <p className="mt-4 text-gray-600 font-normal">{t('vnpay.processing')}</p>
         </div>
       </div>
     );
@@ -180,10 +182,10 @@ const VnPayReturnPage: React.FC = () => {
                 <CheckCircleIcon className="h-10 w-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-5xl font-normal text-slate-900 mb-4 tracking-tight">
-                Đặt tour thành công!
+                {t('vnpay.success.title')}
               </h1>
               <p className="text-lg text-gray-600 font-normal">
-                Cảm ơn bạn đã tin tưởng và đặt tour với chúng tôi
+                {t('vnpay.success.subtitle')}
               </p>
             </div>
 
@@ -191,15 +193,15 @@ const VnPayReturnPage: React.FC = () => {
             <div className="bg-white border border-stone-200 rounded-none p-8 mb-6">
               <div className="border-b border-stone-200 pb-6 mb-8">
                 <h2 className="text-2xl font-normal text-slate-900 mb-4 tracking-tight">
-                  Chi tiết đặt tour
+                  {t('vnpay.success.bookingDetails')}
                 </h2>
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm text-gray-600 font-normal">Mã booking:</span>
+                  <span className="text-sm text-gray-600 font-normal">{t('vnpay.success.bookingCode')}</span>
                   <span className="font-mono font-medium text-lg tracking-wider" style={{ color: '#D4AF37' }}>
                     {bookingDetails?.bookingCode || result.orderId}
                   </span>
                   <span className="inline-flex items-center px-3 py-1 rounded-none text-xs font-medium bg-amber-100 border border-amber-300 text-amber-800">
-                    Đã xác nhận
+                    {t('vnpay.success.confirmed')}
                   </span>
                 </div>
               </div>
@@ -209,7 +211,7 @@ const VnPayReturnPage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Tour Info */}
                     <div>
-                      <h3 className="font-medium text-slate-900 mb-4 tracking-tight">Thông tin tour</h3>
+                      <h3 className="font-medium text-slate-900 mb-4 tracking-tight">{t('vnpay.success.tourInfo')}</h3>
                       <div className="space-y-4">
                         <div className="flex items-start space-x-3">
                           <MapPinIcon className="h-5 w-5 mt-1" style={{ color: '#D4AF37' }} />
@@ -226,7 +228,7 @@ const VnPayReturnPage: React.FC = () => {
                         <div className="flex items-center space-x-3">
                           <CalendarDaysIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
                           <div>
-                            <p className="font-medium text-slate-900">Ngày khởi hành</p>
+                            <p className="font-medium text-slate-900">{t('vnpay.success.departureDate')}</p>
                             <p className="text-sm text-gray-600 font-normal mt-1">
                               {formatDate(bookingDetails.startDate)}
                             </p>
@@ -236,11 +238,11 @@ const VnPayReturnPage: React.FC = () => {
                         <div className="flex items-center space-x-3">
                           <UsersIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
                           <div>
-                            <p className="font-medium text-slate-900">Số người tham gia</p>
+                            <p className="font-medium text-slate-900">{t('vnpay.success.participants')}</p>
                             <p className="text-sm text-gray-600 font-normal mt-1">
-                              {bookingDetails.numAdults} người lớn
+                              {t('vnpay.success.adults', { count: bookingDetails.numAdults })}
                               {bookingDetails.numChildren > 0 && 
-                                `, ${bookingDetails.numChildren} trẻ em`
+                                `, ${t('vnpay.success.children', { count: bookingDetails.numChildren })}`
                               }
                             </p>
                           </div>
@@ -250,7 +252,7 @@ const VnPayReturnPage: React.FC = () => {
 
                     {/* Customer Info */}
                     <div>
-                      <h3 className="font-medium text-slate-900 mb-4 tracking-tight">Thông tin liên hệ</h3>
+                      <h3 className="font-medium text-slate-900 mb-4 tracking-tight">{t('vnpay.success.contactInfo')}</h3>
                       <div className="space-y-4">
                         <div className="flex items-center space-x-3">
                           <div 
@@ -282,7 +284,7 @@ const VnPayReturnPage: React.FC = () => {
                   {/* Price Summary */}
                   <div className="border-t border-stone-200 pt-6 mt-8">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-medium text-slate-900 tracking-tight">Tổng thanh toán:</span>
+                      <span className="text-lg font-medium text-slate-900 tracking-tight">{t('vnpay.success.totalPayment')}</span>
                       <span className="text-3xl font-normal tracking-tight" style={{ color: '#D4AF37' }}>
                         {formatPrice(bookingDetails.finalAmount || bookingDetails.totalPrice)}
                       </span>
@@ -294,22 +296,22 @@ const VnPayReturnPage: React.FC = () => {
                 <div className="space-y-4">
                   {result.transactionNo && (
                     <div className="bg-stone-50 rounded-none p-4">
-                      <p className="text-sm text-gray-600 font-normal">Mã giao dịch VNPay</p>
+                      <p className="text-sm text-gray-600 font-normal">{t('vnpay.success.transactionCode')}</p>
                       <p className="text-lg font-semibold text-slate-900">{result.transactionNo}</p>
                     </div>
                   )}
-                </div>
-              )}
+              </div>
+            )}
             </div>
 
             {/* Next Steps */}
             <div className="bg-amber-50 border border-amber-200 rounded-none p-6 mb-8">
-              <h3 className="font-medium text-slate-900 mb-4 tracking-tight">Các bước tiếp theo</h3>
+              <h3 className="font-medium text-slate-900 mb-4 tracking-tight">{t('vnpay.success.nextSteps.title')}</h3>
               <div className="space-y-3 text-sm text-slate-900 font-normal">
-                <p>• Chúng tôi sẽ gửi email xác nhận chi tiết trong vòng 15 phút</p>
-                <p>• Nhân viên sẽ liên hệ với bạn trong vòng 24h để xác nhận thông tin</p>
-                <p>• Vui lòng chuẩn bị giấy tờ tùy thân trước ngày khởi hành 3 ngày</p>
-                <p>• Hotline hỗ trợ 24/7: <span className="font-medium" style={{ color: '#D4AF37' }}>1900 1234</span></p>
+                <p>• {t('vnpay.success.nextSteps.email')}</p>
+                <p>• {t('vnpay.success.nextSteps.contact')}</p>
+                <p>• {t('vnpay.success.nextSteps.documents')}</p>
+                <p dangerouslySetInnerHTML={{ __html: `• ${t('vnpay.success.nextSteps.hotline', { hotline: '1900 1234' })}` }} />
               </div>
             </div>
 
@@ -320,7 +322,7 @@ const VnPayReturnPage: React.FC = () => {
                   className="w-full sm:w-auto text-white px-8 py-3 rounded-none hover:opacity-90 transition-all duration-300 font-medium tracking-wide"
                   style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                 >
-                  Xem booking của tôi
+                  {t('vnpay.success.viewBookings')}
                 </Button>
               </Link>
               <Link to="/tours">
@@ -328,7 +330,7 @@ const VnPayReturnPage: React.FC = () => {
                   variant="outline" 
                   className="w-full sm:w-auto px-8 py-3 border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none transition-all duration-300 font-medium tracking-wide"
                 >
-                  Khám phá tour khác
+                  {t('vnpay.success.exploreTours')}
                 </Button>
               </Link>
             </div>
@@ -337,34 +339,34 @@ const VnPayReturnPage: React.FC = () => {
           /* Payment Failed State */
           <div className="max-w-md mx-auto">
             <div className="bg-white border border-stone-200 rounded-none p-8">
-              <div className="text-center">
+          <div className="text-center">
                 <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-none bg-red-100 mb-4">
                   <XCircleIcon className="h-10 w-10 text-red-600" />
-                </div>
-                <h2 className="text-2xl font-normal text-slate-900 mb-2 tracking-tight">Thanh toán thất bại</h2>
+            </div>
+                <h2 className="text-2xl font-normal text-slate-900 mb-2 tracking-tight">{t('vnpay.error.paymentFailed')}</h2>
                 <p className="text-gray-600 font-normal mb-6">{result?.message}</p>
-                
-                {result?.orderId && (
+            
+            {result?.orderId && (
                   <div className="bg-stone-50 rounded-none p-4 mb-6">
-                    <p className="text-sm text-gray-600 font-normal">Mã đơn hàng</p>
+                    <p className="text-sm text-gray-600 font-normal">{t('vnpay.error.orderId')}</p>
                     <p className="text-lg font-semibold text-slate-900">{result.orderId}</p>
-                  </div>
-                )}
-                
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => navigate('/bookings')}
+              </div>
+            )}
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate('/bookings')}
                     className="flex-1 bg-stone-200 text-slate-900 px-6 py-3 rounded-none hover:bg-stone-300 transition-colors font-medium"
-                  >
-                    Quay lại
-                  </button>
-                  <button
-                    onClick={() => window.location.reload()}
+              >
+                {t('vnpay.error.goBack')}
+              </button>
+              <button
+                onClick={() => window.location.reload()}
                     className="flex-1 text-white px-6 py-3 rounded-none hover:opacity-90 transition-colors font-medium"
                     style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
-                  >
-                    Thử lại
-                  </button>
+              >
+                {t('vnpay.error.retry')}
+              </button>
                 </div>
               </div>
             </div>

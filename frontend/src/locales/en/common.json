@@ -1,0 +1,2397 @@
+{
+  "navigation": {
+    "home": "Home",
+    "tours": "Tours",
+    "about": "About us",
+    "categories": "Categories",
+    "partners": "Partners",
+    "contact": "Contact",
+    "dashboard": "Dashboard",
+    "admin": "Admin"
+  },
+  "header": {
+    "tagline": "Discover the beauty of the world",
+    "hotline": "Hotline",
+    "viewAllTours": "View all tours",
+    "tourCategories": {
+      "domestic": "Domestic tours",
+      "international": "International tours",
+      "asia": "Asia tours",
+      "europe": "Europe tours",
+      "america": "America tours",
+      "africa": "Africa tours",
+      "oceania": "Oceania tours"
+    },
+    "adminPortal": "Back to Admin"
+  },
+  "userMenu": {
+    "profile": "Profile",
+    "bookings": "My bookings",
+    "loyalty": "Loyalty points",
+    "wishlist": "Wishlist",
+    "logout": "Logout"
+  },
+  "common": {
+    "language": "Language",
+    "vietnamese": "Vietnamese",
+    "english": "English",
+    "searchPlaceholder": "Search for destinations, tours, or experiences",
+    "search": "Search",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "viewMore": "View more",
+    "bookNow": "Book now",
+    "loading": "Loading...",
+    "noData": "No data available",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "save": "Save",
+    "and": "and",
+    "continue": "Continue",
+    "reload": "Reload",
+    "saving": "Saving..."
+  },
+  "footer": {
+    "company": {
+      "tagline": "Discover the world",
+      "description": "We specialize in providing high-quality tours, bringing you memorable and safe experiences throughout Vietnam and the world."
+    },
+    "quickLinks": {
+      "title": "Quick Links",
+      "home": "Home",
+      "tours": "Tours",
+      "about": "About Us",
+      "contact": "Contact",
+      "faq": "FAQ",
+      "privacy": "Privacy Policy"
+    },
+    "destinations": {
+      "title": "Popular Destinations",
+      "hanoi": "Hanoi Tours",
+      "hcm": "Ho Chi Minh City Tours",
+      "danang": "Da Nang Tours",
+      "nhatrang": "Nha Trang Tours",
+      "dalat": "Da Lat Tours",
+      "phuquoc": "Phu Quoc Tours"
+    },
+    "services": {
+      "title": "Services",
+      "domestic": "Domestic Tours",
+      "international": "International Tours",
+      "corporate": "Corporate Tours",
+      "selfGuided": "Self-Guided Tours",
+      "flights": "Flights",
+      "hotels": "Hotel Booking"
+    },
+    "newsletter": {
+      "title": "Subscribe to Newsletter",
+      "description": "Receive information about new tours and special offers",
+      "placeholder": "Enter your email",
+      "subscribe": "Subscribe",
+      "processing": "Processing...",
+      "success": "🎉 Successfully subscribed to newsletter! Thank you for your interest.",
+      "errors": {
+        "emailRequired": "Please enter your email",
+        "emailInvalid": "Invalid email",
+        "subscribeFailed": "Subscription failed. Please try again."
+      }
+    },
+    "copyright": {
+      "text": "© {{year}} TourBooking. All rights reserved.",
+      "developed": "Developed with",
+      "location": "in Vietnam"
+    }
+  },
+  "auth": {
+    "loginTitle": "Sign in to TourBooking",
+    "loginSubtitle": "Or",
+    "registerTitle": "Create a new account",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "rememberMe": "Remember me",
+    "login": "Login",
+    "loggingIn": "Logging in...",
+    "createAccountLink": "create a new account",
+    "register": "Register",
+    "or": "or",
+    "loginWithGoogle": "Login with Google",
+    "loginWithFacebook": "Login with Facebook",
+    "loginWith": "Or login with",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "termsAgreement": "By logging in, you agree to our",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "registerTitle": "Create TourBooking Account",
+    "registerSubtitle": "Or",
+    "loginWithExistingAccount": "login with existing account",
+    "name": "Full Name",
+    "namePlaceholder": "Enter your full name",
+    "phone": "Phone Number",
+    "phonePlaceholder": "Enter phone number (e.g.: 0912345678)",
+    "dateOfBirth": "Date of Birth",
+    "gender": "Gender",
+    "genderMale": "Male",
+    "genderFemale": "Female",
+    "genderOther": "Other",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter password",
+    "passwordStrength": "Password strength:",
+    "acceptTerms": "I agree to the",
+    "termsOfServiceLink": "Terms of Service",
+    "and": "and",
+    "privacyPolicyLink": "Privacy Policy",
+    "createAccount": "Create Account",
+    "creatingAccount": "Creating account...",
+    "orRegisterWith": "Or register with",
+    "googleOAuth": {
+      "processing": "Processing Google login...",
+      "error": "Google login failed",
+      "errorMessage": "An error occurred during Google login. Please try again.",
+      "backToLogin": "Back to Login"
+    },
+    "verifyEmail": {
+      "loading": "Verifying email...",
+      "loadingMessage": "Please wait a moment",
+      "success": "Verification Successful!",
+      "redirectMessage": "You will be redirected to the login page in",
+      "seconds": "seconds...",
+      "loginNow": "Login Now",
+      "error": "Verification Failed",
+      "invalidToken": "Invalid verification token.",
+      "expiredLink": "The verification link may have expired or is invalid.",
+      "resendVerification": "Resend Verification Email",
+      "registerAgain": "Register Again",
+      "backToHome": "← Back to Home"
+    },
+    "emailVerificationPending": {
+      "title": "Check Your Email!",
+      "subtitle": "Please verify your email to complete registration",
+      "emailSent": "Verification email has been sent to:",
+      "step1": {
+        "title": "Open your email",
+        "description": "Check your inbox or spam/junk folder if you don't see the email"
+      },
+      "step2": {
+        "title": "Click the verification link",
+        "description": "Click the \"Verify Email\" button in the email to activate your account"
+      },
+      "step3": {
+        "title": "Login to the system",
+        "description": "After successful verification, you can login and use the service"
+      },
+      "warning": "Note: The verification link is valid for 24 hours. You cannot login until you verify your email.",
+      "resendSuccess": "Success!",
+      "resendError": "Error!",
+      "resendButton": "Resend Verification Email",
+      "resendSending": "Sending...",
+      "alreadyVerified": "Already verified? Login now",
+      "noEmailReceived": "Didn't receive email?",
+      "checkSpam": "• Check Spam/Junk folder",
+      "checkEmail": "• Make sure email address is correct",
+      "waitMinutes": "• Wait a few minutes and check again",
+      "tryResend": "• Try resending verification email",
+      "backToHome": "← Back to Home"
+    },
+    "resendVerification": {
+      "title": "Resend Verification Email",
+      "subtitle": "Enter your email to receive the verification link again",
+      "emailLabel": "Email",
+      "emailPlaceholder": "your.email@example.com",
+      "submit": "Send Verification Email",
+      "submitting": "Sending...",
+      "success": "Success!",
+      "checkInbox": "Please check your inbox (including spam folder).",
+      "error": "Error!",
+      "emailRequired": "Please enter email address.",
+      "note": "💡 Note: Verification link is valid for 24 hours. If you don't receive the email, please check your spam folder.",
+      "haveAccount": "Already have an account? Login",
+      "noAccount": "Don't have an account? Register",
+      "backToHome": "← Back to Home"
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "subtitle": "Enter your new password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Re-enter new password",
+      "submit": "Reset Password",
+      "processing": "Processing...",
+      "backToLogin": "Back to Login",
+      "checkingToken": "Checking token...",
+      "invalidToken": "Invalid Token",
+      "invalidTokenMessage": "The password reset link is invalid or has expired. Please request a new link.",
+      "requestNewLink": "Request New Link",
+      "success": "Password Reset Successful!",
+      "successMessage": "Your password has been reset successfully. You will be redirected to the login page in a few seconds.",
+      "loginNow": "Login Now",
+      "error": "Unable to reset password"
+    },
+    "forgotPasswordPage": {
+      "title": "Forgot Password?",
+      "subtitle": "Enter your email and we'll send password reset instructions",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Enter your email",
+      "submit": "Send Password Reset Instructions",
+      "sending": "Sending...",
+      "emailSent": "Email Sent",
+      "emailSentMessage": "We've sent password reset instructions to email",
+      "checkInbox": "Please check your inbox and follow the instructions to reset your password.",
+      "noEmailReceived": "Didn't receive email? Check spam folder or try resending after 5 minutes.",
+      "resendEmail": "Resend Email",
+      "backToLogin": "Back to Login",
+      "rememberPassword": "Remember your password?",
+      "loginNow": "Login Now",
+      "error": "Unable to send password reset email"
+    }
+  },
+  "authErrors": {
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email format",
+    "passwordRequired": "Password is required",
+    "passwordMin": "Password must be at least 6 characters",
+    "passwordMax": "Password must not exceed {{max}} characters",
+    "nameRequired": "Full name is required",
+    "nameMin": "Full name must be at least 2 characters",
+    "nameMax": "Full name must not exceed 50 characters",
+    "phoneRequired": "Phone number is required",
+    "phoneMin": "Phone number must have at least 10 digits",
+    "phoneMax": "Phone number must not exceed 15 digits",
+    "phoneInvalid": "Phone number can only contain numbers and characters +, -, (, )",
+    "phoneDigits": "Phone number must have at least 10 digits",
+    "dateOfBirthRequired": "Date of birth is required",
+    "ageRequirement": "You must be at least 16 years old",
+    "genderRequired": "Please select gender",
+    "confirmPasswordRequired": "Confirm password is required",
+    "passwordMismatch": "Passwords do not match",
+    "passwordComplexity": "Password must contain at least 1 lowercase letter, 1 uppercase letter and 1 number",
+    "acceptTermsRequired": "You must agree to the terms of service"
+  },
+  "tours": {
+    "defaultCategory": "Travel",
+    "defaultLocation": "International",
+    "hero": {
+      "label": "Discover the world",
+      "title": "Tour collections",
+      "subtitle": "Explore the beauty of the world with over {{count}} curated tours from domestic getaways to international adventures",
+      "imageSearchButton": "Search by image",
+      "imageAlt": "International travel"
+    },
+    "filters": {
+      "searchPlaceholder": "Search tours...",
+      "tourTypes": {
+        "all": "All tour types",
+        "domestic": "Domestic",
+        "international": "International"
+      },
+      "categories": {
+        "all": "All categories"
+      },
+      "locations": {
+        "all": "All locations"
+      },
+      "priceRanges": {
+        "all": "All price ranges",
+        "under2m": "Under 2M VND",
+        "twoToFive": "2M - 5M VND",
+        "fiveToTen": "5M - 10M VND",
+        "tenToTwenty": "10M - 20M VND",
+        "overTwenty": "Over 20M VND"
+      },
+      "durations": {
+        "all": "All durations",
+        "one": "1 day",
+        "twoToThree": "2-3 days",
+        "fourToSeven": "4-7 days",
+        "eightToFourteen": "8-14 days",
+        "fifteenPlus": "15+ days"
+      },
+      "ratings": {
+        "all": "All ratings",
+        "atLeast": "{{rating}}⭐ & up"
+      },
+      "sort": {
+        "popular": "Most popular",
+        "newest": "Newest",
+        "priceLow": "Lowest price",
+        "priceHigh": "Highest price"
+      },
+      "flightIncluded": "Flights included",
+      "results": "{{count}} results",
+      "clear": "Clear filters"
+    },
+    "empty": {
+      "title": "No tours found",
+      "description": "Try changing filters or search keywords",
+      "reset": "Clear all filters"
+    },
+    "card": {
+      "durationDays_one": "{{count}} day",
+      "durationDays_other": "{{count}} days",
+      "maxPeople": "Max {{count}} guests",
+      "locationFallback": "International",
+      "flightIncluded": "Flights included",
+      "visaRequired": "Visa required",
+      "visaNotRequired": "Visa not required",
+      "reviews_one": "{{count}} review",
+      "reviews_other": "{{count}} reviews",
+      "badges": {
+        "featured": "Hot"
+      }
+    },
+    "toast": {
+      "wishlistLogin": "Please log in to save favorite tours",
+      "wishlistAdded": "Saved to wishlist",
+      "wishlistRemoved": "Removed from wishlist",
+      "wishlistError": "Something went wrong. Please try again."
+    },
+    "detail": {
+      "notFoundTitle": "Tour not found",
+      "notFoundBack": "← Back to tour list",
+      "back": "Back",
+      "categoryFallback": "Travel tour",
+      "stats": {
+        "reviews": "({{count}} reviews)",
+        "maxGuests": "Max {{count}} guests"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "itinerary": "Itinerary",
+        "reviews": "Reviews",
+        "weather": "Weather",
+        "info": "Information"
+      },
+      "overview": {
+        "descriptionTitle": "Tour description",
+        "highlightsTitle": "Highlights",
+        "includedTitle": "Included",
+        "excludedTitle": "Not included"
+      },
+      "itinerary": {
+        "title": "Detailed itinerary",
+        "expandAll": "Expand all",
+        "collapseAll": "Collapse all"
+      },
+      "weatherTitle": "Destination weather",
+      "info": {
+        "importantTitle": "Important information",
+        "cancellationTitle": "Cancellation policy"
+      },
+      "related": {
+        "title": "Related tours",
+        "subtitle": "Discover similar tours you may like",
+        "emptyTitle": "No related tours",
+        "emptyDescription": "We don't have similar tours to suggest right now. Explore more tours instead.",
+        "browseButton": "View all tours"
+      },
+      "alerts": {
+        "bookingSuccess": "Booking request submitted! We will contact you shortly.",
+        "shareCopied": "Link copied to clipboard!"
+      }
+    },
+    "imageSearch": {
+      "title": "Image Search",
+      "subtitle": "Upload an image to find similar tours",
+      "clickToSelect": "Click to select image",
+      "clickToChange": "Click to select another image",
+      "supportedFormats": "Supported: JPG, PNG, WebP (max 5MB)",
+      "searchButton": "Search",
+      "searching": "Searching...",
+      "success": "{{count}} tours matched your photo!",
+      "tip": {
+        "title": "Tip",
+        "message": "Select an image of a tourist destination (beach, mountain, temple, historical site...) to find similar tours"
+      },
+      "errors": {
+        "invalidFileType": "Please select an image file",
+        "fileTooLarge": "Image file is too large. Please select an image smaller than 5MB",
+        "noImageSelected": "Please select an image to search",
+        "noResults": "No tours found matching this image. Please try another image.",
+        "searchFailed": "An error occurred while searching. Please try again."
+      },
+      "results": "Found {{count}} tours matching your image"
+    },
+    "advancedSearch": {
+      "title": "Advanced search",
+      "searchPlaceholder": "Search tours, destinations, activities...",
+      "aiSuggestions": "Smart suggestions",
+      "tabs": {
+        "basic": "Basic",
+        "advanced": "Advanced",
+        "ai": "AI assistant"
+      },
+      "buttons": {
+        "clearAll": "Clear all",
+        "cancel": "Cancel",
+        "search": "Search"
+      },
+      "basic": {
+        "destination": {
+          "label": "Destination",
+          "options": {
+            "all": "All destinations",
+            "domestic": "Domestic",
+            "international": "International"
+          }
+        },
+        "tourType": {
+          "label": "Tour type",
+          "options": {
+            "all": "All tours",
+            "domestic": "Domestic tours",
+            "international": "International tours"
+          }
+        },
+        "priceRange": {
+          "label": "Price range",
+          "minPlaceholder": "From",
+          "maxPlaceholder": "To"
+        },
+        "duration": {
+          "label": "Duration",
+          "options": {
+            "all": "All durations",
+            "oneTwo": "1-2 days",
+            "threeFive": "3-5 days",
+            "sixTen": "6-10 days",
+            "tenPlus": "Over 10 days"
+          }
+        },
+        "rating": {
+          "label": "Rating",
+          "options": {
+            "all": "All ratings",
+            "fourHalf": "4.5+ stars",
+            "four": "4.0+ stars",
+            "threeHalf": "3.5+ stars"
+          }
+        },
+        "participants": {
+          "label": "Number of travelers"
+        }
+      },
+      "advanced": {
+        "amenitiesLabel": "Included amenities",
+        "amenities": {
+          "freeWifi": "Free Wi-Fi",
+          "mealsIncluded": "Meals included",
+          "tourGuide": "Tour guide",
+          "transfers": "Airport/Hotel transfers",
+          "travelInsurance": "Travel insurance",
+          "beverages": "Complimentary drinks",
+          "safetyGear": "Safety equipment",
+          "souvenirs": "Souvenirs"
+        },
+        "quickFilters": {
+          "accessibility": "Accessible friendly",
+          "instantBooking": "Instant booking",
+          "freeCancellation": "Free cancellation"
+        }
+      },
+      "ai": {
+        "moodLabel": "Travel mood",
+        "interestsLabel": "Interests",
+        "travelStyleLabel": "Travel style",
+        "moods": {
+          "relaxing": "Relaxing",
+          "adventurous": "Adventurous",
+          "romantic": "Romantic",
+          "cultural": "Cultural discovery",
+          "family": "Family",
+          "solo": "Solo travel"
+        },
+        "interests": {
+          "photography": "Photography",
+          "history": "History",
+          "cuisine": "Cuisine",
+          "art": "Art",
+          "nature": "Nature",
+          "sports": "Sports",
+          "shopping": "Shopping",
+          "spaWellness": "Spa & wellness",
+          "architecture": "Architecture",
+          "music": "Music"
+        },
+        "travelStyles": {
+          "luxury": {
+            "name": "Luxury",
+            "description": "5-star hotels and premium services"
+          },
+          "comfort": {
+            "name": "Comfort",
+            "description": "Balanced quality and price"
+          },
+          "budget": {
+            "name": "Budget-friendly",
+            "description": "Optimized cost with essential experiences"
+          },
+          "backpacker": {
+            "name": "Backpacker",
+            "description": "Flexible, local-friendly adventures"
+          }
+        }
+      },
+      "suggestions": {
+        "familyHalong": "2-day Ha Long Bay tour perfect for families",
+        "sapaPhoto": "Capture golden rice season in Sapa with photography",
+        "hoiAnFoodCulture": "Hoi An culinary tour for culture lovers",
+        "phuQuocRelax": "3-day 2-night relaxing Phu Quoc escape",
+        "tokyoCulture": "Tokyo - Osaka traditional culture journey"
+      }
+    },
+    "detailModal": {
+      "fallback": {
+        "description": "Discover this amazing tour",
+        "location": "Vietnam",
+        "included": {
+          "transport": "Modern air-conditioned vehicle",
+          "hotel": "Standard hotel according to program",
+          "meals": "Meals according to program",
+          "tickets": "Entrance tickets to program sites",
+          "guide": "Enthusiastic and experienced guide",
+          "insurance": "Travel insurance as required"
+        },
+        "excluded": {
+          "flight": "Round-trip airfare to meeting point (if any)",
+          "personal": "Personal expenses outside program",
+          "singleRoom": "Single room supplement",
+          "tip": "Guide tip (voluntary)",
+          "extra": "Additional expenses outside program"
+        }
+      }
+    },
+    "scheduleSelector": {
+      "title": "Choose departure schedule",
+      "departureLabel": "Departure",
+      "empty": {
+        "title": "No upcoming schedules",
+        "description": "Please contact us for the latest departure information."
+      },
+      "availability": {
+        "plenty": "Plenty of seats",
+        "limited": "Limited seats",
+        "almostFull": "Almost full",
+        "seats": "{{available}}/{{total}} seats"
+      },
+      "priceDiffNote": "(compared to base price)",
+      "priceLabel": "Price:",
+      "perPerson": "/person",
+      "showMore": "↓ Show {{count}} more schedules",
+      "showLess": "↑ Show fewer schedules",
+      "note": "💡 Note: Please book at least 3 days before departure. Prices may vary depending on departure date."
+    },
+    "reviews": {
+      "title": "Customer reviews",
+      "count": "{{count}} reviews",
+      "ratingLabel": "{{rating}} stars",
+      "form": {
+        "title": "Write a review for \"{{tourName}}\"",
+        "rating": {
+          "label": "Your Rating",
+          "select": "Select rating",
+          "labels": {
+            "5": "Excellent!",
+            "4": "Very Good",
+            "3": "Good",
+            "2": "Average",
+            "1": "Needs Improvement"
+          }
+        },
+        "comment": {
+          "label": "Your Comment",
+          "placeholder": "Share your experience about this trip... (Minimum 10 characters)",
+          "minMax": "Minimum 10 characters, maximum 1000 characters",
+          "counter": "{{count}}/1000"
+        },
+        "note": {
+          "title": "Note:",
+          "message": "Your review will be moderated before being displayed publicly. We encourage you to share honest and detailed experiences to help other customers."
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "submit": "Submit Review",
+          "submitting": "Submitting..."
+        },
+        "errors": {
+          "ratingRequired": "Please select a rating",
+          "commentMinLength": "Review must be at least 10 characters",
+          "submitError": "An error occurred while submitting review"
+        },
+        "success": "Your review has been submitted successfully! We will review and display it soon."
+      },
+      "aiSummary": {
+        "title": "AI Review Summary",
+        "cached": "Cached",
+        "reviewCount": "{{count}} reviews",
+        "positive": {
+          "title": "Positive points"
+        },
+        "negative": {
+          "title": "Areas for improvement"
+        },
+        "footer": {
+          "createdBy": "Summary generated by AI",
+          "updatedAt": "Updated"
+        },
+        "errors": {
+          "loadFailed": "Unable to load AI summary"
+        }
+      },
+      "sort": {
+        "newest": "Newest",
+        "oldest": "Oldest",
+        "highest": "Highest rating",
+        "lowest": "Lowest rating",
+        "helpful": "Most helpful"
+      },
+      "filter": {
+        "all": "All ratings",
+        "value": "{{rating}} stars"
+      },
+      "showing": "Showing {{display}} / {{total}} reviews",
+      "anonymous": "Anonymous traveler",
+      "helpful": "Helpful ({{count}})",
+      "adminReply": "Admin response",
+      "loadMore": "Show {{count}} more reviews",
+      "collapse": "Show fewer reviews",
+      "loginTitle": "Sign in to write a review",
+      "loginDescription": "You must be signed in and have completed the tour to write a review.",
+      "loginButton": "Sign in",
+      "ctaTitle": "Have you joined this tour?",
+      "ctaDescription": "Share your experience to help other travelers.",
+      "ctaButton": "Write a review",
+      "formTitle": "Write your review",
+      "ratingField": "Rating *",
+      "commentField": "Comment *",
+      "commentPlaceholder": "Share your experience about this tour (10-1000 characters)...",
+      "commentCounter": "{{count}}/1000 characters (minimum 10)",
+      "cancel": "Cancel",
+      "submit": "Submit review",
+      "submitting": "Submitting...",
+      "note": "Your review will appear right after submission.",
+      "cannotTitle": "You can't review this tour yet",
+      "cannotDescription": "Only customers who completed the tour can write a review.",
+      "cannotButton": "Review unavailable",
+      "loginToLike": "Please sign in to mark a review as helpful.",
+      "commentTooShort": "The review must be at least 10 characters.",
+      "commentTooLong": "The review must be less than 1000 characters.",
+      "noBooking": "No valid booking found for this tour.",
+      "submitSuccess": "Your review has been submitted!",
+      "submitError": "Something went wrong while sending the review.",
+      "helpfulError": "Unable to update helpful vote. Please try again."
+    }
+  },
+  "booking": {
+    "checkout": {
+      "title": "Book Tour",
+      "loading": "Loading tour information...",
+      "backToPrevious": "Back to previous step",
+      "backToTour": "Back to tour page",
+      "steps": {
+        "schedule": "Select schedule & Guests",
+        "travelerInfo": "Traveler information",
+        "payment": "Payment"
+      },
+      "schedule": {
+        "title": "Number of travelers",
+        "adults": "Adults (> 12 years)",
+        "children": "Children (< 12 years)",
+        "adultsCount": "{{count}} adults",
+        "childrenCount": "{{count}} children",
+        "selectSchedule": "Please select departure schedule",
+        "atLeastOne": "Must have at least 1 participant",
+        "atLeastOneAdult": "Must have at least 1 adult",
+        "onlySeats": "Only {{count}} seats available",
+        "pastDate": "This departure date has passed. Please select another date."
+      },
+      "travelerInfo": {
+        "note": "Note: Information for Adult 1 will be used as contact information (to receive confirmation email & phone calls)",
+        "specialRequests": "Special requests",
+        "specialRequestsPlaceholder": "E.g.: Vegetarian, seafood allergy, wheelchair needed, room near elevator...",
+        "specialRequestsNote": "We will try to accommodate your requests (not 100% guaranteed)",
+        "fillAll": "Please fill in all traveler information",
+        "adult1Email": "Please enter email for Adult 1 (to receive booking information)",
+        "adult1Phone": "Please enter phone number for Adult 1 (for contact)",
+        "adult1PhoneFormat": "Adult 1 phone number must be 10-11 digits",
+        "title": "Traveler information",
+        "participantTypes": {
+          "adult": "Adult",
+          "child": "Child",
+          "infant": "Infant"
+        },
+        "completed": "✓ Completed",
+        "fields": {
+          "fullName": "Full name",
+          "dateOfBirth": "Date of birth",
+          "gender": "Gender",
+          "phone": "Phone number",
+          "email": "Email",
+          "passportNumber": "Passport number",
+          "idNumber": "ID number",
+          "nationality": "Nationality"
+        },
+        "genderOptions": {
+          "male": "Male",
+          "female": "Female",
+          "other": "Other"
+        },
+        "placeholders": {
+          "fullName": "Nguyễn Văn A",
+          "phone": "0901234567",
+          "email": "email@example.com",
+          "passportNumber": "A1234567",
+          "idNumber": "001234567890",
+          "nationality": "Vietnam"
+        },
+        "summary": {
+          "title": "📋 Total travelers:",
+          "adults": "{{count}} adults",
+          "children": "{{count}} children",
+          "infants": "{{count}} infants",
+          "people": "people"
+        },
+        "defaultNationality": "Vietnam"
+      },
+      "payment": {
+        "title": "Payment method",
+        "total": "Total payment",
+        "selectMethod": "Select payment method:",
+        "vnpay": {
+          "title": "Pay via VNPay",
+          "description": "Pay now with ATM/Visa/MasterCard"
+        },
+        "later": {
+          "title": "Pay later",
+          "description": "Complete payment within 24 hours"
+        },
+        "selectPayment": "Please select payment method",
+        "confirm": "Confirm booking",
+        "processing": "Processing...",
+        "redirectNote": "You will be redirected to VNPay payment page",
+        "secure": "Secure & safe payment",
+        "secureNote": "Your payment information is encrypted and absolutely secure."
+      },
+      "summary": {
+        "title": "Order summary",
+        "departure": "Departure",
+        "promotionCode": "Promotion code",
+        "promotionPlaceholder": "Enter promotion code",
+        "apply": "Apply",
+        "applied": "Code \"{{code}}\" has been applied",
+        "remove": "Remove",
+        "invalid": "Invalid or inapplicable promotion code",
+        "adults": "Adults ({{count}})",
+        "children": "Children ({{count}})",
+        "discount": "Discount ({{code}})",
+        "total": "Total"
+      },
+      "errors": {
+        "loadTour": "Unable to load tour information. Please try again.",
+        "noSchedule": "Please select departure schedule",
+        "noContact": "Please go back to Step 2 and fill in traveler information",
+        "noContactFields": "Adult 1 needs complete Phone number and Email",
+        "invalidPhone": "Adult 1 phone number must be 10-11 digits",
+        "pastDate": "Selected departure date has passed. Please select another date.",
+        "general": "An error occurred. Please try again."
+      }
+    },
+    "form": {
+      "perAdult": "/ adult",
+      "schedule": {
+        "title": "📅 Select departure schedule",
+        "loading": "Loading schedules...",
+        "noSchedules": "No departure schedules available at the moment.",
+        "selected": "✓ Selected",
+        "available": "✓ {{count}} seats available",
+        "lowAvailability": "⚠ {{count}} seats available",
+        "veryLowAvailability": "🔥 Only {{count}} seats left",
+        "collapse": "↑ Collapse",
+        "viewMore": "↓ View {{count}} more schedules",
+        "selectPlaceholder": "Select departure date"
+      },
+      "participants": {
+        "adults": "Adults",
+        "children": "Children (< 12 years)",
+        "adultsCount": "{{count}} adults",
+        "childrenCount": "{{count}} children"
+      },
+      "specialRequests": {
+        "title": "Special requests (optional)",
+        "placeholder": "E.g.: Vegetarian, disability, food allergies..."
+      },
+      "priceBreakdown": {
+        "title": "Price breakdown",
+        "adults": "Adults ({{count}})",
+        "children": "Children ({{count}})",
+        "total": "Total"
+      },
+      "security": {
+        "title": "Secure booking",
+        "note": "Your information is secure and can be cancelled free of charge within 24h"
+      },
+      "bookNow": "Book Tour Now",
+      "contactSupport": "Need help? Call {{phone}}",
+      "errors": {
+        "selectSchedule": "Please select departure schedule",
+        "atLeastOneAdult": "Must have at least 1 adult",
+        "maxPeople": "Maximum {{count}} people for this tour",
+        "availableSeats": "Only {{count}} seats available for this schedule",
+        "atLeastOnePerson": "Must have at least 1 participant"
+      },
+      "discount": "Discount"
+    },
+    "confirmation": {
+      "title": "Booking successful!",
+      "subtitle": "Thank you for trusting and booking with us",
+      "details": "Booking details",
+      "bookingCode": "Booking code:",
+      "confirmed": "Confirmed",
+      "tourInfo": "Tour information",
+      "departureDate": "Departure date",
+      "participants": "Number of participants",
+      "adults": "{{count}} adults",
+      "children": "{{count}} children",
+      "contactInfo": "Contact information",
+      "totalPayment": "Total payment:",
+      "nextSteps": "Next steps",
+      "emailConfirmation": "We will send detailed confirmation email within 15 minutes",
+      "staffContact": "Staff will contact you within 24 hours to confirm information",
+      "prepareDocuments": "Please prepare ID documents 3 days before departure",
+      "hotline": "24/7 Support Hotline:",
+      "viewMyBooking": "View my booking",
+      "exploreMore": "Explore more tours"
+    },
+    "history": {
+      "title": "Booking management",
+      "subtitle": "Track all your bookings and cancellation requests",
+      "tabs": {
+        "bookings": "My bookings ({{count}})",
+        "cancellations": "Cancellation history"
+      },
+      "filters": {
+        "title": "Filters",
+        "showing": "Showing {{display}} / {{total}} bookings",
+        "searchPlaceholder": "Search by tour name, booking code...",
+        "status": {
+          "all": "All statuses",
+          "upcoming": "Upcoming",
+          "confirmed": "Confirmed",
+          "pending": "Pending confirmation",
+          "completed": "Completed",
+          "cancelled": "Cancelled"
+        },
+        "dateRange": {
+          "all": "All time",
+          "lastMonth": "Last month",
+          "last3Months": "3 months ago",
+          "lastYear": "Last year"
+        },
+        "clear": "Clear filters"
+      },
+      "empty": {
+        "title": "No bookings yet",
+        "description": "Book your first tour to start your journey!",
+        "explore": "Explore tours",
+        "noResults": "No bookings found",
+        "noResultsDescription": "Try changing filters or search terms",
+        "noBookingsDescription": "You don't have any bookings yet. Start exploring and book your first tour!"
+      },
+      "bookingCode": "Booking code:",
+      "status": {
+        "confirmed": "Confirmed",
+        "pending": "Pending confirmation",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "payment": {
+        "paid": "Paid",
+        "pending": "Pending payment",
+        "unpaid": "Pending payment",
+        "partial": "Partially paid",
+        "refunding": "Refunding",
+        "refunded": "Refunded",
+        "failed": "Failed"
+      },
+      "details": {
+        "adults": "{{count}} adults",
+        "children": "{{count}} children",
+        "bookedOn": "Booked on {{date}}"
+      },
+      "actions": {
+        "view": "View",
+        "cancel": "Request cancellation",
+        "pay": "Pay"
+      },
+      "specialRequests": "Special requests:",
+      "upcomingAlert": {
+        "title": "Tour coming soon",
+        "message": "Please prepare ID documents and necessary luggage. We will contact you {{days}} days before departure."
+      },
+      "errors": {
+        "loadError": "Error loading data",
+        "loadMessage": "Unable to load booking history. Please try again later.",
+        "found": "Booking found!",
+        "foundMessage": "Booking \"{{name}}\" has been highlighted.",
+        "paymentError": "Payment error:",
+        "paymentFailed": "An error occurred while creating VNPay payment",
+        "cancellationSuccess": "Success!",
+        "cancellationMessage": "Cancellation request has been submitted successfully"
+      }
+    },
+    "cancellationForm": {
+      "title": "Cancellation Request",
+      "steps": {
+        "select": "Select Booking",
+        "details": "Cancellation Details",
+        "confirm": "Confirm"
+      },
+      "bookingSelection": {
+        "title": "Select booking to cancel",
+        "noBookings": "No cancellable bookings available",
+        "bookingCode": "Booking code:",
+        "departure": "Departure:",
+        "status": "Status"
+      },
+      "cancellationDetails": {
+        "title": "Cancellation Request Details",
+        "bookingInfo": {
+          "title": "Booking Information",
+          "bookingCode": "Booking code:",
+          "departure": "Departure:"
+        },
+        "reason": {
+          "label": "Cancellation Reason *",
+          "placeholder": "Select cancellation reason",
+          "types": {
+            "PERSONAL_EMERGENCY": "Personal Emergency",
+            "MEDICAL_EMERGENCY": "Medical Emergency",
+            "WEATHER_CONDITIONS": "Weather Conditions",
+            "FORCE_MAJEURE": "Force Majeure",
+            "TRAVEL_RESTRICTIONS": "Travel Restrictions",
+            "SCHEDULE_CONFLICT": "Schedule Conflict",
+            "FINANCIAL_DIFFICULTY": "Financial Difficulty",
+            "DISSATISFACTION": "Dissatisfaction",
+            "DUPLICATE_BOOKING": "Duplicate Booking",
+            "TECHNICAL_ERROR": "Technical Error",
+            "OTHER": "Other"
+          }
+        },
+        "detailedReason": {
+          "label": "Detailed Description *",
+          "placeholder": "Please provide detailed cancellation reason...",
+          "minLength": "Minimum 10 characters ({{count}}/10)"
+        },
+        "specialCircumstances": {
+          "title": "Special Circumstances",
+          "medicalEmergency": "Medical Emergency",
+          "weatherRelated": "Weather Related",
+          "forceMajeure": "Force Majeure"
+        },
+        "supportingDocuments": {
+          "label": "Supporting Documents"
+        },
+        "emergencyContact": {
+          "name": "Emergency Contact Name",
+          "phone": "Phone Number",
+          "relationship": "Relationship",
+          "namePlaceholder": "Full name",
+          "phonePlaceholder": "0123456789",
+          "relationshipPlaceholder": "e.g., Spouse, Child"
+        },
+        "additionalNotes": {
+          "label": "Additional Notes",
+          "placeholder": "Other additional information..."
+        },
+        "removeFile": "Remove"
+      },
+      "review": {
+        "title": "Review and Confirm",
+        "bookingInfo": {
+          "title": "Booking Information",
+          "tour": "Tour:",
+          "bookingCode": "Booking code:",
+          "departure": "Departure:",
+          "amount": "Amount:"
+        },
+        "cancellationReason": {
+          "title": "Cancellation Reason",
+          "type": "Type:",
+          "details": "Details:",
+          "notes": "Notes:"
+        },
+        "specialCases": {
+          "title": "Special Circumstances"
+        },
+        "refundEstimate": {
+          "title": "Estimated Refund",
+          "refundAmount": "Refund Amount:",
+          "note": "(After deducting cancellation fee and processing fee)"
+        },
+        "refundMethod": {
+          "label": "Refund Method",
+          "original": "Refund to original payment method",
+          "bankTransfer": "Bank Transfer",
+          "voucher": "Voucher for later use"
+        },
+        "adminNotes": {
+          "label": "Notes for Admin",
+          "placeholder": "Additional information for processing team..."
+        },
+        "acknowledgments": {
+          "policy": "I have read and understood the company's <a href=\"#\">cancellation policy</a>",
+          "refundTerms": "I agree to the <a href=\"#\">refund terms</a> and processing time",
+          "expedite": "Request expedited processing (applies to emergency cases)"
+        }
+      },
+      "evaluation": {
+        "title": "Refund Evaluation",
+        "originalAmount": "Original Amount:",
+        "estimatedRefund": "Estimated Refund:",
+        "cancellationFee": "Cancellation Fee:",
+        "processingFee": "Processing Fee:",
+        "finalRefundAmount": "Final Refund Amount:",
+        "policyNote": "Policy: {{policy}} • {{hours}}h before departure",
+        "warnings": "Notes:",
+        "notEligible": {
+          "title": "Cannot Cancel Booking",
+          "reason": "{{reason}}"
+        }
+      },
+      "buttons": {
+        "back": "Back",
+        "cancel": "Cancel",
+        "continue": "Continue",
+        "processing": "Processing...",
+        "submit": "Submit Cancellation Request",
+        "submitting": "Submitting..."
+      },
+      "toast": {
+        "success": {
+          "title": "Request Sent Successfully!",
+          "message": "Your cancellation request has been submitted. We will review and respond within 24 hours."
+        },
+        "error": {
+          "title": "Error Sending Request",
+          "message": "An error occurred while sending the cancellation request. Please try again."
+        }
+      }
+    },
+    "cancellationHistory": {
+      "title": "Cancellation History",
+      "subtitle": "Manage and track your booking cancellation requests",
+      "newRequest": "+ New Cancellation Request",
+      "bookingCode": "Booking code:",
+      "emergency": "Emergency",
+      "refundCompleted": "Refunded",
+      "noRefund": "No refund",
+      "adminNotes": "Admin notes:",
+      "viewDetails": "View Details",
+      "filters": {
+        "search": "Search",
+        "searchPlaceholder": "Search by booking code, tour name...",
+        "status": "Status",
+        "allStatuses": "All statuses",
+        "clear": "Clear filters"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "refundStatus": {
+        "pending": "Pending",
+        "processing": "Processing",
+        "completed": "Refunded",
+        "failed": "Failed",
+        "notApplicable": "Not Applicable"
+      },
+      "results": {
+        "summary": "Showing {{display}} of {{total}} cancellation requests"
+      },
+      "details": {
+        "reason": "Reason",
+        "cancelledDate": "Cancelled Date",
+        "originalAmount": "Original Amount",
+        "refund": "Refund"
+      },
+      "timeline": {
+        "processed": "Processed",
+        "refund": "Refund"
+      },
+      "empty": {
+        "title": "No cancellation requests yet",
+        "description": "You haven't submitted any cancellation requests yet. Click the button below to create a new request.",
+        "action": "Create First Cancellation Request"
+      },
+      "toast": {
+        "success": {
+          "title": "Success!",
+          "message": "New cancellation request has been created"
+        }
+      }
+    },
+    "cancellationDetails": {
+      "title": "Cancellation Request Details",
+      "emergency": "Emergency",
+      "bookingInfo": {
+        "title": "Booking Information",
+        "tourName": "Tour Name",
+        "bookingCode": "Booking Code",
+        "originalAmount": "Original Amount",
+        "policyName": "Applied Policy"
+      },
+      "cancellationDetails": {
+        "title": "Cancellation Request Details",
+        "reasonType": "Reason Category",
+        "detailedReason": "Detailed Description",
+        "cancelledAt": "Cancellation Time",
+        "hoursBeforeDeparture": "Hours Before Departure",
+        "hours": "{{count}} hours"
+      },
+      "adminResponse": {
+        "title": "Admin Response",
+        "processingStatus": "Processing Status",
+        "processedAt": "Processing Time",
+        "adminNotes": "Admin Notes"
+      },
+      "refundInfo": {
+        "title": "Refund Information",
+        "originalAmount": "Original Amount",
+        "refundAmount": "Refund Amount",
+        "refundStatus": "Refund Status",
+        "refundProcessedAt": "Refund Processing Time",
+        "noRefund": "No Refund"
+      },
+      "timeline": {
+        "title": "Processing Timeline",
+        "requestSent": "Cancellation request sent",
+        "requestApproved": "Request approved",
+        "requestRejected": "Request rejected",
+        "refundCompleted": "Refund completed successfully"
+      },
+      "actions": {
+        "title": "Actions",
+        "editRequest": "Edit Request",
+        "downloadPDF": "Download PDF",
+        "emailAdmin": "Send Email to Admin",
+        "viewReceipt": "View Refund Receipt"
+      }
+    }
+  },
+  "profile": {
+    "title": "Personal information",
+    "subtitle": "Manage your account information and personal settings",
+    "edit": "Edit information",
+    "saving": "Saving...",
+    "saveChanges": "Save changes",
+    "cancel": "Cancel",
+    "stats": {
+      "title": "Statistics",
+      "totalBookings": "Tours booked",
+      "completedTours": "Tours completed",
+      "reviewsWritten": "Reviews written",
+      "memberSince": "Member since"
+    },
+    "details": {
+      "title": "Details",
+      "personalInfo": "Personal information",
+      "fullName": "Full name *",
+      "email": "Email *",
+      "phone": "Phone number *",
+      "dateOfBirth": "Date of birth",
+      "address": "Address",
+      "gender": "Gender",
+      "genderOptions": {
+        "male": "Male",
+        "female": "Female",
+        "other": "Other"
+      },
+      "bio": "About me",
+      "bioPlaceholder": "Share about your travel interests...",
+      "notUpdated": "Not updated"
+    },
+    "security": {
+      "title": "Account security",
+      "password": {
+        "title": "Password",
+        "lastUpdated": "Last updated: 30 days ago",
+        "change": "Change password"
+      },
+      "twoFactor": {
+        "title": "Two-factor authentication",
+        "description": "Enhance account security",
+        "activate": "Activate"
+      }
+    },
+    "password": {
+      "title": "Change password",
+      "current": "Current password *",
+      "currentPlaceholder": "Enter current password",
+      "new": "New password *",
+      "newPlaceholder": "Enter new password",
+      "confirm": "Confirm new password *",
+      "confirmPlaceholder": "Confirm new password",
+      "change": "Change password",
+      "changing": "Changing..."
+    },
+    "avatar": {
+      "uploading": "Uploading avatar...",
+      "success": "Avatar updated successfully",
+      "error": "Unable to save avatar. Please try again",
+      "uploadError": "Unable to upload image. Please try again",
+      "tooLarge": "File too large. Please choose an image smaller than 5MB",
+      "invalidType": "Invalid file. Please choose an image file (JPG, PNG, GIF)"
+    },
+    "errors": {
+      "nameRequired": "Please enter full name",
+      "phoneRequired": "Please enter phone number",
+      "phoneInvalid": "Invalid phone number",
+      "updateSuccess": "Personal information updated successfully",
+      "updateError": "Unable to update information. Please try again",
+      "passwordRequired": "Please enter current password",
+      "newPasswordRequired": "Please enter new password",
+      "newPasswordMin": "New password must be at least 6 characters",
+      "confirmRequired": "Please confirm new password",
+      "confirmMismatch": "Password confirmation does not match",
+      "samePassword": "New password must be different from current password",
+      "changeSuccess": "Password changed successfully",
+      "changeError": "Unable to change password. Please try again",
+      "currentIncorrect": "Current password is incorrect"
+    }
+  },
+  "dashboard": {
+    "reviews": {
+      "title": "My Reviews",
+      "subtitle": "Manage your reviews for tours you've participated in",
+      "loading": "Loading reviews...",
+      "empty": {
+        "title": "No reviews yet",
+        "description": "You haven't written any reviews for tours yet. Complete a trip and share your experience!",
+        "viewBookings": "View booked tours"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "adminReply": "Admin reply:",
+      "helpful": "{{count}} people found this helpful",
+      "actions": {
+        "viewTour": "View tour",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "editModal": {
+        "title": "Edit Review",
+        "rating": "Rating",
+        "ratingRequired": "Rating",
+        "comment": "Review content",
+        "commentRequired": "Review content",
+        "commentPlaceholder": "Share your experience about this trip...",
+        "characters": "{{count}} characters",
+        "cancel": "Cancel",
+        "save": "Save changes"
+      },
+      "toast": {
+        "loadError": "Unable to load review list",
+        "deleteConfirm": "Are you sure you want to delete this review?",
+        "deleteSuccess": "Review deleted successfully",
+        "deleteError": "Unable to delete review",
+        "commentRequired": "Please enter review content",
+        "updateSuccess": "Review updated successfully",
+        "updateError": "Unable to update review"
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Manage and track your notifications",
+      "markAllRead": "Mark all as read",
+      "filters": {
+        "label": "Filter:",
+        "type": {
+          "all": "All types",
+          "booking": "Booking",
+          "payment": "Payment",
+          "tour_update": "Tour update",
+          "promotion": "Promotion",
+          "system": "System"
+        },
+        "status": {
+          "all": "All statuses",
+          "unread": "Unread",
+          "read": "Read"
+        },
+        "priority": {
+          "all": "All priorities",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        },
+        "selected": "Selected {{count}}",
+        "delete": "Delete",
+        "cancel": "Cancel selection",
+        "cancelShort": "Cancel"
+      },
+      "bulkActions": {
+        "selectAll": "Select all ({{count}})",
+        "showing": "Showing {{display}} / {{total}} notifications"
+      },
+      "empty": {
+        "title": "No notifications",
+        "noNotifications": "You don't have any notifications yet.",
+        "noResults": "No notifications match the current filters."
+      },
+      "actions": {
+        "view": "View",
+        "viewDetails": "View details",
+        "markRead": "Mark as read",
+        "markReadShort": "Read",
+        "delete": "Delete"
+      },
+      "priority": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low",
+        "label": "Priority:"
+      },
+      "loadMore": "Load more notifications",
+      "loadMoreToast": "Load more feature will be updated",
+      "toast": {
+        "loadError": "Unable to load notifications. Please try again later.",
+        "markReadSuccess": "Marked as read",
+        "markReadError": "Unable to mark as read",
+        "markAllReadSuccess": "All marked as read",
+        "markAllReadError": "Unable to mark all as read",
+        "deleteSuccess": "Notification deleted",
+        "deleteError": "Unable to delete notification",
+        "deleteSelectedSuccess": "Deleted {{count}} notifications"
+      },
+      "time": {
+        "justNow": "Just now",
+        "minutesAgo": "{{count}} minutes ago",
+        "hoursAgo": "{{count}} hours ago",
+        "daysAgo": "{{count}} days ago"
+      }
+    },
+    "emptyState": {
+      "wishlist": {
+        "title": "No favorite tours yet",
+        "description": "Explore and save your favorite tours!",
+        "action": "Explore tours"
+      },
+      "bookings": {
+        "title": "No bookings yet",
+        "description": "You haven't booked any tours yet. Start your journey!",
+        "action": "Book a tour now"
+      },
+      "notifications": {
+        "title": "No new notifications",
+        "description": "All notifications have been viewed. We'll notify you when there are new updates.",
+        "action": "View all"
+      },
+      "search": {
+        "title": "No results found",
+        "description": "Try changing your search keywords or filters to find what you need.",
+        "action": "Clear filters",
+        "suggestions": "Search suggestions:",
+        "destinations": {
+          "halong": "Ha Long",
+          "sapa": "Sapa",
+          "phuQuoc": "Phu Quoc",
+          "daNang": "Da Nang",
+          "hoiAn": "Hoi An"
+        }
+      },
+      "general": {
+        "title": "No data available",
+        "description": "Currently no information to display.",
+        "action": "Refresh"
+      }
+    }
+  },
+  "landing": {
+    "hero": {
+      "loading": "Loading...",
+      "defaultTitle": "Explore the World With Us",
+      "defaultSubtitle": "Unforgettable journeys await you",
+      "defaultButton": "View Tours",
+      "description": "Experience the wonders around the world with professional service",
+      "aboutUs": "About us",
+      "scroll": "Scroll"
+    },
+    "featuredTours": {
+      "title": "Featured Tours",
+      "badge": "Featured",
+      "subtitle": "Discover the world's most amazing destinations with our most loved tours",
+      "loadingTitle": "Featured Tours",
+      "errorTitle": "Featured Tours",
+      "errorMessage": "Unable to load featured tours. Please try again.",
+      "reload": "Reload",
+      "emptyMessage": "No featured tours available.",
+      "days": "days",
+      "view": "View",
+      "exploreAll": "Explore All",
+      "international": "international",
+      "new": "New"
+    },
+    "hotDeals": {
+      "title": "Hot Deals",
+      "badge": "Special Offers",
+      "subtitle": "Limited-time promotions with special prices",
+      "loadingTitle": "Hot Deals",
+      "errorTitle": "Hot Deals",
+      "errorMessage": "Unable to load deals. Please try again.",
+      "emptyMessage": "No deals available at the moment.",
+      "limited": "Limited",
+      "sold": "Sold",
+      "perPerson": "Per person",
+      "endsIn": "Ends In",
+      "calculating": "Calculating...",
+      "expired": "Expired",
+      "bookNow": "Book Now",
+      "viewAllDeals": "View All Deals"
+    },
+    "browseByCategory": {
+      "title": "Browse by Category",
+      "subtitle": "Find tours that match your interests and travel style",
+      "loadingTitle": "Browse by Category",
+      "errorTitle": "Browse by Category",
+      "errorMessage": "Unable to load categories. Please try again.",
+      "reload": "Reload",
+      "emptyMessage": "No categories available.",
+      "tours": "tours",
+      "explore": "Explore",
+      "viewAllTours": "View All Tours",
+      "exploreCategory": "Explore {{category}} tours"
+    },
+    "popularDestinations": {
+      "title": "Popular Destinations",
+      "subtitle": "Discover the most loved destinations with amazing experiences",
+      "loadingTitle": "Popular Destinations",
+      "errorTitle": "Popular Destinations",
+      "errorMessage": "Unable to load destinations. Please try again.",
+      "emptyMessage": "No destinations available.",
+      "badge": "Popular",
+      "tours": "tours",
+      "from": "From",
+      "perPerson": "/ person",
+      "explore": "Explore {{name}}",
+      "viewAllDestinations": "View All Destinations"
+    },
+    "recommendations": {
+      "forYouTitle": "Recommendations For You",
+      "trendingTitle": "Hot Tours",
+      "forYouSubtitle": "Based on your preferences and search history",
+      "trendingSubtitle": "The most loved tours right now",
+      "forYouTab": "For You",
+      "trendingTab": "Trending",
+      "viewAllTours": "View All Tours",
+      "expired": "Expired",
+      "daysLeft": "{{count}} days left",
+      "hoursLeft": "{{count}} hours left",
+      "expiringSoon": "Expiring soon",
+      "matchScore": "{{score}}% Match",
+      "days": "days",
+      "reviews": "reviews",
+      "save": "Save {{percent}}%",
+      "viewDetails": "View Details",
+      "wishlistRemoved": "Removed from wishlist",
+      "wishlistRemovedMessage": "Tour has been removed from wishlist.",
+      "wishlistAdded": "Added to wishlist",
+      "wishlistAddedMessage": "Tour has been added to wishlist.",
+      "wishlistError": "An error occurred",
+      "wishlistErrorMessage": "Unable to update wishlist."
+    }
+  },
+  "about": {
+    "hero": {
+      "title": "Passion for Exploration, Dedicated Service",
+      "subtitle": "Connecting you with the world - From domestic to international"
+    },
+    "achievements": {
+      "successfulTours": "Successful tours",
+      "successfulToursDesc": "Domestic & international",
+      "countries": "Countries",
+      "countriesDesc": "Destinations worldwide",
+      "customerRating": "Customer rating",
+      "customerRatingDesc": "From 1000+ reviews",
+      "globalSupport": "Global support",
+      "globalSupportDesc": "Anytime, anywhere"
+    },
+    "timeline": {
+      "title": "Our Story",
+      "subtitle": "From our first domestic tours to expanding into international markets, we have become a trusted bridge between Vietnamese travelers and the world.",
+      "items": {
+        "2015": {
+          "title": "The Beginning of Passion",
+          "description": "Founded by a group of young explorers, starting with domestic and international tours to discover the beauty of the world."
+        },
+        "2018": {
+          "title": "Nationwide Expansion",
+          "description": "Developed a network of domestic partners and launched our first international tours to Thailand and Singapore."
+        },
+        "2020": {
+          "title": "Digital Transformation & Internationalization",
+          "description": "Launched online tour booking platform and expanded international tours to Japan, South Korea, and Europe."
+        },
+        "2023": {
+          "title": "Global Partner",
+          "description": "Became a trusted partner with 500+ customers, serving tours to over 20 countries worldwide."
+        }
+      }
+    },
+    "mission": {
+      "title": "Mission, Vision & Values",
+      "subtitle": "The core values that guide all our activities",
+      "missionTitle": "Mission",
+      "missionDescription": "Deliver authentic, safe, and memorable travel experiences for domestic and international travelers, connecting them with the world and promoting Vietnamese culture globally.",
+      "visionTitle": "Vision",
+      "visionDescription": "Become Vietnam's leading travel company, internationally recognized for service quality and sustainable tourism.",
+      "valuesTitle": "Core Values",
+      "values": {
+        "dedication": {
+          "title": "Dedication",
+          "description": "Always prioritize customer benefits and experiences in every service."
+        },
+        "quality": {
+          "title": "Quality",
+          "description": "Committed to delivering exceptional service with international standards."
+        },
+        "innovation": {
+          "title": "Innovation",
+          "description": "Continuously creating and developing unique travel products."
+        },
+        "responsibility": {
+          "title": "Responsibility",
+          "description": "Responsible business practices for the community and environmental protection."
+        }
+      }
+    },
+    "team": {
+      "title": "Our Team",
+      "subtitle": "Talented and passionate people who make the difference",
+      "members": {
+        "ceo": {
+          "name": "Nguyễn Minh Anh",
+          "position": "CEO & Founder",
+          "experience": "8 years of experience in the tourism industry",
+          "quote": "\"Travel is not just about moving, it's how we connect with the world.\""
+        },
+        "director": {
+          "name": "Trần Thị Hương",
+          "position": "International Tour Operations Director",
+          "experience": "6 years of experience organizing domestic and international tours",
+          "quote": "\"From domestic to international, every journey is a memorable experience.\""
+        },
+        "manager": {
+          "name": "Lê Văn Đức",
+          "position": "Customer Service Manager",
+          "experience": "5 years of customer service experience",
+          "quote": "\"Customer satisfaction is our greatest motivation.\""
+        }
+      }
+    },
+    "whyChoose": {
+      "title": "Why Choose Us?",
+      "subtitle": "Compelling reasons to trust and travel with us",
+      "reasons": {
+        "professionalGuides": {
+          "title": "Professional Guides",
+          "description": "Professional guide team for both domestic and international tours, with international certifications."
+        },
+        "diverseTours": {
+          "title": "Diverse Tours",
+          "description": "From domestic exploration to conquering the world with over 20 destination countries."
+        },
+        "globalSupport": {
+          "title": "24/7 Global Support",
+          "description": "Multilingual support team, ready to help you anywhere in the world."
+        },
+        "internationalPartners": {
+          "title": "International Partners",
+          "description": "Trusted partner network from domestic to countries around the world."
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to Explore the World With Us?",
+      "subtitle": "From Vietnam to five continents - Let us turn your travel dreams into reality",
+      "exploreTours": "Explore Tours",
+      "contactConsultation": "Contact for Consultation",
+      "hotline": "Hotline: 1900 1234 (24/7)",
+      "email": "Email: info@tourcompany.vn"
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "Contact Us",
+      "subtitle": "We are always ready to help you create the best trips"
+    },
+    "contactInfo": {
+      "title": "Contact Information",
+      "description": "Contact us through the channels below or send a direct message.",
+      "phone": "Phone",
+      "phoneDetails": {
+        "hotline": "Hotline: 1900 1234",
+        "mobile": "Mobile: 0123 456 789"
+      },
+      "email": "Email",
+      "address": "Address",
+      "addressDetails": {
+        "line1": "47A Phu Dien Ward",
+        "line2": "Hanoi, Vietnam"
+      },
+      "workingHours": "Working Hours",
+      "workingHoursDetails": {
+        "weekdays": "Mon - Fri: 8:00 - 18:00",
+        "weekend": "Sat - Sun: 8:00 - 17:00"
+      },
+      "quickContact": {
+        "title": "Need Immediate Support?",
+        "description": "Call hotline for direct consultation",
+        "callNow": "Call Now: 1900 1234"
+      }
+    },
+    "form": {
+      "title": "Send Message",
+      "description": "Fill in the information below and we will respond as soon as possible.",
+      "fields": {
+        "name": "Full name",
+        "namePlaceholder": "Enter full name",
+        "email": "Email",
+        "emailPlaceholder": "Enter email address",
+        "phone": "Phone number",
+        "phonePlaceholder": "Enter phone number",
+        "tourInterest": "Tour of interest (optional)",
+        "tourSearchPlaceholder": "Search for tours (e.g.: Sapa, Da Nang...)",
+        "subject": "Subject",
+        "subjectPlaceholder": "Enter message subject",
+        "message": "Message content",
+        "messagePlaceholder": "Enter your message content..."
+      },
+      "submit": "Send Message",
+      "submitting": "Sending...",
+      "minChars": "Minimum 10 characters ({{count}}/10)",
+      "errors": {
+        "nameRequired": "Please enter full name",
+        "emailRequired": "Please enter email",
+        "emailInvalid": "Invalid email",
+        "phoneRequired": "Please enter phone number",
+        "phoneInvalid": "Invalid phone number",
+        "subjectRequired": "Please enter subject",
+        "messageRequired": "Please enter message content",
+        "messageMinLength": "Message must be at least 10 characters",
+        "formError": "Please check the information",
+        "formErrorTitle": "There are errors in the form"
+      },
+      "success": {
+        "title": "Message sent successfully!",
+        "message": "Contact ID: #{{id}}. We will respond within 24 hours"
+      },
+      "error": {
+        "title": "Failed to send message",
+        "message": "An error occurred, please try again later"
+      },
+      "tourSearch": {
+        "noResults": "No tours found with keyword \"{{query}}\""
+      }
+    },
+    "map": {
+      "title": "Office Location",
+      "description": "Visit our office for direct consultation",
+      "officeName": "Main Office",
+      "address": "47A, Phu Dien Ward<br />Hanoi"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "noAnswer": {
+        "title": "Can't find the answer?",
+        "description": "Contact us directly for more detailed support",
+        "callHotline": "Call Hotline",
+        "sendMessage": "Send Message"
+      },
+      "items": {
+        "1": {
+          "question": "How to book a tour?",
+          "answer": "You can book tours in several ways: (1) Book online through our website - select tour, fill in information and pay online; (2) Call hotline 1900 1234 for direct consultation from professional staff; (3) Visit our office at 123 ABC Street, District 1, Ho Chi Minh City for detailed consultation and view more tours. We support 24/7 booking via website and hotline."
+        },
+        "2": {
+          "question": "What is the tour cancellation policy?",
+          "answer": "Tour cancellation policy depends on cancellation time: (1) Cancel 30 days before: refund 90% of total; (2) Cancel 15-29 days before: refund 70% of total; (3) Cancel 7-14 days before: refund 50% of total; (4) Cancel within 7 days: refund 20% of total. For premium and international tours, policies may differ due to partner constraints. Please read terms carefully when booking."
+        },
+        "3": {
+          "question": "Do you provide visa support?",
+          "answer": "Yes, we provide visa support services for all international tours. Services include: (1) Consult suitable visa type; (2) Prepare documents as required by consulate; (3) Schedule appointment and support interview; (4) Track processing progress. Visa fee and service fee are charged separately, ranging from 1-5 million VND depending on country. Processing time from 5-15 working days."
+        },
+        "4": {
+          "question": "What payment methods are accepted?",
+          "answer": "We accept various payment methods: (1) Cash at office; (2) Bank transfer (Vietcombank, BIDV, Techcombank); (3) Credit/debit cards (Visa, Mastercard, JCB); (4) E-wallets (ZaloPay, VNPay); (5) Installment via credit card (0% interest for tours over 10 million). You can pay 30% when booking and 70% 7 days before departure."
+        },
+        "5": {
+          "question": "Is travel insurance included?",
+          "answer": "All our tours include basic travel insurance with coverage of 100 million VND/person, including: accidents, illness, basic luggage loss. Additionally, you can purchase premium insurance with coverage up to 1 billion VND, including: trip cancellation, flight delays, high medical costs, adventure sports. Premium insurance fee from 200,000-500,000 VND/person depending on duration and destination."
+        },
+        "6": {
+          "question": "Do you organize custom tours?",
+          "answer": "Yes, we specialize in organizing custom (private) tours according to customer requirements with advantages: (1) Flexible itinerary according to preferences; (2) Professional private guide; (3) Private transportation; (4) Choose hotels and restaurants according to budget. Minimum 4 people for domestic tours, 6 people for international tours. Custom tour prices are 20-40% higher than group tours but ensure maximum personalized experience."
+        }
+      }
+    }
+  },
+  "wishlist": {
+    "title": "Favorite Tours",
+    "subtitle": "List of tours you've saved for later ({{count}} tour)",
+    "filters": {
+      "title": "Filters and Sort",
+      "showing": "Showing {{display}} / {{total}} tours",
+      "searchPlaceholder": "Search favorite tours...",
+      "category": {
+        "all": "All Categories",
+        "beach": "Beach Tours",
+        "mountain": "Mountain Tours",
+        "city": "City Tours",
+        "culture": "Culture Tours"
+      },
+      "sort": {
+        "newest": "Newest Added",
+        "oldest": "Oldest Added",
+        "priceLow": "Price: Low to High",
+        "priceHigh": "Price: High to Low",
+        "rating": "Highest Rating"
+      },
+      "clearFilters": "Clear Filters"
+    },
+    "tour": {
+      "maxPeople": "Max {{count}}",
+      "reviews": "({{count}} reviews)",
+      "viewDetails": "View Details",
+      "addedDate": "Added: {{date}}",
+      "removeTitle": "Remove from wishlist"
+    },
+    "empty": {
+      "noResults": "No tours found",
+      "noResultsDescription": "Try changing filters or search keywords",
+      "noWishlist": "No favorite tours yet",
+      "noWishlistDescription": "Explore and save your favorite tours!",
+      "exploreTours": "Explore Tours"
+    },
+    "toast": {
+      "loadError": "Unable to load wishlist. Please try again later.",
+      "removeConfirm": "Are you sure you want to remove \"{{tourName}}\" from your wishlist?",
+      "removeSuccess": "Removed \"{{tourName}}\" from wishlist",
+      "removeError": "Unable to remove tour from wishlist"
+    }
+  },
+  "loyalty": {
+    "title": "Loyalty Program",
+    "subtitle": "Earn points from every trip and receive special offers",
+    "level": {
+      "memberTier": "MEMBER TIER",
+      "totalPoints": "TOTAL POINTS",
+      "progressTo": "Progress to {{level}}",
+      "pointsMore": "{{points}} more points",
+      "maxLevelReached": "🎉 You've reached the highest tier!",
+      "names": {
+        "DIAMOND": "Diamond",
+        "PLATINUM": "Platinum",
+        "GOLD": "Gold",
+        "SILVER": "Silver",
+        "BRONZE": "Bronze"
+      }
+    },
+    "stats": {
+      "currentPoints": "CURRENT POINTS",
+      "totalEarned": "TOTAL EARNED",
+      "totalRedeemed": "REDEEMED",
+      "discount": "DISCOUNT"
+    },
+    "benefits": {
+      "title": "Your Benefits",
+      "discount": {
+        "title": "Discount",
+        "description": "{{percent}}% on all bookings"
+      },
+      "priority": {
+        "title": "Priority",
+        "description": "Fast booking processing"
+      },
+      "freeUpgrade": {
+        "title": "Free Upgrade",
+        "description": "Room & services"
+      },
+      "personalManager": {
+        "title": "Personal Support",
+        "description": "24/7 consultation"
+      },
+      "vipEvents": {
+        "title": "VIP Events",
+        "description": "Exclusive experiences"
+      }
+    },
+    "transactions": {
+      "title": "Transaction History",
+      "empty": {
+        "title": "No transactions yet",
+        "description": "Earn points from bookings and reviews to get rewards!"
+      },
+      "types": {
+        "EARNED": "EARNED",
+        "REDEEMED": "REDEEMED",
+        "EXPIRED": "EXPIRED"
+      }
+    },
+    "voucher": {
+      "title": "Redeem Points for Vouchers",
+      "description": "Feature coming soon. Use your <strong>{{points}} points</strong> to get rewards!",
+      "comingSoon": "COMING SOON"
+    },
+    "errors": {
+      "loadError": "Unable to load loyalty data",
+      "retry": "Retry"
+    }
+  },
+  "vnpay": {
+    "processing": "Processing payment result...",
+    "success": {
+      "title": "Booking Successful!",
+      "subtitle": "Thank you for trusting and booking with us",
+      "bookingDetails": "Booking Details",
+      "bookingCode": "Booking Code:",
+      "confirmed": "Confirmed",
+      "tourInfo": "Tour Information",
+      "departureDate": "Departure Date",
+      "participants": "Number of Participants",
+      "adults": "{{count}} adults",
+      "children": "{{count}} children",
+      "contactInfo": "Contact Information",
+      "totalPayment": "Total Payment:",
+      "transactionCode": "VNPay Transaction Code",
+      "nextSteps": {
+        "title": "Next Steps",
+        "email": "We will send a detailed confirmation email within 15 minutes",
+        "contact": "Staff will contact you within 24 hours to confirm information",
+        "documents": "Please prepare identification documents 3 days before departure",
+        "hotline": "24/7 Support Hotline: <strong>{{hotline}}</strong>"
+      },
+      "viewBookings": "View My Bookings",
+      "exploreTours": "Explore Other Tours"
+    },
+    "error": {
+      "noPaymentInfo": "Payment information not found",
+      "paymentSuccess": "Payment successful",
+      "paymentFailed": "Payment Failed",
+      "processingError": "An error occurred while processing payment result",
+      "orderId": "Order ID",
+      "goBack": "Go Back",
+      "retry": "Retry"
+    }
+  },
+  "chatbot": {
+    "initialGreeting": "Hello! I'm the AI assistant of Tour Booking System. I can help you find tours, suggest destinations, or assist with bookings. How can I help you today?",
+    "button": {
+      "tooltip": "Chat with AI assistant"
+    },
+    "header": {
+      "title": "AI Travel Assistant",
+      "subtitle": "Your travel consultant"
+    },
+    "thinking": "Thinking...",
+    "placeholder": "Type your question...",
+    "disclaimer": "AI may make mistakes. Please double-check important information.",
+    "errors": {
+      "connection": "⚠️ Unable to connect to the chatbot server. Please check:<br/>1. The chatbot server is running (port 5000)<br/>2. The Spring Boot backend is running (port 8080)",
+      "sessionUnavailable": "Session is not ready yet. Please reload the page.",
+      "generic": "Sorry, something went wrong. Please try again later."
+    }
+  },
+  "weather": {
+    "widget": {
+      "errors": {
+        "noData": "Weather information is not available for this destination yet.",
+        "fetchFailed": "Unable to load weather information."
+      },
+      "hourly": {
+        "title": "📅 Hourly forecast (next 24h)"
+      },
+      "current": {
+        "title": "Weather in {{location}}",
+        "updatedAt": "Updated: {{time}}",
+        "feelsLike": "Feels like {{value}}°C"
+      },
+      "labels": {
+        "humidity": "Humidity",
+        "wind": "Wind",
+        "pressure": "Pressure",
+        "visibility": "Visibility"
+      },
+      "forecast": {
+        "title": "5-day forecast"
+      },
+      "alerts": {
+        "title": "Weather alerts"
+      },
+      "clothing": {
+        "title": "What to pack"
+      },
+      "activities": {
+        "title": "Recommended activities"
+      }
+    }
+  },
+  "search": {
+    "smart": {
+      "placeholder": "Search tours, destinations...",
+      "advancedTooltip": "Advanced search",
+      "loading": "Searching...",
+      "recent": {
+        "title": "Recent searches",
+        "clear": "Clear"
+      },
+      "popular": {
+        "title": "Popular searches",
+        "halong": {
+          "title": "Ha Long Bay",
+          "subtitle": "245 tours"
+        },
+        "sapa": {
+          "title": "Sapa",
+          "subtitle": "189 tours"
+        },
+        "hoian": {
+          "title": "Hoi An",
+          "subtitle": "156 tours"
+        },
+        "phuQuoc": {
+          "title": "Phu Quoc 3 days 2 nights",
+          "subtitle": "From 2,500,000₫"
+        },
+        "cuisine": {
+          "title": "Food tours",
+          "subtitle": "89 tours"
+        },
+        "tokyo": {
+          "title": "Tokyo",
+          "subtitle": "67 tours"
+        },
+        "weekend": {
+          "title": "Weekend tours",
+          "subtitle": "Near Hanoi"
+        },
+        "family": {
+          "title": "Family trips",
+          "subtitle": "Kid-friendly"
+        }
+      },
+      "aiSuggestions": {
+        "family": {
+          "title": "{{query}} for families",
+          "subtitle": "AI suggestion · Kid-friendly"
+        },
+        "budget": {
+          "title": "{{query}} best deals",
+          "subtitle": "AI suggestion · Budget friendly"
+        },
+        "weekend": {
+          "title": "{{query}} weekend getaway",
+          "subtitle": "AI suggestion · 2-3 days"
+        }
+      },
+      "badges": {
+        "trending": "Hot"
+      },
+      "empty": "No matching results"
+    }
+  },
+  "partners": {
+    "cta": {
+      "header": {
+        "title": "Become a strategic partner",
+        "subtitle": "Grow Vietnam's tourism ecosystem with a trusted nationwide partner network",
+        "badges": {
+          "free": "Free to join",
+          "commission": "Competitive commission",
+          "support": "Marketing support"
+        }
+      },
+      "benefits": {
+        "title": "Benefits when partnering with us",
+        "reach": {
+          "title": "Reach 50K+ customers/month",
+          "description": "Connect with a large and diverse customer base nationwide"
+        },
+        "revenue": {
+          "title": "Increase revenue 30-50%",
+          "description": "Stable booking source with attractive commission"
+        },
+        "brand": {
+          "title": "Free brand promotion",
+          "description": "Featured placement, social media marketing and SEO optimization"
+        },
+        "support": {
+          "title": "Professional support 24/7",
+          "description": "Dedicated partner care team and transparent process"
+        }
+      },
+      "partnerTypes": {
+        "title": "We are looking for partners",
+        "hotel": {
+          "title": "Hotels & Resorts",
+          "description": "From homestays to 5-star resorts",
+          "count": "500+ partners"
+        },
+        "restaurant": {
+          "title": "Restaurants & F&B",
+          "description": "Local and international cuisine",
+          "count": "300+ partners"
+        },
+        "transport": {
+          "title": "Transportation",
+          "description": "Buses, taxis, motorbike rentals",
+          "count": "200+ partners"
+        },
+        "operator": {
+          "title": "Tour operators",
+          "description": "Professional tour operators",
+          "count": "150+ partners"
+        },
+        "services": {
+          "title": "Other services",
+          "description": "SPA, entertainment, sports activities",
+          "count": "100+ partners"
+        }
+      },
+      "process": {
+        "title": "Partnership process",
+        "steps": {
+          "step1": {
+            "title": "Submit information",
+            "description": "Fill out the registration form with basic information",
+            "time": "5 minutes"
+          },
+          "step2": {
+            "title": "Application review",
+            "description": "We review and evaluate your profile",
+            "time": "1-2 days"
+          },
+          "step3": {
+            "title": "Discuss terms",
+            "description": "Online meeting to finalize commission and terms",
+            "time": "3-5 days"
+          },
+          "step4": {
+            "title": "Start partnership",
+            "description": "Sign contract and onboard to the system",
+            "time": "1 week"
+          }
+        }
+      },
+      "requirements": {
+        "title": "Partner requirements",
+        "items": {
+          "license": "Valid business license",
+          "experience": "At least 1 year of industry experience",
+          "quality": "Quality service standards",
+          "commitment": "Min. 1-year cooperation commitment",
+          "onlineCapability": "Ability to serve online customers",
+          "safety": "Compliance with travel safety regulations"
+        },
+        "noteTitle": "Important note",
+        "noteDescription": "We prioritize partners committed to sustainable development and delivering the best customer experience."
+      },
+      "bottomCta": {
+        "title": "Ready to start the partnership?",
+        "subtitle": "Let's build a sustainable tourism ecosystem together. Our team will assist you every step of the way.",
+        "badges": {
+          "response": "Response within 24h",
+          "consulting": "Free consultation",
+          "setup": "Setup support"
+        }
+      }
+    },
+    "partnership": {
+      "backToList": "Back to partners list",
+      "hero": {
+        "title": "Become a Partner",
+        "subtitle": "Build a global tourism ecosystem with over",
+        "stats": {
+          "customers": "Customers/month",
+          "commission": "Commission",
+          "support": "Support",
+          "currentPartners": "Current partners"
+        }
+      },
+      "benefits": {
+        "title": "Why choose us?",
+        "subtitle": "Outstanding benefits when becoming a strategic partner",
+        "items": {
+          "access": {
+            "title": "Access 50K+ customers/month",
+            "description": "Connect with a large and diverse customer base nationwide"
+          },
+          "revenue": {
+            "title": "Increase revenue 30-50%",
+            "description": "Stable booking source from platform with attractive commission"
+          },
+          "marketing": {
+            "title": "Free brand promotion",
+            "description": "Featured placement, social media marketing and SEO optimization"
+          },
+          "support": {
+            "title": "Professional 24/7 support",
+            "description": "Dedicated partner care team and transparent cooperation process"
+          },
+          "protection": {
+            "title": "Brand reputation protection",
+            "description": "Verification system and strict quality control"
+          },
+          "commission": {
+            "title": "Competitive commission",
+            "description": "Attractive commission rate with on-time payment"
+          }
+        }
+      },
+      "partnerTypes": {
+        "title": "We are looking for",
+        "subtitle": "Partners in the following fields",
+        "hotel": {
+          "title": "Hotels & Resorts",
+          "description": "From homestays to 5-star resorts",
+          "commission": "Commission:",
+          "partners": "partners",
+          "requirements": "Basic requirements:"
+        },
+        "restaurant": {
+          "title": "Restaurants & F&B",
+          "description": "Local and international cuisine"
+        },
+        "transport": {
+          "title": "Transportation",
+          "description": "Buses, taxis, motorbike rentals"
+        },
+        "tourOperator": {
+          "title": "Tour Operator",
+          "description": "Professional tour operators"
+        },
+        "service": {
+          "title": "Other Services",
+          "description": "SPA, entertainment, sports activities"
+        }
+      },
+      "process": {
+        "title": "Partnership Process",
+        "subtitle": "4 simple steps to become a partner",
+        "steps": {
+          "1": {
+            "title": "Submit registration information",
+            "description": "Fill out form with basic business information",
+            "time": "5 minutes",
+            "includes": "Includes:"
+          },
+          "2": {
+            "title": "Review & Approval",
+            "description": "Our team reviews the application and evaluates",
+            "time": "1-2 days"
+          },
+          "3": {
+            "title": "Discuss terms",
+            "description": "Online meeting to agree on commission rate and terms",
+            "time": "3-5 days"
+          },
+          "4": {
+            "title": "Onboarding & Launch",
+            "description": "Sign contract and setup on system",
+            "time": "1 week"
+          }
+        }
+      },
+      "successStories": {
+        "title": "Success Stories",
+        "subtitle": "Partners who have succeeded with us",
+        "growth": "growth"
+      },
+      "requirements": {
+        "title": "Partner Requirements",
+        "commitment": {
+          "title": "💡 Our Commitment",
+          "description": "We commit to supporting partners' sustainable development through modern technology, effective marketing and excellent customer service. Your success is our success!"
+        }
+      }
+    },
+    "listing": {
+      "hero": {
+        "title": "Travel Partners",
+        "subtitle": "Network of {{trustedPartners}} trusted partners with {{qualityTours}} quality tours",
+        "stats": {
+          "trustedPartners": "Trusted partners",
+          "diverseTours": "Diverse tours",
+          "bookings": "Tour bookings",
+          "averageRating": "Average rating"
+        }
+      },
+      "empty": {
+        "title": "No partners found",
+        "description": "Try adjusting filters to find suitable partners"
+      }
+    },
+    "ctaBanner": {
+      "title": "Become Our Partner",
+      "subtitle": "Develop Vietnam's tourism ecosystem with over",
+      "subtitlePartners": "trusted partners",
+      "learnMore": "Learn More",
+      "orContact": "Or contact directly:",
+      "benefits": {
+        "customers": {
+          "title": "50K+ Customers",
+          "description": "Access a large customer base"
+        },
+        "revenue": {
+          "title": "Increase Revenue",
+          "description": "Competitive commission 10-20%"
+        },
+        "support": {
+          "title": "24/7 Support",
+          "description": "Professional partner care team"
+        }
+      },
+      "trustIndicators": {
+        "free": "Free to join",
+        "response24h": "Response within 24h",
+        "freeSetup": "Free setup support"
+      }
+    },
+    "filters": {
+      "searchPlaceholder": "Search partners...",
+      "type": {
+        "all": "All types",
+        "hotel": "Hotels & Resorts",
+        "restaurant": "Restaurants & F&B"
+      },
+      "location": {
+        "all": "All regions",
+        "hanoi": "Hanoi",
+        "hochiminh": "Ho Chi Minh City",
+        "danang": "Da Nang",
+        "phuquoc": "Phu Quoc"
+      },
+      "rating": {
+        "all": "All ratings",
+        "4_5": "4.5⭐ and up",
+        "4_0": "4⭐ and up",
+        "3_5": "3.5⭐ and up",
+        "3_0": "3⭐ and up"
+      },
+      "sort": {
+        "name-asc": "Name A-Z",
+        "name-desc": "Name Z-A",
+        "rating-desc": "Highest rating",
+        "totalTours-desc": "Most tours",
+        "establishedYear-asc": "Oldest partners"
+      },
+      "results": "results",
+      "clear": "Clear filters"
+    },
+    "detail": {
+      "backToList": "Back to partners list",
+      "notFound": {
+        "title": "Partner not found",
+        "description": "The partner you are looking for does not exist or has been deleted."
+      },
+      "tabs": {
+        "overview": "Overview",
+        "tours": "Tours",
+        "reviews": "Reviews"
+      },
+      "sections": {
+        "images": "Partner images",
+        "introduction": "Introduction",
+        "specialties": "Specialties",
+        "stats": {
+          "tours": "Tours",
+          "bookings": "Bookings",
+          "rating": "Rating",
+          "yearsExperience": "Years of experience"
+        }
+      },
+      "tours": {
+        "empty": {
+          "title": "No tours yet",
+          "description": "This partner has not posted any tours yet."
+        }
+      },
+      "reviews": {
+        "comingSoon": {
+          "title": "Reviews coming soon",
+          "description": "Partner review feature is under development."
+        }
+      },
+      "sidebar": {
+        "contactInfo": "Contact Information",
+        "quickStats": "Quick Stats",
+        "averageRating": "Average rating",
+        "totalTours": "Total tours",
+        "totalBookings": "Tour bookings",
+        "established": "Established",
+        "cta": {
+          "title": "Interested in this partner?",
+          "description": "Discover amazing tours from",
+          "button": "View all tours"
+        },
+        "website": "Official website",
+        "from": "From",
+        "reviews": "reviews"
+      }
+    },
+    "card": {
+      "missingImage": "No image available",
+      "logo": "Logo",
+      "toursLabel": "tours",
+      "fromLabel": "From",
+      "website": "Website",
+      "reviews": "reviews",
+      "action": "View {{count}} tours"
+    },
+    "contactForm": {
+      "title": "Partnership Registration",
+      "subtitle": "Fill in information for us to contact and provide detailed consultation",
+      "fields": {
+        "companyName": "Company/Business name *",
+        "companyNamePlaceholder": "E.g.: ABC Travel Company",
+        "contactPerson": "Contact person *",
+        "contactPersonPlaceholder": "Full name",
+        "email": "Email *",
+        "emailPlaceholder": "contact@company.com",
+        "phone": "Phone number *",
+        "phonePlaceholder": "0123 456 789",
+        "businessType": "Business field *",
+        "location": "Operating location *",
+        "locationPlaceholder": "E.g.: Hanoi, Ho Chi Minh City, Da Nang",
+        "website": "Website (optional)",
+        "websitePlaceholder": "https://www.company.com",
+        "message": "Message",
+        "messagePlaceholder": "Share more about your business and partnership expectations..."
+      },
+      "businessTypes": {
+        "select": "Select business field",
+        "hotel": "Hotels & Resorts",
+        "restaurant": "Restaurants & F&B",
+        "transport": "Transportation",
+        "tourOperator": "Tour Operator",
+        "service": "Other Services"
+      },
+      "submit": "Submit partnership information",
+      "submitting": "Submitting...",
+      "privacyNote": "Your information will be kept confidential and used only for partnership contact.",
+      "success": {
+        "title": "Thank you for your interest!",
+        "description": "We have received your information and will contact you within 24 hours.",
+        "submitMore": "Submit more information"
+      },
+      "error": "An error occurred while submitting the application. Please try again later."
+    }
+  }
+}
+

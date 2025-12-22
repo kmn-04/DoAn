@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import reviewService from '../../services/reviewService';
@@ -9,6 +10,7 @@ interface ReviewAiSummaryProps {
 }
 
 const ReviewAiSummary: React.FC<ReviewAiSummaryProps> = ({ tourId }) => {
+  const { t, i18n } = useTranslation();
   const [summary, setSummary] = useState<ReviewAiSummaryType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,16 +22,17 @@ const ReviewAiSummary: React.FC<ReviewAiSummaryProps> = ({ tourId }) => {
         setError(null);
         const data = await reviewService.getAiSummary(tourId);
         setSummary(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching AI summary:', err);
-        setError(err.response?.data?.message || 'Không thể tải tóm tắt AI');
+        const errorMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+        setError(errorMessage || t('tours.reviews.aiSummary.errors.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchSummary();
-  }, [tourId]);
+  }, [tourId, t]);
 
   if (loading) {
     return (
@@ -57,11 +60,11 @@ const ReviewAiSummary: React.FC<ReviewAiSummaryProps> = ({ tourId }) => {
       <div className="flex items-center gap-2 mb-4">
         <SparklesIcon className="h-6 w-6 text-purple-600" />
         <h3 className="text-lg font-bold text-gray-900">
-          Tóm tắt đánh giá từ AI
+          {t('tours.reviews.aiSummary.title')}
         </h3>
         {summary.cached && (
           <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-            Cached
+            {t('tours.reviews.aiSummary.cached')}
           </span>
         )}
       </div>
@@ -71,7 +74,7 @@ const ReviewAiSummary: React.FC<ReviewAiSummaryProps> = ({ tourId }) => {
         <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200">
           <p className="text-gray-700 leading-relaxed">{summary.summary}</p>
           <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
-            <span>📊 {summary.totalReviews} đánh giá</span>
+            <span>📊 {t('tours.reviews.aiSummary.reviewCount', { count: summary.totalReviews })}</span>
             <span>⭐ {summary.averageRating?.toFixed(1)}/5</span>
           </div>
         </div>
@@ -84,7 +87,7 @@ const ReviewAiSummary: React.FC<ReviewAiSummaryProps> = ({ tourId }) => {
             <div className="flex items-start gap-2 mb-2">
               <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-semibold text-green-900 mb-2">Điểm tích cực</h4>
+                <h4 className="font-semibold text-green-900 mb-2">{t('tours.reviews.aiSummary.positive.title')}</h4>
                 <p className="text-sm text-green-800 whitespace-pre-line">{summary.positive}</p>
               </div>
             </div>
@@ -97,7 +100,7 @@ const ReviewAiSummary: React.FC<ReviewAiSummaryProps> = ({ tourId }) => {
             <div className="flex items-start gap-2 mb-2">
               <XCircleIcon className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-semibold text-red-900 mb-2">Điểm cần cải thiện</h4>
+                <h4 className="font-semibold text-red-900 mb-2">{t('tours.reviews.aiSummary.negative.title')}</h4>
                 <p className="text-sm text-red-800 whitespace-pre-line">{summary.negative}</p>
               </div>
             </div>
@@ -107,7 +110,7 @@ const ReviewAiSummary: React.FC<ReviewAiSummaryProps> = ({ tourId }) => {
 
       {/* Footer */}
       <div className="mt-4 text-xs text-gray-500 text-center">
-        Tóm tắt được tạo bởi AI • Cập nhật: {new Date(summary.generatedAt).toLocaleString('vi-VN')}
+        {t('tours.reviews.aiSummary.footer.createdBy')} • {t('tours.reviews.aiSummary.footer.updatedAt')}: {new Date(summary.generatedAt).toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')}
       </div>
     </div>
   );

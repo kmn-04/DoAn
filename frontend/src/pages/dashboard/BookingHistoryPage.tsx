@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -40,6 +41,7 @@ interface Booking {
 }
 
 const BookingHistoryPage: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -159,8 +161,8 @@ const BookingHistoryPage: React.FC = () => {
         const errorEvent = new CustomEvent('show-toast', {
           detail: {
             type: 'error',
-            title: 'Lỗi tải dữ liệu',
-            message: 'Không thể tải lịch sử booking. Vui lòng thử lại sau.'
+            title: t('booking.history.errors.loadError'),
+            message: t('booking.history.errors.loadMessage')
           }
         });
         window.dispatchEvent(errorEvent);
@@ -187,8 +189,8 @@ const BookingHistoryPage: React.FC = () => {
         const event = new CustomEvent('show-toast', {
           detail: {
             type: 'success',
-            title: 'Đã tìm thấy booking!',
-            message: `Booking "${highlightedBooking.tourName}" đã được highlight.`
+            title: t('booking.history.errors.found'),
+            message: t('booking.history.errors.foundMessage', { name: highlightedBooking.tourName })
           }
         });
         window.dispatchEvent(event);
@@ -290,7 +292,8 @@ const BookingHistoryPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    const locale = i18n.language === 'vi' ? 'vi-VN' : 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -299,23 +302,23 @@ const BookingHistoryPage: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { label: string; className: string; icon: React.ComponentType<any> }> = {
-      confirmed: { label: 'Đã xác nhận', className: 'bg-amber-50 text-amber-800 border-amber-200', icon: CheckCircleIcon },
-      pending: { label: 'Chờ xác nhận', className: 'bg-stone-100 text-slate-700 border-stone-300', icon: ClockIcon },
-      completed: { label: 'Hoàn thành', className: 'bg-slate-900 text-white border-slate-700', icon: CheckCircleIcon },
-      cancelled: { label: 'Đã hủy', className: 'bg-stone-200 text-slate-600 border-stone-400', icon: XCircleIcon }
+      confirmed: { label: t('booking.history.status.confirmed'), className: 'bg-amber-50 text-amber-800 border-amber-200', icon: CheckCircleIcon },
+      pending: { label: t('booking.history.status.pending'), className: 'bg-stone-100 text-slate-700 border-stone-300', icon: ClockIcon },
+      completed: { label: t('booking.history.status.completed'), className: 'bg-slate-900 text-white border-slate-700', icon: CheckCircleIcon },
+      cancelled: { label: t('booking.history.status.cancelled'), className: 'bg-stone-200 text-slate-600 border-stone-400', icon: XCircleIcon }
     };
     return badges[status] || { label: status, className: 'bg-gray-100 text-gray-800 border-gray-200', icon: ClockIcon };
   };
 
   const getPaymentStatusBadge = (status: string) => {
     const badges: Record<string, { label: string; className: string }> = {
-      paid: { label: 'Đã thanh toán', className: 'bg-amber-50 text-amber-800' },
-      pending: { label: 'Chờ thanh toán', className: 'bg-stone-100 text-slate-700' },
-      unpaid: { label: 'Chờ thanh toán', className: 'bg-stone-100 text-slate-700' },
-      partiallypaid: { label: 'Thanh toán một phần', className: 'bg-amber-100 text-amber-700' },
-      refunding: { label: 'Đang hoàn tiền', className: 'bg-slate-100 text-slate-700' },
-      refunded: { label: 'Đã hoàn tiền', className: 'bg-slate-900 text-white' },
-      failed: { label: 'Thất bại', className: 'bg-stone-200 text-slate-600' }
+      paid: { label: t('booking.history.payment.paid'), className: 'bg-amber-50 text-amber-800' },
+      pending: { label: t('booking.history.payment.pending'), className: 'bg-stone-100 text-slate-700' },
+      unpaid: { label: t('booking.history.payment.unpaid'), className: 'bg-stone-100 text-slate-700' },
+      partiallypaid: { label: t('booking.history.payment.partial'), className: 'bg-amber-100 text-amber-700' },
+      refunding: { label: t('booking.history.payment.refunding'), className: 'bg-slate-100 text-slate-700' },
+      refunded: { label: t('booking.history.payment.refunded'), className: 'bg-slate-900 text-white' },
+      failed: { label: t('booking.history.payment.failed'), className: 'bg-stone-200 text-slate-600' }
     };
     return badges[status.toLowerCase()] || { label: status, className: 'bg-gray-100 text-gray-800' };
   };
@@ -362,10 +365,10 @@ const BookingHistoryPage: React.FC = () => {
       
       // Redirect to VNPay
       window.location.href = response.paymentUrl;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating VNPay payment:', error);
-      const errorMessage = error?.response?.data?.message || 'Có lỗi xảy ra khi tạo thanh toán VNPay';
-      alert(`Lỗi thanh toán: ${errorMessage}`);
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || t('booking.history.errors.paymentFailed');
+      alert(`${t('booking.history.errors.paymentError')} ${errorMessage}`);
     }
   };
 
@@ -393,8 +396,8 @@ const BookingHistoryPage: React.FC = () => {
     const event = new CustomEvent('show-toast', {
       detail: {
         type: 'success',
-        title: 'Thành công!',
-        message: 'Yêu cầu hủy booking đã được gửi thành công',
+        title: t('booking.history.errors.cancellationSuccess'),
+        message: t('booking.history.errors.cancellationMessage'),
         duration: 5000
       }
     });
@@ -467,8 +470,8 @@ const BookingHistoryPage: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Page Header */}
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-normal text-slate-900 mb-2 tracking-tight">Quản lý booking</h1>
-          <p className="text-gray-600 font-normal">Theo dõi tất cả booking và yêu cầu hủy của bạn</p>
+          <h1 className="text-3xl font-normal text-slate-900 mb-2 tracking-tight">{t('booking.history.title')}</h1>
+          <p className="text-gray-600 font-normal">{t('booking.history.subtitle')}</p>
         </div>
 
         {/* Tab Navigation */}
@@ -484,7 +487,7 @@ const BookingHistoryPage: React.FC = () => {
                 }`}
                 style={activeTab === 'bookings' ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
               >
-                Booking của tôi ({bookings.length})
+                {t('booking.history.tabs.bookings', { count: bookings.length })}
               </button>
               <button
                 onClick={() => handleTabChange('cancellations')}
@@ -495,7 +498,7 @@ const BookingHistoryPage: React.FC = () => {
                 }`}
                 style={activeTab === 'cancellations' ? { background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' } : {}}
               >
-                Lịch sử hủy booking
+                {t('booking.history.tabs.cancellations')}
               </button>
             </nav>
           </div>
@@ -509,11 +512,11 @@ const BookingHistoryPage: React.FC = () => {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
               <h2 className="text-xl font-medium text-slate-900 flex items-center tracking-tight">
                 <FunnelIcon className="h-5 w-5 mr-2" style={{ color: '#D4AF37' }} />
-                Bộ lọc
+                {t('booking.history.filters.title')}
               </h2>
               
               <div className="text-sm font-normal" style={{ color: '#D4AF37' }}>
-                Hiển thị {filteredBookings.length} / {bookings.length} booking
+                {t('booking.history.filters.showing', { display: filteredBookings.length, total: bookings.length })}
               </div>
             </div>
 
@@ -523,7 +526,7 @@ const BookingHistoryPage: React.FC = () => {
                 <MagnifyingGlassIcon className="absolute left-3 top-3 h-5 w-5" style={{ color: '#D4AF37' }} />
                 <input
                   type="text"
-                  placeholder="Tìm theo tên tour, mã booking..."
+                  placeholder={t('booking.history.filters.searchPlaceholder')}
                   value={filters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-none focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
@@ -536,12 +539,12 @@ const BookingHistoryPage: React.FC = () => {
                 onChange={(e) => handleFilterChange('status', e.target.value)}
                 className="border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
               >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="upcoming">Sắp diễn ra</option>
-                <option value="confirmed">Đã xác nhận</option>
-                <option value="pending">Chờ xác nhận</option>
-                <option value="completed">Hoàn thành</option>
-                <option value="cancelled">Đã hủy</option>
+                <option value="all">{t('booking.history.filters.status.all')}</option>
+                <option value="upcoming">{t('booking.history.filters.status.upcoming')}</option>
+                <option value="confirmed">{t('booking.history.filters.status.confirmed')}</option>
+                <option value="pending">{t('booking.history.filters.status.pending')}</option>
+                <option value="completed">{t('booking.history.filters.status.completed')}</option>
+                <option value="cancelled">{t('booking.history.filters.status.cancelled')}</option>
               </select>
 
               {/* Date Range Filter */}
@@ -550,10 +553,10 @@ const BookingHistoryPage: React.FC = () => {
                 onChange={(e) => handleFilterChange('dateRange', e.target.value)}
                 className="border border-stone-300 rounded-none px-3 py-2 focus:ring-0 focus:border-slate-700 font-normal transition-all duration-300"
               >
-                <option value="all">Tất cả thời gian</option>
-                <option value="last_month">Tháng trước</option>
-                <option value="last_3_months">3 tháng trước</option>
-                <option value="last_year">Năm trước</option>
+                <option value="all">{t('booking.history.filters.dateRange.all')}</option>
+                <option value="last_month">{t('booking.history.filters.dateRange.lastMonth')}</option>
+                <option value="last_3_months">{t('booking.history.filters.dateRange.last3Months')}</option>
+                <option value="last_year">{t('booking.history.filters.dateRange.lastYear')}</option>
               </select>
 
               {/* Clear Filters */}
@@ -562,7 +565,7 @@ const BookingHistoryPage: React.FC = () => {
                 onClick={clearFilters}
                 className="whitespace-nowrap border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white rounded-none"
               >
-                Xóa bộ lọc
+                {t('booking.history.filters.clear')}
               </Button>
             </div>
           </Card>
@@ -579,13 +582,13 @@ const BookingHistoryPage: React.FC = () => {
           <Card className="p-12 text-center bg-white border border-stone-200 rounded-none">
             <div className="text-6xl mb-4">📋</div>
             <h3 className="text-2xl font-normal text-slate-900 mb-2 tracking-tight">
-              Chưa có booking nào
+              {t('booking.history.empty.title')}
             </h3>
             <p className="text-gray-600 mb-6 font-normal">
-              Hãy đặt tour đầu tiên của bạn để bắt đầu hành trình!
+              {t('booking.history.empty.description')}
             </p>
             <a href="/tours" className="inline-flex items-center justify-center px-6 py-3 text-white rounded-none font-medium transition-all duration-300 hover:opacity-90" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
-              Khám phá tours
+              {t('booking.history.empty.explore')}
             </a>
           </Card>
         ) : (
@@ -632,7 +635,7 @@ const BookingHistoryPage: React.FC = () => {
                           {booking.tourName}
                         </h3>
                         <p className="text-sm text-gray-600 font-normal">
-                          Mã booking: <span className="font-mono font-medium" style={{ color: '#D4AF37' }}>{booking.id}</span>
+                          {t('booking.history.bookingCode')} <span className="font-mono font-medium" style={{ color: '#D4AF37' }}>{booking.id}</span>
                         </p>
                       </div>
                       
@@ -666,8 +669,8 @@ const BookingHistoryPage: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <UsersIcon className="h-5 w-5" style={{ color: '#D4AF37' }} />
                         <span className="font-normal">
-                          {booking.adults} người lớn
-                          {booking.children > 0 && `, ${booking.children} trẻ em`}
+                          {t('booking.history.details.adults', { count: booking.adults })}
+                          {booking.children > 0 && `, ${t('booking.history.details.children', { count: booking.children })}`}
                         </span>
                       </div>
                     </div>
@@ -678,7 +681,7 @@ const BookingHistoryPage: React.FC = () => {
                           {formatPrice(booking.totalPrice)}
                         </span>
                         <p className="text-xs text-gray-600 font-normal">
-                          Đặt ngày {formatDate(booking.bookingDate)}
+                          {t('booking.history.details.bookedOn', { date: formatDate(booking.bookingDate) })}
                         </p>
                       </div>
                     </div>
@@ -693,7 +696,7 @@ const BookingHistoryPage: React.FC = () => {
                     className="inline-flex items-center justify-center px-3 py-2 text-white rounded-none text-sm font-medium transition-all duration-300 hover:opacity-90" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                   >
                     <EyeIcon className="h-4 w-4 mr-1" />
-                    Xem
+                    {t('booking.history.actions.view')}
                   </button>
 
                   {/* Nút Yêu cầu hủy - Chỉ hiển thị cho booking đã thanh toán */}
@@ -703,7 +706,7 @@ const BookingHistoryPage: React.FC = () => {
                       className="inline-flex items-center justify-center px-3 py-2 border-2 border-slate-900 rounded-none text-sm font-medium text-slate-900 bg-white hover:bg-slate-900 hover:text-white transition-all duration-300"
                     >
                       <XCircleIcon className="h-4 w-4 mr-1" />
-                      Yêu cầu hủy
+                      {t('booking.history.actions.cancel')}
                     </button>
                   )}
 
@@ -714,7 +717,7 @@ const BookingHistoryPage: React.FC = () => {
                       className="inline-flex items-center justify-center px-3 py-2 text-white rounded-none text-sm font-medium transition-all duration-300 hover:opacity-90" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}
                     >
                       <CreditCardIcon className="h-4 w-4 mr-1" />
-                      Thanh toán
+                      {t('booking.history.actions.pay')}
                     </button>
                   )}
 
@@ -725,7 +728,7 @@ const BookingHistoryPage: React.FC = () => {
               {booking.specialRequests && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Yêu cầu đặc biệt:</span> {booking.specialRequests}
+                    <span className="font-medium">{t('booking.history.specialRequests')}</span> {booking.specialRequests}
                   </p>
                 </div>
               )}
@@ -736,13 +739,13 @@ const BookingHistoryPage: React.FC = () => {
                   <div className="flex items-start space-x-2 p-3 bg-amber-50 border border-amber-200 rounded-none">
                     <ExclamationTriangleIcon className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: '#D4AF37' }} />
                     <div className="text-sm">
-                      <p className="font-medium text-slate-900 tracking-tight">Tour sắp diễn ra</p>
+                      <p className="font-medium text-slate-900 tracking-tight">{t('booking.history.upcomingAlert.title')}</p>
                       <p className="text-gray-700 font-normal">
                         {(() => {
                           const now = new Date();
                           const startDate = new Date(booking.startDate);
                           const daysUntilStart = Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                          return `Hãy chuẩn bị giấy tờ tùy thân và hành lý cần thiết. Chúng tôi sẽ liên hệ trước ${daysUntilStart} ngày khởi hành.`;
+                          return t('booking.history.upcomingAlert.message', { days: daysUntilStart });
                         })()}
                       </p>
                     </div>
@@ -759,23 +762,23 @@ const BookingHistoryPage: React.FC = () => {
         <Card className="p-12 text-center">
           <CalendarDaysIcon className="mx-auto h-16 w-16 text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Không tìm thấy booking nào
+            {t('booking.history.empty.noResults')}
           </h3>
           <p className="text-gray-600 mb-6">
             {filters.search || filters.status !== 'all' || filters.dateRange !== 'all'
-              ? 'Thử thay đổi bộ lọc hoặc tìm kiếm khác'
-              : 'Bạn chưa có booking nào. Hãy bắt đầu khám phá và đặt tour đầu tiên!'
+              ? t('booking.history.empty.noResultsDescription')
+              : t('booking.history.empty.noBookingsDescription')
             }
           </p>
           <div className="flex justify-center space-x-4">
             {(filters.search || filters.status !== 'all' || filters.dateRange !== 'all') && (
               <Button variant="outline" onClick={clearFilters}>
-                Xóa bộ lọc
+                {t('booking.history.filters.clear')}
               </Button>
             )}
             <Link to="/tours">
               <Button className="text-white rounded-none hover:opacity-90 transition-all duration-300" style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)' }}>
-                Khám phá tours
+                {t('booking.history.empty.explore')}
               </Button>
             </Link>
           </div>
