@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
-  StarIcon,
   UserCircleIcon,
   HandThumbUpIcon,
   ChatBubbleLeftIcon,
   PhotoIcon,
-  LockClosedIcon
+  LockClosedIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 import { Button } from '../ui';
 import { useAuth } from '../../hooks/useAuth';
 import { reviewService } from '../../services';
+import api from '../../services/api';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 
+// Review interface is defined but not used directly in this component
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Review {
   id: number;
   user?: {
@@ -43,6 +47,7 @@ interface TourReviewsProps {
   overallRating: number;
   totalReviews: number;
   ratingDistribution: { [key: number]: number };
+  onReviewSubmitted?: () => void; // Callback to refresh stats from parent
 }
 
 
@@ -50,12 +55,30 @@ const TourReviews: React.FC<TourReviewsProps> = ({
   tourId,
   overallRating,
   totalReviews,
-  ratingDistribution
+  ratingDistribution,
+  onReviewSubmitted
 }) => {
   const { user, isAuthenticated } = useAuth();
   const { t, i18n } = useTranslation();
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Array<{
+    id: number;
+    user?: {
+      id: number;
+      name: string;
+      avatarUrl?: string;
+    };
+    rating: number;
+    comment?: string;
+    status: string;
+    helpfulCount: number;
+    images?: string[];
+    createdAt: string;
+    updatedAt?: string;
+    adminReply?: string;
+    repliedAt?: string;
+  }>>([]);
   const [canReview, setCanReview] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest' | 'helpful'>('newest');
   const [filterRating, setFilterRating] = useState<number | null>(null);
@@ -65,8 +88,11 @@ const TourReviews: React.FC<TourReviewsProps> = ({
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
+  const [reviewImages, setReviewImages] = useState<string[]>([]);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [reviewError, setReviewError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Like review state
   const [likedReviews, setLikedReviews] = useState<Set<number>>(new Set());
@@ -177,7 +203,12 @@ const TourReviews: React.FC<TourReviewsProps> = ({
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       }).then(r => r.json());
       
-      const tourBooking = userBookings.data?.find((b: any) => 
+      const tourBooking = userBookings.data?.find((b: {
+        tour?: { id: number };
+        confirmationStatus: string;
+        paymentStatus: string;
+        id: number;
+      }) => 
         b.tour?.id === tourId && 
         (b.confirmationStatus === 'COMPLETED' || b.confirmationStatus === 'CONFIRMED') &&
         b.paymentStatus === 'PAID'
@@ -193,7 +224,8 @@ const TourReviews: React.FC<TourReviewsProps> = ({
         tourId: tourId,
         bookingId: tourBooking.id,
         rating: reviewRating,
-        comment: reviewComment
+        comment: reviewComment,
+        images: reviewImages.length > 0 ? reviewImages : undefined
       });
       
       window.alert(t('tours.reviews.submitSuccess'));
@@ -202,6 +234,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
       setShowReviewModal(false);
       setReviewRating(5);
       setReviewComment('');
+      setReviewImages([]);
       setReviewError('');
       setCanReview(false);
       
@@ -209,13 +242,78 @@ const TourReviews: React.FC<TourReviewsProps> = ({
       const data = await reviewService.getTourReviews(tourId);
       setReviews(data);
       
-    } catch (error: any) {
+      // Notify parent to refresh rating stats
+      if (onReviewSubmitted) {
+        onReviewSubmitted();
+      }
+      
+    } catch (error: unknown) {
       console.error('Error submitting review:', error);
-      const errorMsg = error.response?.data?.error || error.response?.data?.message;
+      const errorMsg = (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error 
+        || (error as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.message;
       setReviewError(errorMsg || t('tours.reviews.submitError'));
     } finally {
       setIsSubmittingReview(false);
     }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const fileArray = Array.from(files);
+    const remainingSlots = 5 - reviewImages.length;
+
+    if (fileArray.length > remainingSlots) {
+      toast.error(t('tours.reviews.form.images.tooMany', { count: remainingSlots }));
+      return;
+    }
+
+    // Validate file types
+    const invalidFiles = fileArray.filter(file => !file.type.startsWith('image/'));
+    if (invalidFiles.length > 0) {
+      toast.error(t('tours.reviews.form.images.invalidType'));
+      return;
+    }
+
+    // Validate file sizes (10MB each)
+    const oversizedFiles = fileArray.filter(file => file.size > 10 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      toast.error(t('tours.reviews.form.images.tooLarge'));
+      return;
+    }
+
+    setIsUploadingImages(true);
+
+    try {
+      const formData = new FormData();
+      fileArray.forEach(file => {
+        formData.append('files', file);
+      });
+
+      const response = await api.post('/upload/review-images', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const imageUrls = response.data?.data || [];
+      setReviewImages(prev => [...prev, ...imageUrls]);
+      toast.success(t('tours.reviews.form.images.uploadSuccess'));
+    } catch (err) {
+      console.error('Error uploading images:', err);
+      toast.error(t('tours.reviews.form.images.uploadError'));
+    } finally {
+      setIsUploadingImages(false);
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setReviewImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const sortedReviews = [...reviews].sort((a, b) => {
@@ -281,7 +379,9 @@ const TourReviews: React.FC<TourReviewsProps> = ({
         <div className="flex flex-col md:flex-row md:items-center md:space-x-8 space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="text-center">
-              <div className="text-4xl font-bold text-gray-900">{overallRating}</div>
+              <div className="text-4xl font-bold text-gray-900">
+                {overallRating > 0 ? overallRating.toFixed(1) : '0.0'}
+              </div>
               <div className="flex items-center justify-center mt-1">
                 {renderStars(Math.round(overallRating), 'lg')}
               </div>
@@ -293,22 +393,27 @@ const TourReviews: React.FC<TourReviewsProps> = ({
 
           {/* Rating Distribution */}
           <div className="flex-1 max-w-md space-y-2">
-            {[5, 4, 3, 2, 1].map((rating) => (
-              <div key={rating} className="flex items-center space-x-3">
-                <span className="text-sm font-medium w-8">{t('tours.reviews.ratingLabel', { rating })}</span>
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-yellow-400 h-2 rounded-full"
-                    style={{
-                      width: `${((ratingDistribution[rating] || 0) / totalReviews) * 100}%`
-                    }}
-                  />
+            {[5, 4, 3, 2, 1].map((rating) => {
+              const count = ratingDistribution[rating] || 0;
+              const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
+              return (
+                <div key={rating} className="flex items-center space-x-3">
+                  <span className="text-sm font-medium w-8">{t('tours.reviews.ratingLabel', { rating })}</span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${percentage}%`,
+                        minWidth: count > 0 ? '2px' : '0%'
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm text-gray-600 w-8 text-right">
+                    {count}
+                  </span>
                 </div>
-                <span className="text-sm text-gray-600 w-8">
-                  {ratingDistribution[rating] || 0}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -318,7 +423,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
         <div className="flex flex-wrap items-center space-x-4">
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest' | 'highest' | 'lowest' | 'helpful')}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="newest">{t('tours.reviews.sort.newest')}</option>
@@ -388,7 +493,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
               {/* Review Images */}
               {review.images && review.images.length > 0 && (
                 <div className="flex space-x-2 mb-4">
-                  {review.images.map((image, index) => (
+                  {review.images.map((image: string, index: number) => (
                     <img
                       key={index}
                       src={image}
@@ -558,6 +663,67 @@ const TourReviews: React.FC<TourReviewsProps> = ({
                     )}
                   </div>
                   
+                  {/* Images Upload */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('tours.reviews.form.images.label')}
+                      <span className="text-gray-500 text-xs ml-2">({t('tours.reviews.form.images.max')})</span>
+                    </label>
+                    
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+
+                    <div className="space-y-3">
+                      {/* Upload Button */}
+                      {reviewImages.length < 5 && (
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploadingImages}
+                          className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <div className="flex flex-col items-center justify-center space-y-2">
+                            <PhotoIcon className="h-8 w-8 text-gray-400" />
+                            <span className="text-sm text-gray-600">
+                              {isUploadingImages 
+                                ? t('tours.reviews.form.images.uploading')
+                                : t('tours.reviews.form.images.upload')
+                              }
+                            </span>
+                          </div>
+                        </button>
+                      )}
+
+                      {/* Image Preview */}
+                      {reviewImages.length > 0 && (
+                        <div className="grid grid-cols-5 gap-2">
+                          {reviewImages.map((imageUrl: string, index: number) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={imageUrl}
+                                alt={`Review image ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveImage(index)}
+                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <XMarkIcon className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
                   {/* Actions */}
                   <div className="flex items-center justify-between">
                     <button
@@ -565,6 +731,7 @@ const TourReviews: React.FC<TourReviewsProps> = ({
                         setShowReviewModal(false);
                         setReviewRating(5);
                         setReviewComment('');
+                        setReviewImages([]);
                       }}
                       className="text-sm text-gray-600 hover:text-gray-800"
                     >

@@ -607,6 +607,17 @@
           "minMax": "Minimum 10 characters, maximum 1000 characters",
           "counter": "{{count}}/1000"
         },
+        "images": {
+          "label": "Images (optional)",
+          "max": "Maximum 5 images",
+          "upload": "Choose images or drag and drop here",
+          "uploading": "Uploading...",
+          "uploadSuccess": "Images uploaded successfully",
+          "uploadError": "Error uploading images",
+          "tooMany": "You can only upload {{count}} more images",
+          "invalidType": "Only image files are accepted",
+          "tooLarge": "Each image must be less than 10MB"
+        },
         "note": {
           "title": "Note:",
           "message": "Your review will be moderated before being displayed publicly. We encourage you to share honest and detailed experiences to help other customers."
@@ -1359,7 +1370,7 @@
         "label": "Priority:"
       },
       "loadMore": "Load more notifications",
-      "loadMoreToast": "Load more feature will be updated",
+      "loading": "Loading...",
       "toast": {
         "loadError": "Unable to load notifications. Please try again later.",
         "markReadSuccess": "Marked as read",
@@ -1368,7 +1379,9 @@
         "markAllReadError": "Unable to mark all as read",
         "deleteSuccess": "Notification deleted",
         "deleteError": "Unable to delete notification",
-        "deleteSelectedSuccess": "Deleted {{count}} notifications"
+        "deleteSelectedSuccess": "Deleted {{count}} notifications",
+        "loadMoreSuccess": "Loaded {{count}} more notifications",
+        "loadMoreError": "Unable to load more notifications. Please try again later."
       },
       "time": {
         "justNow": "Just now",
@@ -1743,12 +1756,17 @@
     }
   },
   "wishlist": {
-    "title": "Favorite Tours",
-    "subtitle": "List of tours you've saved for later ({{count}} tour)",
+    "title": "Favorites",
+    "subtitle": "List of tours and partners you've saved",
+    "tabs": {
+      "tours": "Favorite Tours",
+      "partners": "Favorite Partners"
+    },
     "filters": {
       "title": "Filters and Sort",
-      "showing": "Showing {{display}} / {{total}} tours",
+      "showing": "Showing {{display}} / {{total}}",
       "searchPlaceholder": "Search favorite tours...",
+      "searchPlaceholderPartners": "Search favorite partners...",
       "category": {
         "all": "All Categories",
         "beach": "Beach Tours",
@@ -1761,7 +1779,9 @@
         "oldest": "Oldest Added",
         "priceLow": "Price: Low to High",
         "priceHigh": "Price: High to Low",
-        "rating": "Highest Rating"
+        "rating": "Highest Rating",
+        "nameAsc": "Name A-Z",
+        "nameDesc": "Name Z-A"
       },
       "clearFilters": "Clear Filters"
     },
@@ -1772,18 +1792,28 @@
       "addedDate": "Added: {{date}}",
       "removeTitle": "Remove from wishlist"
     },
+    "partner": {
+      "tours": "tours",
+      "viewDetails": "View Details",
+      "removeTitle": "Remove from favorites"
+    },
     "empty": {
-      "noResults": "No tours found",
+      "noResults": "No results found",
       "noResultsDescription": "Try changing filters or search keywords",
       "noWishlist": "No favorite tours yet",
       "noWishlistDescription": "Explore and save your favorite tours!",
-      "exploreTours": "Explore Tours"
+      "noPartners": "No favorite partners yet",
+      "noPartnersDescription": "Explore and save your favorite partners!",
+      "exploreTours": "Explore Tours",
+      "explorePartners": "Explore Partners"
     },
     "toast": {
-      "loadError": "Unable to load wishlist. Please try again later.",
-      "removeConfirm": "Are you sure you want to remove \"{{tourName}}\" from your wishlist?",
-      "removeSuccess": "Removed \"{{tourName}}\" from wishlist",
-      "removeError": "Unable to remove tour from wishlist"
+      "loadError": "Unable to load favorites. Please try again later.",
+      "removeConfirm": "Are you sure you want to remove \"{{name}}\" from your favorites?",
+      "removeSuccess": "Removed \"{{name}}\" from favorites",
+      "removeError": "Unable to remove from favorites",
+      "removePartnerSuccess": "Removed partner from favorites",
+      "removePartnerError": "Unable to remove partner from favorites"
     }
   },
   "loyalty": {
@@ -2352,7 +2382,10 @@
       "fromLabel": "From",
       "website": "Website",
       "reviews": "reviews",
-      "action": "View {{count}} tours"
+      "action": "View {{count}} tours",
+      "addedToFavorites": "Added to favorites",
+      "removedFromFavorites": "Removed from favorites",
+      "loginRequired": "Please login to add to favorites"
     },
     "contactForm": {
       "title": "Partnership Registration",

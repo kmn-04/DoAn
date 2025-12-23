@@ -23,9 +23,9 @@ import BookingForm from '../components/tours/BookingForm';
 import TourReviews from '../components/tours/TourReviews';
 import ReviewAiSummary from '../components/tours/ReviewAiSummary';
 import TourCard from '../components/tours/TourCard';
-import { Button } from '../components/ui';
 import { WeatherWidget } from '../components/weather';
 import tourService from '../services/tourService';
+import reviewService from '../services/reviewService';
 import { TourCardSkeleton, BookingFormSkeleton } from '../components/ui/Skeleton';
 import { useTranslation } from 'react-i18next';
 
@@ -63,7 +63,8 @@ interface TourDetail {
   weatherEnabled?: boolean;
 }
 
-// Mock tour detail data
+// Mock tour detail data (unused, kept for reference)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mockTourDetail: TourDetail = {
   id: 1,
   name: "Hạ Long Bay - Kỳ Quan Thế Giới",
@@ -160,14 +161,32 @@ const mockTourDetail: TourDetail = {
 
 
 const TourDetailPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const [tour, setTour] = useState<TourDetail | null>(null);
-  const [relatedTours, setRelatedTours] = useState<any[]>([]);
+  const [relatedTours, setRelatedTours] = useState<Array<{
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    price: number;
+    originalPrice?: number;
+    duration: string;
+    durationValue?: number;
+    location: string;
+    tourType?: 'domestic' | 'international';
+    rating: number;
+    reviewCount: number;
+    maxPeople: number;
+    image: string;
+    badgeKey?: string;
+    category: string;
+  }>>([]);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'reviews' | 'weather' | 'info'>('overview');
   const [isLoading, setIsLoading] = useState(true);
   const [expandedDays, setExpandedDays] = useState<number[]>([1]); // Mặc định mở rộng ngày đầu tiên
+  const [ratingStats, setRatingStats] = useState<{ averageRating: number; ratingDistribution: { [key: number]: number } } | null>(null);
 
   useEffect(() => {
     const fetchTour = async () => {
@@ -231,7 +250,7 @@ const TourDetailPage: React.FC = () => {
           allImages.push(tourResponse.mainImage);
         }
         if (tourResponse.images && tourResponse.images.length > 0) {
-          allImages = allImages.concat(tourResponse.images.map((img: any) => img.imageUrl));
+          allImages = allImages.concat(tourResponse.images.map((img: { imageUrl: string }) => img.imageUrl));
         }
         // Remove duplicates
         allImages = [...new Set(allImages)];
@@ -241,6 +260,10 @@ const TourDetailPage: React.FC = () => {
         const parsedDuration = Number(rawDuration);
         const durationValue = Number.isFinite(parsedDuration) ? parsedDuration : undefined;
         const badgeKey = tourResponse.isFeatured ? 'featured' : undefined;
+
+        // Use tour response data for rating (may be cached)
+        const averageRating = tourResponse.averageRating ? Number(tourResponse.averageRating) : 0;
+        const reviewCount = tourResponse.totalReviews || 0;
 
         const mappedTour: TourDetail = {
           id: tourResponse.id,
@@ -252,13 +275,12 @@ const TourDetailPage: React.FC = () => {
           duration: typeof rawDuration === 'string' ? rawDuration : `${rawDuration} ngày`,
           durationValue,
           location: tourResponse.destination || tourResponse.departureLocation || '',
-          rating: 4.5, // TODO: Add rating to backend
-          reviewCount: 0, // TODO: Add review count to backend
+          rating: averageRating,
+          reviewCount: reviewCount,
           maxPeople: tourResponse.maxPeople || 20,
           images: allImages.length > 0 ? allImages : ['/default-tour.jpg'],
           badgeKey,
           category: tourResponse.category?.name || 'Tour',
-          badgeKey,
           highlights: Array.isArray(tourResponse.highlights) 
             ? tourResponse.highlights 
             : (typeof tourResponse.highlights === 'string' 
@@ -271,7 +293,19 @@ const TourDetailPage: React.FC = () => {
           included: includedList,
           excluded: excludedList,
           itinerary: tourResponse.itineraries && tourResponse.itineraries.length > 0
-            ? tourResponse.itineraries.map((item: any) => ({
+            ? tourResponse.itineraries.map((item: {
+                id?: number;
+                dayNumber: number;
+                title: string;
+                description?: string;
+                location?: string;
+                activities?: string[] | string;
+                meals?: string;
+                accommodation?: string;
+                partner?: { name: string };
+                accommodationPartner?: { name: string };
+                mealsPartner?: { name: string };
+              }) => ({
                 day: item.dayNumber,
                 title: item.title,
                 description: item.description || '',
@@ -307,8 +341,8 @@ const TourDetailPage: React.FC = () => {
           cancellationPolicy: tourResponse.cancellationPolicy || 'Miễn phí hủy trong 24h. Hủy trước 7 ngày không tính phí.',
           availableDates: tourResponse.schedules && tourResponse.schedules.length > 0
             ? tourResponse.schedules
-                .filter((schedule: any) => schedule.status === 'AVAILABLE')
-                .map((schedule: any) => schedule.departureDate)
+                .filter((schedule: { status: string }) => schedule.status === 'AVAILABLE')
+                .map((schedule: { departureDate: string }) => schedule.departureDate)
             : [],
           latitude: tourResponse.latitude,
           longitude: tourResponse.longitude,
@@ -316,6 +350,22 @@ const TourDetailPage: React.FC = () => {
         };
         
         setTour(mappedTour);
+        
+        // Fetch rating stats from API
+        try {
+          const stats = await reviewService.getTourRatingStats(tourResponse.id);
+          setRatingStats({
+            averageRating: stats.averageRating || 0,
+            ratingDistribution: stats.ratingDistribution || {}
+          });
+        } catch (error) {
+          console.error('Error fetching rating stats:', error);
+          // Set empty stats as fallback
+          setRatingStats({
+            averageRating: averageRating,
+            ratingDistribution: {}
+          });
+        }
         
         // Fetch related tours with smart recommendation
         if (tourResponse.category?.id) {
@@ -325,22 +375,42 @@ const TourDetailPage: React.FC = () => {
             
             // Filter out current tour
             const availableTours = (Array.isArray(allToursInCategory) ? allToursInCategory : [])
-              .filter((t: any) => t.id !== tourResponse.id);
+              .filter((t: { id: number }) => t.id !== tourResponse.id);
             
             // Calculate price range
             const currentPrice = tourResponse.salePrice || tourResponse.price;
             const priceMin = currentPrice * 0.7;  // -30%
             const priceMax = currentPrice * 1.3;  // +30%
             
-            let relatedToursList: any[] = [];
+            interface RelatedTourItem {
+              id: number;
+              name: string;
+              slug: string;
+              shortDescription?: string;
+              description?: string;
+              salePrice?: number;
+              price: number;
+              duration: string | number;
+              destination?: string;
+              departureLocation?: string;
+              tourType?: string;
+              mainImage?: string;
+              images?: Array<{ imageUrl: string }>;
+              isFeatured?: boolean;
+              category?: { name: string };
+              rating?: number;
+              viewCount?: number;
+              maxPeople?: number;
+            }
+            let relatedToursList: RelatedTourItem[] = [];
             
             // TIER 1: Same category + similar price (±30%) + high rating
             const tier1 = availableTours
-              .filter((t: any) => {
+              .filter((t: RelatedTourItem) => {
                 const tPrice = t.salePrice || t.price;
                 return tPrice >= priceMin && tPrice <= priceMax;
               })
-              .sort((a: any, b: any) => {
+              .sort((a: RelatedTourItem, b: RelatedTourItem) => {
                 // Sort by rating (if available), then by view count
                 const ratingA = a.rating || 0;
                 const ratingB = b.rating || 0;
@@ -357,12 +427,12 @@ const TourDetailPage: React.FC = () => {
               const priceMaxWide = currentPrice * 1.5;  // +50%
               
               const tier2 = availableTours
-                .filter((t: any) => !relatedToursList.some((rt: any) => rt.id === t.id))
-                .filter((t: any) => {
+                .filter((t: RelatedTourItem) => !relatedToursList.some((rt: RelatedTourItem) => rt.id === t.id))
+                .filter((t: RelatedTourItem) => {
                   const tPrice = t.salePrice || t.price;
                   return tPrice >= priceMinWide && tPrice <= priceMaxWide;
                 })
-                .sort((a: any, b: any) => {
+                .sort((a: RelatedTourItem, b: RelatedTourItem) => {
                   const ratingA = a.rating || 0;
                   const ratingB = b.rating || 0;
                   if (ratingB !== ratingA) return ratingB - ratingA;
@@ -376,8 +446,8 @@ const TourDetailPage: React.FC = () => {
             // TIER 3: Still not enough, take any from same category
             if (relatedToursList.length < 3) {
               const tier3 = availableTours
-                .filter((t: any) => !relatedToursList.some((rt: any) => rt.id === t.id))
-                .sort((a: any, b: any) => {
+                .filter((t: RelatedTourItem) => !relatedToursList.some((rt: RelatedTourItem) => rt.id === t.id))
+                .sort((a: RelatedTourItem, b: RelatedTourItem) => {
                   const ratingA = a.rating || 0;
                   const ratingB = b.rating || 0;
                   if (ratingB !== ratingA) return ratingB - ratingA;
@@ -389,7 +459,7 @@ const TourDetailPage: React.FC = () => {
             }
             
             // Map API response to TourCard format
-            const mappedRelatedTours = relatedToursList.map((t: any) => {
+            const mappedRelatedTours = relatedToursList.map((t: RelatedTourItem) => {
               const relDurationValue = Number(t.duration);
               const badgeKey = t.isFeatured ? 'featured' : undefined;
               return {
@@ -402,12 +472,13 @@ const TourDetailPage: React.FC = () => {
                 duration: typeof t.duration === 'string' ? t.duration : `${t.duration} ngày`,
                 durationValue: Number.isFinite(relDurationValue) ? relDurationValue : undefined,
                 location: t.destination || t.departureLocation || '',
-                tourType: t.tourType === 'INTERNATIONAL' ? 'international' : 'domestic',
+                tourType: (t.tourType === 'INTERNATIONAL' ? 'international' : 'domestic') as 'domestic' | 'international',
                 rating: 4.5, // TODO: Get from backend
                 reviewCount: 0, // TODO: Get from backend
                 image: t.mainImage || (t.images && t.images.length > 0 ? t.images[0].imageUrl : '/default-tour.jpg'),
                 badgeKey,
-                category: t.category?.name || 'Tour'
+                category: t.category?.name || 'Tour',
+                maxPeople: (t as RelatedTourItem).maxPeople || 20
               };
             });
             
@@ -431,7 +502,7 @@ const TourDetailPage: React.FC = () => {
     fetchTour();
   }, [slug]);
 
-  const handleBooking = (bookingData: any) => {
+  const handleBooking = () => {
     // In real app, process booking
     window.alert(t('tours.detail.alerts.bookingSuccess'));
   };
@@ -449,13 +520,6 @@ const TourDetailPage: React.FC = () => {
     }
   };
 
-  const formatPrice = (price: number) => {
-    const locale = i18n.language === 'vi' ? 'vi-VN' : 'en-US';
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price);
-  };
 
   const toggleDayExpanded = (dayNumber: number) => {
     setExpandedDays(prev => 
@@ -556,13 +620,13 @@ const TourDetailPage: React.FC = () => {
     );
   }
 
-  const ratingDistribution = {
-    5: 150,
-    4: 70,
-    3: 20,
-    2: 3,
-    1: 2
-  };
+  // Use real rating distribution from API, fallback to empty if not loaded yet
+  const ratingDistribution = ratingStats?.ratingDistribution || {};
+  
+  // Calculate total reviews from rating distribution
+  const calculatedTotalReviews = ratingStats?.ratingDistribution 
+    ? Object.values(ratingStats.ratingDistribution).reduce((sum: number, count: number) => sum + count, 0)
+    : (tour?.reviewCount || 0);
 
   const badgeLabel = tour.badge || (tour.badgeKey ? t(`tours.card.badges.${tour.badgeKey}`) : undefined);
   const categoryLabel = tour.category || t('tours.detail.categoryFallback');
@@ -666,7 +730,7 @@ const TourDetailPage: React.FC = () => {
                 ].map((tab) => (
                   <button
                     key={tab.key}
-                    onClick={() => setActiveTab(tab.key as any)}
+                    onClick={() => setActiveTab(tab.key as 'overview' | 'itinerary' | 'reviews' | 'weather' | 'info')}
                     className={`flex-1 py-3 px-4 font-medium text-sm tracking-wide transition-all rounded-none ${
                       activeTab === tab.key
                         ? 'bg-slate-900 text-white shadow-md'
@@ -804,20 +868,20 @@ const TourDetailPage: React.FC = () => {
                                 ))}
                                 
                                 {/* Partners - Chỉ hiển thị khách sạn và nhà hàng */}
-                                {((day as any).accommodationPartner || (day as any).mealsPartner) && (
+                                {((day as unknown as { accommodationPartner?: { name: string }; mealsPartner?: { name: string } }).accommodationPartner || (day as unknown as { accommodationPartner?: { name: string }; mealsPartner?: { name: string } }).mealsPartner) && (
                                   <div className="flex items-start space-x-3 pt-2">
                                     <div className="h-4 w-4 flex-shrink-0"></div>
                                     <div className="text-sm text-gray-600 italic flex flex-wrap gap-x-6 gap-y-1">
-                                      {(day as any).accommodationPartner && (
+                                      {(day as unknown as { accommodationPartner?: { name: string } }).accommodationPartner && (
                                         <span className="flex items-center gap-1.5">
                                           <IoBedOutline className="h-4 w-4 text-blue-600" />
-                                          <span className="text-blue-700 font-medium">{(day as any).accommodationPartner.name}</span>
+                                          <span className="text-blue-700 font-medium">{(day as unknown as { accommodationPartner: { name: string } }).accommodationPartner.name}</span>
                                         </span>
                                       )}
-                                      {(day as any).mealsPartner && (
+                                      {(day as unknown as { mealsPartner?: { name: string } }).mealsPartner && (
                                         <span className="flex items-center gap-1.5">
                                           <IoRestaurantOutline className="h-4 w-4 text-orange-600" />
-                                          <span className="text-orange-700 font-medium">{(day as any).mealsPartner.name}</span>
+                                          <span className="text-orange-700 font-medium">{(day as unknown as { mealsPartner: { name: string } }).mealsPartner.name}</span>
                                         </span>
                                       )}
                                     </div>
@@ -842,9 +906,28 @@ const TourDetailPage: React.FC = () => {
 
                   <TourReviews
                     tourId={tour.id}
-                    overallRating={tour.rating}
-                    totalReviews={tour.reviewCount}
+                    overallRating={ratingStats?.averageRating || tour.rating || 0}
+                    totalReviews={calculatedTotalReviews}
                     ratingDistribution={ratingDistribution}
+                    onReviewSubmitted={async () => {
+                      // Refresh rating stats after review submission
+                      try {
+                        const stats = await reviewService.getTourRatingStats(tour.id);
+                        const totalCount = Object.values(stats.ratingDistribution || {}).reduce((sum: number, count: number) => sum + count, 0);
+                        setRatingStats({
+                          averageRating: stats.averageRating || 0,
+                          ratingDistribution: stats.ratingDistribution || {}
+                        });
+                        // Also update tour object
+                        setTour(prev => prev ? {
+                          ...prev,
+                          rating: stats.averageRating || 0,
+                          reviewCount: totalCount
+                        } : null);
+                      } catch (error) {
+                        console.error('Error refreshing rating stats:', error);
+                      }
+                    }}
                   />
                 </>
               )}

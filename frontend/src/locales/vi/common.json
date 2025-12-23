@@ -629,7 +629,53 @@
       "noBooking": "Không tìm thấy booking hợp lệ cho tour này",
       "submitSuccess": "Đánh giá của bạn đã được gửi thành công!",
       "submitError": "Có lỗi xảy ra khi gửi đánh giá",
-      "helpfulError": "Có lỗi xảy ra khi đánh giá. Vui lòng thử lại."
+      "helpfulError": "Có lỗi xảy ra khi đánh giá. Vui lòng thử lại.",
+      "form": {
+        "title": "Viết đánh giá của bạn",
+        "rating": {
+          "label": "Đánh giá",
+          "select": "Chọn đánh giá",
+          "labels": {
+            "1": "Rất tệ",
+            "2": "Tệ",
+            "3": "Bình thường",
+            "4": "Tốt",
+            "5": "Xuất sắc"
+          }
+        },
+        "comment": {
+          "label": "Nhận xét",
+          "placeholder": "Chia sẻ trải nghiệm của bạn về tour này (10-1000 ký tự)...",
+          "minMax": "Tối thiểu 10 ký tự, tối đa 1000 ký tự",
+          "counter": "{{count}}/1000"
+        },
+        "images": {
+          "label": "Hình ảnh (tùy chọn)",
+          "max": "Tối đa 5 ảnh",
+          "upload": "Chọn ảnh hoặc kéo thả vào đây",
+          "uploading": "Đang tải lên...",
+          "uploadSuccess": "Upload ảnh thành công",
+          "uploadError": "Lỗi upload ảnh",
+          "tooMany": "Chỉ có thể upload tối đa {{count}} ảnh nữa",
+          "invalidType": "Chỉ chấp nhận file ảnh",
+          "tooLarge": "Mỗi ảnh phải nhỏ hơn 10MB"
+        },
+        "note": {
+          "title": "Lưu ý:",
+          "message": "Đánh giá của bạn sẽ được kiểm duyệt trước khi hiển thị công khai. Chúng tôi khuyến khích bạn chia sẻ trải nghiệm chân thực và chi tiết để giúp các khách hàng khác."
+        },
+        "buttons": {
+          "cancel": "Hủy",
+          "submit": "Gửi đánh giá",
+          "submitting": "Đang gửi..."
+        },
+        "errors": {
+          "ratingRequired": "Vui lòng chọn đánh giá",
+          "commentMinLength": "Nhận xét phải có ít nhất 10 ký tự",
+          "submitError": "Có lỗi xảy ra khi gửi đánh giá"
+        },
+        "success": "Đánh giá của bạn đã được gửi thành công! Chúng tôi sẽ kiểm duyệt và hiển thị sớm nhất có thể."
+      }
     },
     "aiSummary": {
       "title": "Tóm tắt đánh giá từ AI",
@@ -1324,7 +1370,7 @@
         "label": "Mức độ:"
       },
       "loadMore": "Tải thêm thông báo",
-      "loadMoreToast": "Tính năng tải thêm sẽ được cập nhật",
+      "loading": "Đang tải...",
       "toast": {
         "loadError": "Không thể tải thông báo. Vui lòng thử lại sau.",
         "markReadSuccess": "Đã đánh dấu đã đọc",
@@ -1333,7 +1379,9 @@
         "markAllReadError": "Không thể đánh dấu tất cả đã đọc",
         "deleteSuccess": "Đã xóa thông báo",
         "deleteError": "Không thể xóa thông báo",
-        "deleteSelectedSuccess": "Đã xóa {{count}} thông báo"
+        "deleteSelectedSuccess": "Đã xóa {{count}} thông báo",
+        "loadMoreSuccess": "Đã tải thêm {{count}} thông báo",
+        "loadMoreError": "Không thể tải thêm thông báo. Vui lòng thử lại sau."
       },
       "time": {
         "justNow": "Vừa xong",
@@ -1708,12 +1756,17 @@
     }
   },
   "wishlist": {
-    "title": "Tour yêu thích",
-    "subtitle": "Danh sách các tour du lịch bạn đã lưu để xem sau ({{count}} tour)",
+    "title": "Yêu thích",
+    "subtitle": "Danh sách tour và đối tác bạn đã lưu",
+    "tabs": {
+      "tours": "Tour yêu thích",
+      "partners": "Đối tác yêu thích"
+    },
     "filters": {
       "title": "Bộ lọc và sắp xếp",
-      "showing": "Hiển thị {{display}} / {{total}} tour",
+      "showing": "Hiển thị {{display}} / {{total}}",
       "searchPlaceholder": "Tìm tour yêu thích...",
+      "searchPlaceholderPartners": "Tìm đối tác yêu thích...",
       "category": {
         "all": "Tất cả danh mục",
         "beach": "Tour Biển",
@@ -1726,7 +1779,9 @@
         "oldest": "Cũ nhất",
         "priceLow": "Giá thấp đến cao",
         "priceHigh": "Giá cao đến thấp",
-        "rating": "Đánh giá cao nhất"
+        "rating": "Đánh giá cao nhất",
+        "nameAsc": "Tên A-Z",
+        "nameDesc": "Tên Z-A"
       },
       "clearFilters": "Xóa bộ lọc"
     },
@@ -1737,18 +1792,28 @@
       "addedDate": "Đã thêm: {{date}}",
       "removeTitle": "Xóa khỏi danh sách yêu thích"
     },
+    "partner": {
+      "tours": "tours",
+      "viewDetails": "Xem Chi Tiết",
+      "removeTitle": "Xóa khỏi danh sách yêu thích"
+    },
     "empty": {
-      "noResults": "Không tìm thấy tour nào",
+      "noResults": "Không tìm thấy kết quả nào",
       "noResultsDescription": "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm",
       "noWishlist": "Chưa có tour yêu thích",
       "noWishlistDescription": "Hãy khám phá và lưu những tour du lịch yêu thích của bạn!",
-      "exploreTours": "Khám phá tours"
+      "noPartners": "Chưa có đối tác yêu thích",
+      "noPartnersDescription": "Hãy khám phá và lưu những đối tác yêu thích của bạn!",
+      "exploreTours": "Khám phá tours",
+      "explorePartners": "Khám phá đối tác"
     },
     "toast": {
       "loadError": "Không thể tải danh sách yêu thích. Vui lòng thử lại sau.",
-      "removeConfirm": "Bạn có chắc muốn xóa \"{{tourName}}\" khỏi danh sách yêu thích?",
-      "removeSuccess": "Đã xóa \"{{tourName}}\" khỏi danh sách yêu thích",
-      "removeError": "Không thể xóa tour khỏi danh sách yêu thích"
+      "removeConfirm": "Bạn có chắc muốn xóa \"{{name}}\" khỏi danh sách yêu thích?",
+      "removeSuccess": "Đã xóa \"{{name}}\" khỏi danh sách yêu thích",
+      "removeError": "Không thể xóa khỏi danh sách yêu thích",
+      "removePartnerSuccess": "Đã xóa đối tác khỏi danh sách yêu thích",
+      "removePartnerError": "Không thể xóa đối tác khỏi danh sách yêu thích"
     }
   },
   "loyalty": {
@@ -2253,7 +2318,10 @@
       "fromLabel": "Từ",
       "website": "Website",
       "reviews": "đánh giá",
-      "action": "Xem {{count}} tours"
+      "action": "Xem {{count}} tours",
+      "addedToFavorites": "Đã thêm vào yêu thích",
+      "removedFromFavorites": "Đã xóa khỏi yêu thích",
+      "loginRequired": "Vui lòng đăng nhập để thêm vào yêu thích"
     },
     "contactForm": {
       "title": "Đăng ký Hợp tác",

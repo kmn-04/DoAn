@@ -107,4 +107,24 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT u FROM User u WHERE u.emailVerifiedAt IS NOT NULL AND u.deletedAt IS NULL")
     List<User> findVerifiedUsers();
+    
+    /**
+     * Find online users (active within last N minutes)
+     * Users are considered online if their lastActivityAt is within the specified minutes
+     */
+    @Query("SELECT u FROM User u WHERE u.lastActivityAt IS NOT NULL " +
+           "AND u.lastActivityAt >= :sinceTime " +
+           "AND u.deletedAt IS NULL " +
+           "AND u.status = 'ACTIVE' " +
+           "ORDER BY u.lastActivityAt DESC")
+    List<User> findOnlineUsers(@Param("sinceTime") LocalDateTime sinceTime);
+    
+    /**
+     * Find users with recent activity, sorted by lastActivityAt DESC
+     * Returns users who have lastActivityAt set, excluding deleted users
+     */
+    @Query("SELECT u FROM User u WHERE u.lastActivityAt IS NOT NULL " +
+           "AND u.deletedAt IS NULL " +
+           "ORDER BY u.lastActivityAt DESC")
+    List<User> findRecentActiveUsers(Pageable pageable);
 }

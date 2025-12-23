@@ -15,6 +15,7 @@ import backend.repository.TourRepository;
 import backend.repository.UserRepository;
 import backend.service.NotificationService;
 import backend.service.ReviewService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,6 +41,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final EntityMapper mapper;
     private final NotificationService notificationService;
     private final backend.service.LoyaltyService loyaltyService;
+    private final ObjectMapper objectMapper;
     
     @org.springframework.beans.factory.annotation.Value("${app.chatbot.url:http://localhost:5000}")
     private String chatbotUrl;
@@ -101,6 +104,18 @@ public class ReviewServiceImpl implements ReviewService {
         review.setStatus(ReviewStatus.APPROVED); // Auto-approve
         review.setHelpfulCount(0);
         
+        // Save images as JSON string if provided
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            try {
+                String imagesJson = objectMapper.writeValueAsString(request.getImages());
+                review.setImages(imagesJson);
+                log.info("Saved {} images for review", request.getImages().size());
+            } catch (Exception e) {
+                log.error("Error serializing images to JSON: {}", e.getMessage());
+                // Continue without images if serialization fails
+            }
+        }
+        
         Review savedReview = reviewRepository.save(review);
         
         // Update tour rating
@@ -108,12 +123,12 @@ public class ReviewServiceImpl implements ReviewService {
         
         // Award loyalty points for review
         try {
-            // Check if review has photos (for future implementation)
-            boolean hasPhotos = false; // TODO: Add images support to ReviewCreateRequest
+            // Check if review has photos
+            boolean hasPhotos = request.getImages() != null && !request.getImages().isEmpty();
             int contentLength = request.getComment() != null ? request.getComment().length() : 0;
             
             loyaltyService.awardReviewPoints(userId, savedReview.getId(), hasPhotos, contentLength);
-            log.info("Awarded loyalty points for review {}", savedReview.getId());
+            log.info("Awarded loyalty points for review {} (hasPhotos: {})", savedReview.getId(), hasPhotos);
         } catch (Exception e) {
             log.error("Error awarding loyalty points for review {}: {}", savedReview.getId(), e.getMessage());
             // Don't fail review creation if loyalty points fail
@@ -139,6 +154,22 @@ public class ReviewServiceImpl implements ReviewService {
         review.setRating(request.getRating());
         review.setComment(request.getComment());
         review.setStatus(ReviewStatus.PENDING); // Reset to pending after update
+        
+        // Update images if provided
+        if (request.getImages() != null) {
+            try {
+                if (request.getImages().isEmpty()) {
+                    review.setImages(null);
+                } else {
+                    String imagesJson = objectMapper.writeValueAsString(request.getImages());
+                    review.setImages(imagesJson);
+                    log.info("Updated {} images for review {}", request.getImages().size(), reviewId);
+                }
+            } catch (Exception e) {
+                log.error("Error serializing images to JSON: {}", e.getMessage());
+                // Continue without images if serialization fails
+            }
+        }
         
         Review updatedReview = reviewRepository.save(review);
         
@@ -403,11 +434,20 @@ public class ReviewServiceImpl implements ReviewService {
         List<Object[]> distribution = reviewRepository.countReviewsByRatingForTour(
                 tourId, ReviewStatus.APPROVED);
         
-        return distribution.stream()
-                .collect(Collectors.toMap(
-                        row -> (Integer) row[0],
-                        row -> (Long) row[1]
-                ));
+        // Normalize to ensure all ratings 1-5 are present (with 0 if no reviews)
+        Map<Integer, Long> result = new HashMap<>();
+        for (int i = 1; i <= 5; i++) {
+            result.put(i, 0L);
+        }
+        
+        // Fill in actual counts
+        distribution.forEach(row -> {
+            Integer rating = (Integer) row[0];
+            Long count = (Long) row[1];
+            result.put(rating, count);
+        });
+        
+        return result;
     }
     
     /**

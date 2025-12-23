@@ -77,6 +77,35 @@ public class FileUploadController extends BaseController {
         }
     }
 
+    @PostMapping("/review-images")
+    @Operation(summary = "Upload images for review (Authenticated users)")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<String>>> uploadReviewImages(@RequestParam("files") MultipartFile[] files) {
+        try {
+            // Validate number of files (max 5 for reviews)
+            if (files.length > 5) {
+                return ResponseEntity.badRequest()
+                        .body(error("Maximum 5 images allowed for reviews"));
+            }
+
+            List<String> imageUrls = new ArrayList<>();
+            for (MultipartFile file : files) {
+                // Validate file size (max 10MB)
+                if (file.getSize() > 10 * 1024 * 1024) {
+                    return ResponseEntity.badRequest()
+                            .body(error("Each image must be less than 10MB"));
+                }
+                String imageUrl = saveFile(file);
+                imageUrls.add(imageUrl);
+            }
+            return ResponseEntity.ok(success("Review images uploaded successfully", imageUrls));
+        } catch (Exception e) {
+            log.error("Error uploading review images", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to upload review images: " + e.getMessage()));
+        }
+    }
+
     @DeleteMapping("/image")
     @Operation(summary = "Delete image")
     @PreAuthorize("hasRole('ADMIN')")

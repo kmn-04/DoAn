@@ -47,7 +47,11 @@ const NotificationsPage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedNotifications, setSelectedNotifications] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalNotifications, setTotalNotifications] = useState(0);
   
   const [filters, setFilters] = useState({
     type: 'all',
@@ -61,13 +65,16 @@ const NotificationsPage: React.FC = () => {
     read: 0
   });
 
+  const pageSize = 20;
+
   useEffect(() => {
     const fetchNotifications = async () => {
       if (!user?.id) return;
       
       try {
         setIsLoading(true);
-        const response = await notificationService.getNotifications(user.id, 0, 50);
+        setCurrentPage(0);
+        const response = await notificationService.getNotifications(user.id, 0, pageSize);
         
         const notificationList = response.notifications || [];
         
@@ -85,13 +92,15 @@ const NotificationsPage: React.FC = () => {
         }));
         
         setNotifications(mappedNotifications);
+        setTotalNotifications(response.total || mappedNotifications.length);
+        setHasMore(mappedNotifications.length < (response.total || mappedNotifications.length));
         
         // Calculate stats
         const unreadCount = mappedNotifications.filter(n => !n.isRead).length;
         setStats({
-          total: mappedNotifications.length,
-          unread: unreadCount,
-          read: mappedNotifications.length - unreadCount
+          total: response.total || mappedNotifications.length,
+          unread: response.unread || unreadCount,
+          read: (response.total || mappedNotifications.length) - (response.unread || unreadCount)
         });
         
       } catch (error) {
@@ -346,6 +355,56 @@ const NotificationsPage: React.FC = () => {
     } catch (error) {
       console.error('Error deleting notifications:', error);
       toast.error(t('dashboard.notifications.toast.deleteError'));
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (!user?.id || isLoadingMore || !hasMore) return;
+    
+    try {
+      setIsLoadingMore(true);
+      const nextPage = currentPage + 1;
+      const response = await notificationService.getNotifications(user.id, nextPage, pageSize);
+      
+      const notificationList = response.notifications || [];
+      
+      // Map backend data to frontend format
+      const mappedNotifications: Notification[] = notificationList.map(notif => ({
+        id: String(notif.id),
+        type: mapNotificationType(notif.type?.toLowerCase() || 'info'),
+        title: notif.title || t('dashboard.notifications.title'),
+        message: notif.message || '',
+        date: notif.createdAt || new Date().toISOString(),
+        isRead: notif.isRead || false,
+        priority: mapPriority(notif.type?.toLowerCase()),
+        actionUrl: notif.actionUrl || '',
+        actionText: getActionText(notif.type?.toLowerCase())
+      }));
+      
+      // Append new notifications to existing list
+      setNotifications(prev => {
+        const updated = [...prev, ...mappedNotifications];
+        // Check if there are more notifications to load
+        const totalLoaded = updated.length;
+        setHasMore(totalLoaded < (response.total || totalLoaded));
+        return updated;
+      });
+      setCurrentPage(nextPage);
+      
+      // Update stats
+      const unreadCount = mappedNotifications.filter(n => !n.isRead).length;
+      setStats(prev => ({
+        ...prev,
+        unread: prev.unread + unreadCount,
+        read: prev.read + (mappedNotifications.length - unreadCount)
+      }));
+      
+      toast.success(t('dashboard.notifications.toast.loadMoreSuccess', { count: mappedNotifications.length }));
+    } catch (error) {
+      console.error('Error loading more notifications:', error);
+      toast.error(t('dashboard.notifications.toast.loadMoreError'));
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -634,16 +693,22 @@ const NotificationsPage: React.FC = () => {
         </div>
 
         {/* Load More */}
-        {filteredNotifications.length > 0 && filteredNotifications.length < notifications.length && (
+        {hasMore && filteredNotifications.length > 0 && (
           <div className="mt-8 text-center">
             <Button
               variant="outline"
-              onClick={() => {
-                // TODO: Implement load more functionality
-                toast(t('dashboard.notifications.loadMoreToast'));
-              }}
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              className="min-w-[150px]"
             >
-              {t('dashboard.notifications.loadMore')}
+              {isLoadingMore ? (
+                <>
+                  <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></span>
+                  {t('dashboard.notifications.loading')}
+                </>
+              ) : (
+                t('dashboard.notifications.loadMore')
+              )}
             </Button>
           </div>
         )}

@@ -5,6 +5,7 @@ export interface ReviewCreateRequest {
   bookingId: number;
   rating: number;
   comment: string;
+  images?: string[]; // Optional: List of image URLs (max 5)
 }
 
 export interface ReviewUpdateRequest {

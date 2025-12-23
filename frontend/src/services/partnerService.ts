@@ -200,6 +200,33 @@ const partnerService = {
       logo: response.images?.find(img => img.imageType === 'logo')?.imageUrl,
       coverImage: response.images?.find(img => img.imageType === 'cover')?.imageUrl || response.images?.[0]?.imageUrl
     };
+  },
+
+  // Partner Favorites
+  addToFavorites: async (partnerId: number): Promise<void> => {
+    await apiClient.post(`/partners/${partnerId}/favorite`);
+  },
+
+  removeFromFavorites: async (partnerId: number): Promise<void> => {
+    await apiClient.delete(`/partners/${partnerId}/favorite`);
+  },
+
+  isFavorited: async (partnerId: number): Promise<boolean> => {
+    try {
+      const response = await apiClient.get<ApiResponse<{ isFavorited: boolean }>>(`/partners/${partnerId}/favorite`);
+      return response.data.data?.isFavorited || false;
+    } catch (error) {
+      return false;
+    }
+  },
+
+  getUserFavorites: async (): Promise<number[]> => {
+    try {
+      const response = await apiClient.get<ApiResponse<number[]>>('/partners/favorites');
+      return response.data.data || [];
+    } catch (error) {
+      return [];
+    }
   }
 };
 

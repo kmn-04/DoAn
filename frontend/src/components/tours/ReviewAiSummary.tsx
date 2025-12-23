@@ -50,67 +50,83 @@ const ReviewAiSummary: React.FC<ReviewAiSummaryProps> = ({ tourId }) => {
     );
   }
 
-  if (error || !summary) {
+  if (error) {
     return null; // Không hiển thị gì nếu có lỗi
   }
 
+  if (!summary) {
+    return null; // Không hiển thị gì nếu không có summary
+  }
+
   return (
-    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
+    <div className="bg-white rounded-lg border border-stone-200 p-4">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <SparklesIcon className="h-6 w-6 text-purple-600" />
-        <h3 className="text-lg font-bold text-gray-900">
-          {t('tours.reviews.aiSummary.title')}
-        </h3>
-        {summary.cached && (
-          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-            {t('tours.reviews.aiSummary.cached')}
-          </span>
-        )}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <SparklesIcon className="h-5 w-5 text-purple-600" />
+          <h3 className="text-base font-medium text-gray-900">
+            {t('tours.reviews.aiSummary.title', { defaultValue: 'Tóm tắt đánh giá từ AI' })}
+          </h3>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-gray-500">
+          {summary.totalReviews > 0 && (
+            <>
+              <span>📊 {summary.totalReviews}</span>
+              <span>⭐ {(summary.averageRating || 0).toFixed(1)}</span>
+            </>
+          )}
+          {summary.cached && (
+            <span className="text-green-600">• {t('tours.reviews.aiSummary.cached', { defaultValue: 'Cached' })}</span>
+          )}
+        </div>
       </div>
 
       {/* Overall Summary */}
-      {summary.summary && (
-        <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200">
-          <p className="text-gray-700 leading-relaxed">{summary.summary}</p>
-          <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
-            <span>📊 {t('tours.reviews.aiSummary.reviewCount', { count: summary.totalReviews })}</span>
-            <span>⭐ {summary.averageRating?.toFixed(1)}/5</span>
-          </div>
+      {summary.summary ? (
+        <p className="text-sm text-gray-700 leading-relaxed mb-3">{summary.summary}</p>
+      ) : (
+        <p className="text-sm text-gray-500 mb-3">
+          {summary.totalReviews === 0 
+            ? 'Hiện tại chưa có đánh giá nào cho tour này.'
+            : 'Đang tạo tóm tắt đánh giá...'
+          }
+        </p>
+      )}
+
+      {/* Positive & Negative Points */}
+      {(summary.positive || summary.negative) && (
+        <div className="grid md:grid-cols-2 gap-3 mt-3 pt-3 border-t border-stone-200">
+          {/* Positive Points */}
+          {summary.positive && (
+            <div className="flex items-start gap-2">
+              <CheckCircleIcon className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="text-xs font-medium text-green-900 mb-1">{t('tours.reviews.aiSummary.positive.title', { defaultValue: 'Điểm tích cực' })}</h4>
+                <p className="text-xs text-green-700 leading-relaxed">{summary.positive}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Negative Points */}
+          {summary.negative && (
+            <div className="flex items-start gap-2">
+              <XCircleIcon className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="text-xs font-medium text-red-900 mb-1">{t('tours.reviews.aiSummary.negative.title', { defaultValue: 'Điểm cần cải thiện' })}</h4>
+                <p className="text-xs text-red-700 leading-relaxed">{summary.negative}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      <div className="grid md:grid-cols-2 gap-4">
-        {/* Positive Points */}
-        {summary.positive && (
-          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-            <div className="flex items-start gap-2 mb-2">
-              <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-semibold text-green-900 mb-2">{t('tours.reviews.aiSummary.positive.title')}</h4>
-                <p className="text-sm text-green-800 whitespace-pre-line">{summary.positive}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Negative Points */}
-        {summary.negative && (
-          <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-            <div className="flex items-start gap-2 mb-2">
-              <XCircleIcon className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-semibold text-red-900 mb-2">{t('tours.reviews.aiSummary.negative.title')}</h4>
-                <p className="text-sm text-red-800 whitespace-pre-line">{summary.negative}</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      <div className="mt-4 text-xs text-gray-500 text-center">
-        {t('tours.reviews.aiSummary.footer.createdBy')} • {t('tours.reviews.aiSummary.footer.updatedAt')}: {new Date(summary.generatedAt).toLocaleString(i18n.language === 'vi' ? 'vi-VN' : 'en-US')}
+      {/* Footer - Compact */}
+      <div className="mt-3 pt-2 border-t border-stone-100 text-xs text-gray-400 text-center">
+        {t('tours.reviews.aiSummary.footer.createdBy', { defaultValue: 'Tóm tắt được tạo bởi AI' })} • {new Date(summary.generatedAt).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        })}
       </div>
     </div>
   );

@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,4 +25,8 @@ public class ReviewCreateRequest {
     
     @Size(min = 10, max = 1000, message = "Comment must be between 10 and 1000 characters")
     private String comment;
+    
+    // Optional: List of image URLs (max 5 images)
+    @Size(max = 5, message = "Maximum 5 images allowed")
+    private List<String> images;
 }

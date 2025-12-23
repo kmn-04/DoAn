@@ -193,6 +193,21 @@ const MyReviewsPage: React.FC = () => {
                     {review.comment}
                   </p>
 
+                  {/* Review Images */}
+                  {review.images && review.images.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {review.images.map((image, index) => (
+                        <img
+                          key={index}
+                          src={image}
+                          alt={`Review image ${index + 1}`}
+                          className="h-24 w-24 object-cover rounded-lg border border-stone-200 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => window.open(image, '_blank')}
+                        />
+                      ))}
+                    </div>
+                  )}
+
                   {/* Admin Reply */}
                   {review.adminReply && (
                     <div className="bg-amber-50 border-l-4 p-5 mt-4 rounded-none" style={{ borderColor: '#D4AF37' }}>

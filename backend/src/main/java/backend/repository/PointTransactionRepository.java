@@ -33,6 +33,11 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
     List<PointTransaction> findByTransactionType(TransactionType transactionType);
     
     /**
+     * Find transactions by transaction type with pagination
+     */
+    Page<PointTransaction> findByTransactionTypeOrderByCreatedAtDesc(TransactionType transactionType, Pageable pageable);
+    
+    /**
      * Find transactions by source type and source ID
      */
     List<PointTransaction> findBySourceTypeAndSourceId(SourceType sourceType, Long sourceId);
@@ -113,5 +118,53 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
      */
     @Query("SELECT SUM(ABS(pt.points)) FROM PointTransaction pt WHERE pt.transactionType = 'REDEEMED'")
     Integer getTotalRedeemedSum();
+
+    // ================================
+    // DATE RANGE FILTERING QUERIES
+    // ================================
+
+    /**
+     * Find all transactions by date range with pagination
+     */
+    @Query("SELECT pt FROM PointTransaction pt WHERE pt.createdAt BETWEEN :startDate AND :endDate ORDER BY pt.createdAt DESC")
+    Page<PointTransaction> findByDateRange(
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        Pageable pageable
+    );
+
+    /**
+     * Find transactions by user ID and date range with pagination
+     */
+    @Query("SELECT pt FROM PointTransaction pt WHERE pt.user.id = :userId AND pt.createdAt BETWEEN :startDate AND :endDate ORDER BY pt.createdAt DESC")
+    Page<PointTransaction> findByUserIdAndDateRange(
+        @Param("userId") Long userId,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        Pageable pageable
+    );
+
+    /**
+     * Find transactions by transaction type and date range with pagination
+     */
+    @Query("SELECT pt FROM PointTransaction pt WHERE pt.transactionType = :transactionType AND pt.createdAt BETWEEN :startDate AND :endDate ORDER BY pt.createdAt DESC")
+    Page<PointTransaction> findByTransactionTypeAndDateRange(
+        @Param("transactionType") TransactionType transactionType,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        Pageable pageable
+    );
+
+    /**
+     * Find transactions by user ID, transaction type and date range with pagination
+     */
+    @Query("SELECT pt FROM PointTransaction pt WHERE pt.user.id = :userId AND pt.transactionType = :transactionType AND pt.createdAt BETWEEN :startDate AND :endDate ORDER BY pt.createdAt DESC")
+    Page<PointTransaction> findByUserIdAndTransactionTypeAndDateRange(
+        @Param("userId") Long userId,
+        @Param("transactionType") TransactionType transactionType,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        Pageable pageable
+    );
 }
 

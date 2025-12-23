@@ -27,6 +27,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -230,22 +232,96 @@ public class AdminLoyaltyController extends BaseController {
         try {
             Pageable pageable = createPageable(page, size, "createdAt", "desc");
             
+            // Parse date range if provided
+            LocalDateTime startDateTime = null;
+            LocalDateTime endDateTime = null;
+            boolean hasDateRange = false;
+            
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                try {
+                    startDateTime = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    hasDateRange = true;
+                } catch (DateTimeParseException e) {
+                    // Try parsing as date only (set to start of day)
+                    try {
+                        startDateTime = java.time.LocalDate.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                            .atStartOfDay();
+                        hasDateRange = true;
+                    } catch (DateTimeParseException ex) {
+                        log.warn("Invalid startDate format: {}", startDate);
+                    }
+                }
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                try {
+                    endDateTime = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    hasDateRange = true;
+                } catch (DateTimeParseException e) {
+                    // Try parsing as date only (set to end of day)
+                    try {
+                        endDateTime = java.time.LocalDate.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                            .atTime(23, 59, 59);
+                        hasDateRange = true;
+                    } catch (DateTimeParseException ex) {
+                        log.warn("Invalid endDate format: {}", endDate);
+                    }
+                }
+            }
+            
+            // Validate date range
+            if (hasDateRange && startDateTime != null && endDateTime != null && startDateTime.isAfter(endDateTime)) {
+                return ResponseEntity.badRequest().body(error("Start date must be before end date"));
+            }
+            
+            // If date range is provided but only one date, set default for the other
+            if (startDateTime != null && endDateTime == null) {
+                endDateTime = LocalDateTime.now();
+            }
+            if (endDateTime != null && startDateTime == null) {
+                // Default to 1 year ago if only end date provided
+                startDateTime = endDateTime.minusYears(1);
+            }
+            
             Page<PointTransaction> transactions;
-            if (userId != null) {
-                if (transactionType != null) {
-                    transactions = transactionRepository.findByUserIdAndTransactionTypeOrderByCreatedAtDesc(
-                        userId, transactionType, pageable);
+            
+            // Use date range queries if date range is provided
+            if (hasDateRange && startDateTime != null && endDateTime != null) {
+                if (userId != null) {
+                    if (transactionType != null) {
+                        transactions = transactionRepository.findByUserIdAndTransactionTypeAndDateRange(
+                            userId, transactionType, startDateTime, endDateTime, pageable);
+                    } else {
+                        transactions = transactionRepository.findByUserIdAndDateRange(
+                            userId, startDateTime, endDateTime, pageable);
+                    }
                 } else {
-                    transactions = transactionRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+                    if (transactionType != null) {
+                        transactions = transactionRepository.findByTransactionTypeAndDateRange(
+                            transactionType, startDateTime, endDateTime, pageable);
+                    } else {
+                        transactions = transactionRepository.findByDateRange(
+                            startDateTime, endDateTime, pageable);
+                    }
                 }
             } else {
-                // If no filters, get all with pagination (need to add findAll with Pageable to repository)
-                transactions = transactionRepository.findAll(pageable);
+                // No date range - use existing queries
+                if (userId != null) {
+                    if (transactionType != null) {
+                        transactions = transactionRepository.findByUserIdAndTransactionTypeOrderByCreatedAtDesc(
+                            userId, transactionType, pageable);
+                    } else {
+                        transactions = transactionRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+                    }
+                } else {
+                    if (transactionType != null) {
+                        transactions = transactionRepository.findByTransactionTypeOrderByCreatedAtDesc(
+                            transactionType, pageable);
+                    } else {
+                        transactions = transactionRepository.findAll(pageable);
+                    }
+                }
             }
-
-            // Apply date range filter if provided (would need custom query for this)
-            // For now, filter in memory (not ideal for large datasets)
-            // TODO: Add proper JPA query for date range filtering
 
             return ResponseEntity.ok(successPage(transactions));
         } catch (Exception e) {

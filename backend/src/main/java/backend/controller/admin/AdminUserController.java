@@ -10,6 +10,7 @@ import backend.entity.UserActivity;
 import backend.entity.UserSession;
 import backend.mapper.EntityMapper;
 import backend.repository.RoleRepository;
+import backend.repository.UserRepository;
 import backend.service.UserService;
 import backend.service.UserActivityService;
 import backend.service.UserSessionService;
@@ -46,6 +47,7 @@ public class AdminUserController extends BaseController {
     private final UserSessionService userSessionService;
     private final EntityMapper mapper;
     private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
     
     // ================================
     // USER MANAGEMENT
@@ -369,21 +371,40 @@ public class AdminUserController extends BaseController {
     // ================================
     
     @GetMapping("/online")
-    @Operation(summary = "Get online users")
+    @Operation(summary = "Get online users", description = "Get users who were active within the last 15 minutes")
     public ResponseEntity<ApiResponse<List<User>>> getOnlineUsers() {
-        // TODO: Implement based on lastActivityAt field
-        List<User> onlineUsers = List.of(); // userService.getOnlineUsers();
-        return ResponseEntity.ok(success("Online users retrieved", onlineUsers));
+        try {
+            // Consider users online if they were active within the last 15 minutes
+            LocalDateTime sinceTime = LocalDateTime.now().minusMinutes(15);
+            List<User> onlineUsers = userRepository.findOnlineUsers(sinceTime);
+            
+            log.info("Found {} online users (active within last 15 minutes)", onlineUsers.size());
+            return ResponseEntity.ok(success("Online users retrieved", onlineUsers));
+        } catch (Exception e) {
+            log.error("Error getting online users", e);
+            return ResponseEntity.badRequest().body(error("Failed to get online users: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/recent-activity")
-    @Operation(summary = "Get users with recent activity")
+    @Operation(summary = "Get users with recent activity", description = "Get users sorted by most recent activity")
     public ResponseEntity<ApiResponse<List<User>>> getRecentActiveUsers(
             @RequestParam(defaultValue = "50") int limit) {
-        
-        // TODO: Implement based on lastActivityAt field
-        List<User> recentUsers = List.of(); // userService.getRecentActiveUsers(limit);
-        return ResponseEntity.ok(success("Recent active users retrieved", recentUsers));
+        try {
+            // Validate limit
+            if (limit < 1 || limit > 200) {
+                limit = 50; // Default to 50 if invalid
+            }
+            
+            Pageable pageable = PageRequest.of(0, limit);
+            List<User> recentUsers = userRepository.findRecentActiveUsers(pageable);
+            
+            log.info("Found {} users with recent activity (limit: {})", recentUsers.size(), limit);
+            return ResponseEntity.ok(success("Recent active users retrieved", recentUsers));
+        } catch (Exception e) {
+            log.error("Error getting recent active users", e);
+            return ResponseEntity.badRequest().body(error("Failed to get recent active users: " + e.getMessage()));
+        }
     }
     
     // ================================

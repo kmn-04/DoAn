@@ -15,12 +15,15 @@ import backend.repository.BookingCancellationRepository;
 import backend.repository.BookingRepository;
 import backend.repository.PromotionRepository;
 import backend.repository.TourRepository;
+import backend.security.UserDetailsImpl;
 import backend.service.BookingService;
 import backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -679,7 +682,26 @@ public class BookingServiceImpl implements BookingService {
         booking.setCancelledAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now());
         
-        // TODO: Set cancelledBy from security context
+        // Get current admin user from security context
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated()) {
+                Object principal = authentication.getPrincipal();
+                if (principal instanceof UserDetailsImpl) {
+                    UserDetailsImpl userDetails = (UserDetailsImpl) principal;
+                    Long adminId = userDetails.getId();
+                    booking.setCancelledBy(adminId);
+                    log.info("Set cancelledBy to admin ID: {} (email: {})", adminId, userDetails.getEmail());
+                } else {
+                    log.warn("Principal is not UserDetailsImpl, cannot set cancelledBy");
+                }
+            } else {
+                log.warn("No authenticated user found in security context, cannot set cancelledBy");
+            }
+        } catch (Exception e) {
+            log.error("Error getting admin user from security context: {}", e.getMessage());
+            // Continue without setting cancelledBy if there's an error
+        }
         
         Booking updated = bookingRepository.save(booking);
         

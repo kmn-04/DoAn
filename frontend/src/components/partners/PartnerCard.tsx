@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -11,6 +11,9 @@ import {
 import { StarIcon as StarIconSolid, HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import type { Partner } from '../../types';
 import { Card } from '../ui';
+import { useAuth } from '../../hooks/useAuth';
+import partnerService from '../../services/partnerService';
+import { toast } from 'react-hot-toast';
 
 interface PartnerCardProps {
   partner: Partner;
@@ -18,13 +21,65 @@ interface PartnerCardProps {
 
 const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const { t } = useTranslation();
+  const { user, isAuthenticated } = useAuth();
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  // Load favorite status on mount
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!isAuthenticated || !user) {
+        setIsChecking(false);
+        return;
+      }
+
+      try {
+        const favorited = await partnerService.isFavorited(partner.id);
+        setIsFavorite(favorited);
+      } catch (error) {
+        console.error('Error checking favorite status:', error);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [partner.id, isAuthenticated, user]);
+
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorite(!isFavorite);
-    // TODO: Add to favorites API call
+
+    if (!isAuthenticated || !user) {
+      toast.error(t('partners.card.loginRequired') || 'Please login to add to favorites');
+      return;
+    }
+
+    if (isLoading) return;
+
+    setIsLoading(true);
+    const previousState = isFavorite;
+
+    try {
+      // Optimistic update
+      setIsFavorite(!isFavorite);
+
+      if (previousState) {
+        await partnerService.removeFromFavorites(partner.id);
+        toast.success(t('partners.card.removedFromFavorites') || 'Removed from favorites');
+      } else {
+        await partnerService.addToFavorites(partner.id);
+        toast.success(t('partners.card.addedToFavorites') || 'Added to favorites');
+      }
+    } catch (error: any) {
+      // Revert on error
+      setIsFavorite(previousState);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update favorite';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -63,16 +118,22 @@ const PartnerCard: React.FC<PartnerCardProps> = ({ partner }) => {
         </div>
 
         {/* Favorite Button */}
-        <button
-          onClick={handleFavoriteClick}
-          className="absolute top-3 right-3 w-9 h-9 bg-white/95 backdrop-blur-sm rounded-none flex items-center justify-center hover:bg-white transition-all duration-200 group/heart shadow-md hover:shadow-lg border border-white/50"
-        >
-          {isFavorite ? (
-            <HeartIconSolid className="h-5 w-5 text-red-500" />
-          ) : (
-            <HeartIcon className="h-5 w-5 text-slate-600 group-hover/heart:text-red-500" />
-          )}
-        </button>
+        {!isChecking && (
+          <button
+            onClick={handleFavoriteClick}
+            disabled={isLoading || !isAuthenticated}
+            className="absolute top-3 right-3 w-9 h-9 bg-white/95 backdrop-blur-sm rounded-none flex items-center justify-center hover:bg-white transition-all duration-200 group/heart shadow-md hover:shadow-lg border border-white/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={isAuthenticated ? (isFavorite ? t('partners.card.removeFromFavorites') : t('partners.card.addToFavorites')) : t('partners.card.loginRequired')}
+          >
+            {isLoading ? (
+              <div className="h-5 w-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+            ) : isFavorite ? (
+              <HeartIconSolid className="h-5 w-5 text-red-500" />
+            ) : (
+              <HeartIcon className="h-5 w-5 text-slate-600 group-hover/heart:text-red-500" />
+            )}
+          </button>
+        )}
       </div>
 
       <div className="p-5 pt-8 flex-1 flex flex-col">
