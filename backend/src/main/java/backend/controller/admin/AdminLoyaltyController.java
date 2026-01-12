@@ -11,9 +11,14 @@ import backend.entity.PointTransaction;
 import backend.entity.PointTransaction.TransactionType;
 import backend.repository.BookingRepository;
 import backend.repository.LoyaltyConfigRepository;
+import backend.repository.LoyaltyPointsRepository;
 import backend.repository.PointTransactionRepository;
+import backend.service.ExportService;
 import backend.service.LoyaltyService;
 import backend.service.impl.BookingCompletionScheduler;
+import backend.entity.LoyaltyPoints;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -47,6 +52,8 @@ public class AdminLoyaltyController extends BaseController {
     private final BookingRepository bookingRepository;
     private final LoyaltyConfigRepository configRepository;
     private final PointTransactionRepository transactionRepository;
+    private final LoyaltyPointsRepository loyaltyPointsRepository;
+    private final ExportService exportService;
 
     @PostMapping("/test-scheduler")
     public ResponseEntity<Map<String, Object>> testScheduler() {
@@ -363,6 +370,239 @@ public class AdminLoyaltyController extends BaseController {
             log.error("Error getting transaction stats", e);
             return ResponseEntity.badRequest().body(error(e.getMessage()));
         }
+    }
+    
+    // ================================
+    // ANALYTICS & EXPORT
+    // ================================
+    
+    @GetMapping("/analytics/monthly")
+    @Operation(summary = "Get monthly analytics", description = "Get earned/redeemed/expired points by month")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMonthlyAnalytics(
+            @RequestParam(defaultValue = "12") int months) {
+        try {
+            LocalDateTime endDate = LocalDateTime.now();
+            LocalDateTime startDate = endDate.minusMonths(months);
+            
+            List<Map<String, Object>> analytics = new java.util.ArrayList<>();
+            
+            // Group by month
+            for (int i = months - 1; i >= 0; i--) {
+                LocalDateTime monthStart = endDate.minusMonths(i).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+                LocalDateTime monthEnd = monthStart.plusMonths(1).minusSeconds(1);
+                
+                // Get transactions for this month
+                List<PointTransaction> monthTransactions = transactionRepository.findByDateRange(
+                    monthStart, monthEnd, org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                ).getContent();
+                
+                int earned = monthTransactions.stream()
+                    .filter(tx -> tx.getTransactionType() == TransactionType.EARNED)
+                    .mapToInt(PointTransaction::getPoints)
+                    .sum();
+                
+                int redeemed = monthTransactions.stream()
+                    .filter(tx -> tx.getTransactionType() == TransactionType.REDEEMED)
+                    .mapToInt(tx -> Math.abs(tx.getPoints()))
+                    .sum();
+                
+                int expired = monthTransactions.stream()
+                    .filter(tx -> tx.getTransactionType() == TransactionType.EXPIRED)
+                    .mapToInt(tx -> Math.abs(tx.getPoints()))
+                    .sum();
+                
+                Map<String, Object> monthData = new HashMap<>();
+                monthData.put("month", monthStart.format(DateTimeFormatter.ofPattern("MM/yyyy")));
+                monthData.put("monthLabel", getVietnameseMonthName(monthStart.getMonthValue()) + " " + monthStart.getYear());
+                monthData.put("earned", earned);
+                monthData.put("redeemed", redeemed);
+                monthData.put("expired", expired);
+                monthData.put("net", earned - redeemed - expired);
+                
+                analytics.add(monthData);
+            }
+            
+            return ResponseEntity.ok(success(analytics));
+        } catch (Exception e) {
+            log.error("Error getting monthly analytics", e);
+            return ResponseEntity.badRequest().body(error(e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/top-users")
+    @Operation(summary = "Get top users by points", description = "Get users with highest points balance")
+    public ResponseEntity<ApiResponse<List<LoyaltyPoints>>> getTopUsers(
+            @RequestParam(defaultValue = "10") int limit) {
+        try {
+            List<LoyaltyPoints> topUsers = loyaltyPointsRepository.findTopByPointsBalance();
+            // Limit results
+            if (topUsers.size() > limit) {
+                topUsers = topUsers.subList(0, limit);
+            }
+            return ResponseEntity.ok(success(topUsers));
+        } catch (Exception e) {
+            log.error("Error getting top users", e);
+            return ResponseEntity.badRequest().body(error(e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/transactions/export/{format}")
+    @Operation(summary = "Export transactions", description = "Export point transactions to CSV or Excel")
+    public ResponseEntity<byte[]> exportTransactions(
+            @PathVariable String format,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) TransactionType transactionType,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        try {
+            // Parse date range if provided
+            LocalDateTime startDateTime = null;
+            LocalDateTime endDateTime = null;
+            
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                try {
+                    startDateTime = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } catch (DateTimeParseException e) {
+                    startDateTime = java.time.LocalDate.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                        .atStartOfDay();
+                }
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                try {
+                    endDateTime = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } catch (DateTimeParseException e) {
+                    endDateTime = java.time.LocalDate.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                        .atTime(23, 59, 59);
+                }
+            }
+            
+            // Fetch all matching transactions (no pagination for export)
+            List<PointTransaction> transactions;
+            if (startDateTime != null && endDateTime != null) {
+                if (userId != null) {
+                    if (transactionType != null) {
+                        transactions = transactionRepository.findByUserIdAndTransactionTypeAndDateRange(
+                            userId, transactionType, startDateTime, endDateTime,
+                            org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                        ).getContent();
+                    } else {
+                        transactions = transactionRepository.findByUserIdAndDateRange(
+                            userId, startDateTime, endDateTime,
+                            org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                        ).getContent();
+                    }
+                } else {
+                    if (transactionType != null) {
+                        transactions = transactionRepository.findByTransactionTypeAndDateRange(
+                            transactionType, startDateTime, endDateTime,
+                            org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                        ).getContent();
+                    } else {
+                        transactions = transactionRepository.findByDateRange(
+                            startDateTime, endDateTime,
+                            org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                        ).getContent();
+                    }
+                }
+            } else {
+                if (userId != null) {
+                    if (transactionType != null) {
+                        transactions = transactionRepository.findByUserIdAndTransactionTypeOrderByCreatedAtDesc(
+                            userId, transactionType,
+                            org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                        ).getContent();
+                    } else {
+                        transactions = transactionRepository.findByUserIdOrderByCreatedAtDesc(
+                            userId,
+                            org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                        ).getContent();
+                    }
+                } else {
+                    if (transactionType != null) {
+                        transactions = transactionRepository.findByTransactionTypeOrderByCreatedAtDesc(
+                            transactionType,
+                            org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                        ).getContent();
+                    } else {
+                        transactions = transactionRepository.findAll(
+                            org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                        ).getContent();
+                    }
+                }
+            }
+            
+            byte[] data;
+            String filename;
+            String contentType;
+            
+            if ("excel".equalsIgnoreCase(format) || "xlsx".equalsIgnoreCase(format)) {
+                data = exportService.exportPointTransactionsToExcel(transactions);
+                filename = "point_transactions_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            } else {
+                data = exportService.exportPointTransactionsToCsv(transactions);
+                filename = "point_transactions_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv";
+                contentType = "text/csv";
+            }
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(contentType));
+            headers.setContentDispositionFormData("attachment", filename);
+            
+            return ResponseEntity.ok()
+                .headers(headers)
+                .body(data);
+        } catch (Exception e) {
+            log.error("Error exporting transactions", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @GetMapping("/top-users/export/{format}")
+    @Operation(summary = "Export top users", description = "Export top users by points to CSV or Excel")
+    public ResponseEntity<byte[]> exportTopUsers(
+            @PathVariable String format,
+            @RequestParam(defaultValue = "10") int limit) {
+        try {
+            List<LoyaltyPoints> topUsers = loyaltyPointsRepository.findTopByPointsBalance();
+            if (topUsers.size() > limit) {
+                topUsers = topUsers.subList(0, limit);
+            }
+            
+            byte[] data;
+            String filename;
+            String contentType;
+            
+            if ("excel".equalsIgnoreCase(format) || "xlsx".equalsIgnoreCase(format)) {
+                data = exportService.exportTopUsersToExcel(topUsers);
+                filename = "top_users_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            } else {
+                data = exportService.exportTopUsersToCsv(topUsers);
+                filename = "top_users_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv";
+                contentType = "text/csv";
+            }
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(contentType));
+            headers.setContentDispositionFormData("attachment", filename);
+            
+            return ResponseEntity.ok()
+                .headers(headers)
+                .body(data);
+        } catch (Exception e) {
+            log.error("Error exporting top users", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    private String getVietnameseMonthName(int month) {
+        String[] months = {
+            "", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+            "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+        };
+        return months[month];
     }
 
     // ================================

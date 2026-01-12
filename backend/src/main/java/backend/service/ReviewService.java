@@ -146,5 +146,38 @@ public interface ReviewService {
      * Get pending reviews count
      */
     long getPendingReviewsCount();
+    
+    /**
+     * Get reviews with advanced filters (Admin)
+     */
+    Page<ReviewResponse> getReviewsWithFilters(
+        String status, Long tourId, Integer rating,
+        java.time.LocalDateTime startDate, java.time.LocalDateTime endDate,
+        Boolean isSuspicious, Boolean isSpam, Pageable pageable
+    );
+    
+    /**
+     * Mark review as suspicious
+     */
+    ReviewResponse markAsSuspicious(Long reviewId, boolean suspicious);
+    
+    /**
+     * Mark review as spam
+     */
+    ReviewResponse markAsSpam(Long reviewId, boolean spam);
+    
+    /**
+     * Analyze review with AI (detect negative keywords, sentiment)
+     */
+    java.util.Map<String, Object> analyzeReviewWithAI(Long reviewId);
+    
+    /**
+     * Get all reviews for export (with filters)
+     */
+    java.util.List<ReviewResponse> getAllReviewsForExport(
+        String status, Long tourId, Integer rating,
+        java.time.LocalDateTime startDate, java.time.LocalDateTime endDate,
+        Boolean isSuspicious, Boolean isSpam
+    );
 }
 

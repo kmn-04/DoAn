@@ -6,10 +6,13 @@ import backend.entity.Booking;
 import backend.repository.BookingRepository;
 import backend.repository.TourRepository;
 import backend.repository.UserRepository;
+import backend.service.ExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +35,7 @@ public class AdminStatisticsController extends BaseController {
     private final BookingRepository bookingRepository;
     private final TourRepository tourRepository;
     private final UserRepository userRepository;
+    private final ExportService exportService;
     
     @GetMapping("/revenue/monthly")
     @Operation(summary = "Get monthly revenue", description = "Get revenue statistics by month for the last 12 months")
@@ -83,6 +87,68 @@ public class AdminStatisticsController extends BaseController {
             log.error("Error getting monthly revenue", e);
             return ResponseEntity.internalServerError()
                     .body(error("Failed to get monthly revenue: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/export/revenue/{format}")
+    @Operation(summary = "Export monthly revenue stats", description = "Export monthly revenue stats to CSV or Excel")
+    public ResponseEntity<byte[]> exportMonthlyRevenue(@PathVariable String format) {
+        try {
+            List<Booking> bookings = bookingRepository.findAll();
+            List<ExportService.MonthlyRevenueRow> rows = new ArrayList<>();
+
+            YearMonth currentMonth = YearMonth.now();
+            for (int i = 11; i >= 0; i--) {
+                YearMonth month = currentMonth.minusMonths(i);
+                int year = month.getYear();
+                int monthValue = month.getMonthValue();
+
+                BigDecimal revenue = bookings.stream()
+                    .filter(b -> {
+                        LocalDateTime createdAt = b.getCreatedAt();
+                        return createdAt != null &&
+                               createdAt.getYear() == year && 
+                               createdAt.getMonthValue() == monthValue &&
+                               b.getPaymentStatus() != null &&
+                               b.getPaymentStatus().name().equalsIgnoreCase("Paid");
+                    })
+                    .map(Booking::getTotalPrice)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                long count = bookings.stream()
+                    .filter(b -> {
+                        LocalDateTime createdAt = b.getCreatedAt();
+                        return createdAt != null &&
+                               createdAt.getYear() == year && 
+                               createdAt.getMonthValue() == monthValue;
+                    })
+                    .count();
+
+                String label = getVietnameseMonthName(monthValue) + " " + year;
+                rows.add(new ExportService.MonthlyRevenueRow(label, revenue, count));
+            }
+
+            byte[] data;
+            String filename;
+            if ("excel".equalsIgnoreCase(format)) {
+                data = exportService.exportRevenueStatsToExcel(rows);
+                filename = "revenue_" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+            } else {
+                data = exportService.exportRevenueStatsToCsv(rows);
+                filename = "revenue_" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv";
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", filename);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(data);
+
+        } catch (Exception e) {
+            log.error("Error exporting monthly revenue", e);
+            return ResponseEntity.internalServerError().build();
         }
     }
     

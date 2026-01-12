@@ -3,12 +3,17 @@ package backend.controller.admin;
 import backend.controller.BaseController;
 import backend.dto.response.ApiResponse;
 import backend.entity.*;
+import backend.entity.TourItinerary;
 import backend.service.*;
+import backend.service.ExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +29,7 @@ import java.util.Map;
 @Slf4j
 @Tag(name = "Admin Dashboard", description = "Admin dashboard statistics and overview")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
-// @PreAuthorize("hasRole('ADMIN')") // Temporarily disabled for testing
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminDashboardController extends BaseController {
     
     private final UserService userService;
@@ -33,6 +38,7 @@ public class AdminDashboardController extends BaseController {
     private final BookingService bookingService;
     private final PartnerService partnerService;
     private final CategoryService categoryService;
+    private final ExportService exportService;
     
     // ================================
     // OVERVIEW STATISTICS
@@ -535,40 +541,191 @@ public class AdminDashboardController extends BaseController {
     
     @GetMapping("/quick-stats")
     @Operation(summary = "Get quick dashboard statistics")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getQuickStats() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getQuickStats(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         Map<String, Object> quickStats = new HashMap<>();
         
         try {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime todayStart = now.toLocalDate().atStartOfDay();
+            LocalDateTime weekStart = now.minusDays(7).toLocalDate().atStartOfDay();
+            LocalDateTime monthStart = now.minusMonths(1).toLocalDate().atStartOfDay();
+            LocalDateTime lastMonthStart = now.minusMonths(2).toLocalDate().atStartOfDay();
+            
+            // Use custom date range if provided, otherwise use defaults
+            LocalDateTime finalStartDate = (startDate != null) ? startDate : todayStart;
+            LocalDateTime finalEndDate = (endDate != null) ? endDate : now;
+            
+            // Get all bookings
+            List<Booking> allBookings = bookingService.getAllBookings();
+            
             // Today's statistics
+            List<Booking> todayBookings = allBookings.stream()
+                    .filter(b -> b.getCreatedAt() != null && 
+                                b.getCreatedAt().isAfter(todayStart) && 
+                                b.getCreatedAt().isBefore(now))
+                    .toList();
+            
+            BigDecimal todayRevenue = todayBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                    .map(Booking::getFinalAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            long todayNewBookings = todayBookings.size();
+            long todayCancelled = todayBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLED)
+                    .count();
+            double todayCancellationRate = todayNewBookings > 0 ? 
+                    (todayCancelled * 100.0 / todayNewBookings) : 0.0;
+            
+            // Get today's new users
+            org.springframework.data.domain.Pageable pageable = 
+                    org.springframework.data.domain.PageRequest.of(0, 10000);
+            List<backend.entity.User> allUsers = userService.getAllUsers(pageable).getContent();
+            long todayNewUsers = allUsers.stream()
+                    .filter(u -> u.getCreatedAt() != null && 
+                                u.getCreatedAt().isAfter(todayStart) && 
+                                u.getCreatedAt().isBefore(now))
+                    .count();
+            
+            Long onlineUsersCount = userSessionService.countActiveSessions();
+            
             quickStats.put("today", Map.of(
-                "newUsers", 5,
-                "newBookings", 12,
-                "revenue", 15000000,
-                "activeUsers", 234
+                "newUsers", todayNewUsers,
+                "newBookings", todayNewBookings,
+                "revenue", todayRevenue,
+                "activeUsers", onlineUsersCount != null ? onlineUsersCount : 0L,
+                "cancelledBookings", todayCancelled,
+                "cancellationRate", Math.round(todayCancellationRate * 10.0) / 10.0
             ));
             
             // This week's statistics
+            List<Booking> weekBookings = allBookings.stream()
+                    .filter(b -> b.getCreatedAt() != null && 
+                                b.getCreatedAt().isAfter(weekStart) && 
+                                b.getCreatedAt().isBefore(now))
+                    .toList();
+            
+            BigDecimal weekRevenue = weekBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                    .map(Booking::getFinalAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            long weekNewBookings = weekBookings.size();
+            long weekNewUsers = allUsers.stream()
+                    .filter(u -> u.getCreatedAt() != null && 
+                                u.getCreatedAt().isAfter(weekStart) && 
+                                u.getCreatedAt().isBefore(now))
+                    .count();
+            
+            BigDecimal averageDaily = weekNewBookings > 0 ? 
+                    weekRevenue.divide(BigDecimal.valueOf(7), 2, java.math.RoundingMode.HALF_UP) : 
+                    BigDecimal.ZERO;
+            
             quickStats.put("thisWeek", Map.of(
-                "newUsers", 28,
-                "newBookings", 67,
-                "revenue", 85750000,
-                "averageDaily", 12250000
+                "newUsers", weekNewUsers,
+                "newBookings", weekNewBookings,
+                "revenue", weekRevenue,
+                "averageDaily", averageDaily
             ));
             
             // This month's statistics
+            List<Booking> monthBookings = allBookings.stream()
+                    .filter(b -> b.getCreatedAt() != null && 
+                                b.getCreatedAt().isAfter(monthStart) && 
+                                b.getCreatedAt().isBefore(now))
+                    .toList();
+            
+            BigDecimal monthRevenue = monthBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                    .map(Booking::getFinalAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            long monthNewBookings = monthBookings.size();
+            long monthNewUsers = allUsers.stream()
+                    .filter(u -> u.getCreatedAt() != null && 
+                                u.getCreatedAt().isAfter(monthStart) && 
+                                u.getCreatedAt().isBefore(now))
+                    .count();
+            
+            // Last month for comparison
+            List<Booking> lastMonthBookings = allBookings.stream()
+                    .filter(b -> b.getCreatedAt() != null && 
+                                b.getCreatedAt().isAfter(lastMonthStart) && 
+                                b.getCreatedAt().isBefore(monthStart))
+                    .toList();
+            
+            BigDecimal lastMonthRevenue = lastMonthBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                    .map(Booking::getFinalAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            double growthRate = lastMonthRevenue.compareTo(BigDecimal.ZERO) > 0 ?
+                    (monthRevenue.subtract(lastMonthRevenue))
+                            .divide(lastMonthRevenue, 4, java.math.RoundingMode.HALF_UP)
+                            .multiply(BigDecimal.valueOf(100))
+                            .doubleValue() : 0.0;
+            
             quickStats.put("thisMonth", Map.of(
-                "newUsers", 156,
-                "newBookings", 289,
-                "revenue", 367800000,
-                "growth", 12.5 // percentage growth from last month
+                "newUsers", monthNewUsers,
+                "newBookings", monthNewBookings,
+                "revenue", monthRevenue,
+                "growth", Math.round(growthRate * 10.0) / 10.0
             ));
             
+            // Custom date range statistics (if provided)
+            if (startDate != null && endDate != null) {
+                List<Booking> customBookings = allBookings.stream()
+                        .filter(b -> b.getCreatedAt() != null && 
+                                    b.getCreatedAt().isAfter(finalStartDate) && 
+                                    b.getCreatedAt().isBefore(finalEndDate))
+                        .toList();
+                
+                BigDecimal customRevenue = customBookings.stream()
+                        .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                    b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                        .map(Booking::getFinalAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+                long customNewBookings = customBookings.size();
+                long customNewUsers = allUsers.stream()
+                        .filter(u -> u.getCreatedAt() != null && 
+                                    u.getCreatedAt().isAfter(finalStartDate) && 
+                                    u.getCreatedAt().isBefore(finalEndDate))
+                        .count();
+                
+                long customCancelled = customBookings.stream()
+                        .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLED)
+                        .count();
+                double customCancellationRate = customNewBookings > 0 ? 
+                        (customCancelled * 100.0 / customNewBookings) : 0.0;
+                
+                quickStats.put("custom", Map.of(
+                    "newUsers", customNewUsers,
+                    "newBookings", customNewBookings,
+                    "revenue", customRevenue,
+                    "cancelledBookings", customCancelled,
+                    "cancellationRate", Math.round(customCancellationRate * 10.0) / 10.0,
+                    "startDate", finalStartDate,
+                    "endDate", finalEndDate
+                ));
+            }
+            
             // Alerts and notifications
+            long pendingBookings = allBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.PENDING)
+                    .count();
+            
             quickStats.put("alerts", Map.of(
-                "pendingBookings", 23,
-                "expiringSessions", 5,
-                "failedPayments", 2,
-                "systemErrors", 0
+                "pendingBookings", pendingBookings,
+                "expiringSessions", 0L, // TODO: Implement if needed
+                "failedPayments", 0L, // TODO: Implement if needed
+                "systemErrors", 0L
             ));
             
         } catch (Exception e) {
@@ -576,6 +733,73 @@ public class AdminDashboardController extends BaseController {
         }
         
         return ResponseEntity.ok(success("Quick statistics retrieved successfully", quickStats));
+    }
+    
+    @GetMapping("/top-partners")
+    @Operation(summary = "Get top partners by revenue")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getTopPartners(
+            @RequestParam(defaultValue = "5") int limit,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        
+        try {
+            LocalDateTime finalStartDate = (startDate == null) ? LocalDateTime.now().minusMonths(1) : startDate;
+            LocalDateTime finalEndDate = (endDate == null) ? LocalDateTime.now() : endDate;
+            
+            List<Booking> bookings = bookingService.getAllBookings().stream()
+                    .filter(b -> b.getCreatedAt() != null && 
+                                b.getCreatedAt().isAfter(finalStartDate) && 
+                                b.getCreatedAt().isBefore(finalEndDate))
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                    .toList();
+            
+            // Group by partner (through tour's itineraries)
+            Map<Long, BigDecimal> partnerRevenueMap = new HashMap<>();
+            Map<Long, String> partnerNameMap = new HashMap<>();
+            Map<Long, Long> partnerBookingCountMap = new HashMap<>();
+            
+            for (Booking booking : bookings) {
+                if (booking.getTour() != null && booking.getTour().getItineraries() != null) {
+                    // Get partners from tour itineraries
+                    for (TourItinerary itinerary : booking.getTour().getItineraries()) {
+                        if (itinerary.getPartner() != null) {
+                            Long partnerId = itinerary.getPartner().getId();
+                            String partnerName = itinerary.getPartner().getName();
+                            
+                            // Distribute revenue equally among partners (or use a different logic)
+                            BigDecimal partnerShare = booking.getFinalAmount()
+                                    .divide(BigDecimal.valueOf(Math.max(booking.getTour().getItineraries().size(), 1)), 
+                                            2, java.math.RoundingMode.HALF_UP);
+                            
+                            partnerRevenueMap.merge(partnerId, partnerShare, BigDecimal::add);
+                            partnerNameMap.put(partnerId, partnerName);
+                            partnerBookingCountMap.merge(partnerId, 1L, Long::sum);
+                        }
+                    }
+                }
+            }
+            
+            List<Map<String, Object>> topPartners = partnerRevenueMap.entrySet().stream()
+                    .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                    .limit(limit)
+                    .map(entry -> {
+                        Long partnerId = entry.getKey();
+                        return Map.<String, Object>of(
+                                "partnerId", partnerId,
+                                "partnerName", partnerNameMap.getOrDefault(partnerId, "Unknown"),
+                                "totalRevenue", entry.getValue(),
+                                "bookingCount", partnerBookingCountMap.getOrDefault(partnerId, 0L)
+                        );
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            
+            return ResponseEntity.ok(success("Top partners retrieved successfully", topPartners));
+            
+        } catch (Exception e) {
+            log.error("Error getting top partners", e);
+            return ResponseEntity.ok(success("Top partners retrieved (empty)", List.of()));
+        }
     }
     
     // ================================
@@ -595,5 +819,203 @@ public class AdminDashboardController extends BaseController {
         );
         
         return ResponseEntity.ok(success("System health retrieved successfully", health));
+    }
+    
+    // ================================
+    // EXPORT DASHBOARD REPORT
+    // ================================
+    
+    @GetMapping("/export/{format}")
+    @Operation(summary = "Export dashboard report", description = "Export dashboard statistics to CSV or Excel")
+    public ResponseEntity<byte[]> exportDashboardReport(
+            @PathVariable String format,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime todayStart = now.toLocalDate().atStartOfDay();
+            LocalDateTime weekStart = now.minusDays(7).toLocalDate().atStartOfDay();
+            LocalDateTime monthStart = now.minusMonths(1).toLocalDate().atStartOfDay();
+            
+            List<ExportService.DashboardReport> reports = new java.util.ArrayList<>();
+            
+            // Get all bookings and users
+            List<Booking> allBookings = bookingService.getAllBookings();
+            org.springframework.data.domain.Pageable pageable = 
+                    org.springframework.data.domain.PageRequest.of(0, 10000);
+            List<backend.entity.User> allUsers = userService.getAllUsers(pageable).getContent();
+            Long onlineUsersCount = userSessionService.countActiveSessions();
+            
+            // Today's report
+            List<Booking> todayBookings = allBookings.stream()
+                    .filter(b -> b.getCreatedAt() != null && 
+                                b.getCreatedAt().isAfter(todayStart) && 
+                                b.getCreatedAt().isBefore(now))
+                    .toList();
+            
+            BigDecimal todayRevenue = todayBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                    .map(Booking::getFinalAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            long todayCancelled = todayBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLED)
+                    .count();
+            double todayCancellationRate = todayBookings.size() > 0 ? 
+                    (todayCancelled * 100.0 / todayBookings.size()) : 0.0;
+            
+            long todayNewUsers = allUsers.stream()
+                    .filter(u -> u.getCreatedAt() != null && 
+                                u.getCreatedAt().isAfter(todayStart) && 
+                                u.getCreatedAt().isBefore(now))
+                    .count();
+            
+            ExportService.DashboardReport todayReport = new ExportService.DashboardReport();
+            todayReport.setPeriod("Hôm nay");
+            todayReport.setRevenue(todayRevenue);
+            todayReport.setNewBookings((long) todayBookings.size());
+            todayReport.setNewUsers(todayNewUsers);
+            todayReport.setCancelledBookings(todayCancelled);
+            todayReport.setCancellationRate(Math.round(todayCancellationRate * 10.0) / 10.0);
+            todayReport.setActiveUsers(onlineUsersCount != null ? onlineUsersCount : 0L);
+            reports.add(todayReport);
+            
+            // This week's report
+            List<Booking> weekBookings = allBookings.stream()
+                    .filter(b -> b.getCreatedAt() != null && 
+                                b.getCreatedAt().isAfter(weekStart) && 
+                                b.getCreatedAt().isBefore(now))
+                    .toList();
+            
+            BigDecimal weekRevenue = weekBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                    .map(Booking::getFinalAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            long weekCancelled = weekBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLED)
+                    .count();
+            double weekCancellationRate = weekBookings.size() > 0 ? 
+                    (weekCancelled * 100.0 / weekBookings.size()) : 0.0;
+            
+            long weekNewUsers = allUsers.stream()
+                    .filter(u -> u.getCreatedAt() != null && 
+                                u.getCreatedAt().isAfter(weekStart) && 
+                                u.getCreatedAt().isBefore(now))
+                    .count();
+            
+            ExportService.DashboardReport weekReport = new ExportService.DashboardReport();
+            weekReport.setPeriod("7 ngày qua");
+            weekReport.setRevenue(weekRevenue);
+            weekReport.setNewBookings((long) weekBookings.size());
+            weekReport.setNewUsers(weekNewUsers);
+            weekReport.setCancelledBookings(weekCancelled);
+            weekReport.setCancellationRate(Math.round(weekCancellationRate * 10.0) / 10.0);
+            weekReport.setActiveUsers(onlineUsersCount != null ? onlineUsersCount : 0L);
+            reports.add(weekReport);
+            
+            // This month's report
+            List<Booking> monthBookings = allBookings.stream()
+                    .filter(b -> b.getCreatedAt() != null && 
+                                b.getCreatedAt().isAfter(monthStart) && 
+                                b.getCreatedAt().isBefore(now))
+                    .toList();
+            
+            BigDecimal monthRevenue = monthBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                    .map(Booking::getFinalAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            long monthCancelled = monthBookings.stream()
+                    .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLED)
+                    .count();
+            double monthCancellationRate = monthBookings.size() > 0 ? 
+                    (monthCancelled * 100.0 / monthBookings.size()) : 0.0;
+            
+            long monthNewUsers = allUsers.stream()
+                    .filter(u -> u.getCreatedAt() != null && 
+                                u.getCreatedAt().isAfter(monthStart) && 
+                                u.getCreatedAt().isBefore(now))
+                    .count();
+            
+            ExportService.DashboardReport monthReport = new ExportService.DashboardReport();
+            monthReport.setPeriod("30 ngày qua");
+            monthReport.setRevenue(monthRevenue);
+            monthReport.setNewBookings((long) monthBookings.size());
+            monthReport.setNewUsers(monthNewUsers);
+            monthReport.setCancelledBookings(monthCancelled);
+            monthReport.setCancellationRate(Math.round(monthCancellationRate * 10.0) / 10.0);
+            monthReport.setActiveUsers(onlineUsersCount != null ? onlineUsersCount : 0L);
+            reports.add(monthReport);
+            
+            // Custom date range (if provided)
+            if (startDate != null && endDate != null) {
+                List<Booking> customBookings = allBookings.stream()
+                        .filter(b -> b.getCreatedAt() != null && 
+                                    b.getCreatedAt().isAfter(startDate) && 
+                                    b.getCreatedAt().isBefore(endDate))
+                        .toList();
+                
+                BigDecimal customRevenue = customBookings.stream()
+                        .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CONFIRMED || 
+                                    b.getConfirmationStatus() == Booking.ConfirmationStatus.COMPLETED)
+                        .map(Booking::getFinalAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+                long customCancelled = customBookings.stream()
+                        .filter(b -> b.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLED)
+                        .count();
+                double customCancellationRate = customBookings.size() > 0 ? 
+                        (customCancelled * 100.0 / customBookings.size()) : 0.0;
+                
+                long customNewUsers = allUsers.stream()
+                        .filter(u -> u.getCreatedAt() != null && 
+                                    u.getCreatedAt().isAfter(startDate) && 
+                                    u.getCreatedAt().isBefore(endDate))
+                        .count();
+                
+                ExportService.DashboardReport customReport = new ExportService.DashboardReport();
+                customReport.setPeriod(String.format("Từ %s đến %s", 
+                        startDate.toLocalDate().toString(), 
+                        endDate.toLocalDate().toString()));
+                customReport.setRevenue(customRevenue);
+                customReport.setNewBookings((long) customBookings.size());
+                customReport.setNewUsers(customNewUsers);
+                customReport.setCancelledBookings(customCancelled);
+                customReport.setCancellationRate(Math.round(customCancellationRate * 10.0) / 10.0);
+                customReport.setActiveUsers(onlineUsersCount != null ? onlineUsersCount : 0L);
+                reports.add(customReport);
+            }
+            
+            byte[] fileData;
+            String contentType;
+            String filename;
+            
+            if ("excel".equalsIgnoreCase(format) || "xlsx".equalsIgnoreCase(format)) {
+                fileData = exportService.exportDashboardReportToExcel(reports);
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                filename = "dashboard_report_" + java.time.LocalDate.now() + ".xlsx";
+            } else {
+                fileData = exportService.exportDashboardReportToCsv(reports);
+                contentType = "text/csv";
+                filename = "dashboard_report_" + java.time.LocalDate.now() + ".csv";
+            }
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(contentType));
+            headers.setContentDispositionFormData("attachment", filename);
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(fileData);
+                    
+        } catch (Exception e) {
+            log.error("Error exporting dashboard report", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

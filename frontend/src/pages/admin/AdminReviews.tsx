@@ -4,7 +4,10 @@ import {
   ClockIcon,
   ChatBubbleLeftRightIcon,
   CheckCircleIcon,
-  XCircleIcon
+  XCircleIcon,
+  SparklesIcon,
+  ExclamationTriangleIcon,
+  ShieldExclamationIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarSolid } from '@heroicons/react/24/solid';
 import { AxiosError } from 'axios';
@@ -25,6 +28,7 @@ interface Review {
   user?: {
     id: number;
     name: string;
+    email?: string;
     avatarUrl?: string;
   };
   tour?: {
@@ -39,6 +43,10 @@ interface Review {
   userEmail?: string;
   tourId?: number;
   userId?: number;
+  isSuspicious?: boolean;
+  isSpam?: boolean;
+  aiAnalysis?: string;
+  tags?: string;
 }
 
 const AdminReviews: React.FC = () => {
@@ -69,6 +77,10 @@ const AdminReviews: React.FC = () => {
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('id');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  
+  // AI Analysis modal
+  const [isAiAnalysisModalOpen, setIsAiAnalysisModalOpen] = useState(false);
+  const [aiAnalysisResult, setAiAnalysisResult] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     // Reset to page 1 when filters change
@@ -79,6 +91,7 @@ const AdminReviews: React.FC = () => {
 
   useEffect(() => {
     fetchReviews(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, statusFilter, ratingFilter, sortBy, sortDirection]);
 
   const fetchReviews = async (page: number) => {
@@ -88,10 +101,10 @@ const AdminReviews: React.FC = () => {
       // Fetch ALL when filtering, otherwise use pagination
       const shouldFetchAll = searchTerm || statusFilter !== 'all' || ratingFilter !== 'all';
       const pageSize = 10;
-      const response = await apiClient.get(`/admin/reviews?page=${shouldFetchAll ? 0 : page}&size=${shouldFetchAll ? 1000 : pageSize}&sortBy=${sortBy}&sortDir=${sortDirection}`);
+      const response = await apiClient.get(`/admin/reviews?page=${shouldFetchAll ? 0 : page}&size=${shouldFetchAll ? 1000 : pageSize}&sortBy=${sortBy}&direction=${sortDirection}`);
       
       // Map nested structure to flat structure
-      let filteredData = (response.data.data?.content || []).map((review: any) => ({
+      let filteredData = (response.data.data?.content || []).map((review: Review) => ({
         ...review,
         tourName: review.tour?.name || 'N/A',
         userName: review.user?.name || 'Anonymous',
@@ -118,10 +131,13 @@ const AdminReviews: React.FC = () => {
       
       // Apply sorting
       filteredData.sort((a: Review, b: Review) => {
-        let compareA: any = a[sortBy as keyof Review];
-        let compareB: any = b[sortBy as keyof Review];
+        let compareA: string | number | undefined = a[sortBy as keyof Review] as string | number | undefined;
+        let compareB: string | number | undefined = b[sortBy as keyof Review] as string | number | undefined;
         
-        if (typeof compareA === 'string') {
+        if (compareA === undefined) compareA = '';
+        if (compareB === undefined) compareB = '';
+        
+        if (typeof compareA === 'string' && typeof compareB === 'string') {
           compareA = compareA.toLowerCase();
           compareB = compareB.toLowerCase();
         }
@@ -182,30 +198,61 @@ const AdminReviews: React.FC = () => {
     setSelectedReview(null);
     setReplyText('');
     setIsReplying(false);
+    setIsAiAnalysisModalOpen(false);
+    setAiAnalysisResult(null);
+  };
+
+  const handleApprove = async (reviewId: number) => {
+    try {
+      setLoading(true);
+      await apiClient.patch(`/admin/reviews/${reviewId}/approve`);
+      alert('Đã duyệt đánh giá thành công!');
+      await fetchReviews(currentPage);
+      if (selectedReview?.id === reviewId) {
+        closeDetailModal();
+      }
+    } catch (error) {
+      console.error('Error approving review:', error);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      alert(axiosError.response?.data?.message || 'Không thể duyệt đánh giá');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReject = async (reviewId: number) => {
+    try {
+      setLoading(true);
+      const reason = prompt('Nhập lý do từ chối (tùy chọn):');
+      await apiClient.patch(`/admin/reviews/${reviewId}/reject${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`);
+      alert('Đã từ chối đánh giá thành công!');
+      await fetchReviews(currentPage);
+      if (selectedReview?.id === reviewId) {
+        closeDetailModal();
+      }
+    } catch (error) {
+      console.error('Error rejecting review:', error);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      alert(axiosError.response?.data?.message || 'Không thể từ chối đánh giá');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdateStatus = async (reviewId: number, newStatus: string) => {
     try {
       setLoading(true);
-
-      
       let endpoint = '';
       if (newStatus === 'APPROVED') {
-        endpoint = `/admin/reviews/${reviewId}/approve`;
+        await handleApprove(reviewId);
+        return;
       } else if (newStatus === 'REJECTED') {
-        endpoint = `/admin/reviews/${reviewId}/reject`;
+        await handleReject(reviewId);
+        return;
       } else if (newStatus === 'PENDING') {
-        // If there's no specific endpoint to set back to Pending, use PATCH
         endpoint = `/admin/reviews/${reviewId}/status?status=PENDING`;
-      }
-      
-      if (newStatus === 'PENDING') {
-        await apiClient.patch(endpoint);
-      } else {
         await apiClient.patch(endpoint);
       }
-      
-
       await fetchReviews(currentPage);
     } catch (error) {
       console.error('Error updating review status:', error);
@@ -266,6 +313,71 @@ const AdminReviews: React.FC = () => {
       console.error('Error deleting reply:', error);
       const axiosError = error as AxiosError<{ message?: string }>;
       alert(axiosError.response?.data?.message || 'Không thể xóa phản hồi');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleAnalyzeReview = async (reviewId: number) => {
+    try {
+      setLoading(true);
+      const response = await apiClient.post<{ data: Record<string, unknown> }>(`/admin/reviews/${reviewId}/analyze`);
+      console.log('AI Analysis Response:', response.data);
+      console.log('AI Analysis Data:', response.data.data);
+      if (response.data && response.data.data) {
+        const analysisData = response.data.data;
+        console.log('hasNegativeKeywords:', analysisData.hasNegativeKeywords, typeof analysisData.hasNegativeKeywords);
+        console.log('foundNegativeKeywords:', analysisData.foundNegativeKeywords);
+        console.log('hasSpamKeywords:', analysisData.hasSpamKeywords, typeof analysisData.hasSpamKeywords);
+        console.log('foundSpamKeywords:', analysisData.foundSpamKeywords);
+        setAiAnalysisResult(analysisData);
+        setIsAiAnalysisModalOpen(true);
+        // Update selected review with analysis data if modal is open
+        if (selectedReview && selectedReview.id === reviewId) {
+          setSelectedReview({ ...selectedReview, aiAnalysis: JSON.stringify(analysisData) });
+        }
+      } else {
+        alert('Không nhận được dữ liệu phân tích');
+      }
+      await fetchReviews(currentPage);
+    } catch (error) {
+      console.error('Error analyzing review:', error);
+      const axiosError = error as AxiosError<{ message?: string }>;
+      alert(axiosError.response?.data?.message || 'Có lỗi xảy ra khi phân tích review');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleMarkSuspicious = async (reviewId: number, suspicious: boolean) => {
+    try {
+      setLoading(true);
+      await apiClient.patch(`/admin/reviews/${reviewId}/mark-suspicious?suspicious=${suspicious}`);
+      alert(`Đã ${suspicious ? 'đánh dấu' : 'bỏ đánh dấu'} review là nghi vấn`);
+      await fetchReviews(currentPage);
+      if (selectedReview?.id === reviewId) {
+        setSelectedReview({ ...selectedReview, isSuspicious: suspicious });
+      }
+    } catch (error) {
+      console.error('Error marking review as suspicious:', error);
+      alert('Có lỗi xảy ra');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleMarkSpam = async (reviewId: number, spam: boolean) => {
+    try {
+      setLoading(true);
+      await apiClient.patch(`/admin/reviews/${reviewId}/mark-spam?spam=${spam}`);
+      alert(`Đã ${spam ? 'đánh dấu' : 'bỏ đánh dấu'} review là spam`);
+      await fetchReviews(currentPage);
+      if (selectedReview?.id === reviewId) {
+        setSelectedReview({ ...selectedReview, isSpam: spam });
+      }
+    } catch (error) {
+      console.error('Error marking review as spam:', error);
+      alert('Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
@@ -459,7 +571,7 @@ const AdminReviews: React.FC = () => {
                 <th className="admin-table-th">Tour</th>
                 <th className="admin-table-th">Người dùng</th>
                 <th className="admin-table-th">Đánh giá</th>
-                <th className="admin-table-th">Ngày tạo</th>
+                <th className="admin-table-th">Tags</th>
                 <th className="admin-table-th">Phản hồi</th>
                 <th className="admin-table-th">Trạng thái</th>
                 <th className="admin-table-th">Thao tác</th>
@@ -497,7 +609,25 @@ const AdminReviews: React.FC = () => {
                     <td className="admin-table-td">
                       {renderStars(review.rating)}
                     </td>
-                    <td className="admin-table-td text-sm">{formatDate(review.createdAt)}</td>
+                    <td className="admin-table-td">
+                      <div className="flex flex-wrap gap-1">
+                        {review.isSuspicious && (
+                          <span className="admin-badge bg-orange-100 text-orange-800 text-xs">
+                            <ExclamationTriangleIcon className="h-3 w-3 inline mr-1" />
+                            Nghi vấn
+                          </span>
+                        )}
+                        {review.isSpam && (
+                          <span className="admin-badge bg-red-100 text-red-800 text-xs">
+                            <ShieldExclamationIcon className="h-3 w-3 inline mr-1" />
+                            Spam
+                          </span>
+                        )}
+                        {!review.isSuspicious && !review.isSpam && (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </div>
+                    </td>
                     <td className="admin-table-td">
                       {review.adminReply ? (
                         <div className="flex items-center gap-2">
@@ -593,6 +723,37 @@ const AdminReviews: React.FC = () => {
                           <span className={getStatusBadge(selectedReview.status)}>
                             {getStatusLabel(selectedReview.status)}
                           </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tổng quan - AI Analysis Overview */}
+                  <div className="admin-view-section">
+                    <h4 className="admin-view-section-title">Tổng quan</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-3 rounded">
+                        <p className="text-sm text-gray-600">Cảm xúc</p>
+                        <p className={`font-semibold ${
+                          aiAnalysisResult && String(aiAnalysisResult.sentiment || '').toLowerCase() === 'negative' ? 'text-red-600' :
+                          aiAnalysisResult && String(aiAnalysisResult.sentiment || '').toLowerCase() === 'positive' ? 'text-green-600' : 'text-gray-600'
+                        }`}>
+                          {aiAnalysisResult ? (
+                            String(aiAnalysisResult.sentiment || '').toLowerCase() === 'negative' ? 'Tiêu cực' :
+                            String(aiAnalysisResult.sentiment || '').toLowerCase() === 'positive' ? 'Tích cực' : 'Trung tính'
+                          ) : (
+                            <span className="text-gray-400">Chưa phân tích</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded">
+                        <p className="text-sm text-gray-600">Đánh giá</p>
+                        <p className="font-semibold">
+                          {aiAnalysisResult ? (
+                            `${String(aiAnalysisResult.rating || selectedReview.rating)} ⭐`
+                          ) : (
+                            `${selectedReview.rating} ⭐`
+                          )}
                         </p>
                       </div>
                     </div>
@@ -725,6 +886,131 @@ const AdminReviews: React.FC = () => {
                     )}
                   </div>
 
+                  {/* AI Analysis & Moderation Actions */}
+                  <div className="admin-view-section relative">
+                    <h4 className="admin-view-section-title">Phân tích & Quản lý</h4>
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <button
+                          onClick={() => handleAnalyzeReview(selectedReview.id)}
+                          className="admin-btn-secondary w-full flex items-center justify-center space-x-2"
+                          disabled={loading}
+                        >
+                          <SparklesIcon className="h-5 w-5" />
+                          <span>{loading ? 'Đang phân tích...' : 'Phân tích AI'}</span>
+                        </button>
+                        
+                        {/* AI Analysis Result Pop-up */}
+                        {isAiAnalysisModalOpen && aiAnalysisResult && (
+                          <div className="absolute left-0 top-full mt-2 bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 shadow-lg z-50 min-w-[300px] max-w-md">
+                            <div className="flex items-start justify-between mb-2">
+                              <h5 className="font-semibold text-sm text-gray-800">Kết quả phân tích AI</h5>
+                              <button
+                                onClick={() => {
+                                  setIsAiAnalysisModalOpen(false);
+                                  setAiAnalysisResult(null);
+                                }}
+                                className="text-gray-500 hover:text-gray-700 ml-2"
+                                title="Đóng"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <div className="space-y-2 text-sm">
+                              {(() => {
+                                const hasNegative = aiAnalysisResult.hasNegativeKeywords === true || 
+                                                   aiAnalysisResult.hasNegativeKeywords === 'true' ||
+                                                   String(aiAnalysisResult.hasNegativeKeywords).toLowerCase() === 'true';
+                                const negativeKeywords = aiAnalysisResult.foundNegativeKeywords;
+                                const isArray = Array.isArray(negativeKeywords);
+                                const hasItems = isArray && (negativeKeywords as string[]).length > 0;
+                                
+                                const hasSpam = aiAnalysisResult.hasSpamKeywords === true || 
+                                               aiAnalysisResult.hasSpamKeywords === 'true' ||
+                                               String(aiAnalysisResult.hasSpamKeywords).toLowerCase() === 'true';
+                                const spamKeywords = aiAnalysisResult.foundSpamKeywords;
+                                const spamIsArray = Array.isArray(spamKeywords);
+                                const spamHasItems = spamIsArray && (spamKeywords as string[]).length > 0;
+
+                                const isSuspicious = aiAnalysisResult.isSuspicious === true || 
+                                                    String(aiAnalysisResult.isSuspicious) === 'true';
+                                const isSpam = aiAnalysisResult.isSpam === true || 
+                                              String(aiAnalysisResult.isSpam) === 'true';
+
+                                return (
+                                  <div>
+                                    {hasNegative && hasItems && (
+                                      <div className="mb-2">
+                                        <p className="text-xs font-semibold text-red-600 mb-1">⚠️ Từ khóa tiêu cực:</p>
+                                        <div className="flex flex-wrap gap-1">
+                                          {(negativeKeywords as string[]).slice(0, 3).map((keyword: string, index: number) => (
+                                            <span key={index} className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">
+                                              {String(keyword)}
+                                            </span>
+                                          ))}
+                                          {(negativeKeywords as string[]).length > 3 && (
+                                            <span className="text-xs text-gray-500">+{(negativeKeywords as string[]).length - 3}</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {hasSpam && spamHasItems && (
+                                      <div className="mb-2">
+                                        <p className="text-xs font-semibold text-orange-600 mb-1">🚫 Từ khóa spam:</p>
+                                        <div className="flex flex-wrap gap-1">
+                                          {(spamKeywords as string[]).slice(0, 3).map((keyword: string, index: number) => (
+                                            <span key={index} className="bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded">
+                                              {String(keyword)}
+                                            </span>
+                                          ))}
+                                          {(spamKeywords as string[]).length > 3 && (
+                                            <span className="text-xs text-gray-500">+{(spamKeywords as string[]).length - 3}</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                    <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mt-2">
+                                      <p className="text-xs">
+                                        <strong>Kết luận:</strong> Review này {
+                                          isSuspicious 
+                                            ? 'có dấu hiệu nghi vấn' 
+                                            : 'không có dấu hiệu nghi vấn'
+                                        }{
+                                          isSpam 
+                                            ? ' và có khả năng là spam' 
+                                            : ''
+                                        }.
+                                      </p>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => handleMarkSuspicious(selectedReview.id, !selectedReview.isSuspicious)}
+                          className={`${selectedReview.isSuspicious ? 'admin-btn-danger' : 'admin-btn-secondary'} flex items-center justify-center space-x-1 text-sm`}
+                          disabled={loading}
+                        >
+                          <ExclamationTriangleIcon className="h-4 w-4" />
+                          <span>{selectedReview.isSuspicious ? 'Bỏ nghi vấn' : 'Đánh dấu nghi vấn'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleMarkSpam(selectedReview.id, !selectedReview.isSpam)}
+                          className={`${selectedReview.isSpam ? 'admin-btn-danger' : 'admin-btn-secondary'} flex items-center justify-center space-x-1 text-sm`}
+                          disabled={loading}
+                        >
+                          <ShieldExclamationIcon className="h-4 w-4" />
+                          <span>{selectedReview.isSpam ? 'Bỏ spam' : 'Đánh dấu spam'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Actions for Pending Reviews */}
                   {selectedReview.status === 'PENDING' && (
                     <div className="admin-view-section">
@@ -760,6 +1046,7 @@ const AdminReviews: React.FC = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

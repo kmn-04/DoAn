@@ -129,6 +129,18 @@
 		<version>2.15.1</version>
 	</dependency>
 	
+	<!-- Excel Export -->
+	<dependency>
+		<groupId>org.apache.poi</groupId>
+		<artifactId>poi</artifactId>
+		<version>5.2.5</version>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.poi</groupId>
+		<artifactId>poi-ooxml</artifactId>
+		<version>5.2.5</version>
+	</dependency>
+	
 	<!-- Rate Limiting -->
 	<dependency>
 		<groupId>com.bucket4j</groupId>
@@ -140,6 +152,13 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
+		</dependency>
+		
+		<!-- OpenAI API Client -->
+		<dependency>
+			<groupId>com.theokanning.openai-gpt3-java</groupId>
+			<artifactId>service</artifactId>
+			<version>0.18.2</version>
 		</dependency>
 
 		<!-- Deployment -->

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Cog6ToothIcon,
   DocumentTextIcon,
@@ -7,8 +7,12 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   SparklesIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  ArrowDownTrayIcon,
+  UserGroupIcon,
+  ChartPieIcon
 } from '@heroicons/react/24/outline';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import Pagination from '../../components/ui/Pagination';
 import { apiClient } from '../../services/api';
 import '../../styles/admin.css';
@@ -46,8 +50,31 @@ interface TransactionStats {
   totalPointsRedeemed: number;
 }
 
+interface MonthlyAnalytics {
+  month: string;
+  monthLabel: string;
+  earned: number;
+  redeemed: number;
+  expired: number;
+  net: number;
+}
+
+interface LoyaltyPoints {
+  id: number;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  pointsBalance: number;
+  totalEarned: number;
+  totalRedeemed: number;
+  totalExpired: number;
+  level: string;
+}
+
 const AdminLoyalty: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'config' | 'transactions'>('config');
+  const [activeTab, setActiveTab] = useState<'config' | 'transactions' | 'analytics' | 'topUsers'>('config');
   
   // Config state
   const [configs, setConfigs] = useState<LoyaltyConfig[]>([]);
@@ -69,16 +96,48 @@ const AdminLoyalty: React.FC = () => {
   // Filters
   const [userIdFilter, setUserIdFilter] = useState<string>('');
   const [transactionTypeFilter, setTransactionTypeFilter] = useState<string>('all');
+  const [startDateFilter, setStartDateFilter] = useState<string>('');
+  const [endDateFilter, setEndDateFilter] = useState<string>('');
+  
+  // Analytics state
+  const [monthlyAnalytics, setMonthlyAnalytics] = useState<MonthlyAnalytics[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  
+  // Top users state
+  const [topUsers, setTopUsers] = useState<LoyaltyPoints[]>([]);
+  const [topUsersLoading, setTopUsersLoading] = useState(false);
+  
+  // Export dropdown
+  const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  const exportDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (activeTab === 'config') {
       fetchConfigs();
-    } else {
+    } else if (activeTab === 'transactions') {
       fetchTransactions();
       fetchTransactionStats();
+    } else if (activeTab === 'analytics') {
+      fetchMonthlyAnalytics();
+    } else if (activeTab === 'topUsers') {
+      fetchTopUsers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, currentPage, userIdFilter, transactionTypeFilter]);
+  }, [activeTab, currentPage, userIdFilter, transactionTypeFilter, startDateFilter, endDateFilter]);
+  
+  // Close export dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target as Node)) {
+        setIsExportDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const fetchConfigs = useCallback(async () => {
     try {
@@ -105,6 +164,12 @@ const AdminLoyalty: React.FC = () => {
       if (transactionTypeFilter !== 'all') {
         params.transactionType = transactionTypeFilter;
       }
+      if (startDateFilter) {
+        params.startDate = startDateFilter;
+      }
+      if (endDateFilter) {
+        params.endDate = endDateFilter;
+      }
       
       const response = await apiClient.get('/admin/loyalty/transactions', { params });
       const pageData = response.data.data;
@@ -115,7 +180,7 @@ const AdminLoyalty: React.FC = () => {
     } finally {
       setTransactionsLoading(false);
     }
-  }, [currentPage, userIdFilter, transactionTypeFilter]);
+  }, [currentPage, userIdFilter, transactionTypeFilter, startDateFilter, endDateFilter]);
 
   const fetchTransactionStats = useCallback(async () => {
     try {
@@ -125,6 +190,92 @@ const AdminLoyalty: React.FC = () => {
       console.error('Error fetching transaction stats:', error);
     }
   }, []);
+  
+  const fetchMonthlyAnalytics = useCallback(async () => {
+    try {
+      setAnalyticsLoading(true);
+      const response = await apiClient.get('/admin/loyalty/analytics/monthly', {
+        params: { months: 12 }
+      });
+      setMonthlyAnalytics(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching monthly analytics:', error);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, []);
+  
+  const fetchTopUsers = useCallback(async () => {
+    try {
+      setTopUsersLoading(true);
+      const response = await apiClient.get('/admin/loyalty/top-users', {
+        params: { limit: 20 }
+      });
+      setTopUsers(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching top users:', error);
+    } finally {
+      setTopUsersLoading(false);
+    }
+  }, []);
+  
+  const handleExport = async (format: 'csv' | 'excel') => {
+    try {
+      const params: Record<string, string> = {};
+      if (userIdFilter) {
+        params.userId = userIdFilter;
+      }
+      if (transactionTypeFilter !== 'all') {
+        params.transactionType = transactionTypeFilter;
+      }
+      if (startDateFilter) {
+        params.startDate = startDateFilter;
+      }
+      if (endDateFilter) {
+        params.endDate = endDateFilter;
+      }
+      
+      const response = await apiClient.get(`/admin/loyalty/transactions/export/${format}`, {
+        params,
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `point_transactions_${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xlsx'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      setIsExportDropdownOpen(false);
+    } catch (error) {
+      console.error('Error exporting transactions:', error);
+      alert('Có lỗi xảy ra khi xuất dữ liệu');
+    }
+  };
+  
+  const handleExportTopUsers = async (format: 'csv' | 'excel') => {
+    try {
+      const response = await apiClient.get(`/admin/loyalty/top-users/export/${format}`, {
+        params: { limit: 20 },
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `top_users_${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xlsx'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting top users:', error);
+      alert('Có lỗi xảy ra khi xuất dữ liệu');
+    }
+  };
 
   const handleUpdateConfig = async (configId: number) => {
     try {
@@ -223,6 +374,28 @@ const AdminLoyalty: React.FC = () => {
             >
               <DocumentTextIcon className="h-5 w-5 inline mr-2" />
               Lịch sử giao dịch
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'analytics'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <ChartPieIcon className="h-5 w-5 inline mr-2" />
+              Phân tích
+            </button>
+            <button
+              onClick={() => setActiveTab('topUsers')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'topUsers'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <UserGroupIcon className="h-5 w-5 inline mr-2" />
+              Top Users
             </button>
           </nav>
         </div>
@@ -419,6 +592,59 @@ const AdminLoyalty: React.FC = () => {
                     <option value="ROLLBACK">Hoàn trả</option>
                   </select>
                 </div>
+                <div>
+                  <label className="admin-label">Từ ngày</label>
+                  <input
+                    type="date"
+                    value={startDateFilter}
+                    onChange={(e) => {
+                      setStartDateFilter(e.target.value);
+                      setCurrentPage(0);
+                    }}
+                    className="admin-input"
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Đến ngày</label>
+                  <input
+                    type="date"
+                    value={endDateFilter}
+                    onChange={(e) => {
+                      setEndDateFilter(e.target.value);
+                      setCurrentPage(0);
+                    }}
+                    className="admin-input"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <div className="relative" ref={exportDropdownRef}>
+                    <button
+                      onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                      className="admin-btn-secondary flex items-center space-x-2"
+                    >
+                      <ArrowDownTrayIcon className="h-5 w-5" />
+                      <span>Xuất dữ liệu</span>
+                    </button>
+                    {isExportDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                        <button
+                          onClick={() => handleExport('csv')}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                        >
+                          <DocumentTextIcon className="h-4 w-4" />
+                          <span>Xuất CSV</span>
+                        </button>
+                        <button
+                          onClick={() => handleExport('excel')}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                        >
+                          <DocumentTextIcon className="h-4 w-4" />
+                          <span>Xuất Excel</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -486,6 +712,153 @@ const AdminLoyalty: React.FC = () => {
                 </>
               )}
             </div>
+          </div>
+        )}
+        
+        {/* Analytics Tab */}
+        {activeTab === 'analytics' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Phân tích điểm thưởng theo tháng</h2>
+            </div>
+            
+            {analyticsLoading ? (
+              <div className="admin-loading">
+                <ArrowPathIcon className="admin-spinner" />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h3 className="text-lg font-medium mb-4">Xu hướng điểm thưởng (12 tháng gần nhất)</h3>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={monthlyAnalytics}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="monthLabel" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="earned" stroke="#10b981" strokeWidth={2} name="Tích điểm" />
+                      <Line type="monotone" dataKey="redeemed" stroke="#ef4444" strokeWidth={2} name="Đổi điểm" />
+                      <Line type="monotone" dataKey="expired" stroke="#f59e0b" strokeWidth={2} name="Hết hạn" />
+                      <Line type="monotone" dataKey="net" stroke="#3b82f6" strokeWidth={2} name="Ròng" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h3 className="text-lg font-medium mb-4">So sánh tích/đổi/hết hạn</h3>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={monthlyAnalytics}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="monthLabel" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="earned" fill="#10b981" name="Tích điểm" />
+                      <Bar dataKey="redeemed" fill="#ef4444" name="Đổi điểm" />
+                      <Bar dataKey="expired" fill="#f59e0b" name="Hết hạn" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Top Users Tab */}
+        {activeTab === 'topUsers' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Top Users theo điểm tích lũy</h2>
+              <div className="relative" ref={exportDropdownRef}>
+                <button
+                  onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                  className="admin-btn-secondary flex items-center space-x-2"
+                >
+                  <ArrowDownTrayIcon className="h-5 w-5" />
+                  <span>Xuất dữ liệu</span>
+                </button>
+                {isExportDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                    <button
+                      onClick={() => handleExportTopUsers('csv')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                    >
+                      <DocumentTextIcon className="h-4 w-4" />
+                      <span>Xuất CSV</span>
+                    </button>
+                    <button
+                      onClick={() => handleExportTopUsers('excel')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                    >
+                      <DocumentTextIcon className="h-4 w-4" />
+                      <span>Xuất Excel</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {topUsersLoading ? (
+              <div className="admin-loading">
+                <ArrowPathIcon className="admin-spinner" />
+              </div>
+            ) : (
+              <div className="admin-table-container">
+                <div className="overflow-x-auto">
+                  <table className="admin-table">
+                    <thead className="admin-table-header">
+                      <tr>
+                        <th className="admin-table-th">Hạng</th>
+                        <th className="admin-table-th">User ID</th>
+                        <th className="admin-table-th">Tên</th>
+                        <th className="admin-table-th">Email</th>
+                        <th className="admin-table-th">Số dư điểm</th>
+                        <th className="admin-table-th">Tổng tích lũy</th>
+                        <th className="admin-table-th">Tổng đã đổi</th>
+                        <th className="admin-table-th">Tổng hết hạn</th>
+                        <th className="admin-table-th">Cấp độ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="admin-table-body">
+                      {topUsers.map((lp, index) => (
+                        <tr key={lp.id} className="admin-table-row">
+                          <td className="admin-table-td font-bold">
+                            #{index + 1}
+                          </td>
+                          <td className="admin-table-td text-gray-500">
+                            {lp.user?.id || '-'}
+                          </td>
+                          <td className="admin-table-td font-medium">
+                            {lp.user?.name || '-'}
+                          </td>
+                          <td className="admin-table-td text-gray-500">
+                            {lp.user?.email || '-'}
+                          </td>
+                          <td className="admin-table-td font-semibold text-blue-600">
+                            {lp.pointsBalance?.toLocaleString() || 0}
+                          </td>
+                          <td className="admin-table-td text-green-600">
+                            {lp.totalEarned?.toLocaleString() || 0}
+                          </td>
+                          <td className="admin-table-td text-red-600">
+                            {lp.totalRedeemed?.toLocaleString() || 0}
+                          </td>
+                          <td className="admin-table-td text-orange-600">
+                            {lp.totalExpired?.toLocaleString() || 0}
+                          </td>
+                          <td className="admin-table-td">
+                            <span className="admin-badge bg-purple-100 text-purple-800">
+                              {lp.level || '-'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -14,6 +14,7 @@ import backend.repository.UserRepository;
 import backend.service.UserService;
 import backend.service.UserActivityService;
 import backend.service.UserSessionService;
+import backend.service.ExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,6 +25,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin/users")
@@ -39,7 +43,7 @@ import java.util.Map;
 @Slf4j
 @Tag(name = "Admin User Management", description = "Admin APIs for managing users")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
-// @PreAuthorize("hasRole('ADMIN')") // Temporarily disabled for testing
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController extends BaseController {
     
     private final UserService userService;
@@ -48,6 +52,7 @@ public class AdminUserController extends BaseController {
     private final EntityMapper mapper;
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final ExportService exportService;
     
     // ================================
     // USER MANAGEMENT
@@ -656,5 +661,133 @@ public class AdminUserController extends BaseController {
             return ResponseEntity.internalServerError()
                     .body(error("Failed to get users count: " + e.getMessage()));
         }
+    }
+    
+    @GetMapping("/export/csv")
+    @Operation(summary = "Export users to CSV", description = "Export filtered users to CSV format (Admin only)")
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportUsersToCsv(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastActivityFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastActivityTo) {
+        
+        try {
+            List<User> users = getFilteredUsers(search, status, role, createdFrom, createdTo, lastActivityFrom, lastActivityTo);
+            
+            byte[] csvData = exportService.exportUsersToCsv(users);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "users_" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv");
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(csvData);
+            
+        } catch (Exception e) {
+            log.error("Error exporting users to CSV", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @GetMapping("/export/excel")
+    @Operation(summary = "Export users to Excel", description = "Export filtered users to Excel format (Admin only)")
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportUsersToExcel(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastActivityFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastActivityTo) {
+        
+        try {
+            List<User> users = getFilteredUsers(search, status, role, createdFrom, createdTo, lastActivityFrom, lastActivityTo);
+            
+            byte[] excelData = exportService.exportUsersToExcel(users);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "users_" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx");
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(excelData);
+            
+        } catch (Exception e) {
+            log.error("Error exporting users to Excel", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    /**
+     * Helper method to get filtered users
+     */
+    private List<User> getFilteredUsers(
+            String search, String status, String role,
+            LocalDateTime createdFrom, LocalDateTime createdTo,
+            LocalDateTime lastActivityFrom, LocalDateTime lastActivityTo) {
+        
+        // Fetch all users
+        List<User> allUsers = userRepository.findAll();
+        
+        // Apply filters
+        return allUsers.stream()
+            .filter(user -> {
+                // Search filter (name, email)
+                if (search != null && !search.trim().isEmpty()) {
+                    String searchLower = search.toLowerCase();
+                    boolean matchesSearch = 
+                        (user.getName() != null && user.getName().toLowerCase().contains(searchLower)) ||
+                        (user.getEmail() != null && user.getEmail().toLowerCase().contains(searchLower));
+                    if (!matchesSearch) return false;
+                }
+                
+                // Status filter
+                if (status != null && !status.equalsIgnoreCase("all")) {
+                    if (user.getStatus() == null || !user.getStatus().toString().equalsIgnoreCase(status)) {
+                        return false;
+                    }
+                }
+                
+                // Role filter
+                if (role != null && !role.equalsIgnoreCase("all")) {
+                    if (user.getRole() == null || user.getRole().getName() == null || 
+                        !user.getRole().getName().equalsIgnoreCase(role)) {
+                        return false;
+                    }
+                }
+                
+                // Created date range filter
+                if (createdFrom != null && user.getCreatedAt() != null && user.getCreatedAt().isBefore(createdFrom)) {
+                    return false;
+                }
+                if (createdTo != null && user.getCreatedAt() != null && user.getCreatedAt().isAfter(createdTo)) {
+                    return false;
+                }
+                
+                // Last activity date range filter
+                if (lastActivityFrom != null && user.getLastActivityAt() != null && user.getLastActivityAt().isBefore(lastActivityFrom)) {
+                    return false;
+                }
+                if (lastActivityTo != null && user.getLastActivityAt() != null && user.getLastActivityAt().isAfter(lastActivityTo)) {
+                    return false;
+                }
+                
+                return true;
+            })
+            .sorted((a, b) -> {
+                // Sort by createdAt DESC
+                if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
+                    return b.getCreatedAt().compareTo(a.getCreatedAt());
+                }
+                return Long.compare(b.getId(), a.getId());
+            })
+            .collect(Collectors.toList());
     }
 }

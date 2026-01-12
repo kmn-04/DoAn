@@ -17,8 +17,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
@@ -43,6 +45,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Allow session for OAuth2
                 .maximumSessions(1)
+                    .maxSessionsPreventsLogin(false) // Allow new login, invalidate old session
             )
             .authorizeHttpRequests(authz -> authz
                 // Public endpoints
@@ -103,5 +106,15 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
+    }
+    
+    /**
+     * HttpSessionEventPublisher is required for concurrent session control
+     * It publishes session lifecycle events to Spring Security
+     * Must be registered as a ServletListener to work properly
+     */
+    @Bean
+    public ServletListenerRegistrationBean<HttpSessionEventPublisher> httpSessionEventPublisher() {
+        return new ServletListenerRegistrationBean<>(new HttpSessionEventPublisher());
     }
 }

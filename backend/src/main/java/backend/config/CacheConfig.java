@@ -51,7 +51,8 @@ public class CacheConfig {
             
             // System caches
             "banners",                  // Active banners
-            "statistics"                // Dashboard statistics
+            "statistics",               // Dashboard statistics
+            "aiInsights"                // AI insights and predictions (1 hour cache)
         );
         
         cacheManager.setCaffeine(Caffeine.newBuilder()
@@ -90,6 +91,21 @@ public class CacheConfig {
             .maximumSize(200)
             .expireAfterWrite(60, TimeUnit.MINUTES)     // Master data cache 1 giờ
             .recordStats());
+        
+        return cacheManager;
+    }
+    
+    /**
+     * Cache riêng cho AI Insights - expire sau 1 giờ để tối ưu performance
+     */
+    @Bean("aiInsightsCacheManager")
+    public CacheManager aiInsightsCacheManager() {
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager("aiInsights");
+        
+        cacheManager.setCaffeine(Caffeine.newBuilder()
+            .maximumSize(10)                            // Chỉ cache 10 kết quả (1 per admin)
+            .expireAfterWrite(1, TimeUnit.HOURS)       // Cache 1 giờ
+            .recordStats());                            // Enable statistics tracking
         
         return cacheManager;
     }

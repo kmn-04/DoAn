@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   ChartBarIcon,
   ArrowTrendingUpIcon,
   UsersIcon,
   CurrencyDollarIcon,
   MapIcon,
+  ArrowDownTrayIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import { Card } from '../../components/ui/Card';
 import { apiClient } from '../../services/api';
@@ -59,6 +61,8 @@ const AdminStatistics: React.FC = () => {
   const [userGrowth, setUserGrowth] = useState<UserGrowth[]>([]);
   const [summary, setSummary] = useState<RevenueSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  const exportDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchStatistics = async () => {
@@ -88,6 +92,21 @@ const AdminStatistics: React.FC = () => {
     fetchStatistics();
   }, []);
 
+  // Close export dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target as Node)) {
+        setIsExportDropdownOpen(false);
+      }
+    };
+    if (isExportDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExportDropdownOpen]);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -100,6 +119,26 @@ const AdminStatistics: React.FC = () => {
     if (price >= 1000000) return `${(price / 1000000).toFixed(1)}M`;
     if (price >= 1000) return `${(price / 1000).toFixed(0)}K`;
     return price.toString();
+  };
+
+  const handleExport = async (format: 'csv' | 'excel') => {
+    try {
+      setIsExportDropdownOpen(false);
+      const endpoint = `/admin/statistics/export/revenue/${format}`;
+      const response = await apiClient.get(endpoint, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const ext = format === 'csv' ? 'csv' : 'xlsx';
+      link.setAttribute('download', `revenue_${new Date().toISOString().slice(0, 10)}.${ext}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(`Error exporting ${format}:`, error);
+      alert(`Không thể xuất file ${format.toUpperCase()}. Vui lòng thử lại.`);
+    }
   };
 
   // Colors for charts
@@ -116,8 +155,51 @@ const AdminStatistics: React.FC = () => {
   return (
     <div>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Thống kê Hệ thống</h1>
+        <div className="relative inline-block" ref={exportDropdownRef}>
+          <button
+            onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+            className={`admin-btn-primary flex items-center gap-2 ${isExportDropdownOpen ? 'bg-blue-700' : ''}`}
+          >
+            <ArrowDownTrayIcon className="h-5 w-5" />
+            <span>Xuất dữ liệu</span>
+            <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${isExportDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {isExportDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden transition-all duration-200 ease-in-out">
+              <div className="py-1">
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                  Doanh thu (12 tháng)
+                </div>
+                <button
+                  onClick={() => handleExport('csv')}
+                  className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors duration-150 group"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-md bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                    <ArrowDownTrayIcon className="h-4 w-4 text-gray-600 group-hover:text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium">Xuất CSV</div>
+                    <div className="text-xs text-gray-500">Doanh thu 12 tháng (CSV)</div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleExport('excel')}
+                  className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center gap-3 transition-colors duration-150 group border-t border-gray-100"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-md bg-gray-100 group-hover:bg-green-100 flex items-center justify-center transition-colors">
+                    <ArrowDownTrayIcon className="h-4 w-4 text-gray-600 group-hover:text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium">Xuất Excel</div>
+                    <div className="text-xs text-gray-500">Doanh thu 12 tháng (XLSX)</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Content */}

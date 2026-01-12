@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -121,4 +122,46 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      */
     @org.springframework.data.jpa.repository.Modifying
     void deleteByTourId(Long tourId);
+    
+    // ================================
+    // ADVANCED FILTERING QUERIES (ADMIN)
+    // ================================
+    
+    /**
+     * Find reviews with advanced filters (Admin)
+     */
+    @Query("SELECT r FROM Review r LEFT JOIN r.user LEFT JOIN r.tour WHERE " +
+           "(:status IS NULL OR r.status = :status) AND " +
+           "(:tourId IS NULL OR r.tour.id = :tourId) AND " +
+           "(:rating IS NULL OR r.rating = :rating) AND " +
+           "(:startDate IS NULL OR r.createdAt >= :startDate) AND " +
+           "(:endDate IS NULL OR r.createdAt <= :endDate) AND " +
+           "(:isSuspicious IS NULL OR r.isSuspicious = :isSuspicious) AND " +
+           "(:isSpam IS NULL OR r.isSpam = :isSpam)")
+    Page<Review> findReviewsWithFilters(
+        @Param("status") ReviewStatus status,
+        @Param("tourId") Long tourId,
+        @Param("rating") Integer rating,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        @Param("isSuspicious") Boolean isSuspicious,
+        @Param("isSpam") Boolean isSpam,
+        Pageable pageable
+    );
+    
+    /**
+     * Find suspicious reviews
+     */
+    Page<Review> findByIsSuspiciousTrue(Pageable pageable);
+    
+    /**
+     * Find spam reviews
+     */
+    Page<Review> findByIsSpamTrue(Pageable pageable);
+    
+    /**
+     * Find reviews with negative ratings (1-2 stars)
+     */
+    @Query("SELECT r FROM Review r LEFT JOIN r.user LEFT JOIN r.tour WHERE r.rating <= 2 ORDER BY r.createdAt DESC")
+    Page<Review> findNegativeReviews(Pageable pageable);
 }

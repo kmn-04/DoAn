@@ -3,6 +3,7 @@ package backend.controller.admin;
 import backend.controller.BaseController;
 import backend.dto.response.ApiResponse;
 import backend.dto.response.ReviewResponse;
+import backend.service.ExportService;
 import backend.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,9 +13,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 @RestController
 @RequestMapping("/api/admin/reviews")
@@ -22,10 +29,11 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Tag(name = "Admin Review Management", description = "Admin APIs for managing reviews")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
-// @PreAuthorize("hasRole('ADMIN')") // Temporarily disabled for testing
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminReviewController extends BaseController {
     
     private final ReviewService reviewService;
+    private final ExportService exportService;
     
     @GetMapping
     @Operation(summary = "Get all reviews", description = "Get all reviews with pagination (Admin only)")
@@ -197,6 +205,168 @@ public class AdminReviewController extends BaseController {
             log.error("Error getting pending reviews count", e);
             return ResponseEntity.internalServerError()
                     .body(error("Failed to get pending reviews count: " + e.getMessage()));
+        }
+    }
+    
+    // ================================
+    // ADVANCED FILTERING & EXPORT
+    // ================================
+    
+    @GetMapping("/filtered")
+    @Operation(summary = "Get reviews with advanced filters", description = "Get reviews with multiple filter options (Admin only)")
+    public ResponseEntity<ApiResponse<Page<ReviewResponse>>> getFilteredReviews(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long tourId,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) Boolean isSuspicious,
+            @RequestParam(required = false) Boolean isSpam,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+        try {
+            Sort.Direction sortDirection = direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+            
+            LocalDateTime startDateTime = null;
+            LocalDateTime endDateTime = null;
+            
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                try {
+                    startDateTime = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } catch (DateTimeParseException e) {
+                    startDateTime = java.time.LocalDate.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                        .atStartOfDay();
+                }
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                try {
+                    endDateTime = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } catch (DateTimeParseException e) {
+                    endDateTime = java.time.LocalDate.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                        .atTime(23, 59, 59);
+                }
+            }
+            
+            Page<ReviewResponse> reviews = reviewService.getReviewsWithFilters(
+                status, tourId, rating, startDateTime, endDateTime, isSuspicious, isSpam, pageable
+            );
+            
+            return ResponseEntity.ok(success("Filtered reviews retrieved successfully", reviews));
+        } catch (Exception e) {
+            log.error("Error getting filtered reviews", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to get filtered reviews: " + e.getMessage()));
+        }
+    }
+    
+    @PatchMapping("/{id}/mark-suspicious")
+    @Operation(summary = "Mark/unmark review as suspicious", description = "Mark or unmark a review as suspicious (Admin only)")
+    public ResponseEntity<ApiResponse<ReviewResponse>> markAsSuspicious(
+            @PathVariable Long id,
+            @RequestParam boolean suspicious) {
+        try {
+            ReviewResponse review = reviewService.markAsSuspicious(id, suspicious);
+            return ResponseEntity.ok(success("Review marked as suspicious: " + suspicious, review));
+        } catch (Exception e) {
+            log.error("Error marking review as suspicious", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to mark review: " + e.getMessage()));
+        }
+    }
+    
+    @PatchMapping("/{id}/mark-spam")
+    @Operation(summary = "Mark/unmark review as spam", description = "Mark or unmark a review as spam (Admin only)")
+    public ResponseEntity<ApiResponse<ReviewResponse>> markAsSpam(
+            @PathVariable Long id,
+            @RequestParam boolean spam) {
+        try {
+            ReviewResponse review = reviewService.markAsSpam(id, spam);
+            return ResponseEntity.ok(success("Review marked as spam: " + spam, review));
+        } catch (Exception e) {
+            log.error("Error marking review as spam", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to mark review: " + e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/{id}/analyze")
+    @Operation(summary = "Analyze review with AI", description = "Analyze review for negative keywords and spam detection (Admin only)")
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> analyzeReview(@PathVariable Long id) {
+        try {
+            java.util.Map<String, Object> analysis = reviewService.analyzeReviewWithAI(id);
+            return ResponseEntity.ok(success("Review analyzed successfully", analysis));
+        } catch (Exception e) {
+            log.error("Error analyzing review", e);
+            return ResponseEntity.internalServerError()
+                    .body(error("Failed to analyze review: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/export/{format}")
+    @Operation(summary = "Export reviews", description = "Export reviews to CSV or Excel with filters (Admin only)")
+    public ResponseEntity<byte[]> exportReviews(
+            @PathVariable String format,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long tourId,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) Boolean isSuspicious,
+            @RequestParam(required = false) Boolean isSpam) {
+        try {
+            LocalDateTime startDateTime = null;
+            LocalDateTime endDateTime = null;
+            
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                try {
+                    startDateTime = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } catch (DateTimeParseException e) {
+                    startDateTime = java.time.LocalDate.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                        .atStartOfDay();
+                }
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                try {
+                    endDateTime = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } catch (DateTimeParseException e) {
+                    endDateTime = java.time.LocalDate.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                        .atTime(23, 59, 59);
+                }
+            }
+            
+            java.util.List<ReviewResponse> reviews = reviewService.getAllReviewsForExport(
+                status, tourId, rating, startDateTime, endDateTime, isSuspicious, isSpam
+            );
+            
+            byte[] data;
+            String filename;
+            String contentType;
+            
+            if ("excel".equalsIgnoreCase(format) || "xlsx".equalsIgnoreCase(format)) {
+                data = exportService.exportReviewsToExcel(reviews);
+                filename = "reviews_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            } else {
+                data = exportService.exportReviewsToCsv(reviews);
+                filename = "reviews_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv";
+                contentType = "text/csv";
+            }
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(contentType));
+            headers.setContentDispositionFormData("attachment", filename);
+            
+            return ResponseEntity.ok()
+                .headers(headers)
+                .body(data);
+        } catch (Exception e) {
+            log.error("Error exporting reviews", e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

@@ -701,5 +701,176 @@ public class ReviewServiceImpl implements ReviewService {
             log.error("Failed to send admin reply notification for review ID: {}", review.getId(), e);
         }
     }
+    
+    // ==================== NEW ADMIN METHODS ====================
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReviewResponse> getReviewsWithFilters(
+            String status, Long tourId, Integer rating,
+            java.time.LocalDateTime startDate, java.time.LocalDateTime endDate,
+            Boolean isSuspicious, Boolean isSpam, Pageable pageable) {
+        
+        Review.ReviewStatus reviewStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                reviewStatus = Review.ReviewStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid status: {}", status);
+            }
+        }
+        
+        Page<Review> reviews = reviewRepository.findReviewsWithFilters(
+            reviewStatus, tourId, rating, startDate, endDate, isSuspicious, isSpam, pageable
+        );
+        
+        return reviews.map(mapper::toReviewResponse);
+    }
+    
+    @Override
+    @Transactional
+    public ReviewResponse markAsSuspicious(Long reviewId, boolean suspicious) {
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
+        
+        review.setIsSuspicious(suspicious);
+        Review updatedReview = reviewRepository.save(review);
+        
+        log.info("Review {} marked as suspicious: {}", reviewId, suspicious);
+        return mapper.toReviewResponse(updatedReview);
+    }
+    
+    @Override
+    @Transactional
+    public ReviewResponse markAsSpam(Long reviewId, boolean spam) {
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
+        
+        review.setIsSpam(spam);
+        // If marked as spam, also mark as suspicious
+        if (spam) {
+            review.setIsSuspicious(true);
+        }
+        
+        Review updatedReview = reviewRepository.save(review);
+        
+        log.info("Review {} marked as spam: {}", reviewId, spam);
+        return mapper.toReviewResponse(updatedReview);
+    }
+    
+    @Override
+    @Transactional
+    public java.util.Map<String, Object> analyzeReviewWithAI(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
+        
+        java.util.Map<String, Object> analysis = new java.util.HashMap<>();
+        
+        String comment = review.getComment() != null ? review.getComment().toLowerCase() : "";
+        Integer rating = review.getRating();
+        
+        // Negative keywords (Vietnamese)
+        String[] negativeKeywords = {
+            "tệ", "xấu", "không tốt", "đáng thất vọng", "lừa đảo", "scam",
+            "tồi", "rởm", "dở", "không nên", "không đáng", "tệ hại",
+            "chất lượng kém", "dịch vụ kém", "nhân viên kém", "không chuyên nghiệp"
+        };
+        
+        // Spam keywords
+        String[] spamKeywords = {
+            "click here", "buy now", "visit this", "check out", "make money",
+            "đặt hàng", "liên hệ ngay", "quảng cáo"
+        };
+        
+        // Detect negative sentiment
+        boolean hasNegativeKeywords = false;
+        java.util.List<String> foundNegativeKeywords = new java.util.ArrayList<>();
+        for (String keyword : negativeKeywords) {
+            if (comment.contains(keyword.toLowerCase())) {
+                hasNegativeKeywords = true;
+                foundNegativeKeywords.add(keyword);
+            }
+        }
+        
+        // Detect spam
+        boolean hasSpamKeywords = false;
+        java.util.List<String> foundSpamKeywords = new java.util.ArrayList<>();
+        for (String keyword : spamKeywords) {
+            if (comment.contains(keyword.toLowerCase())) {
+                hasSpamKeywords = true;
+                foundSpamKeywords.add(keyword);
+            }
+        }
+        
+        // Determine sentiment
+        String sentiment = "neutral";
+        if (rating <= 2 || hasNegativeKeywords) {
+            sentiment = "negative";
+        } else if (rating >= 4) {
+            sentiment = "positive";
+        }
+        
+        // Overall assessment
+        boolean isSuspicious = rating <= 2 || hasNegativeKeywords || hasSpamKeywords;
+        boolean isSpam = hasSpamKeywords;
+        
+        analysis.put("sentiment", sentiment);
+        analysis.put("isNegative", rating <= 2 || hasNegativeKeywords);
+        analysis.put("isSuspicious", isSuspicious);
+        analysis.put("isSpam", isSpam);
+        analysis.put("hasNegativeKeywords", hasNegativeKeywords);
+        analysis.put("foundNegativeKeywords", foundNegativeKeywords);
+        analysis.put("hasSpamKeywords", hasSpamKeywords);
+        analysis.put("foundSpamKeywords", foundSpamKeywords);
+        analysis.put("rating", rating);
+        analysis.put("commentLength", comment.length());
+        
+        // Save analysis to review
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            review.setAiAnalysis(objectMapper.writeValueAsString(analysis));
+            if (isSuspicious) {
+                review.setIsSuspicious(true);
+            }
+            if (isSpam) {
+                review.setIsSpam(true);
+            }
+            reviewRepository.save(review);
+        } catch (Exception e) {
+            log.error("Error saving AI analysis to review {}: {}", reviewId, e.getMessage());
+        }
+        
+        log.info("AI analysis completed for review {}: sentiment={}, suspicious={}, spam={}", 
+            reviewId, sentiment, isSuspicious, isSpam);
+        
+        return analysis;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<ReviewResponse> getAllReviewsForExport(
+            String status, Long tourId, Integer rating,
+            java.time.LocalDateTime startDate, java.time.LocalDateTime endDate,
+            Boolean isSuspicious, Boolean isSpam) {
+        
+        Review.ReviewStatus reviewStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                reviewStatus = Review.ReviewStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid status: {}", status);
+            }
+        }
+        
+        // Use a large page size to get all matching reviews
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE);
+        Page<Review> reviews = reviewRepository.findReviewsWithFilters(
+            reviewStatus, tourId, rating, startDate, endDate, isSuspicious, isSpam, pageable
+        );
+        
+        return reviews.getContent().stream()
+            .map(mapper::toReviewResponse)
+            .collect(java.util.stream.Collectors.toList());
+    }
 }
 

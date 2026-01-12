@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   PlusIcon, 
   EyeIcon,
@@ -9,7 +9,9 @@ import {
   LockOpenIcon,
   UserIcon,
   CheckCircleIcon,
-  XCircleIcon
+  XCircleIcon,
+  ArrowDownTrayIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import { AxiosError } from 'axios';
 import apiClient from '../../services/api';
@@ -85,6 +87,10 @@ const AdminUsers: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('id');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  
+  // Export dropdown state
+  const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  const exportDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchRoles();
@@ -102,6 +108,23 @@ const AdminUsers: React.FC = () => {
     fetchUsers(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, statusFilter, roleFilter, sortBy, sortDirection]);
+
+  // Close export dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target as Node)) {
+        setIsExportDropdownOpen(false);
+      }
+    };
+
+    if (isExportDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExportDropdownOpen]);
 
   const fetchRoles = async () => {
     try {
@@ -417,6 +440,42 @@ const AdminUsers: React.FC = () => {
     }
   };
 
+  const handleExport = async (format: 'csv' | 'excel') => {
+    try {
+      setIsExportDropdownOpen(false);
+      setLoading(true);
+      
+      // Build query params with current filters
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (roleFilter !== 'all') params.append('role', roleFilter);
+      
+      const endpoint = `/admin/users/export/${format}`;
+      const response = await apiClient.get(endpoint, {
+        params: params,
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const extension = format === 'csv' ? 'csv' : 'xlsx';
+      link.setAttribute('download', `users_${new Date().toISOString().slice(0, 10)}.${extension}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error(`Error exporting ${format}:`, error);
+      alert(`Không thể xuất file ${format.toUpperCase()}. Vui lòng thử lại.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('vi-VN');
@@ -428,13 +487,63 @@ const AdminUsers: React.FC = () => {
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Quản lý người dùng</h1>
-          <button
-            onClick={openCreateModal}
-            className="admin-btn-primary flex items-center gap-2"
-          >
-            <PlusIcon className="h-5 w-5" />
-            Thêm người dùng
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="relative inline-block" ref={exportDropdownRef}>
+              <button
+                onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                disabled={loading}
+                className={`admin-btn-primary flex items-center gap-2 ${isExportDropdownOpen ? 'bg-blue-700' : ''}`}
+                title="Xuất dữ liệu"
+              >
+                <ArrowDownTrayIcon className="h-5 w-5" />
+                <span>Xuất dữ liệu</span>
+                <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${isExportDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isExportDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden transition-all duration-200 ease-in-out">
+                  <div className="py-1">
+                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                      Định dạng xuất
+                    </div>
+                    <button
+                      onClick={() => handleExport('csv')}
+                      disabled={loading}
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors duration-150 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="flex-shrink-0 w-8 h-8 rounded-md bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                        <ArrowDownTrayIcon className="h-4 w-4 text-gray-600 group-hover:text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium">Xuất CSV</div>
+                        <div className="text-xs text-gray-500">Tệp định dạng CSV</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => handleExport('excel')}
+                      disabled={loading}
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center gap-3 transition-colors duration-150 group disabled:opacity-50 disabled:cursor-not-allowed border-t border-gray-100"
+                    >
+                      <div className="flex-shrink-0 w-8 h-8 rounded-md bg-gray-100 group-hover:bg-green-100 flex items-center justify-center transition-colors">
+                        <ArrowDownTrayIcon className="h-4 w-4 text-gray-600 group-hover:text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium">Xuất Excel</div>
+                        <div className="text-xs text-gray-500">Tệp định dạng XLSX</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={openCreateModal}
+              className="admin-btn-primary flex items-center gap-2"
+            >
+              <PlusIcon className="h-5 w-5" />
+              Thêm người dùng
+            </button>
+          </div>
         </div>
       </div>
 

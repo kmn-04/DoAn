@@ -6,6 +6,7 @@ import backend.dto.response.BookingResponse;
 import backend.entity.Booking;
 import backend.mapper.EntityMapper;
 import backend.service.BookingService;
+import backend.service.ExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,18 +28,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/api/admin/bookings")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Admin Booking Management", description = "Admin APIs for managing bookings")
-// @PreAuthorize("hasRole('ADMIN')") // Temporarily disabled for testing
+@PreAuthorize("hasRole('ADMIN')")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
 public class AdminBookingController extends BaseController {
     
     private final BookingService bookingService;
     private final EntityMapper entityMapper;
+    private final ExportService exportService;
     
     @GetMapping
     @Operation(summary = "Get all bookings", description = "Get all bookings with pagination and filters (Admin only)")
@@ -306,6 +310,163 @@ public class AdminBookingController extends BaseController {
             return ResponseEntity.internalServerError()
                     .body(error("Failed to search bookings: " + e.getMessage()));
         }
+    }
+    
+    @GetMapping("/export/csv")
+    @Operation(summary = "Export bookings to CSV", description = "Export filtered bookings to CSV format (Admin only)")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportBookingsToCsv(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String confirmationStatus,
+            @RequestParam(required = false) String paymentStatus,
+            @RequestParam(required = false) String dateFilter,
+            @RequestParam(required = false) Long tourId,
+            @RequestParam(required = false) String paymentMethod) {
+        
+        try {
+            List<BookingResponse> bookings = getFilteredBookings(search, confirmationStatus, paymentStatus, dateFilter, tourId, paymentMethod);
+            
+            byte[] csvData = exportService.exportBookingsToCsv(bookings);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "bookings_" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv");
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(csvData);
+            
+        } catch (Exception e) {
+            log.error("Error exporting bookings to CSV", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @GetMapping("/export/excel")
+    @Operation(summary = "Export bookings to Excel", description = "Export filtered bookings to Excel format (Admin only)")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportBookingsToExcel(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String confirmationStatus,
+            @RequestParam(required = false) String paymentStatus,
+            @RequestParam(required = false) String dateFilter,
+            @RequestParam(required = false) Long tourId,
+            @RequestParam(required = false) String paymentMethod) {
+        
+        try {
+            List<BookingResponse> bookings = getFilteredBookings(search, confirmationStatus, paymentStatus, dateFilter, tourId, paymentMethod);
+            
+            byte[] excelData = exportService.exportBookingsToExcel(bookings);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "bookings_" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx");
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(excelData);
+            
+        } catch (Exception e) {
+            log.error("Error exporting bookings to Excel", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    /**
+     * Helper method to get filtered bookings (reused from getAllBookings)
+     */
+    private List<BookingResponse> getFilteredBookings(
+            String search, String confirmationStatus, String paymentStatus, 
+            String dateFilter, Long tourId, String paymentMethod) {
+        
+        // Fetch all bookings (without pagination)
+        List<Booking> allBookings = bookingService.getAllBookings();
+        
+        // Apply filters
+        List<Booking> filteredList = allBookings.stream()
+            .filter(booking -> {
+                // ALWAYS exclude CancellationRequested bookings
+                if (booking.getConfirmationStatus() == Booking.ConfirmationStatus.CANCELLATION_REQUESTED) {
+                    return false;
+                }
+                
+                // Search filter (bookingCode, customerName, customerEmail)
+                if (search != null && !search.isEmpty()) {
+                    String searchLower = search.toLowerCase();
+                    boolean matchesSearch = 
+                        (booking.getBookingCode() != null && booking.getBookingCode().toLowerCase().contains(searchLower)) ||
+                        (booking.getCustomerName() != null && booking.getCustomerName().toLowerCase().contains(searchLower)) ||
+                        (booking.getCustomerEmail() != null && booking.getCustomerEmail().toLowerCase().contains(searchLower));
+                    if (!matchesSearch) return false;
+                }
+                
+                // Confirmation status filter
+                if (confirmationStatus != null && !confirmationStatus.equalsIgnoreCase("all")) {
+                    if (booking.getConfirmationStatus() == null || 
+                        !booking.getConfirmationStatus().name().equalsIgnoreCase(confirmationStatus)) {
+                        return false;
+                    }
+                }
+                
+                // Payment status filter
+                if (paymentStatus != null && !paymentStatus.equalsIgnoreCase("all")) {
+                    if (booking.getPaymentStatus() == null || 
+                        !booking.getPaymentStatus().name().equalsIgnoreCase(paymentStatus)) {
+                        return false;
+                    }
+                }
+                
+                // Tour filter
+                if (tourId != null && (booking.getTour() == null || !booking.getTour().getId().equals(tourId))) {
+                    return false;
+                }
+                
+                // Payment method filter - Note: payments are LAZY loaded, so we skip this filter for now
+                // This can be implemented later by fetching payments separately or using a JOIN query
+                // For now, paymentMethod parameter is accepted but not applied to avoid LazyInitializationException
+                
+                // Date filter
+                if (dateFilter != null && !dateFilter.equalsIgnoreCase("all")) {
+                    LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime bookingDateTime = booking.getCreatedAt();
+                    
+                    if (bookingDateTime != null) {
+                        if (dateFilter.equalsIgnoreCase("today")) {
+                            LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
+                            LocalDateTime endOfDay = startOfDay.plusDays(1);
+                            if (bookingDateTime.isBefore(startOfDay) || bookingDateTime.isAfter(endOfDay)) {
+                                return false;
+                            }
+                        } else if (dateFilter.equalsIgnoreCase("week")) {
+                            LocalDateTime weekAgo = now.minusWeeks(1);
+                            if (bookingDateTime.isBefore(weekAgo)) {
+                                return false;
+                            }
+                        } else if (dateFilter.equalsIgnoreCase("month")) {
+                            LocalDateTime monthAgo = now.minusMonths(1);
+                            if (bookingDateTime.isBefore(monthAgo)) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                
+                return true;
+            })
+            .collect(Collectors.toList());
+        
+        // Sort by createdAt DESC
+        filteredList.sort((a, b) -> {
+            if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
+                return b.getCreatedAt().compareTo(a.getCreatedAt());
+            }
+            return Long.compare(b.getId(), a.getId());
+        });
+        
+        // Convert to BookingResponse
+        return filteredList.stream()
+            .map(entityMapper::toBookingResponse)
+            .collect(Collectors.toList());
     }
 }
 

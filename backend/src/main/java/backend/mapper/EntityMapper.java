@@ -530,6 +530,12 @@ public class EntityMapper {
         response.setRepliedAt(review.getRepliedAt());
         response.setRepliedBy(review.getRepliedBy());
         
+        // Moderation fields
+        response.setIsSuspicious(review.getIsSuspicious());
+        response.setIsSpam(review.getIsSpam());
+        response.setAiAnalysis(review.getAiAnalysis());
+        response.setTags(review.getTags());
+        
         // Parse images JSON
         if (review.getImages() != null && !review.getImages().isEmpty()) {
             try {
@@ -550,6 +556,7 @@ public class EntityMapper {
             ReviewResponse.UserSummary userSummary = new ReviewResponse.UserSummary();
             userSummary.setId(user.getId());
             userSummary.setName(user.getName());
+            userSummary.setEmail(user.getEmail());
             userSummary.setAvatarUrl(user.getAvatarUrl());
             response.setUser(userSummary);
         }

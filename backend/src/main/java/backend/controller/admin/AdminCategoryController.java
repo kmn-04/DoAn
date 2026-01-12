@@ -29,7 +29,7 @@ import java.util.List;
 @Slf4j
 @Tag(name = "Admin Category Management", description = "Admin APIs for managing categories")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
-// @PreAuthorize("hasRole('ADMIN')") // Temporarily disabled for testing
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminCategoryController extends BaseController {
     
     private final CategoryService categoryService;

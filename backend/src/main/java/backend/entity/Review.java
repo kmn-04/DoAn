@@ -49,6 +49,18 @@ public class Review {
     @Column(name = "replied_by")
     private Long repliedBy; // Admin ID who replied
     
+    @Column(name = "is_suspicious")
+    private Boolean isSuspicious = false; // Tag as suspicious (AI detected or admin flagged)
+    
+    @Column(name = "is_spam")
+    private Boolean isSpam = false; // Tag as spam
+    
+    @Column(name = "ai_analysis", columnDefinition = "TEXT")
+    private String aiAnalysis; // AI analysis result (negative keywords, sentiment, etc.)
+    
+    @Column(name = "tags", columnDefinition = "VARCHAR(500)")
+    private String tags; // Comma-separated tags for additional categorization
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
