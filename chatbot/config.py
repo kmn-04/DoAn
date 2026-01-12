@@ -13,16 +13,11 @@ IMAGE_SEARCH_THRESHOLD = 75
 
 # Cấu hình OpenAI client với error handling
 try:
-    api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        print("[WARNING] OPENAI_API_KEY or OPENROUTER_API_KEY environment variable not set")
-        client = None
-    else:
-        client = OpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=api_key
-        )
-        print("[OK] OpenAI client initialized successfully")
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key="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"
+    )
+    print("[OK] OpenAI client initialized successfully")
 except Exception as e:
     print(f"[WARNING] Error initializing OpenAI client: {e}")
     client = None
