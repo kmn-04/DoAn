@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 @EnableCaching
 public class CacheConfig {
     
+    @SuppressWarnings("null")
     @Bean
     @Primary
     public CacheManager cacheManager() {
@@ -66,6 +67,7 @@ public class CacheConfig {
     /**
      * Cache riêng cho external API data (weather) - expire chậm hơn
      */
+    @SuppressWarnings("null")
     @Bean("weatherCacheManager")
     public CacheManager weatherCacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager("weatherData");
@@ -81,6 +83,7 @@ public class CacheConfig {
     /**
      * Cache cho master data (categories, destinations) - expire rất chậm
      */
+    @SuppressWarnings("null")
     @Bean("masterDataCacheManager")
     public CacheManager masterDataCacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager(
@@ -98,6 +101,7 @@ public class CacheConfig {
     /**
      * Cache riêng cho AI Insights - expire sau 1 giờ để tối ưu performance
      */
+    @SuppressWarnings("null")
     @Bean("aiInsightsCacheManager")
     public CacheManager aiInsightsCacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager("aiInsights");

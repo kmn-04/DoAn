@@ -37,7 +37,8 @@ spring:
     open-in-view: false  # Disable OSIV for better performance
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        # Dialect removed - Hibernate auto-detects MySQL dialect
+        # dialect: org.hibernate.dialect.MySQLDialect  # Use MySQLDialect if explicit config needed
         format_sql: true
         use_sql_comments: true
   
@@ -187,6 +188,7 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.mail: DEBUG
     org.springframework.context.support: DEBUG
+    org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer: ERROR  # Suppress AuthenticationProvider warning
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:

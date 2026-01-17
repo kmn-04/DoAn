@@ -13,9 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -102,6 +100,7 @@ public class AdminCategoryController extends BaseController {
             List<Category> pageContent = start > filteredList.size() ? new java.util.ArrayList<>() : filteredList.subList(start, end);
             
             List<CategoryResponse> responses = mapper.toCategoryResponseList(pageContent);
+            @SuppressWarnings("null")
             Page<CategoryResponse> pageResult = new org.springframework.data.domain.PageImpl<>(
                 responses, pageable, filteredList.size()
             );

@@ -2,7 +2,6 @@ package backend.config;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
@@ -34,10 +33,10 @@ public class RateLimitConfig {
      * 100 requests per minute
      */
     private Bucket createNewBucket() {
-        Bandwidth limit = Bandwidth.classic(
-            100,  // capacity
-            Refill.intervally(100, Duration.ofMinutes(1))  // refill rate
-        );
+        Bandwidth limit = Bandwidth.builder()
+            .capacity(100)  // capacity
+            .refillIntervally(100, Duration.ofMinutes(1))  // refill rate
+            .build();
         return Bucket.builder()
             .addLimit(limit)
             .build();
@@ -52,10 +51,10 @@ public class RateLimitConfig {
     }
     
     private Bucket createAuthBucket() {
-        Bandwidth limit = Bandwidth.classic(
-            5,  // capacity
-            Refill.intervally(5, Duration.ofMinutes(1))
-        );
+        Bandwidth limit = Bandwidth.builder()
+            .capacity(5)  // capacity
+            .refillIntervally(5, Duration.ofMinutes(1))
+            .build();
         return Bucket.builder()
             .addLimit(limit)
             .build();
@@ -70,10 +69,10 @@ public class RateLimitConfig {
     }
     
     private Bucket createChatbotBucket() {
-        Bandwidth limit = Bandwidth.classic(
-            20,  // capacity
-            Refill.intervally(20, Duration.ofMinutes(1))
-        );
+        Bandwidth limit = Bandwidth.builder()
+            .capacity(20)  // capacity
+            .refillIntervally(20, Duration.ofMinutes(1))
+            .build();
         return Bucket.builder()
             .addLimit(limit)
             .build();
